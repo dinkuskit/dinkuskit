@@ -1,11 +1,16 @@
 -- Inventory Connect transactions and uniquely bound site grants.
--- SQL source of truth; runtime applies only when this version is pending.
+-- SQL source of truth. Runtime applies only when this version is pending.
 
-CREATE TABLE dinkuskit_schema_migrations (
+CREATE TABLE IF NOT EXISTS dinkuskit_schema_migrations (
   version INTEGER PRIMARY KEY,
   name TEXT NOT NULL,
   applied_at INTEGER NOT NULL
 );
+
+INSERT OR IGNORE INTO dinkuskit_schema_migrations (version, name, applied_at) VALUES
+  (1, '0001_better_auth.sql', unixepoch()),
+  (2, '0002_dinkuskit.sql', unixepoch()),
+  (3, '0003_store_connect.sql', unixepoch());
 
 CREATE TABLE dinkuskit_store_connection (
   connection_id TEXT NOT NULL PRIMARY KEY,

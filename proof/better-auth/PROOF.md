@@ -4,7 +4,7 @@ Better Auth1.7.6 backs merchant signup, sign-in, recovery, logout and protected 
 
 ## Parent verification
 
-`npm run verify` independently passed on Node22.23.2 after the final source correction and a fresh `npm ci`: repository audit, local-only versioned D1 setup, Wrangler types, typecheck0errors/0warnings/0hints, Cloudflare build,13merchant tests,8EmDash public-auth feasibility tests and7HTTP smoke checks. The implementation input hashes are in [implementation-manifest.json](implementation-manifest.json). The feasibility tests remain historical CMS-helper evidence; they are not the Better Auth browser proof.
+`npm run verify` independently passed on Node22.23.2 after the final source correction and a fresh `npm ci`: repository audit, local-only versioned D1 setup, Wrangler types, typecheck0errors/0warnings/0hints, Cloudflare build,15merchant tests,8EmDash public-auth feasibility tests and7HTTP smoke checks. The implementation input hashes are in [implementation-manifest.json](implementation-manifest.json). The feasibility tests remain historical CMS-helper evidence; they are not the Better Auth browser proof.
 
 Merchant workerd checks include persistence/restart, separate users, single-use/expired/concurrent magic links, current disabled state, foreign/missing Origin rejection, safe redirects, fresh/upgrade migrations, and authenticated CMS isolation. The CMS positive control registers and authenticates a software passkey through public EmDash setup/auth routes, reaches protected settings, and proves bidirectional isolation. No CMS auth rows are fabricated.
 
@@ -22,7 +22,7 @@ The placeholder `.example` callback did not load; return-to-hosted-Inventory del
 
 ## Source-bound browser assets
 
-[PR4](https://github.com/dinkuskit/dinkuskit/pull/4) targets base `347514c8c7757ce744b5f5e406b7fd00c014cc5c`. Browser captures bind to implementation head `089240aee0af0244ce231861a3eeb600bd7f1807`; the subsequent clean-install repair changes only package metadata/lock closure and decision lineage. The 73 remaining implementation inputs, including every page, runtime and test, match the capture source. The updated [implementation manifest](implementation-manifest.json) binds the final tested dependency closure.
+[PR4](https://github.com/dinkuskit/dinkuskit/pull/4) targets base `347514c8c7757ce744b5f5e406b7fd00c014cc5c`. Browser captures bind to implementation head `089240aee0af0244ce231861a3eeb600bd7f1807`. Subsequent source corrections close the dependency lock and migration ledger; every page, layout and style still matches the capture source. Migration regressions and the full built-worker suite were rerun after the corrections. The updated [implementation manifest](implementation-manifest.json) binds the final tested source and dependency closure.
 
 Shelf: `dinkuskit/dinkus-pr-assets`; [release dinkuskit-pr-4-089240aee0af](https://github.com/dinkuskit/dinkus-pr-assets/releases/tag/dinkuskit-pr-4-089240aee0af), ID `399745640`, published `2026-09-30T05:33:40Z`. The shelf is private and requires authenticated GitHub access. Unique release with no replacement; GitHub reports `immutable: false`, so server-enforced locking is not claimed. No repository setting was changed.
 
@@ -44,9 +44,15 @@ CI initially failed before tests because the lock omitted Wrangler’s optional 
 
 ## Finding disposition
 
-Accepted and fixed: custom account CSRF, missing-binding Host/random-secret fallbacks, production configuration accepting simulation capture, second-merchant pending preview, unconditional grant insertion after denial, stale account/expiry/grant redemption checks, unusable signing key consumption, unsupported local migration CLI flag, missing clean-install Cloudflare peer-lock closure, weak CMS positive control and internal protocol notes in product pages. Corresponding built-route regressions and browser checks passed.
+Accepted and fixed: custom account CSRF, missing-binding Host/random-secret fallbacks, production configuration accepting simulation capture, second-merchant pending preview, unconditional grant insertion after denial, stale account/expiry/grant redemption checks, unusable signing key consumption, unsupported local migration CLI flag, missing clean-install Cloudflare peer-lock closure, fresh CLI migration-ledger initialization, weak CMS positive control and internal protocol notes in product pages. Corresponding built-route regressions and browser checks passed.
 
 Rejected on final source: the initial signup-metadata concern; actual signup and recovery passed through Better Auth's verification handler. Literal loopback rejection is accepted only as a hostname-policy check, never proof of DNS-safe runtime fetch.
+
+## Comprehensive review correction
+
+The first exact-source comprehensive review found a real fresh CLI migration failure: all three SQL files applied successfully, but the internal ledger was empty. The next account request treated the schema as version0 and failed recreating `user`. Parent independently reproduced two HTTP500 responses after a successful CLI apply. The runtime-only fresh path already recorded version3; that part of the reviewer description was overstated, while its documented CLI setup failure was accepted and fixed.
+
+Migration0003 now records versions1/2/3; runtime reconciles known already-applied schemas and records contiguous history. SQL comments are removed before statement splitting. The three built-worker regressions cover CLI-all-three, runtime-fresh and upgrade-from0002, each with repeat requests and worker restart. Before correction:1pass/2fail; after correction:3pass/0fail. Parent independently reran the full suite and the originally failing CLI probe; both account requests now return200.
 
 ## Production and review gates
 

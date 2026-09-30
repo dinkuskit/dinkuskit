@@ -9,10 +9,13 @@ export const MERCHANT_MIGRATIONS: readonly Migration[] = [
   { version: 3, name: '0003_store_connect.sql', sql: sql0003 },
 ];
 
+const LEDGER_DDL = 'CREATE TABLE IF NOT EXISTS dinkuskit_schema_migrations (version INTEGER PRIMARY KEY, name TEXT NOT NULL, applied_at INTEGER NOT NULL)';
+
 function statements(sql: string): string[] {
   return sql
+    .replace(/--[^\n]*/g, '')
     .split(';')
-    .map(part => part.replace(/--[^\n]*/g, '').trim())
+    .map(part => part.trim())
     .filter(Boolean);
 }
 
@@ -23,13 +26,21 @@ async function tableExists(db: D1Database, name: string): Promise<boolean> {
   return Boolean(row?.name);
 }
 
-export async function currentMerchantSchemaVersion(db: D1Database): Promise<number> {
-  if (await tableExists(db, 'dinkuskit_schema_migrations')) {
-    const row = await db.prepare('SELECT MAX(version) AS v FROM dinkuskit_schema_migrations').first<{ v: number | null }>();
-    return row?.v ?? 0;
-  }
+async function recordedMerchantSchemaVersion(db: D1Database): Promise<number | null> {
+  if (!(await tableExists(db, 'dinkuskit_schema_migrations'))) return null;
+  const row = await db.prepare('SELECT MAX(version) AS v FROM dinkuskit_schema_migrations').first<{ v: number | null }>();
+  return row?.v ?? null;
+}
+
+async function detectedAppliedMerchantSchemaVersion(db: D1Database): Promise<number> {
+  if (await tableExists(db, 'dinkuskit_store_connection')) return 3;
   if (await tableExists(db, 'dinkuskit_account')) return 2;
+  if (await tableExists(db, 'user')) return 1;
   return 0;
+}
+
+export async function currentMerchantSchemaVersion(db: D1Database): Promise<number> {
+  return await recordedMerchantSchemaVersion(db) ?? await detectedAppliedMerchantSchemaVersion(db);
 }
 
 async function applySql(db: D1Database, sql: string): Promise<void> {
@@ -38,32 +49,28 @@ async function applySql(db: D1Database, sql: string): Promise<void> {
   await db.batch(parts.map(part => db.prepare(part)));
 }
 
+async function recordAppliedMerchantVersions(db: D1Database, upTo: number, now: number): Promise<void> {
+  if (upTo < 1) return;
+  await db.prepare(LEDGER_DDL).run();
+  await db.batch(
+    MERCHANT_MIGRATIONS.filter(migration => migration.version <= upTo).map(migration =>
+      db.prepare(
+        'INSERT OR IGNORE INTO dinkuskit_schema_migrations (version, name, applied_at) VALUES (?, ?, ?)',
+      ).bind(migration.version, migration.name, now),
+    ),
+  );
+}
+
 export async function applyPendingMerchantMigrations(db: D1Database): Promise<{ from: number; to: number }> {
   const from = await currentMerchantSchemaVersion(db);
-  if (from >= CURRENT_MERCHANT_SCHEMA_VERSION) return { from, to: from };
   const now = Math.floor(Date.now() / 1000);
-  for (const migration of MERCHANT_MIGRATIONS) {
-    if (migration.version <= from) continue;
-    if (migration.version === 3 && !(await tableExists(db, 'dinkuskit_schema_migrations'))) {
-      const connectionStatements = statements(migration.sql).filter(part => !part.includes('dinkuskit_schema_migrations'));
-      if (connectionStatements.length) await db.batch(connectionStatements.map(part => db.prepare(part)));
-      await db.prepare(
-        'CREATE TABLE IF NOT EXISTS dinkuskit_schema_migrations (version INTEGER PRIMARY KEY, name TEXT NOT NULL, applied_at INTEGER NOT NULL)',
-      ).run();
-    } else {
+  if (from < CURRENT_MERCHANT_SCHEMA_VERSION) {
+    for (const migration of MERCHANT_MIGRATIONS) {
+      if (migration.version <= from) continue;
       await applySql(db, migration.sql);
     }
-    if (await tableExists(db, 'dinkuskit_schema_migrations')) {
-      await db.prepare(
-        'INSERT OR IGNORE INTO dinkuskit_schema_migrations (version, name, applied_at) VALUES (?, ?, ?)',
-      ).bind(migration.version, migration.name, now).run();
-    }
   }
-  if (from === 2 && await tableExists(db, 'dinkuskit_schema_migrations')) {
-    await db.batch([
-      db.prepare('INSERT OR IGNORE INTO dinkuskit_schema_migrations (version, name, applied_at) VALUES (1, ?, ?)').bind('0001_better_auth.sql', now),
-      db.prepare('INSERT OR IGNORE INTO dinkuskit_schema_migrations (version, name, applied_at) VALUES (2, ?, ?)').bind('0002_dinkuskit.sql', now),
-    ]);
-  }
+  const to = Math.max(from, await currentMerchantSchemaVersion(db));
+  await recordAppliedMerchantVersions(db, to, now);
   return { from, to: await currentMerchantSchemaVersion(db) };
 }

@@ -15,7 +15,7 @@
     },
     {
       "path": "migrations/merchant/0003_store_connect.sql",
-      "sha256": "dc8ef401ed7ffa1c0d48298732f2e9d76a24488f77321362bfe8b873c8bf6cc9"
+      "sha256": "b3a13edaf32ea451b432a3fc78cc9b5e49ab644557229c2be56dedd0bb7f685d"
     },
     {
       "path": "package-lock.json",
@@ -99,11 +99,11 @@
     },
     {
       "path": "src/account/migrate.ts",
-      "sha256": "25623e69db2e48b7c16f4d98c1efe55b67ebf2d42a68de7d28f2f4aebcb91a2c"
+      "sha256": "b9bffee62a95c8d8ea887a1c726854d3611603ec4a1628c62e394f71c025cd20"
     },
     {
       "path": "src/account/migration-sql.ts",
-      "sha256": "4fdeec8fb2c1c3b5f93ff801987bf1e7e2f0163324feeef7cc89489122d7f101"
+      "sha256": "a18e3ffe310a7c0f52d30006c9bdabbb539892177c6c4913f2617ff1faabf47a"
     },
     {
       "path": "src/account/origin.ts",
@@ -279,7 +279,7 @@
     },
     {
       "path": "tests/merchant-migrations.test.mjs",
-      "sha256": "130402f7fdc3e81f590fd118742574457124601d6a55a5d4bd26e9cdab5ebe77"
+      "sha256": "a89cbc5bc39256a97563cb309169768f6304f997abef08d88d93a06ea9f02a5e"
     },
     {
       "path": "tests/store-connections.test.mjs",

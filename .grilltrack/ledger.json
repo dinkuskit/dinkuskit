@@ -4,11 +4,11 @@
   "current_focus": {
     "cadence": "sequential",
     "confirmed": true,
-    "confirmed_at": "2026-09-30T05:40:00+00:00",
+    "confirmed_at": "2026-09-30T05:50:12+00:00",
     "domain": "Better Auth merchant routes on Cloudflare Workers and D1",
-    "started_at": "2026-09-30T05:39:26+00:00",
+    "started_at": "2026-09-30T05:50:12+00:00",
     "status": "confirmed",
-    "summary": "Existing authorized Better Auth implementation and pinned peer-lock repair are independently verified. Record the durable public cumulative proof, preserve decision history, then publish the draft for exact-source review. No product decision change."
+    "summary": "Repair only merchant migration SQL, generated migration-sql.ts, and runtime ledger lifecycle so wrangler-applied fresh all 3, runtime-fresh 0 to 3, and legacy-2 upgrade record versions 1/2/3 and never recreate existing user tables. Prove built-worker regressions fail before the fix, then pass after, including repeat and restart. Full npm run verify on Node 22.23.2. Leave merchant-better-auth-008 IMPLEMENTED for parent public proof. No packages, pages, copy, protocol, workflows, media, commit, push, merge, deploy, or review-rail actions."
   },
   "decisions": [
     {
@@ -633,7 +633,7 @@
     {
       "baseline_ref": "git:60fa92ba1b53305eec883de849ef8766a11d76fe",
       "candidate_refs": [],
-      "choice": "Keep the previously verified Better Auth merchant product. Repair only the clean-install peer-lock gap: pin @cloudflare/workers-types to exact 5.20260926.1 (wrangler 4.144.0 peer floor; workerd 1.20260926.1 already locked) and record that package in package-lock.json so npm ci cannot resolve a floating daily types peer such as 5.20260930.1. No product, runtime, test, page, workflow, or screenshot changes.",
+      "choice": "Keep the previously verified Better Auth merchant product and accepted workers-types pin 5.20260926.1. Repair only the merchant migration ledger lifecycle so externally applied wrangler 0001/0002/0003, runtime-fresh 0 to 3, and legacy-2 upgrade all record contiguous versions 1/2/3 and never recreate existing user tables. Add built-worker regressions for CLI-all-3, runtime-fresh, and upgrade, each with repeat and restart. No package, page, copy, protocol, workflow, or media changes.",
       "context_ref": "file:docs/CHARTER.md",
       "created_at": "2026-09-30T03:07:58+00:00",
       "deferred_reason": null,
@@ -922,12 +922,68 @@
           "review_source_identity": null,
           "to": "verified",
           "verification_ref": "file:.grilltrack/work/better-auth/ci-lock-repair/PROOF.md;cmd:npm ci;cmd:npm run verify"
+        },
+        {
+          "at": "2026-09-30T05:50:12+00:00",
+          "choice": "Keep the previously verified Better Auth merchant product. Repair only the clean-install peer-lock gap: pin @cloudflare/workers-types to exact 5.20260926.1 (wrangler 4.144.0 peer floor; workerd 1.20260926.1 already locked) and record that package in package-lock.json so npm ci cannot resolve a floating daily types peer such as 5.20260930.1. No product, runtime, test, page, workflow, or screenshot changes.",
+          "from": "verified",
+          "implementation_ref": "file:src/account;file:src/pages/account;file:src/pages/api;file:src/worker.ts;file:migrations/merchant;file:package.json;file:package-lock.json;file:tests",
+          "note": "Spark req-20260930T054205Z-155277014346 comprehensive exact-source review required_fix: external wrangler d1 migrations apply of 0001/0002/0003 leaves dinkuskit_schema_migrations empty, so currentMerchantSchemaVersion returns 0 and the next account request CREATE TABLE user fails. Parent reproduced CLI exit 0 then two /account/signup 500 D1_ERROR table user already exists. Record already-applied versions; keep contiguous history for runtime-fresh and legacy-2 upgrade.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "reopened",
+          "verification_ref": "file:proof/better-auth/PROOF.md"
+        },
+        {
+          "at": "2026-09-30T05:50:12+00:00",
+          "choice": "Keep the previously verified Better Auth merchant product. Repair only the clean-install peer-lock gap: pin @cloudflare/workers-types to exact 5.20260926.1 (wrangler 4.144.0 peer floor; workerd 1.20260926.1 already locked) and record that package in package-lock.json so npm ci cannot resolve a floating daily types peer such as 5.20260930.1. No product, runtime, test, page, workflow, or screenshot changes.",
+          "from": "reopened",
+          "implementation_ref": "file:src/account;file:src/pages/account;file:src/pages/api;file:src/worker.ts;file:migrations/merchant;file:package.json;file:package-lock.json;file:tests",
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": "file:proof/better-auth/PROOF.md"
+        },
+        {
+          "at": "2026-09-30T05:52:55+00:00",
+          "choice": "Keep the previously verified Better Auth merchant product and accepted workers-types pin 5.20260926.1. Repair only the merchant migration ledger lifecycle so externally applied wrangler 0001/0002/0003, runtime-fresh 0 to 3, and legacy-2 upgrade all record contiguous versions 1/2/3 and never recreate existing user tables. Add built-worker regressions for CLI-all-3, runtime-fresh, and upgrade, each with repeat and restart. No package, page, copy, protocol, workflow, or media changes.",
+          "from": "locked",
+          "implementation_ref": "file:src/account;file:src/pages/account;file:src/pages/api;file:src/worker.ts;file:migrations/merchant;file:package.json;file:package-lock.json;file:tests",
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": "file:proof/better-auth/PROOF.md"
+        },
+        {
+          "at": "2026-09-30T05:55:37+00:00",
+          "choice": "Keep the previously verified Better Auth merchant product and accepted workers-types pin 5.20260926.1. Repair only the merchant migration ledger lifecycle so externally applied wrangler 0001/0002/0003, runtime-fresh 0 to 3, and legacy-2 upgrade all record contiguous versions 1/2/3 and never recreate existing user tables. Add built-worker regressions for CLI-all-3, runtime-fresh, and upgrade, each with repeat and restart. No package, page, copy, protocol, workflow, or media changes.",
+          "from": "implemented",
+          "implementation_ref": "file:migrations/merchant/0003_store_connect.sql;file:src/account/migrate.ts;file:src/account/migration-sql.ts;file:tests/merchant-migrations.test.mjs",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": "file:proof/better-auth/PROOF.md"
         }
       ],
       "id": "merchant-better-auth-008",
-      "implementation_ref": "file:src/account;file:src/pages/account;file:src/pages/api;file:src/worker.ts;file:migrations/merchant;file:package.json;file:package-lock.json;file:tests",
+      "implementation_ref": "file:migrations/merchant/0003_store_connect.sql;file:src/account/migrate.ts;file:src/account/migration-sql.ts;file:tests/merchant-migrations.test.mjs",
       "question": "Which maintained identity implementation backs merchant accounts?",
-      "rationale": "CI 36673237919 failed npm ci with EUSAGE because package-lock.json recorded wrangler 4.144.0 optional peer ^5.20260926.1 as a range only and omitted the workers-types package. Existing node_modules masked the incomplete closure. Pin the wrangler-aligned exact version instead of locking today's floating 5.20260930.1.",
+      "rationale": "Parent-adjudicated Spark P1. Documented npm setup runs wrangler d1 migrations apply, which creates an empty merchant ledger. Runtime then treats the database as version 0. Contiguous history is required for all three accepted apply paths.",
       "repair_required": false,
       "review_classifications": [],
       "review_history": [],
@@ -936,12 +992,12 @@
       "review_source_identity": null,
       "status": "verified",
       "superseded_by": null,
-      "updated_at": "2026-09-30T05:40:00+00:00",
+      "updated_at": "2026-09-30T05:55:37+00:00",
       "verification_ref": "file:proof/better-auth/PROOF.md"
     }
   ],
   "last_activation": {
-    "at": "2026-09-30T05:39:26+00:00",
+    "at": "2026-09-30T05:50:12+00:00",
     "mechanism": "implicit"
   },
   "last_pause": {
@@ -968,5 +1024,5 @@
   "status": "active",
   "title": "DinkusKit website foundation",
   "track_id": "gt-20260930021417-e281b2",
-  "updated_at": "2026-09-30T05:40:00+00:00"
+  "updated_at": "2026-09-30T05:55:37+00:00"
 }

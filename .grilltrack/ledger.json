@@ -4,11 +4,11 @@
   "current_focus": {
     "cadence": "sequential",
     "confirmed": true,
-    "confirmed_at": "2026-09-30T02:14:17+00:00",
-    "domain": "Runnable EmDash website scaffold and shared account boundaries",
-    "started_at": "2026-09-30T02:14:17+00:00",
+    "confirmed_at": "2026-09-30T15:06:18+00:00",
+    "domain": "Public introduction launch and accepted visual direction",
+    "started_at": "2026-09-30T15:06:18+00:00",
     "status": "confirmed",
-    "summary": "Create and publish the bounded DinkusKit EmDash website scaffold, with local runtime/build/type/public-safety proof. Preserve existing-site-first, Registry plugins, shared identity with explicit site grants, native blocks, and trial-without-card direction. Authentication proof is the next slice; production hosting, service activation, billing and portal UI are not part of this scaffold. The user explicitly requested the repository and previously authorized opening PRs without waiting on review rails."
+    "summary": "Keep the accepted colors and simple layout; prepare the two public native EmDash pages for an early Workers Static Assets release on dinkuskit.com. Merchant services remain unavailable. Do local preparation and review; preserve separate gates on merges and production deployment."
   },
   "decisions": [
     {
@@ -368,26 +368,246 @@
       "superseded_by": null,
       "updated_at": "2026-09-30T02:24:39+00:00",
       "verification_ref": "file:proof/website-foundation/README.md;cmd:npm run verify"
+    },
+    {
+      "baseline_ref": "git:15d92b247d5e5068f7e7bf7e3bbe643758990dca",
+      "candidate_refs": [],
+      "choice": "Retain the current light background, green accents, typography and simple layout shown in the inspected public preview.",
+      "context_ref": "file:design.md",
+      "created_at": "2026-09-30T15:06:18+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [],
+      "domain": "Public introduction launch and accepted visual direction",
+      "history": [
+        {
+          "at": "2026-09-30T15:06:18+00:00",
+          "choice": "Retain the current light background, green accents, typography and simple layout shown in the inspected public preview.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-09-30T15:25:13+00:00",
+          "choice": "Retain the current light background, green accents, typography and simple layout shown in the inspected public preview.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-09-30T15:25:13+00:00",
+          "choice": "Retain the current light background, green accents, typography and simple layout shown in the inspected public preview.",
+          "from": "implemented",
+          "implementation_ref": "file:design.md;file:docs/CHARTER.md",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": null
+        }
+      ],
+      "id": "website-visual-007",
+      "implementation_ref": "file:design.md;file:docs/CHARTER.md",
+      "question": "What visual direction should the public introduction retain?",
+      "rationale": "Bobby explicitly praised the colors and simplicity and instructed us to proceed.",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [
+        {
+          "classifications": [],
+          "ref": "file:.grilltrack/work/site-launch-20260930/EXPORTER-REVIEW-DISPOSITION.md",
+          "result": "clean",
+          "reviewed_at": "2026-09-30T15:25:13+00:00",
+          "source_identity": "sha256:4c3c10f3a8e8a82ae32a0e4bb6063b67bbb64ae795f3469b9002e95c6ecc1244"
+        }
+      ],
+      "review_ref": "file:.grilltrack/work/site-launch-20260930/EXPORTER-REVIEW-DISPOSITION.md",
+      "review_result": "clean",
+      "review_source_identity": "sha256:4c3c10f3a8e8a82ae32a0e4bb6063b67bbb64ae795f3469b9002e95c6ecc1244",
+      "status": "verified",
+      "superseded_by": null,
+      "updated_at": "2026-09-30T15:25:13+00:00",
+      "verification_ref": "file:.grilltrack/work/site-launch-20260930/candidate-homepage.png;file:.grilltrack/work/site-launch-20260930/final-export-regression.json"
+    },
+    {
+      "baseline_ref": null,
+      "candidate_refs": [
+        "file:.grilltrack/work/site-launch-20260930/release-manifest.json"
+      ],
+      "choice": "Prepare the current two public EmDash pages as a frozen Workers Static Assets release for dinkuskit.com. Merchant accounts, hosted Connect, service activation and payments remain unavailable. Source remains EmDash/native blocks; changes require rebuild and republication.",
+      "context_ref": "file:docs/public-launch.md",
+      "created_at": "2026-09-30T15:06:18+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [
+        "website-platform-001",
+        "website-domain-006",
+        "website-visual-007"
+      ],
+      "domain": "Public introduction launch and accepted visual direction",
+      "history": [
+        {
+          "at": "2026-09-30T15:06:18+00:00",
+          "choice": "Prepare the current two public EmDash pages as a frozen Workers Static Assets release for dinkuskit.com. Merchant accounts, hosted Connect, service activation and payments remain unavailable. Source remains EmDash/native blocks; changes require rebuild and republication.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-09-30T15:25:13+00:00",
+          "choice": "Prepare the current two public EmDash pages as a frozen Workers Static Assets release for dinkuskit.com. Merchant accounts, hosted Connect, service activation and payments remain unavailable. Source remains EmDash/native blocks; changes require rebuild and republication.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-09-30T15:25:14+00:00",
+          "choice": "Prepare the current two public EmDash pages as a frozen Workers Static Assets release for dinkuskit.com. Merchant accounts, hosted Connect, service activation and payments remain unavailable. Source remains EmDash/native blocks; changes require rebuild and republication.",
+          "from": "implemented",
+          "implementation_ref": "file:scripts/prepare-public-release.mjs;file:docs/public-launch.md;file:package.json",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-09-30T15:25:14+00:00",
+          "choice": "Prepare the current two public EmDash pages as a frozen Workers Static Assets release for dinkuskit.com. Merchant accounts, hosted Connect, service activation and payments remain unavailable. Source remains EmDash/native blocks; changes require rebuild and republication.",
+          "from": "verified",
+          "implementation_ref": "file:scripts/prepare-public-release.mjs;file:docs/public-launch.md;file:package.json",
+          "note": "adjudicated review requires a fix",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "needs_reverification",
+          "verification_ref": "file:.grilltrack/work/site-launch-20260930/reproducibility-proof.json"
+        },
+        {
+          "at": "2026-09-30T15:25:14+00:00",
+          "choice": "Prepare the current two public EmDash pages as a frozen Workers Static Assets release for dinkuskit.com. Merchant accounts, hosted Connect, service activation and payments remain unavailable. Source remains EmDash/native blocks; changes require rebuild and republication.",
+          "from": "needs_reverification",
+          "implementation_ref": "file:scripts/prepare-public-release.mjs;file:docs/public-launch.md;file:package.json",
+          "note": "bounded implementation recorded",
+          "repair_required": true,
+          "review_classifications": [
+            "required_fix"
+          ],
+          "review_ref": "file:.grilltrack/work/site-launch-20260930/EXPORTER-REVIEW-DISPOSITION.md",
+          "review_result": "findings",
+          "review_source_identity": "sha256:4c3c10f3a8e8a82ae32a0e4bb6063b67bbb64ae795f3469b9002e95c6ecc1244",
+          "to": "implemented",
+          "verification_ref": "file:.grilltrack/work/site-launch-20260930/reproducibility-proof.json"
+        },
+        {
+          "at": "2026-09-30T15:25:14+00:00",
+          "choice": "Prepare the current two public EmDash pages as a frozen Workers Static Assets release for dinkuskit.com. Merchant accounts, hosted Connect, service activation and payments remain unavailable. Source remains EmDash/native blocks; changes require rebuild and republication.",
+          "from": "implemented",
+          "implementation_ref": "file:scripts/prepare-public-release.mjs;file:docs/public-launch.md;file:package.json",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": "file:.grilltrack/work/site-launch-20260930/reproducibility-proof.json"
+        }
+      ],
+      "id": "website-public-launch-008",
+      "implementation_ref": "file:scripts/prepare-public-release.mjs;file:docs/public-launch.md;file:package.json",
+      "question": "Should the public introduction launch before merchant hosting?",
+      "rationale": "Bobby instructed proceed in response to the public-only launch recommendation. Merges and live deployment still require separate approval after current formal reviews and account/domain verification.",
+      "repair_required": false,
+      "review_classifications": [
+        "defer",
+        "human_gate"
+      ],
+      "review_history": [
+        {
+          "classifications": [
+            "required_fix"
+          ],
+          "ref": "file:.grilltrack/work/site-launch-20260930/EXPORTER-REVIEW-DISPOSITION.md",
+          "result": "findings",
+          "reviewed_at": "2026-09-30T15:25:14+00:00",
+          "source_identity": "sha256:4c3c10f3a8e8a82ae32a0e4bb6063b67bbb64ae795f3469b9002e95c6ecc1244"
+        },
+        {
+          "classifications": [
+            "defer",
+            "human_gate"
+          ],
+          "ref": "file:.grilltrack/work/site-launch-20260930/EXPORTER-REVIEW-DISPOSITION.md;file:.grilltrack/work/site-launch-20260930/final-export-regression.json",
+          "result": "findings",
+          "reviewed_at": "2026-09-30T15:25:14+00:00",
+          "source_identity": "sha256:c07f05585bfbbc67d1eb0e2fa2e3629fdbd3f5eb37553e634600f499eb57017d"
+        }
+      ],
+      "review_ref": "file:.grilltrack/work/site-launch-20260930/EXPORTER-REVIEW-DISPOSITION.md;file:.grilltrack/work/site-launch-20260930/final-export-regression.json",
+      "review_result": "findings",
+      "review_source_identity": "sha256:c07f05585bfbbc67d1eb0e2fa2e3629fdbd3f5eb37553e634600f499eb57017d",
+      "status": "verified",
+      "superseded_by": null,
+      "updated_at": "2026-09-30T15:25:14+00:00",
+      "verification_ref": "file:.grilltrack/work/site-launch-20260930/final-export-regression.json;file:.grilltrack/work/site-launch-20260930/final-dry-run.log"
     }
   ],
   "last_activation": {
-    "at": "2026-09-30T02:14:17+00:00",
+    "at": "2026-09-30T15:06:18+00:00",
     "mechanism": "implicit"
   },
-  "last_pause": null,
-  "pause": {
+  "last_pause": {
     "artifact_refs": [
       "docs/authentication-research.md",
       "proof/website-foundation/README.md"
     ],
     "next_safe_action": "Continue with the bounded supported-API EmDash authentication proof; do not infer production auth or deployment from the scaffold.",
     "paused_at": "2026-09-30T02:24:40+00:00",
-    "reason": "Website scaffold verified and ready for the authorized draft PR; shared-account implementation and future product constraints remain open."
+    "reason": "Website scaffold verified and ready for the authorized draft PR; shared-account implementation and future product constraints remain open.",
+    "resumed_at": "2026-09-30T15:06:18+00:00"
   },
+  "pause": null,
   "recommendation": null,
   "schema_version": "grilltrack/v0.1",
-  "status": "paused",
+  "status": "active",
   "title": "DinkusKit website foundation",
   "track_id": "gt-20260930021417-e281b2",
-  "updated_at": "2026-09-30T02:24:40+00:00"
+  "updated_at": "2026-09-30T15:25:14+00:00"
 }

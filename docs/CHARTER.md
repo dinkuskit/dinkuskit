@@ -24,7 +24,7 @@ See `docs/authentication-research.md` for the evidence and bounded proof. Authen
 
 Deliver an independently versioned, runnable EmDash website foundation, a small public homepage/getting-started skeleton, native-block readiness, local verification, and durable product decisions. The skeleton may explain that hosted access is being prepared; it must not present a working login, trial activation or Stripe connection that does not exist.
 
-Keep styling minimal and accessible. This is a technical scaffold, not a confirmed visual design. Do not add a fake account database, duplicate inventory, test tenants presented as live customers, analytics, email sending, payments or remote infrastructure.
+Keep styling minimal and accessible. Bobby approved the current colors and simple layout for the public introduction. See design.md and docs/public-launch.md for the accepted release scope. Do not add a fake account database, duplicate inventory, test tenants presented as live customers, analytics, email sending, payments or remote infrastructure.
 
 ## Future possibilities
 

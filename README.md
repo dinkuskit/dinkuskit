@@ -33,7 +33,7 @@ The smoke expectations refer to the original starter content. If you edit that c
 - [Product charter](docs/CHARTER.md)
 - [Authentication research and next proof](docs/authentication-research.md)
 - [Public source provenance](docs/provenance.md)
-- [Verification evidence](proof/website-foundation/README.md)
+- [Verification evidence](proof/website-foundation/PROOF.md)
 
 The local runtime is Node SSR with SQLite. Production hosting, DNS, recovery email, service credentials and deployment remain unconfigured. Selecting the public domain does not enable any live service. The default styling is provisional; the visual design remains open in `design.md`.
 

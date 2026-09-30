@@ -2,7 +2,7 @@
 
 Local proof on Node 22.23.2 against EmDash 1.0.1 public auth exports and a DinkusKit-owned account boundary. No public login route was added. Browser recovery and native provider integration were not claimed.
 
-The initial review findings are recorded in `parent-review.md`. The final source review is recorded separately after the implementation commit.
+The initial review findings are recorded in `parent-review.md`. The final source review is recorded in [final-review.md](final-review.md), bound to the implementation commit.
 
 ## Result
 

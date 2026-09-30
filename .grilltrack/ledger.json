@@ -252,7 +252,9 @@
       "question": "What is the account boundary?",
       "rationale": "User agreed to the website and shared-account scope, retained future uses, and explicitly requested the new repository scaffold.",
       "repair_required": false,
-      "review_classifications": [],
+      "review_classifications": [
+        "defer"
+      ],
       "review_history": [
         {
           "classifications": [
@@ -262,14 +264,23 @@
           "result": "findings",
           "reviewed_at": "2026-09-30T02:39:41+00:00",
           "source_identity": "sha256:842a7c362db84012710cf1769018d1fd24c1dc9c13d11fc1e156fa2a6a40fdb5"
+        },
+        {
+          "classifications": [
+            "defer"
+          ],
+          "ref": "file:proof/merchant-auth-proof/final-review.md",
+          "result": "findings",
+          "reviewed_at": "2026-09-30T02:50:51+00:00",
+          "source_identity": "git:86e4d211069cef5c1b0b21d2fdeac81676d7c51d"
         }
       ],
-      "review_ref": null,
-      "review_result": null,
-      "review_source_identity": null,
+      "review_ref": "file:proof/merchant-auth-proof/final-review.md",
+      "review_result": "findings",
+      "review_source_identity": "git:86e4d211069cef5c1b0b21d2fdeac81676d7c51d",
       "status": "verified",
       "superseded_by": null,
-      "updated_at": "2026-09-30T02:43:03+00:00",
+      "updated_at": "2026-09-30T02:50:51+00:00",
       "verification_ref": "file:proof/merchant-auth-proof/README.md;cmd:npm run verify;note:bounded-proof-only;native-browser-unresolved"
     },
     {
@@ -588,7 +599,9 @@
       "question": "Can EmDash 1.0.1 supported public APIs prove general merchant identity for DinkusKit?",
       "rationale": "Parent review required the allowlist claim and homemade runtime to be corrected. User authorized this bounded repair in the same workspace.",
       "repair_required": false,
-      "review_classifications": [],
+      "review_classifications": [
+        "defer"
+      ],
       "review_history": [
         {
           "classifications": [
@@ -598,33 +611,31 @@
           "result": "findings",
           "reviewed_at": "2026-09-30T02:39:37+00:00",
           "source_identity": "sha256:842a7c362db84012710cf1769018d1fd24c1dc9c13d11fc1e156fa2a6a40fdb5"
+        },
+        {
+          "classifications": [
+            "defer"
+          ],
+          "ref": "file:proof/merchant-auth-proof/final-review.md",
+          "result": "findings",
+          "reviewed_at": "2026-09-30T02:50:51+00:00",
+          "source_identity": "git:86e4d211069cef5c1b0b21d2fdeac81676d7c51d"
         }
       ],
-      "review_ref": null,
-      "review_result": null,
-      "review_source_identity": null,
+      "review_ref": "file:proof/merchant-auth-proof/final-review.md",
+      "review_result": "findings",
+      "review_source_identity": "git:86e4d211069cef5c1b0b21d2fdeac81676d7c51d",
       "status": "verified",
       "superseded_by": null,
-      "updated_at": "2026-09-30T02:43:02+00:00",
+      "updated_at": "2026-09-30T02:50:51+00:00",
       "verification_ref": "file:proof/merchant-auth-proof/README.md;cmd:npm run verify;cmd:npm run test:account"
     }
   ],
   "last_activation": {
-    "at": "2026-09-30T02:39:44+00:00",
+    "at": "2026-09-30T02:50:51+00:00",
     "mechanism": "implicit"
   },
   "last_pause": {
-    "artifact_refs": [
-      "proof/merchant-auth-proof/README.md",
-      "docs/authentication-research.md",
-      ".grilltrack/work/merchant-auth-proof/PROOF.md"
-    ],
-    "next_safe_action": "Parent reviews uncommitted source, then separately authorizes commit/push/draft PR if desired. Do not treat the local harness as production login.",
-    "paused_at": "2026-09-30T02:35:46+00:00",
-    "reason": "Local merchant-auth stop-branch is implemented and verified; parent owns commit, push, PR, delivery, and any attended browser pass.",
-    "resumed_at": "2026-09-30T02:37:03+00:00"
-  },
-  "pause": {
     "artifact_refs": [
       "proof/merchant-auth-proof/README.md",
       "proof/merchant-auth-proof/parent-review.md",
@@ -633,20 +644,28 @@
     ],
     "next_safe_action": "Parent reviews uncommitted correction, then separately authorizes commit/push/draft PR if desired. Do not treat the local harness as production login or native browser integration.",
     "paused_at": "2026-09-30T02:43:07+00:00",
-    "reason": "Parent-review correction is implemented and locally verified. Exact-source review is not marked clean. Parent owns commit, push, PR, delivery, and any attended browser pass."
+    "reason": "Parent-review correction is implemented and locally verified. Exact-source review is not marked clean. Parent owns commit, push, PR, delivery, and any attended browser pass.",
+    "resumed_at": "2026-09-30T02:50:51+00:00"
+  },
+  "pause": {
+    "artifact_refs": [
+      "proof/merchant-auth-proof/final-review.md",
+      "proof/merchant-auth-proof/README.md",
+      "docs/authentication-research.md"
+    ],
+    "next_safe_action": "Publish the authorized stacked draft PR, then choose the maintained-provider/browser/real-site-control proof. Do not merge or deploy.",
+    "paused_at": "2026-09-30T02:50:52+00:00",
+    "reason": "Bounded local merchant-auth proof independently verified and locally reviewed; draft publication already authorized. Production/runtime integration remains unresolved."
   },
   "recommendation": {
-    "alternatives": [
-      "Use Auth.js behind the same boundary",
-      "Defer provider integration until a hosted issuer and JWKS target exist"
-    ],
-    "reason": "Exported EmDash helpers can register general SUBSCRIBER merchants through a custom AuthAdapter, but native CMS URLs are not configurable, native tokens are not service JWTs, and native browser/provider integration remains unproven. Better Auth is the next maintained provider proof; it was not selected or implemented here.",
-    "recommended": "Prove Better Auth behind the existing DinkusKit account, site-grant, and service-JWT boundary",
-    "recorded_at": "2026-09-30T02:43:06+00:00"
+    "alternatives": [],
+    "reason": "The local public-helper composition and service-token boundary pass. Native browser/provider integration, durable identity/grants, and real Connect/plugin attestation remain unresolved. Better Auth offers documented Astro and magic-link integration and is recommended for the next proof; no provider was selected or deployed.",
+    "recommended": "Prove a maintained merchant identity provider on the real Astro runtime, with browser sessions and verified EmDash site-control",
+    "recorded_at": "2026-09-30T02:50:52+00:00"
   },
   "schema_version": "grilltrack/v0.1",
   "status": "paused",
   "title": "DinkusKit website foundation",
   "track_id": "gt-20260930021417-e281b2",
-  "updated_at": "2026-09-30T02:43:07+00:00"
+  "updated_at": "2026-09-30T02:50:52+00:00"
 }

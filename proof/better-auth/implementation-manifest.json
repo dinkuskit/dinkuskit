@@ -67,7 +67,7 @@
     },
     {
       "path": "src/account/bindings.ts",
-      "sha256": "3f410119c4e4a407f4576e0d5226c288cc585f1929d2e851131d851936b26514"
+      "sha256": "1518220f7724021d705ba489c4d3423cdfaa9634cd25b2720942deadcb92ba51"
     },
     {
       "path": "src/account/config.ts",
@@ -239,7 +239,7 @@
     },
     {
       "path": "tests/better-auth-routes.test.mjs",
-      "sha256": "3d62fe10c198e79eff1bb34e88bc32950fc296d85921e8bb30722e617a2e955f"
+      "sha256": "45827b8f3083466106d69cff430d80d0b0e97fbb981cbe45dc5d5236141c4ef0"
     },
     {
       "path": "tests/cms-merchant-isolation.test.mjs",
@@ -271,7 +271,7 @@
     },
     {
       "path": "tests/helpers/merchant-harness.mjs",
-      "sha256": "28908224afa45bc8a17683917b554dd8a1cba2b84df418ea8679c42301901c4e"
+      "sha256": "4c9f1b7e745da7799e41ad1ce41c980223f89592124ff7f35360e6ac62c29fb3"
     },
     {
       "path": "tests/merchant-auth-http.test.mjs",

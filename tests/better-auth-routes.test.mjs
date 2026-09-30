@@ -9,6 +9,7 @@ import {
   startProductionWorker,
   stopRuntime,
   takeMail,
+  testSecret,
 } from './helpers/merchant-harness.mjs';
 
 const ALICE = 'alice@merchant.example';
@@ -142,6 +143,66 @@ test('production worker does not expose proof routes', async () => {
   } finally {
     await runtime.worker.stop();
     await stopRuntime({ ...runtime, ownedPersist: false });
+  }
+});
+
+test('configured trailing-slash baseURL accepts the browser origin; foreign, missing, and malformed stay closed', async () => {
+  const secret = testSecret();
+  const runtime = await startProductionWorker({ secret, origin: 'https://dinkuskit.com/' });
+  try {
+    const valid = await request(runtime, new Map(), '/account/sign-in', {
+      method: 'POST',
+      headers: { origin: 'https://dinkuskit.com', 'content-type': 'application/x-www-form-urlencoded' },
+      body: 'email=unknown-origin-probe%40merchant.example',
+    });
+    assert.equal(valid.status, 303);
+    assert.equal(valid.headers.get('location'), '/account/check-email');
+
+    const foreign = await request(runtime, new Map(), '/account/sign-in', {
+      method: 'POST',
+      headers: { origin: 'https://evil.example', 'content-type': 'application/x-www-form-urlencoded' },
+      body: 'email=unknown-origin-probe%40merchant.example',
+    });
+    assert.equal(foreign.status, 403);
+    assert.equal((await foreign.json()).error, 'invalid_origin');
+
+    const missing = await request(runtime, new Map(), '/account/sign-in', {
+      method: 'POST',
+      headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      body: 'email=unknown-origin-probe%40merchant.example',
+      omitOrigin: true,
+    });
+    assert.equal(missing.status, 403);
+    assert.equal((await missing.json()).error, 'invalid_origin');
+  } finally {
+    await stopRuntime(runtime);
+  }
+
+  for (const origin of [
+    'https://dinkuskit.com/account',
+    'ftp://dinkuskit.com',
+    'https://user:pass@dinkuskit.com/',
+    'https://dinkuskit.com/?q=1',
+    'https://dinkuskit.com/#frag',
+  ]) {
+    const malformed = await startProductionWorker({ secret, origin });
+    try {
+      const signup = await malformed.worker.fetch(new URL('/account/signup', malformed.origin), { redirect: 'manual' });
+      assert.equal(signup.status, 503, origin);
+    } finally {
+      await stopRuntime(malformed);
+    }
+  }
+
+  const captured = await startMerchantTestRuntime({ trailingSlashBaseURL: true });
+  try {
+    const result = await signup(captured, 'slash@merchant.example');
+    assert.equal(result.posted.status, 303);
+    assert.equal(result.mail.hasToken, true);
+    assert.equal(result.completed.status, 303);
+    assert.equal((await request(captured, result.jar, '/account')).status, 200);
+  } finally {
+    await stopRuntime(captured);
   }
 });
 

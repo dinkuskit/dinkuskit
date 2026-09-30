@@ -70,7 +70,9 @@ export async function startMerchantTestRuntime(options = {}) {
   const jwt = options.jwt === false ? false : options.jwt ?? await testJwtVar();
   const port = options.port ?? await freePort();
   const origin = options.origin ?? `http://127.0.0.1:${port}`;
-  const config = await prepareBuiltTestConfig({ persistTo, secret, origin, jwt });
+  const configuredBaseURL = options.configuredBaseURL
+    ?? (options.trailingSlashBaseURL ? `${origin}/` : origin);
+  const config = await prepareBuiltTestConfig({ persistTo, secret, origin: configuredBaseURL, jwt });
   const worker = await unstable_dev('dist/server/test-entry.mjs', {
     config,
     ip: '127.0.0.1',
@@ -84,11 +86,22 @@ export async function startMerchantTestRuntime(options = {}) {
   const actual = `http://${worker.address}:${worker.port}`;
   if (actual !== origin) {
     await worker.stop();
-    return startMerchantTestRuntime({ ...options, persistTo, secret, jwt, origin: actual, port: worker.port });
+    const nextConfigured = options.configuredBaseURL
+      ?? (options.trailingSlashBaseURL ? `${actual}/` : actual);
+    return startMerchantTestRuntime({
+      ...options,
+      persistTo,
+      secret,
+      jwt,
+      origin: actual,
+      port: worker.port,
+      configuredBaseURL: nextConfigured,
+    });
   }
   return {
     worker,
     origin,
+    configuredBaseURL,
     persistTo,
     secret,
     jwt,

@@ -4,11 +4,11 @@
   "current_focus": {
     "cadence": "sequential",
     "confirmed": true,
-    "confirmed_at": "2026-09-30T05:50:12+00:00",
+    "confirmed_at": "2026-09-30T06:08:06+00:00",
     "domain": "Better Auth merchant routes on Cloudflare Workers and D1",
-    "started_at": "2026-09-30T05:50:12+00:00",
+    "started_at": "2026-09-30T06:08:06+00:00",
     "status": "confirmed",
-    "summary": "Repair only merchant migration SQL, generated migration-sql.ts, and runtime ledger lifecycle so wrangler-applied fresh all 3, runtime-fresh 0 to 3, and legacy-2 upgrade record versions 1/2/3 and never recreate existing user tables. Prove built-worker regressions fail before the fix, then pass after, including repeat and restart. Full npm run verify on Node 22.23.2. Leave merchant-better-auth-008 IMPLEMENTED for parent public proof. No packages, pages, copy, protocol, workflows, media, commit, push, merge, deploy, or review-rail actions."
+    "summary": "Normalize accepted root http(s) configured MERCHANT_BASE_URL to canonical origin at the binding boundary so Better Auth baseURL/trustedOrigins and custom CSRF compare the same origin. Preserve fail-closed secret/base, credentials/query/hash, and unsupported scheme/path. Missing or foreign Origin still 403. Add actual built-worker regressions: configured trailing slash plus valid origin succeeds; foreign/missing origins rejected; malformed configuration fails 503. Prove the regression fails before the fix, then minimal fix and full npm run verify on Node 22.23.2. Leave merchant-better-auth-008 IMPLEMENTED for parent public proof. No pages, copy, migrations, packages, workflows, store protocol, screenshots, public proof, commit, push, merge, deploy, or review-rail actions."
   },
   "decisions": [
     {
@@ -633,7 +633,7 @@
     {
       "baseline_ref": "git:60fa92ba1b53305eec883de849ef8766a11d76fe",
       "candidate_refs": [],
-      "choice": "Keep the previously verified Better Auth merchant product and accepted workers-types pin 5.20260926.1. Repair only the merchant migration ledger lifecycle so externally applied wrangler 0001/0002/0003, runtime-fresh 0 to 3, and legacy-2 upgrade all record contiguous versions 1/2/3 and never recreate existing user tables. Add built-worker regressions for CLI-all-3, runtime-fresh, and upgrade, each with repeat and restart. No package, page, copy, protocol, workflow, or media changes.",
+      "choice": "Keep the previously verified Better Auth merchant product, workers-types pin 5.20260926.1, and merchant migration ledger lifecycle. Normalize accepted root http(s) MERCHANT_BASE_URL to canonical origin at the binding boundary so Better Auth baseURL/trustedOrigins and custom CSRF compare the same origin. Preserve fail-closed missing/non-host secret and base, credentials/query/hash rejection, and unsupported scheme/path rejection because account routes are at origin root. Missing or foreign Origin still 403. No weakening of CSRF, default production redirect, or issuer. Add built-worker regressions for trailing-slash valid origin, foreign/missing origin, and malformed configuration. Leave public verify to parent.",
       "context_ref": "file:docs/CHARTER.md",
       "created_at": "2026-09-30T03:07:58+00:00",
       "deferred_reason": null,
@@ -978,12 +978,68 @@
           "review_source_identity": null,
           "to": "verified",
           "verification_ref": "file:proof/better-auth/PROOF.md"
+        },
+        {
+          "at": "2026-09-30T06:08:06+00:00",
+          "choice": "Keep the previously verified Better Auth merchant product and accepted workers-types pin 5.20260926.1. Repair only the merchant migration ledger lifecycle so externally applied wrangler 0001/0002/0003, runtime-fresh 0 to 3, and legacy-2 upgrade all record contiguous versions 1/2/3 and never recreate existing user tables. Add built-worker regressions for CLI-all-3, runtime-fresh, and upgrade, each with repeat and restart. No package, page, copy, protocol, workflow, or media changes.",
+          "from": "verified",
+          "implementation_ref": "file:migrations/merchant/0003_store_connect.sql;file:src/account/migrate.ts;file:src/account/migration-sql.ts;file:tests/merchant-migrations.test.mjs",
+          "note": "Spark req-20260930T055801Z-15755493714 comprehensive exact-source review required_fix P2: readMerchantEnv validates MERCHANT_BASE_URL but retains the raw string; rejectCrossOriginMutation compares that raw value to the browser Origin. Configured https://dinkuskit.com/ makes custom forms 403 invalid_origin. Parent production-entry probe confirmed configured slash / browser-normal origin /account/sign-in 403 invalid_origin. No live email was sent.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "reopened",
+          "verification_ref": "file:proof/better-auth/PROOF.md"
+        },
+        {
+          "at": "2026-09-30T06:08:06+00:00",
+          "choice": "Keep the previously verified Better Auth merchant product and accepted workers-types pin 5.20260926.1. Repair only the merchant migration ledger lifecycle so externally applied wrangler 0001/0002/0003, runtime-fresh 0 to 3, and legacy-2 upgrade all record contiguous versions 1/2/3 and never recreate existing user tables. Add built-worker regressions for CLI-all-3, runtime-fresh, and upgrade, each with repeat and restart. No package, page, copy, protocol, workflow, or media changes.",
+          "from": "reopened",
+          "implementation_ref": "file:migrations/merchant/0003_store_connect.sql;file:src/account/migrate.ts;file:src/account/migration-sql.ts;file:tests/merchant-migrations.test.mjs",
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": "file:proof/better-auth/PROOF.md"
+        },
+        {
+          "at": "2026-09-30T06:11:12+00:00",
+          "choice": "Keep the previously verified Better Auth merchant product, workers-types pin 5.20260926.1, and merchant migration ledger lifecycle. Normalize accepted root http(s) MERCHANT_BASE_URL to canonical origin at the binding boundary so Better Auth baseURL/trustedOrigins and custom CSRF compare the same origin. Preserve fail-closed missing/non-host secret and base, credentials/query/hash rejection, and unsupported scheme/path rejection because account routes are at origin root. Missing or foreign Origin still 403. No weakening of CSRF, default production redirect, or issuer. Add built-worker regressions for trailing-slash valid origin, foreign/missing origin, and malformed configuration. Leave public verify to parent.",
+          "from": "locked",
+          "implementation_ref": "file:migrations/merchant/0003_store_connect.sql;file:src/account/migrate.ts;file:src/account/migration-sql.ts;file:tests/merchant-migrations.test.mjs",
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": "file:proof/better-auth/PROOF.md"
+        },
+        {
+          "at": "2026-09-30T06:13:51+00:00",
+          "choice": "Keep the previously verified Better Auth merchant product, workers-types pin 5.20260926.1, and merchant migration ledger lifecycle. Normalize accepted root http(s) MERCHANT_BASE_URL to canonical origin at the binding boundary so Better Auth baseURL/trustedOrigins and custom CSRF compare the same origin. Preserve fail-closed missing/non-host secret and base, credentials/query/hash rejection, and unsupported scheme/path rejection because account routes are at origin root. Missing or foreign Origin still 403. No weakening of CSRF, default production redirect, or issuer. Add built-worker regressions for trailing-slash valid origin, foreign/missing origin, and malformed configuration. Leave public verify to parent.",
+          "from": "implemented",
+          "implementation_ref": "file:src/account/bindings.ts;file:tests/better-auth-routes.test.mjs;file:tests/helpers/merchant-harness.mjs",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": "file:proof/better-auth/PROOF.md"
         }
       ],
       "id": "merchant-better-auth-008",
-      "implementation_ref": "file:migrations/merchant/0003_store_connect.sql;file:src/account/migrate.ts;file:src/account/migration-sql.ts;file:tests/merchant-migrations.test.mjs",
+      "implementation_ref": "file:src/account/bindings.ts;file:tests/better-auth-routes.test.mjs;file:tests/helpers/merchant-harness.mjs",
       "question": "Which maintained identity implementation backs merchant accounts?",
-      "rationale": "Parent-adjudicated Spark P1. Documented npm setup runs wrangler d1 migrations apply, which creates an empty merchant ledger. Runtime then treats the database as version 0. Contiguous history is required for all three accepted apply paths.",
+      "rationale": "Parent-adjudicated Spark P2. Common production config https://dinkuskit.com/ is a valid root URL but is not the browser Origin string. Binding-boundary canonicalization is the minimal correction. No pages, copy, migrations, packages, workflows, store protocol, screenshots, or public proof changes.",
       "repair_required": false,
       "review_classifications": [],
       "review_history": [],
@@ -992,12 +1048,12 @@
       "review_source_identity": null,
       "status": "verified",
       "superseded_by": null,
-      "updated_at": "2026-09-30T05:55:37+00:00",
+      "updated_at": "2026-09-30T06:13:51+00:00",
       "verification_ref": "file:proof/better-auth/PROOF.md"
     }
   ],
   "last_activation": {
-    "at": "2026-09-30T05:50:12+00:00",
+    "at": "2026-09-30T06:08:06+00:00",
     "mechanism": "implicit"
   },
   "last_pause": {
@@ -1024,5 +1080,5 @@
   "status": "active",
   "title": "DinkusKit website foundation",
   "track_id": "gt-20260930021417-e281b2",
-  "updated_at": "2026-09-30T05:55:37+00:00"
+  "updated_at": "2026-09-30T06:13:51+00:00"
 }

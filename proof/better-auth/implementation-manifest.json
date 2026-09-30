@@ -19,11 +19,11 @@
     },
     {
       "path": "package-lock.json",
-      "sha256": "13bcd42a82174842be91e029e0f145dc91932c53b370aa4747ac17f439dbf56b"
+      "sha256": "c5ab162175fc764587e9816504a5a5aeea0b77341da1f6fcb6fb9c5d92dbc1ec"
     },
     {
       "path": "package.json",
-      "sha256": "b8768d269b091960288a58eeec5ab347d45b4e074417955fbfbd7ee142b24ba4"
+      "sha256": "73de72d19c2eabb5fb87822d694385c7b5c941206b0722aa0569ec85ed56309d"
     },
     {
       "path": "scripts/audit-repo.mjs",

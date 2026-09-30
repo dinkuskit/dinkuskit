@@ -1,18 +1,20 @@
-import node from '@astrojs/node';
+import cloudflare from '@astrojs/cloudflare';
 import react from '@astrojs/react';
+import { d1, r2, sandbox } from '@emdash-cms/cloudflare';
 import { defineConfig } from 'astro/config';
-import emdash, { local } from 'emdash/astro';
-import { sqlite } from 'emdash/db';
+import emdash from 'emdash/astro';
 
 export default defineConfig({
   site: 'https://dinkuskit.com',
   output: 'server',
-  adapter: node({ mode: 'standalone' }),
+  adapter: cloudflare(),
   integrations: [
     react(),
     emdash({
-      database: sqlite({ url: 'file:./.local/content.db' }),
-      storage: local({ directory: './.local/uploads', baseUrl: '/_emdash/api/media/file' }),
+      siteUrl: 'https://dinkuskit.com',
+      database: d1({ binding: 'DB', session: 'disabled' }),
+      storage: r2({ binding: 'MEDIA' }),
+      sandboxRunner: sandbox(),
     }),
   ],
   devToolbar: { enabled: false },

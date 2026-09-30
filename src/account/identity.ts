@@ -1,5 +1,6 @@
-/** Proof-labeled canonical DinkusKit account identity. Matches Inventory and Payments verifiers. */
+/** Proof-labeled issuer used by the prior helper-only compatibility checks. */
 export const PROOF_ISSUER = 'https://accounts.dinkuskit.invalid';
+export { ACCOUNT_ISSUER } from './config.ts';
 
 export type ServiceAudience = 'inventory' | 'dinkus-payments';
 export type ServiceScope = 'inventory:admin' | 'payments:admin' | 'payments:checkout';

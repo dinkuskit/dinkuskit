@@ -1,0 +1,55 @@
+---
+import Site from '../../layouts/Site.astro';
+import { MerchantUnavailableError, seeOther, unavailableResponse } from '../../account/config.ts';
+import { getMerchantEnv } from '../../account/bindings.ts';
+import { listActiveBindings, revokeBinding } from '../../account/store.ts';
+import { rejectCrossOriginMutation } from '../../account/origin.ts';
+
+export const prerender = false;
+const merchant = Astro.locals.merchant;
+if (!merchant) return seeOther('/account/sign-in');
+let env;
+try {
+  env = await getMerchantEnv();
+} catch (error) {
+  if (error instanceof MerchantUnavailableError) return unavailableResponse();
+  throw error;
+}
+if (Astro.request.method === 'POST') {
+  const blocked = rejectCrossOriginMutation(Astro.request, env.MERCHANT_BASE_URL);
+  if (blocked) return blocked;
+  const form = await Astro.request.formData();
+  if (form.get('action') === 'revoke') {
+    const siteId = String(form.get('site_id') ?? '');
+    if (siteId) await revokeBinding(env.MERCHANT_DB, merchant.subject, siteId);
+  }
+  return seeOther('/account/sites');
+}
+const bindings = await listActiveBindings(env.MERCHANT_DB, merchant.subject);
+---
+<Site title="Connected sites" description="Explicit Inventory site grants for this merchant.">
+  <div class="account-panel">
+    <p class="eyebrow">Site consent</p>
+    <h1>Connected sites</h1>
+    <p class="lead">Connect Inventory from your EmDash site. Each connection requires your approval.</p>
+    <p>Site connections are being prepared and are not available on the hosted service yet.</p>
+    {bindings.length === 0 ? <p>No sites are connected yet.</p> : (
+      <ul>
+        {bindings.map(binding => (
+          <li>
+            <p>{binding.siteOrigin}</p>
+            <p>Service: {binding.service}{binding.revoked ? ' (revoked)' : ''}</p>
+            {binding.revoked ? null : (
+              <form method="post" action="/account/sites" class="account-form">
+                <input type="hidden" name="action" value="revoke" />
+                <input type="hidden" name="site_id" value={binding.siteId} />
+                <button type="submit">Revoke this site</button>
+              </form>
+            )}
+          </li>
+        ))}
+      </ul>
+    )}
+    <p><a href="/account">Back to account</a></p>
+  </div>
+</Site>

@@ -12,20 +12,25 @@
     "seed": "seed/seed.json"
   },
   "scripts": {
-    "setup": "node scripts/prepare-local.mjs",
+    "setup": "node scripts/generate-migration-sql.mjs && node scripts/prepare-local.mjs",
+    "migrations:sql": "node scripts/generate-migration-sql.mjs",
     "dev": "astro dev --host 127.0.0.1",
+    "dev:account": "wrangler dev --local --persist-to .local/wrangler --port 8787 --ip 127.0.0.1 --config dist/server/wrangler.json",
     "build": "astro build",
-    "start": "node dist/server/entry.mjs",
+    "start": "wrangler dev --local --persist-to .local/wrangler --port 8787 --ip 127.0.0.1 --config dist/server/wrangler.json",
+    "types:wrangler": "wrangler types --config wrangler.jsonc --env-interface MerchantWorkerEnv --include-runtime false",
     "typecheck": "astro check",
     "audit:repo": "node scripts/audit-repo.mjs",
     "test:smoke": "node scripts/smoke.mjs",
-    "test:account": "node --experimental-strip-types --test tests/emdash-public-auth-feasibility.test.mjs tests/merchant-auth-http.test.mjs && node --experimental-strip-types scripts/merchant-auth-proof.mjs",
-    "verify": "npm run audit:repo && npm run setup && npm run typecheck && npm run test:account && npm run build && npm run test:smoke"
+    "test:account": "node --experimental-strip-types --test tests/emdash-public-auth-feasibility.test.mjs",
+    "test:merchant": "node --experimental-strip-types --test --test-concurrency=1 --test-timeout=180000 tests/better-auth-routes.test.mjs tests/store-connections.test.mjs tests/merchant-migrations.test.mjs tests/cms-merchant-isolation.test.mjs",
+    "verify": "npm run audit:repo && npm run setup && npm run types:wrangler && npm run typecheck && npm run test:account && npm run build && npm run test:merchant && npm run test:smoke"
   },
   "dependencies": {
     "@astrojs/node": "11.1.5",
     "@astrojs/react": "6.0.5",
     "astro": "7.3.2",
+    "better-auth": "1.7.6",
     "better-sqlite3": "12.11.1",
     "emdash": "1.0.1",
     "jose": "6.2.12",
@@ -34,10 +39,13 @@
   },
   "devDependencies": {
     "@astrojs/check": "0.9.10",
+    "@astrojs/cloudflare": "14.3.3",
     "@emdash-cms/auth": "1.0.1",
+    "@emdash-cms/cloudflare": "1.0.1",
     "@types/node": "26.1.1",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
-    "typescript": "6.0.3"
+    "typescript": "6.0.3",
+    "wrangler": "4.144.0"
   }
 }

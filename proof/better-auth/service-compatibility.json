@@ -1,0 +1,25 @@
+{
+  "probe": "original-service-verifiers",
+  "inventoryActualRouteToken": true,
+  "ttlSeconds": 300,
+  "crossServiceRejected": true,
+  "paymentsSyntheticCompatibility": true,
+  "disabledNewIssuance": {
+    "status": 400,
+    "error": "account_disabled"
+  },
+  "offlineIssuedTokenStillValid": true,
+  "transport": "local injected receipt; Payments JWT synthetic; no service deployment",
+  "verifiers": [
+    {
+      "repository": "dinkuskit/inventory",
+      "head": "57aa9521fdfbddcbde0bf79a70708fdd8e771582",
+      "path": "src/cloudflare/account-auth.ts"
+    },
+    {
+      "repository": "dinkuskit/payments",
+      "head": "63d6f80e172f822bdf09ca0dc7cef9e0b420d073",
+      "path": "src/hosted/auth.ts"
+    }
+  ]
+}

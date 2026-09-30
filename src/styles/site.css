@@ -22,4 +22,11 @@ h1 { font-size: clamp(2.1rem, 5vw, 3.7rem); line-height: 1.1; letter-spacing: -.
 footer { margin-top: 2.5rem; font-size: .85rem; color: #42594b; }
 .skip-link { position: absolute; left: 1rem; top: -5rem; background: white; padding: .8rem; z-index: 10; }
 .skip-link:focus { top: .5rem; }
+.account-panel { padding: 3rem 0 2.5rem; max-width: 760px; }
+.account-form { display: grid; gap: .7rem; max-width: 24rem; margin: 1.4rem 0; }
+.account-form label { font-weight: 600; }
+.account-form input { padding: .65rem .7rem; border: 1px solid #d4ddd3; background: white; }
+.account-form button, .account-panel button { background: #215d43; color: white; border: 0; padding: .7rem 1rem; font: inherit; cursor: pointer; }
+.account-form button:focus-visible, .account-panel button:focus-visible { outline: 3px solid #30764f; outline-offset: 3px; }
+.account-error { color: #8a1f1f; }
 @media (max-width: 600px) { .text-section { grid-template-columns: 1fr; gap: 0; } .intro { padding-top: 2rem; } nav { gap: 1rem; } }

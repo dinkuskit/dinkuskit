@@ -2,7 +2,7 @@
 
 The EmDash-powered website for DinkusKit's hosted commerce services, intended for **https://dinkuskit.com**.
 
-This repository is a local website foundation. It has seeded, CMS-owned public pages rendered with EmDash's native page blocks. There is no public merchant login. A bounded local account proof lives under `src/account/`, `tests/helpers/`, and `proof/merchant-auth-proof/`. The JWT bridge is proof-labeled only; HTTP/session plumbing is a test fixture, not native EmDash browser integration. Service activation, subscriptions and the independent inventory portal are not implemented.
+Public pages are seeded CMS content on Cloudflare Workers and D1. Merchant signup, sign-in, recovery, and logout are real Better Auth routes. They use a separate merchant D1, cookie namespace, and `Astro.locals.merchant`. They do not sign anyone into the EmDash editor. Production Inventory Connect is unavailable. Local fixtures compare store-proof receipts.
 
 ## Run locally
 
@@ -14,9 +14,19 @@ npm run setup
 npm run dev
 ```
 
-Open the localhost URL printed by Astro. `npm run setup` initializes the local SQLite database and adds the public starter content. Repeating it skips existing content; it does not reset edits. Content and uploads remain under ignored `.local/`; Astro and EmDash generated state is ignored too.
+Open the localhost URL printed by Astro. Public pages and `/account/signup`, `/account/sign-in`, `/account/recover`, and `/account` are in this site. Ordinary `npm run dev` and `npm run start` do not capture magic-link mail automatically. Only the isolated test worker entry captures links.
 
-The EmDash editor is at `/_emdash/admin`. Its initial setup is for the person editing this website, not merchant registration. This scaffold does not create a user, collect credentials or enable DinkusKit customer sign-in.
+### Local workerd
+
+```sh
+npm run start
+```
+
+This is local wrangler/workerd. It does not deploy or use `remote: true`. Production must set `MERCHANT_AUTH_SECRET` and `MERCHANT_BASE_URL`; missing values fail closed. Do not put secrets in `wrangler.jsonc`. Cloudflare Email Sending is a binding only. Do not run account/domain setup or live send commands from this slice.
+
+`npm run setup` applies versioned merchant D1 migrations locally. CMS schema and `seed/seed.json` apply on first workerd request through EmDash public seed APIs.
+
+The EmDash editor is at `/_emdash/admin`. That setup is for the person editing this website, not merchant registration.
 
 ## Verify
 
@@ -24,18 +34,17 @@ The EmDash editor is at `/_emdash/admin`. Its initial setup is for the person ed
 npm run verify
 ```
 
-Verification runs the repository path/identity audit, local seed, Astro type checking, production build, and an HTTP smoke test against a temporary local production server. The smoke test checks both public pages, native block rendering, the canonical domain, the admin/setup route, and a missing route. It stops only its own server.
-
-The smoke expectations refer to the original starter content. If you edit that content locally, use a fresh checkout for reproducible verification rather than deleting your database.
+Verification runs the repository path/identity audit, local merchant migrations, Wrangler types, Astro type checking, public-auth feasibility, a Cloudflare production build, workerd merchant/connect tests against that built target, and an HTTP smoke test against local wrangler. The smoke test checks public CMS pages, native blocks, admin/setup, fail-closed merchant bindings, absent proof routes, and a missing route. It stops only its own server.
 
 ## Scope and architecture
 
 - [Product charter](docs/CHARTER.md)
-- [Authentication research and recommended next provider proof](docs/authentication-research.md)
+- [Authentication research](docs/authentication-research.md)
 - [Merchant account-boundary proof](proof/merchant-auth-proof/README.md)
+- [Better Auth route evidence](proof/better-auth/README.md)
 - [Public source provenance](docs/provenance.md)
 - [Verification evidence](proof/website-foundation/README.md)
 
-The local runtime is Node SSR with SQLite. Production hosting, DNS, recovery email, service credentials and deployment remain unconfigured. Selecting the public domain does not enable any live service. The default styling is provisional; the visual design remains open in `design.md`.
+The website adapter is `@astrojs/cloudflare` with `@emdash-cms/cloudflare` `d1({ binding: "DB", session: "disabled" })`, `r2({ binding: "MEDIA" })`, and `sandbox()`. `src/worker.ts` wraps the Astro handler, exports `PluginBridge`, and registers scheduled maintenance.
 
-EmDash 1.0.1 currently includes deprecated authentication dependencies. Native CMS signup still uses operator-allowed domains; a custom public AuthAdapter can implement general SUBSCRIBER signup. Native browser and provider integration remain unproven. The maintenance concern and Better Auth recommendation are documented in the authentication research; do not treat this scaffold or the local proof harness as a production identity system.
+Production hosting, DNS, recovery email, service credentials and deployment remain unconfigured. The default styling is provisional; the visual design remains open in `design.md`.

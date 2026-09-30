@@ -13,7 +13,7 @@ This public repository owns the DinkusKit website and account experience. Assume
 
 - Build the website on EmDash using upstream native blocks. DinkusKit plugins must remain compatible with the EmDash Registry sandbox.
 - Keep website editors separate from merchant accounts. A merchant identity may connect multiple stores, with explicit authorization for each site.
-- EmDash authentication is a candidate to prove, not a selected production identity provider. DinkusKit owns stable account identity, site grants, and service-specific authorization.
+- Better Auth is the selected merchant identity implementation. DinkusKit owns stable account identity, explicit site grants, and service-specific authorization. EmDash editor identity stays separate.
 - Inventory owns physical stock truth. Commerce owns catalog, prices, checkout orchestration and orders. Payments owns processor integration. This site must not duplicate those authorities.
 - The first release serves existing EmDash sites. Subscription management and a standalone multi-store inventory portal are future possibilities, not current implementation scope.
 - No credentials, environment files, tenant data, production configuration, private repository coordinates, private operating rationale, or unrelated repository history may be committed. Use only synthetic local fixtures.

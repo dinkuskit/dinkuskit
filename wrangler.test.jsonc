@@ -1,0 +1,55 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "dinkuskit-website-test",
+  "main": "dist/server/test-entry.mjs",
+  "compatibility_date": "2026-09-29",
+  "compatibility_flags": ["nodejs_compat", "nodejs_compat_populate_process_env"],
+  "vars": {
+    "EMDASH_SITE_URL": "https://dinkuskit.com"
+  },
+  "assets": {
+    "binding": "ASSETS",
+    "directory": "./dist/client"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "dinkuskit-cms-test",
+      "database_id": "00000000-0000-0000-0000-000000000012"
+    },
+    {
+      "binding": "MERCHANT_DB",
+      "database_name": "dinkuskit-merchant-test",
+      "database_id": "00000000-0000-0000-0000-000000000013",
+      "migrations_dir": "migrations/merchant"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "MEDIA",
+      "bucket_name": "dinkuskit-media-test"
+    }
+  ],
+  "kv_namespaces": [
+    {
+      "binding": "SESSION",
+      "id": "00000000-0000-0000-0000-000000000014"
+    },
+    {
+      "binding": "MERCHANT_MAIL_CAPTURE",
+      "id": "00000000-0000-0000-0000-000000000021"
+    },
+    {
+      "binding": "MERCHANT_PROOF_SIMULATION",
+      "id": "00000000-0000-0000-0000-000000000022"
+    }
+  ],
+  "images": {
+    "binding": "IMAGES"
+  },
+  "worker_loaders": [
+    {
+      "binding": "LOADER"
+    }
+  ]
+}

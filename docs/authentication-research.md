@@ -37,12 +37,16 @@ DinkusKit still owns the stable account boundary:
 
 The proof-labeled JWT bridge in `src/account/` exists only for those compatibility checks. It is not a product identity framework.
 
-Native browser sign-in, hosted provider integration, and a production issuer remain unresolved. Only this bounded local proof is verified. The site-control fixture uses synthetic secret-holder challenges; real EmDash plugin/site-origin attestation is not implemented. Session storage, email delivery, email-input policy, origin/CSRF protection, and persistence still require a maintained runtime integration.
+This historical EmDash feasibility record left native browser sign-in, hosted provider integration, and a production issuer unresolved on that earlier path. Only that bounded local proof was verified. The site-control fixture used synthetic secret-holder challenges; real EmDash plugin/site-origin attestation was not implemented. Session storage, email delivery, email-input policy, origin/CSRF protection, and persistence still required a maintained runtime integration.
 
-## Recommended next provider proof
+## Accepted Better Auth merchant routes
 
-Broader native CMS integration was not established. The next maintained provider proof should be [Better Auth](https://better-auth.com/docs/integrations/astro), including [magic-link](https://better-auth.com/docs/plugins/magic-link). This slice does not select or implement Better Auth.
+Better Auth is the selected merchant identity library. Product signup, sign-in, recovery, logout, and a protected account page now live in the EmDash Astro website. Persistent accounts and sessions use Better Auth 1.7.6 public APIs on a dedicated merchant D1, with cookie prefix `dk-merchant` and `Astro.locals.merchant`. EmDash editor identity is untouched. Magic-link tokens are stored hashed. Local proof email is an in-process sink; Cloudflare Email Sending is the production delivery boundary and is not invoked here.
 
-Do not wait on an EmDash feature request to release the website. Do not fork EmDash or import internal handlers. Do not treat this local proof, a stub, or a fixture as live authentication.
+The production issuer is `https://dinkuskit.com/account`. Inventory Connect receipts are compared field-for-field when a proof transport is injected. A posted site id or origin is not proof. Plugin `site_id` is origin control of a plugin-owned identifier, not a native EmDash installation id. Local protocol tests may inject a labeled simulation transport. Production grants and issuance fail closed with `integration_unavailable` until Workers-safe fetch and an actual plugin dispatcher are proved. `fetchStoreProofReceipt` hostname prechecks are not a DNS or IP firewall.
 
-Subscriptions, pricing, standalone stock screens and new-store hosting remain outside this proof.
+The public CMS and merchant routes share the Cloudflare Workers entry `src/worker.ts`. CMS uses D1 `DB` and R2 `MEDIA`. Merchant accounts use separate D1 `MERCHANT_DB`. EmDash applies schema on first request and can apply the public seed through `emdash/seed`. Merchant tests and smoke use local wrangler/workerd against the built worker, not a copied Node helper router.
+
+Do not wait on an EmDash feature request to release the website. Do not fork EmDash or import internal handlers. Do not treat a stub or fixture as live hosted authentication.
+
+Subscriptions, pricing, standalone stock screens and new-store hosting remain outside this slice.

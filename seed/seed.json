@@ -103,7 +103,7 @@
               "_version": 1,
               "_key": "home-3",
               "heading": "Follow the build",
-              "body": "Hosted accounts and service activation are not available on this website yet. Explore the source on GitHub and read Getting started for the intended installation experience."
+              "body": "You can create a local DinkusKit account on this website. Hosted inventory and payments activation are still being prepared. Explore the source on GitHub and read Getting started for the intended installation experience."
             }
           ]
         }
@@ -128,7 +128,7 @@
               "_version": 1,
               "_key": "getting-started-1",
               "heading": "2. Connect your DinkusKit account",
-              "body": "The planned flow lets you sign in, authorize your site, and connect services. The same account will be able to connect multiple stores."
+              "body": "Sign in with your DinkusKit account. Authorizing a site still requires verified site control from Inventory Connect; this website will not accept a typed site ID. The same account will be able to connect multiple stores once that protocol exists."
             },
             {
               "_type": "text_section",

@@ -4,11 +4,11 @@
   "current_focus": {
     "cadence": "sequential",
     "confirmed": true,
-    "confirmed_at": "2026-09-30T02:39:48+00:00",
-    "domain": "Merchant sign-in and explicit multi-store authorization proof",
-    "started_at": "2026-09-30T02:39:44+00:00",
+    "confirmed_at": "2026-09-30T04:51:33+00:00",
+    "domain": "Better Auth merchant routes on Cloudflare Workers and D1",
+    "started_at": "2026-09-30T04:47:47+00:00",
     "status": "inspected",
-    "summary": "Bounded parent-review repair: custom public AuthAdapter for general SUBSCRIBER signup; move HTTP/session/site-control into tests/helpers; drive two merchants through exported EmDash helpers; keep proof-labeled JWT bridge only; document native URL coupling vs library extension; verify sign-in, recovery, disable, expiry, revoke, and Bob isolation; record website-account-003 as bounded proof only. No commit, push, deploy, Better Auth implementation, or browser claims."
+    "summary": "Narrow parent-required corrections only: Wrangler 4.144.0 local D1 apply without --yes using supported noninteractive local-only flags; prepare/import/sign inventory JWT before atomic redeem and mask invalid_signing_key; production token issuance returns integration_unavailable unless the request-scoped test-only transport/capability seam is present, even when approved fixture rows and rogue test bindings exist. No new features, stack merge, browser, commit, or live seams."
   },
   "decisions": [
     {
@@ -629,43 +629,232 @@
       "superseded_by": null,
       "updated_at": "2026-09-30T02:50:51+00:00",
       "verification_ref": "file:proof/merchant-auth-proof/README.md;cmd:npm run verify;cmd:npm run test:account"
+    },
+    {
+      "baseline_ref": "git:60fa92ba1b53305eec883de849ef8766a11d76fe",
+      "candidate_refs": [],
+      "choice": "Narrow parent-required corrections only: local wrangler D1 apply without --yes using supported noninteractive local-only flags; prepare/import/sign inventory JWT before atomic redeem and mask invalid_signing_key; production token issuance returns integration_unavailable unless the request-scoped test-only transport/capability seam is present, even when approved fixture rows and rogue test bindings exist.",
+      "context_ref": "file:docs/CHARTER.md",
+      "created_at": "2026-09-30T03:07:58+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [
+        "merchant-auth-007"
+      ],
+      "domain": "Better Auth merchant routes on Cloudflare Workers and D1",
+      "history": [
+        {
+          "at": "2026-09-30T03:07:59+00:00",
+          "choice": "Better Auth using supported public APIs and persistent merchant storage separate from EmDash editors. Deliver real website signup, sign-in, recovery and logout, stable DinkusKit subjects, and Cloudflare Workers/D1 runtime proof. Implement explicit verified site consent and scoped service access when the Inventory Connect protocol is established.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-09-30T03:22:11+00:00",
+          "choice": "Better Auth using supported public APIs and persistent merchant storage separate from EmDash editors. Deliver real website signup, sign-in, recovery and logout, stable DinkusKit subjects, and Cloudflare Workers/D1 runtime proof. Implement explicit verified site consent and scoped service access when the Inventory Connect protocol is established.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-09-30T04:02:02+00:00",
+          "choice": "Better Auth using supported public APIs and persistent merchant storage separate from EmDash editors. Deliver real website signup, sign-in, recovery and logout, stable DinkusKit subjects, and Cloudflare Workers/D1 runtime proof. Implement explicit verified site consent and scoped service access when the Inventory Connect protocol is established.",
+          "from": "implemented",
+          "implementation_ref": "file:src/pages/account/;file:src/pages/api/auth/;file:src/account/;file:src/merchant-worker.ts;file:wrangler.jsonc;file:migrations/merchant/;file:docs/CHARTER.md;file:docs/authentication-research.md;file:proof/better-auth/README.md",
+          "note": "Corrective Cloudflare/Connect implementation replaced the stand-alone merchant-worker and test overlay.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "reopened",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-09-30T04:02:39+00:00",
+          "choice": "Better Auth using supported public APIs and persistent merchant storage separate from EmDash editors. Deliver real website signup, sign-in, recovery and logout, stable DinkusKit subjects, and Cloudflare Workers/D1 runtime proof. Implement explicit verified site consent and scoped service access when the Inventory Connect protocol is established.",
+          "from": "reopened",
+          "implementation_ref": "file:src/pages/account/;file:src/pages/api/auth/;file:src/account/;file:src/merchant-worker.ts;file:wrangler.jsonc;file:migrations/merchant/;file:docs/CHARTER.md;file:docs/authentication-research.md;file:proof/better-auth/README.md",
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-09-30T04:02:39+00:00",
+          "choice": "Better Auth using supported public APIs and persistent merchant storage separate from EmDash editors. Deliver real website signup, sign-in, recovery and logout, stable DinkusKit subjects, and Cloudflare Workers/D1 runtime proof. Implement explicit verified site consent and scoped service access when the Inventory Connect protocol is established.",
+          "from": "locked",
+          "implementation_ref": "file:src/pages/account/;file:src/pages/api/auth/;file:src/account/;file:src/merchant-worker.ts;file:wrangler.jsonc;file:migrations/merchant/;file:docs/CHARTER.md;file:docs/authentication-research.md;file:proof/better-auth/README.md",
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-09-30T04:29:16+00:00",
+          "choice": "Better Auth using supported public APIs and persistent merchant storage separate from EmDash editors. Deliver real website signup, sign-in, recovery and logout, stable DinkusKit subjects, and Cloudflare Workers/D1 runtime proof. Implement explicit verified site consent and scoped service access when the Inventory Connect protocol is established.",
+          "from": "implemented",
+          "implementation_ref": "file:src/worker.ts;file:src/pages/account/;file:src/pages/api/store-connections/;file:src/pages/api/auth/;file:src/account/;file:wrangler.jsonc;file:migrations/merchant/;file:tests/better-auth-routes.test.mjs;file:tests/store-connections.test.mjs;file:tests/fixtures/built-test-entry.mjs",
+          "note": "Parent confirmed pending-merchant isolation, ghost-grant race, production test-binding acceptance, duplicated fetch-probe, empty CMS isolation, and browser token leakage. Reopen for bounded source corrections only.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "reopened",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-09-30T04:29:16+00:00",
+          "choice": "Better Auth using supported public APIs and persistent merchant storage separate from EmDash editors. Deliver real website signup, sign-in, recovery and logout, stable DinkusKit subjects, and Cloudflare Workers/D1 runtime proof. Implement explicit verified site consent and scoped service access when the Inventory Connect protocol is established.",
+          "from": "reopened",
+          "implementation_ref": "file:src/worker.ts;file:src/pages/account/;file:src/pages/api/store-connections/;file:src/pages/api/auth/;file:src/account/;file:wrangler.jsonc;file:migrations/merchant/;file:tests/better-auth-routes.test.mjs;file:tests/store-connections.test.mjs;file:tests/fixtures/built-test-entry.mjs",
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-09-30T04:40:57+00:00",
+          "choice": "Correct Better Auth merchant routes on the Astro Cloudflare worker: bind pending-connection ownership atomically; make approve+grant and redeem atomic with current-account/expiry/grant predicates; keep simulation/mail capture structurally test-only via injectable factory; fail-closed production Connect grants until Workers-safe fetch and plugin dispatcher exist; prove CMS/editor isolation with public setup plus authenticated editor session; complete captured mail through a test-only form that invokes Better Auth verify without exposing tokens.",
+          "from": "locked",
+          "implementation_ref": "file:src/worker.ts;file:src/pages/account/;file:src/pages/api/store-connections/;file:src/pages/api/auth/;file:src/account/;file:wrangler.jsonc;file:migrations/merchant/;file:tests/better-auth-routes.test.mjs;file:tests/store-connections.test.mjs;file:tests/fixtures/built-test-entry.mjs",
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-09-30T04:47:47+00:00",
+          "choice": "Correct Better Auth merchant routes on the Astro Cloudflare worker: bind pending-connection ownership atomically; make approve+grant and redeem atomic with current-account/expiry/grant predicates; keep simulation/mail capture structurally test-only via injectable factory; fail-closed production Connect grants until Workers-safe fetch and plugin dispatcher exist; prove CMS/editor isolation with public setup plus authenticated editor session; complete captured mail through a test-only form that invokes Better Auth verify without exposing tokens.",
+          "from": "implemented",
+          "implementation_ref": "file:.grilltrack/work/better-auth/PROOF.md",
+          "note": "Parent final correction after job 8cc: Wrangler 4.144.0 rejects --yes on local D1 apply; malformed EC keys pass inspectSigningKey then consume; production token POST still exchanges while the HTTPS/dispatcher seam is unproved.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "reopened",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-09-30T04:47:47+00:00",
+          "choice": "Correct Better Auth merchant routes on the Astro Cloudflare worker: bind pending-connection ownership atomically; make approve+grant and redeem atomic with current-account/expiry/grant predicates; keep simulation/mail capture structurally test-only via injectable factory; fail-closed production Connect grants until Workers-safe fetch and plugin dispatcher exist; prove CMS/editor isolation with public setup plus authenticated editor session; complete captured mail through a test-only form that invokes Better Auth verify without exposing tokens.",
+          "from": "reopened",
+          "implementation_ref": "file:.grilltrack/work/better-auth/PROOF.md",
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-09-30T04:51:33+00:00",
+          "choice": "Narrow parent-required corrections only: local wrangler D1 apply without --yes using supported noninteractive local-only flags; prepare/import/sign inventory JWT before atomic redeem and mask invalid_signing_key; production token issuance returns integration_unavailable unless the request-scoped test-only transport/capability seam is present, even when approved fixture rows and rogue test bindings exist.",
+          "from": "locked",
+          "implementation_ref": "file:.grilltrack/work/better-auth/PROOF.md",
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-09-30T05:14:00+00:00",
+          "choice": "Narrow parent-required corrections only: local wrangler D1 apply without --yes using supported noninteractive local-only flags; prepare/import/sign inventory JWT before atomic redeem and mask invalid_signing_key; production token issuance returns integration_unavailable unless the request-scoped test-only transport/capability seam is present, even when approved fixture rows and rogue test bindings exist.",
+          "from": "implemented",
+          "implementation_ref": "file:scripts/prepare-local.mjs;file:src/account/jwt.ts;file:src/account/connect.ts;file:src/pages/api/store-connections/token.ts;file:tests/store-connections.test.mjs;file:tests/helpers/merchant-harness.mjs",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": null
+        }
+      ],
+      "id": "merchant-better-auth-008",
+      "implementation_ref": "file:scripts/prepare-local.mjs;file:src/account/jwt.ts;file:src/account/connect.ts;file:src/pages/api/store-connections/token.ts;file:tests/store-connections.test.mjs;file:tests/helpers/merchant-harness.mjs",
+      "question": "Which maintained identity implementation backs merchant accounts?",
+      "rationale": "Parent independently proved these three defects on the built worker after job 8cc. User assigned this exact bounded correction. No new features, stack merge, or live seams.",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [],
+      "review_ref": null,
+      "review_result": null,
+      "review_source_identity": null,
+      "status": "verified",
+      "superseded_by": null,
+      "updated_at": "2026-09-30T05:14:00+00:00",
+      "verification_ref": "file:proof/better-auth/PROOF.md"
     }
   ],
   "last_activation": {
-    "at": "2026-09-30T02:52:54+00:00",
+    "at": "2026-09-30T05:13:34+00:00",
     "mechanism": "implicit"
   },
   "last_pause": {
     "artifact_refs": [
-      "proof/merchant-auth-proof/final-review.md",
-      "proof/merchant-auth-proof/README.md",
-      "docs/authentication-research.md"
+      "file:.grilltrack/work/better-auth/PROOF.md",
+      "file:.grilltrack/work/better-auth/PARENT_REVIEW.md",
+      "file:.grilltrack/work/better-auth/CONTRACT.md"
     ],
-    "next_safe_action": "Publish the authorized stacked draft PR, then choose the maintained-provider/browser/real-site-control proof. Do not merge or deploy.",
-    "paused_at": "2026-09-30T02:50:52+00:00",
-    "reason": "Bounded local merchant-auth proof independently verified and locally reviewed; draft publication already authorized. Production/runtime integration remains unresolved.",
-    "resumed_at": "2026-09-30T02:52:54+00:00"
+    "next_safe_action": "Parent independently reruns full npm run verify plus browser/isolation probes, then owns review and commit. Do not merge 347514c while this tree is dirty.",
+    "paused_at": "2026-09-30T04:51:33+00:00",
+    "reason": "Bounded merchant-better-auth-008 final corrections are implemented and locally checked. Parent owns verification, browser, review, commit, 347514c reconciliation, and draft PR.",
+    "resumed_at": "2026-09-30T05:13:34+00:00"
   },
-  "pause": {
-    "artifact_refs": [
-      "https://github.com/dinkuskit/dinkuskit/pull/3",
-      "proof/merchant-auth-proof/final-review.md",
-      "proof/merchant-auth-proof/README.md",
-      "docs/authentication-research.md"
-    ],
-    "next_safe_action": "Choose the next maintained-provider proof and integrate actual Astro/browser sessions plus real EmDash Connect/plugin site attestation. Better Auth is recommended; no provider selection, merge, or deployment is implied.",
-    "paused_at": "2026-09-30T02:52:54+00:00",
-    "reason": "Bounded local merchant-auth proof independently verified, locally reviewed, and published as authorized stacked draft PR. Track remains open for native runtime/provider and real site-control work."
-  },
+  "pause": null,
   "recommendation": {
-    "alternatives": [],
-    "reason": "The local public-helper composition and service-token boundary pass. Native browser/provider integration, durable identity/grants, and real Connect/plugin attestation remain unresolved. Better Auth offers documented Astro and magic-link integration and is recommended for the next proof; no provider was selected or deployed.",
-    "recommended": "Prove a maintained merchant identity provider on the real Astro runtime, with browser sessions and verified EmDash site-control",
-    "recorded_at": "2026-09-30T02:50:52+00:00"
+    "alternatives": [
+      "Hosted Inventory dispatcher and live Cloudflare Email remain fail-closed until those operator seams exist."
+    ],
+    "reason": "Three parent-required corrections are implemented and locally checked on Node 22.23.2. Parent owns verification. Inventory PR35 live website transport remains simulation.",
+    "recommended": "Parent independently reruns full npm run verify and browser probes, then owns review, commit, 347514c reconciliation, and draft PR.",
+    "recorded_at": "2026-09-30T04:51:33+00:00"
   },
   "schema_version": "grilltrack/v0.1",
-  "status": "paused",
+  "status": "active",
   "title": "DinkusKit website foundation",
   "track_id": "gt-20260930021417-e281b2",
-  "updated_at": "2026-09-30T02:52:54+00:00"
+  "updated_at": "2026-09-30T05:14:00+00:00"
 }

@@ -5,5 +5,5 @@
     "ignoreDeprecations": "6.0",
     "allowImportingTsExtensions": true
   },
-  "include": ["src", ".astro/types.d.ts", "emdash-env.d.ts"]
+  "include": ["src", ".astro/types.d.ts", "emdash-env.d.ts", "worker-configuration.d.ts"]
 }

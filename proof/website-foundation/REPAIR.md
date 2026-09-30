@@ -65,3 +65,7 @@ Tracked [PROOF.md](PROOF.md) and [README.md](README.md) keep logical asset names
 ## Independent author checks
 
 The author reran npm run verify and checked the actual built Node adapter with encoded namespace names, duplicate leading slash, setup/status and setup POST paths. All CMS probes returned404; /getting-started returned200. The test stopped its own server. [repair-source-manifest.json](repair-source-manifest.json) hashes the tested source, scripts, seed and dependency closure. The original foundation manifest remains historical.
+
+## Development test lifecycle correction
+
+Independent repetition exposed the pinned Astro CLI auto-background behavior in agent environments. Earlier serverStopped receipts tracked launcher exit and did not establish detached-server cleanup. The author matched and stopped only the exact task-created daemon using its captured startup receipt. The test now uses the supported public Astro dev() API, awaits server.stop(), and verifies that its exact listener port can be rebound. This correction changes test lifecycle only; production protection and page source remain unchanged.

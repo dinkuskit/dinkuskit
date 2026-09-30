@@ -13,6 +13,9 @@ export default defineConfig({
     emdash({
       database: sqlite({ url: 'file:./.local/content.db' }),
       storage: local({ directory: './.local/uploads', baseUrl: '/_emdash/api/media/file' }),
+      middleware: {
+        outer: './src/emdash-namespace-guard.ts',
+      },
     }),
   ],
   devToolbar: { enabled: false },

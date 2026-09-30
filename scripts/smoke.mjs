@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
+import { createHash } from 'node:crypto';
+import { existsSync, readFileSync } from 'node:fs';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { createServer } from 'node:net';
 import { once } from 'node:events';
@@ -24,7 +26,24 @@ const exit = new Promise(resolve => {
   child.once('exit', () => { exited = true; resolve(); });
   child.once('error', error => { logs += String(error); exited = true; resolve(); });
 });
-const request = (path, options = {}) => fetch(base + path, { signal: AbortSignal.timeout(5000), ...options });
+const request = (path, options = {}) => fetch(base + path, {
+  signal: AbortSignal.timeout(5000),
+  redirect: 'manual',
+  ...options,
+});
+const dbFiles = ['.local/content.db', '.local/content.db-wal', '.local/content.db-shm'];
+const hashRuntime = () => createHash('sha256')
+  .update(dbFiles.filter(existsSync).map(path => `${path}:${readFileSync(path).toString('hex')}`).join('|'))
+  .digest('hex');
+const assertNamespaceDenied = async (label, path, options = {}) => {
+  const response = await request(path, options);
+  const body = await response.text();
+  assert.equal(response.status, 404, `${label}: fail-closed status`);
+  assert.equal(response.headers.get('location'), null, `${label}: no CMS redirect`);
+  assert.ok(!/My Awesome Blog|Create your admin|passkey registration/i.test(body), `${label}: no setup HTML`);
+  assert.ok(Buffer.byteLength(body) < 2000, `${label}: no admin bundle`);
+  return response;
+};
 const checks = [];
 try {
   let ready = false;
@@ -49,19 +68,48 @@ try {
     assert.ok(html.includes(`href="https://dinkuskit.com${path}"`), `${path}: canonical URL`);
     checks.push(`${path}: seeded CMS title, native block content and canonical URL`);
   }
-  const admin = await request('/_emdash/admin', { redirect: 'manual' });
-  assert.ok([200, 301, 302, 303, 307, 308].includes(admin.status), 'EmDash admin route');
-  if (admin.status !== 200) {
-    const target = new URL(admin.headers.get('location'), base);
-    assert.equal(target.origin, base, 'Local admin redirect stays local');
-    assert.ok(target.pathname.startsWith('/_emdash/'), 'Admin redirects into EmDash');
-    const page = await request(target.pathname + target.search);
-    assert.equal(page.status, 200, 'EmDash setup/login loads');
-    assert.match(page.headers.get('content-type') ?? '', /text\/html/);
-  }
-  checks.push('EmDash admin/setup route is reachable (no login or account creation performed)');
+  const beforeMutations = hashRuntime();
+  await assertNamespaceDenied('GET admin', '/_emdash/admin');
+  await assertNamespaceDenied('GET setup', '/_emdash/admin/setup');
+  await assertNamespaceDenied('POST setup/admin', '/_emdash/api/setup/admin', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ email: 'probe@example.test', name: 'Probe' }),
+  });
+  await assertNamespaceDenied('POST setup/admin/verify', '/_emdash/api/setup/admin/verify', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ email: 'probe@example.test' }),
+  });
+  assert.equal(hashRuntime(), beforeMutations, 'Namespace probes must not mutate the database');
+  checks.push('Production /_emdash admin, setup, and setup POST routes are denied before DB mutation');
+  await assertNamespaceDenied('spoof Host localhost GET setup', '/_emdash/admin/setup', {
+    headers: {
+      Host: 'localhost',
+      'X-Forwarded-Host': 'localhost',
+      'X-Forwarded-For': '127.0.0.1',
+      Origin: 'http://localhost',
+      Referer: 'http://localhost/_emdash/admin/setup',
+    },
+  });
+  await assertNamespaceDenied('spoof Host localhost POST setup/admin', '/_emdash/api/setup/admin', {
+    method: 'POST',
+    headers: {
+      Host: 'localhost',
+      'X-Forwarded-Host': 'localhost',
+      'X-Forwarded-For': '127.0.0.1',
+      Origin: 'http://127.0.0.1',
+      Cookie: 'emdash_session=fake',
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify({ email: 'spoof@example.test', name: 'Spoof' }),
+  });
+  assert.equal(hashRuntime(), beforeMutations, 'Spoofed localhost Host/headers must not unlock or mutate');
+  checks.push('Spoofed localhost Host and forwarded headers do not bypass the production namespace gate');
+  await assertNamespaceDenied('CMS media namespace', '/_emdash/api/media/file/missing');
+  checks.push('Production CMS-hosted /_emdash media namespace is denied by the same fail-closed default');
   assert.equal((await request('/not-a-real-page')).status, 404);
-  checks.push('Unknown route returns 404');
+  checks.push('Unknown public route still returns 404');
   console.log(checks.map(check => `PASS ${check}`).join('\n'));
 } finally {
   if (!exited) child.kill('SIGTERM');

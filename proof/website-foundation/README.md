@@ -1,13 +1,19 @@
 # Website foundation proof
 
-The authoritative claim map, immutable media URLs, hashes, provenance, limits, and visibility notes are in [PROOF.md](PROOF.md).
+The authoritative historical claim map, hashes, provenance, limits, and visibility notes are in [PROOF.md](PROOF.md). The later production-namespace and proof-sanitization repair is in [REPAIR.md](REPAIR.md).
 
-Selected screenshots are immutable release assets on the approved private shelf `dinkuskit/dinkus-pr-assets`, release `dinkuskit-pr-1-dda0260636aa`. Authenticated GitHub access is required to download them.
+Selected screenshots are available from their existing public product-history commit below. This tree retains names, byte lengths and SHA-256 values. Private storage copies and metadata remain access controlled.
 
-- [Homepage](https://github.com/dinkuskit/dinkus-pr-assets/releases/download/dinkuskit-pr-1-dda0260636aa/home.jpg)
-- [Getting started](https://github.com/dinkuskit/dinkus-pr-assets/releases/download/dinkuskit-pr-1-dda0260636aa/getting-started.jpg)
-- [EmDash setup](https://github.com/dinkuskit/dinkus-pr-assets/releases/download/dinkuskit-pr-1-dda0260636aa/emdash-setup.jpg)
+- Homepage (`home.jpg`)
+- Getting started (`getting-started.jpg`)
+- EmDash setup (`emdash-setup.jpg`) — historical unguarded local foundation capture, not current production behavior
 
-`source-manifest.json` still records the verified implementation files by hash. This directory no longer stores the JPEG binaries.
+`source-manifest.json` is a historical record of the verified implementation files by hash at the foundation head. This directory no longer stores the JPEG binaries. The historical manifest is not rewritten to assert that those old pixels prove later source.
 
-The following supported-API authentication proof is recorded in [merchant-auth-proof](../merchant-auth-proof/README.md). Native CMS allowlists constrain configured signup; the public custom AuthAdapter proof supports general subscriber signup. Native browser and provider integration remain unresolved in that proof.
+## Public historical captures
+
+These originals already exist in this public product repository at the capture commit. Their sizes and SHA-256 values match the table in PROOF.md. These links expose no private storage coordinates and do not change asset visibility. They show the historical local foundation, including its former setup screen; current production protection is proved separately in REPAIR.md.
+
+- [home.jpg](https://github.com/dinkuskit/dinkuskit/blob/dda0260636aa7723e28fefd10e1f3424ff24d1cf/proof/website-foundation/home.jpg)
+- [getting-started.jpg](https://github.com/dinkuskit/dinkuskit/blob/dda0260636aa7723e28fefd10e1f3424ff24d1cf/proof/website-foundation/getting-started.jpg)
+- [emdash-setup.jpg](https://github.com/dinkuskit/dinkuskit/blob/dda0260636aa7723e28fefd10e1f3424ff24d1cf/proof/website-foundation/emdash-setup.jpg)

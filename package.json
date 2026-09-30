@@ -20,7 +20,8 @@
     "audit:repo": "node scripts/audit-repo.mjs",
     "test:smoke": "node scripts/smoke.mjs",
     "test:account": "node --experimental-strip-types --test tests/emdash-public-auth-feasibility.test.mjs tests/merchant-auth-http.test.mjs && node --experimental-strip-types scripts/merchant-auth-proof.mjs",
-    "verify": "npm run audit:repo && npm run setup && npm run typecheck && npm run test:account && npm run build && npm run test:smoke"
+    "test:dev-cms": "node scripts/dev-cms.mjs",
+    "verify": "npm run audit:repo && npm run setup && npm run typecheck && npm run test:account && npm run build && npm run test:smoke && npm run test:dev-cms"
   },
   "dependencies": {
     "@astrojs/node": "11.1.5",

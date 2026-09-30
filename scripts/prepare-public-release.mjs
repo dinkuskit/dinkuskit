@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { spawn, execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { once } from 'node:events';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { lstat, mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
 import { createServer } from 'node:net';
 import { setTimeout as sleep } from 'node:timers/promises';
 
@@ -27,6 +27,73 @@ const exit = new Promise(resolve => {
 });
 const request = path => fetch(`http://127.0.0.1:${port}${path}`, { redirect: 'manual', signal: AbortSignal.timeout(5000) });
 const sha = bytes => createHash('sha256').update(bytes).digest('hex');
+const existing = async path => {
+  try { return await lstat(path); } catch (error) {
+    if (error?.code === 'ENOENT') return null;
+    throw error;
+  }
+};
+const refuseReuse = (path, reason) => {
+  throw new Error(`Refusing to reuse ${path}: ${reason}`);
+};
+const assertReusableOutput = async (output, files) => {
+  const outputStat = await existing(output);
+  if (!outputStat) return;
+  if (outputStat.isSymbolicLink() || !outputStat.isDirectory()) {
+    refuseReuse(output, 'expected a real directory');
+  }
+  for (const name of ['wrangler.jsonc', 'manifest.json']) {
+    const path = `${output}/${name}`;
+    const stat = await existing(path);
+    if (!stat) continue;
+    if (stat.isSymbolicLink() || !stat.isFile()) refuseReuse(path, 'expected a regular file');
+  }
+  const assets = `${output}/assets`;
+  const assetsStat = await existing(assets);
+  if (!assetsStat) return;
+  if (assetsStat.isSymbolicLink() || !assetsStat.isDirectory()) {
+    refuseReuse(assets, 'expected a real directory');
+  }
+  const expectedFiles = new Set(files.keys());
+  const expectedDirs = new Set();
+  for (const file of expectedFiles) {
+    let dir = file;
+    while (dir.includes('/')) {
+      dir = dir.slice(0, dir.lastIndexOf('/'));
+      expectedDirs.add(dir);
+    }
+  }
+  const walk = async relDir => {
+    const dirPath = relDir ? `${assets}/${relDir}` : assets;
+    for (const name of await readdir(dirPath)) {
+      const rel = relDir ? `${relDir}/${name}` : name;
+      const path = `${assets}/${rel}`;
+      const stat = await lstat(path);
+      if (stat.isSymbolicLink()) refuseReuse(path, 'symbolic links are not allowed');
+      if (stat.isDirectory()) {
+        if (!expectedDirs.has(rel)) refuseReuse(path, 'unexpected directory');
+        await walk(rel);
+        continue;
+      }
+      if (stat.isFile()) {
+        if (!expectedFiles.has(rel)) refuseReuse(path, 'unexpected file');
+        continue;
+      }
+      refuseReuse(path, 'unexpected entry type');
+    }
+  };
+  await walk('');
+  for (const file of expectedFiles) {
+    const path = `${assets}/${file}`;
+    const stat = await existing(path);
+    if (stat && (stat.isSymbolicLink() || !stat.isFile())) refuseReuse(path, 'expected a regular file');
+  }
+  for (const dir of expectedDirs) {
+    const path = `${assets}/${dir}`;
+    const stat = await existing(path);
+    if (stat && (stat.isSymbolicLink() || !stat.isDirectory())) refuseReuse(path, 'expected a directory');
+  }
+};
 try {
   let ready = false;
   for (let attempt = 0; attempt < 100 && !exited; attempt++) {
@@ -62,6 +129,7 @@ try {
   const entries = [...files].sort(([a], [b]) => a.localeCompare(b)).map(([file, bytes]) => ({ file, bytes: bytes.length, sha256: sha(bytes) }));
   const artifactSha = sha(JSON.stringify(entries));
   const output = `.grilltrack/work/public-release/${artifactSha}`;
+  await assertReusableOutput(output, files);
   for (const [file, bytes] of files) {
     const target = `${output}/assets/${file}`;
     await mkdir(target.slice(0, target.lastIndexOf('/')), { recursive: true });

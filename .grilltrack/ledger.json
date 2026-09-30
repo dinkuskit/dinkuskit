@@ -548,17 +548,61 @@
           "review_source_identity": null,
           "to": "verified",
           "verification_ref": "file:.grilltrack/work/site-launch-20260930/reproducibility-proof.json"
+        },
+        {
+          "at": "2026-09-30T16:36:17+00:00",
+          "choice": "Prepare the current two public EmDash pages as a frozen Workers Static Assets release for dinkuskit.com. Merchant accounts, hosted Connect, service activation and payments remain unavailable. Source remains EmDash/native blocks; changes require rebuild and republication.",
+          "from": "verified",
+          "implementation_ref": "file:scripts/prepare-public-release.mjs;file:docs/public-launch.md;file:package.json",
+          "note": "adjudicated review requires a fix",
+          "repair_required": false,
+          "review_classifications": [
+            "defer",
+            "human_gate"
+          ],
+          "review_ref": "file:.grilltrack/work/site-launch-20260930/EXPORTER-REVIEW-DISPOSITION.md;file:.grilltrack/work/site-launch-20260930/final-export-regression.json",
+          "review_result": "findings",
+          "review_source_identity": "sha256:c07f05585bfbbc67d1eb0e2fa2e3629fdbd3f5eb37553e634600f499eb57017d",
+          "to": "needs_reverification",
+          "verification_ref": "file:.grilltrack/work/site-launch-20260930/final-export-regression.json;file:.grilltrack/work/site-launch-20260930/final-dry-run.log"
+        },
+        {
+          "at": "2026-09-30T16:36:17+00:00",
+          "choice": "Prepare the current two public EmDash pages as a frozen Workers Static Assets release for dinkuskit.com. Merchant accounts, hosted Connect, service activation and payments remain unavailable. Source remains EmDash/native blocks; changes require rebuild and republication.",
+          "from": "needs_reverification",
+          "implementation_ref": "file:scripts/prepare-public-release.mjs;file:docs/public-launch.md;file:package.json",
+          "note": "bounded implementation recorded",
+          "repair_required": true,
+          "review_classifications": [
+            "required_fix"
+          ],
+          "review_ref": "file:.grilltrack/work/site-launch-20260930/stale-output-fix/DISPOSITION.md",
+          "review_result": "findings",
+          "review_source_identity": "git:f0fdeb8abe623ef6df682d0fa2afefe6bc8436e9",
+          "to": "implemented",
+          "verification_ref": "file:.grilltrack/work/site-launch-20260930/final-export-regression.json;file:.grilltrack/work/site-launch-20260930/final-dry-run.log"
+        },
+        {
+          "at": "2026-09-30T16:36:17+00:00",
+          "choice": "Prepare the current two public EmDash pages as a frozen Workers Static Assets release for dinkuskit.com. Merchant accounts, hosted Connect, service activation and payments remain unavailable. Source remains EmDash/native blocks; changes require rebuild and republication.",
+          "from": "implemented",
+          "implementation_ref": "file:scripts/prepare-public-release.mjs;file:scripts/test-public-release-reuse.mjs",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": "file:.grilltrack/work/site-launch-20260930/final-export-regression.json;file:.grilltrack/work/site-launch-20260930/final-dry-run.log"
         }
       ],
       "id": "website-public-launch-008",
-      "implementation_ref": "file:scripts/prepare-public-release.mjs;file:docs/public-launch.md;file:package.json",
+      "implementation_ref": "file:scripts/prepare-public-release.mjs;file:scripts/test-public-release-reuse.mjs",
       "question": "Should the public introduction launch before merchant hosting?",
       "rationale": "Bobby instructed proceed in response to the public-only launch recommendation. Merges and live deployment still require separate approval after current formal reviews and account/domain verification.",
       "repair_required": false,
-      "review_classifications": [
-        "defer",
-        "human_gate"
-      ],
+      "review_classifications": [],
       "review_history": [
         {
           "classifications": [
@@ -578,15 +622,24 @@
           "result": "findings",
           "reviewed_at": "2026-09-30T15:25:14+00:00",
           "source_identity": "sha256:c07f05585bfbbc67d1eb0e2fa2e3629fdbd3f5eb37553e634600f499eb57017d"
+        },
+        {
+          "classifications": [
+            "required_fix"
+          ],
+          "ref": "file:.grilltrack/work/site-launch-20260930/stale-output-fix/DISPOSITION.md",
+          "result": "findings",
+          "reviewed_at": "2026-09-30T16:36:17+00:00",
+          "source_identity": "git:f0fdeb8abe623ef6df682d0fa2afefe6bc8436e9"
         }
       ],
-      "review_ref": "file:.grilltrack/work/site-launch-20260930/EXPORTER-REVIEW-DISPOSITION.md;file:.grilltrack/work/site-launch-20260930/final-export-regression.json",
-      "review_result": "findings",
-      "review_source_identity": "sha256:c07f05585bfbbc67d1eb0e2fa2e3629fdbd3f5eb37553e634600f499eb57017d",
+      "review_ref": null,
+      "review_result": null,
+      "review_source_identity": null,
       "status": "verified",
       "superseded_by": null,
-      "updated_at": "2026-09-30T15:25:14+00:00",
-      "verification_ref": "file:.grilltrack/work/site-launch-20260930/final-export-regression.json;file:.grilltrack/work/site-launch-20260930/final-dry-run.log"
+      "updated_at": "2026-09-30T16:36:17+00:00",
+      "verification_ref": "file:.grilltrack/work/site-launch-20260930/stale-output-fix/parent-verify.log;file:.grilltrack/work/site-launch-20260930/stale-output-fix/baseline-regression.json"
     }
   ],
   "last_activation": {
@@ -609,5 +662,5 @@
   "status": "active",
   "title": "DinkusKit website foundation",
   "track_id": "gt-20260930021417-e281b2",
-  "updated_at": "2026-09-30T15:25:14+00:00"
+  "updated_at": "2026-09-30T16:36:17+00:00"
 }

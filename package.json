@@ -20,7 +20,8 @@
     "audit:repo": "node scripts/audit-repo.mjs",
     "test:smoke": "node scripts/smoke.mjs",
     "test:dev-cms": "node scripts/dev-cms.mjs",
-    "verify": "npm run audit:repo && npm run setup && npm run typecheck && npm run build && npm run test:smoke && npm run test:dev-cms",
+    "test:public-release-reuse": "node scripts/test-public-release-reuse.mjs",
+    "verify": "npm run audit:repo && npm run setup && npm run typecheck && npm run build && npm run test:smoke && npm run test:dev-cms && npm run test:public-release-reuse",
     "prepare:public-release": "npm run setup && npm run build && node scripts/prepare-public-release.mjs"
   },
   "dependencies": {

@@ -43,7 +43,7 @@ Verification runs the repository path/identity audit, local merchant migrations,
 - [Merchant account-boundary proof](proof/merchant-auth-proof/README.md)
 - [Better Auth route evidence](proof/better-auth/README.md)
 - [Public source provenance](docs/provenance.md)
-- [Verification evidence](proof/website-foundation/README.md)
+- [Verification evidence](proof/website-foundation/PROOF.md)
 
 The website adapter is `@astrojs/cloudflare` with `@emdash-cms/cloudflare` `d1({ binding: "DB", session: "disabled" })`, `r2({ binding: "MEDIA" })`, and `sandbox()`. `src/worker.ts` wraps the Astro handler, exports `PluginBridge`, and registers scheduled maintenance.
 

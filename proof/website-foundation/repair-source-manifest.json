@@ -24,7 +24,7 @@
     },
     {
       "path": "scripts/dev-cms.mjs",
-      "sha256": "e605fa4b6ef9933b2f8fb5c9d08917093e228b2e9ec2ef01da2c9f0c4de5a12c"
+      "sha256": "00197c827f8c436b92a25410e1eb974450ef86c2b539cef62641f14ee4bf1fa3"
     },
     {
       "path": "scripts/prepare-local.mjs",

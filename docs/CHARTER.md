@@ -8,7 +8,7 @@ The canonical public address is `https://dinkuskit.com`. Local development uses 
 
 The first audience already has an EmDash site. The intended journey is Registry plugin installation, Connect, DinkusKit sign-in, explicit site authorization, service activation, then return to EmDash. Merchants do not configure hosting infrastructure or enter service API keys.
 
-The public site explains the products, getting started, documentation, support and trial availability truthfully. The account area will handle sign-in/recovery, connected sites and service setup/resumption. Initial Inventory access is a trial without payment details; no duration, quota, price or permanently-free promise has been selected.
+The public site explains the products, getting started, documentation, support and trial availability truthfully. The account area will handle sign-in/recovery, connected sites and service setup/resumption. Inventory is coming soon and is not a prerequisite for Commerce. Initial hosted Inventory access is planned as a trial without payment details; no duration, quota, price or permanently-free promise has been selected. Commerce and the Template Store will be released together as a verified pair; demo and setup destinations stay unpublished until that pair exists.
 
 Daily product, stock and order management remains in the merchant's EmDash site for the initial experience. Inventory owns stock truth, Commerce owns prices and orders, and Payments owns processor integration.
 

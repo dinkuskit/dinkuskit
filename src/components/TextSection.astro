@@ -1,8 +1,37 @@
 ---
 import type { BlockComponentProps, BlockValue } from 'emdash/ui';
-const { value } = Astro.props as BlockComponentProps<BlockValue & { heading?: string; body?: string }>;
+import { safeHttpUrl } from '../../scripts/lib/safe-http-url.mjs';
+
+type TextSectionValue = BlockValue & {
+  heading?: string;
+  body?: string;
+  link_href?: string;
+  link_label?: string;
+  second_link_href?: string;
+  second_link_label?: string;
+};
+
+const { value } = Astro.props as BlockComponentProps<TextSectionValue>;
+
+const links = [
+  { href: safeHttpUrl(value.link_href), label: value.link_label?.trim() },
+  { href: safeHttpUrl(value.second_link_href), label: value.second_link_label?.trim() },
+].filter((link): link is { href: string; label: string } => Boolean(link.href && link.label));
 ---
 <section class="text-section">
   {value.heading && <h2>{value.heading}</h2>}
-  {value.body && <p>{value.body}</p>}
+  {(value.body || links.length > 0) && (
+    <div class="text-section-copy">
+      {value.body && <p>{value.body}</p>}
+      {links.length > 0 && (
+        <ul class="text-section-links">
+          {links.map((link) => (
+            <li>
+              <a href={link.href}>{link.label}</a>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )}
 </section>

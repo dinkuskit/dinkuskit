@@ -26,6 +26,26 @@
               "label": "Body",
               "type": "text",
               "required": true
+            },
+            {
+              "slug": "link_href",
+              "label": "Link URL",
+              "type": "url"
+            },
+            {
+              "slug": "link_label",
+              "label": "Link label",
+              "type": "string"
+            },
+            {
+              "slug": "second_link_href",
+              "label": "Second link URL",
+              "type": "url"
+            },
+            {
+              "slug": "second_link_label",
+              "label": "Second link label",
+              "type": "string"
             }
           ]
         }
@@ -88,8 +108,8 @@
               "_type": "text_section",
               "_version": 1,
               "_key": "home-1",
-              "heading": "Inventory, connected",
-              "body": "The planned Registry installation connects your site to DinkusKit-hosted Inventory. You manage stock in EmDash without configuring Cloudflare yourself."
+              "heading": "Inventory, coming soon",
+              "body": "Hosted Inventory is coming soon and is not required to start with Commerce. You will keep stock in EmDash when that service is ready. An open-source self-host path will be documented; neither path is provisioned on this website today."
             },
             {
               "_type": "text_section",
@@ -120,29 +140,33 @@
               "_type": "text_section",
               "_version": 1,
               "_key": "getting-started-0",
-              "heading": "1. Install from the Registry",
-              "body": "The intended release installs DinkusKit plugins through the EmDash Registry. These integrations are still in development; this site is not an installation or activation service yet."
+              "heading": "1. Create an EmDash site",
+              "body": "Follow the official EmDash installation guide to scaffold a site with npm create emdash@latest. Official themes are complete Astro templates. This website is not an installer.",
+              "link_href": "https://docs.emdashcms.com/getting-started/",
+              "link_label": "Create your first EmDash site",
+              "second_link_href": "https://docs.emdashcms.com/themes/overview/",
+              "second_link_label": "EmDash themes"
             },
             {
               "_type": "text_section",
               "_version": 1,
               "_key": "getting-started-1",
-              "heading": "2. Connect your DinkusKit account",
-              "body": "The planned flow lets you sign in, authorize your site, and connect services. The same account will be able to connect multiple stores."
+              "heading": "2. Hosted or self-host later",
+              "body": "DinkusKit will eventually offer a hosted onboarding path and documented open-source self-hosting. Neither is provisioned here. Pricing, billing, and rollout timing are undecided."
             },
             {
               "_type": "text_section",
               "_version": 1,
               "_key": "getting-started-2",
-              "heading": "3. Set up inventory and payments",
-              "body": "Name your first stock location or reconnect existing inventory, and complete Stripe setup for your business. Everyday store administration stays in EmDash."
+              "heading": "3. Commerce and Template Store",
+              "body": "Commerce and the Template Store will be released together as a verified pair. Try-the-demo and template setup links will be published here when those destinations exist. No demo or setup destination is available on this site yet."
             },
             {
               "_type": "text_section",
               "_version": 1,
               "_key": "getting-started-3",
               "heading": "Trial access",
-              "body": "Initial hosted Inventory access is planned as a trial without payment details. Trial duration, usage limits and pricing have not been set."
+              "body": "Initial hosted Inventory access is planned as a trial without payment details and is not a prerequisite for Commerce. Trial duration, usage limits and pricing have not been set."
             }
           ]
         }

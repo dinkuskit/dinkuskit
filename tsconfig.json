@@ -1,5 +1,5 @@
 {
   "extends": "astro/tsconfigs/strict",
-  "compilerOptions": { "types": ["node"], "ignoreDeprecations": "6.0" },
+  "compilerOptions": { "types": ["node"], "ignoreDeprecations": "6.0", "allowJs": true },
   "include": ["src", ".astro/types.d.ts", "emdash-env.d.ts"]
 }

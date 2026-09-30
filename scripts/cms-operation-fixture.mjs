@@ -169,12 +169,16 @@ async function main() {
 
   const productionConfig = readFileSync(join(root, 'astro.config.mjs'), 'utf8');
   const productionGuard = readFileSync(join(root, 'src/emdash-namespace-guard.ts'), 'utf8');
-  assert.match(productionConfig, /@astrojs\/node/);
+  const candidateConfig = readFileSync(join(root, 'astro.cloudflare.config.mjs'), 'utf8');
+  const fixtureConfig = readFileSync(join(root, 'fixtures/cms-operation/astro.config.mjs'), 'utf8');
+  assert.match(productionConfig, /@astrojs\/cloudflare/);
   assert.match(productionConfig, /emdash-namespace-guard/);
-  assert.doesNotMatch(productionConfig, /@astrojs\/cloudflare|@emdash-cms\/cloudflare/);
+  assert.doesNotMatch(productionConfig, /fixtures\/cms-operation|access-namespace-guard/);
+  assert.match(candidateConfig, /access-namespace-guard/);
+  assert.match(fixtureConfig, /loopback-editor-guard/);
   assert.match(productionGuard, /import\.meta\.env\.DEV/);
   assert.match(productionGuard, /Not Found/);
-  record('Production astro.config still uses Node + deny-all namespace guard; fixture adapter is not imported there');
+  record('Production worker uses Cloudflare + deny-all namespace guard; Access candidate and loopback CMS-operation fixture stay on separate configs');
 
   await mkdir(work, { recursive: true });
   await rm(persist, { recursive: true, force: true });

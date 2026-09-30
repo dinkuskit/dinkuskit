@@ -1,0 +1,43 @@
+{
+  "name": "@dinkuskit/website",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "The EmDash-powered DinkusKit website and hosted-service account foundation",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.22.2 <23"
+  },
+  "emdash": {
+    "seed": "seed/seed.json"
+  },
+  "scripts": {
+    "setup": "node scripts/prepare-local.mjs",
+    "dev": "astro dev --host 127.0.0.1",
+    "build": "astro build",
+    "start": "node dist/server/entry.mjs",
+    "typecheck": "astro check",
+    "audit:repo": "node scripts/audit-repo.mjs",
+    "test:smoke": "node scripts/smoke.mjs",
+    "test:dev-cms": "node scripts/dev-cms.mjs",
+    "test:public-release-reuse": "node scripts/test-public-release-reuse.mjs",
+    "verify": "npm run audit:repo && npm run setup && npm run typecheck && npm run build && npm run test:smoke && npm run test:dev-cms && npm run test:public-release-reuse",
+    "prepare:public-release": "npm run setup && npm run build && node scripts/prepare-public-release.mjs"
+  },
+  "dependencies": {
+    "@astrojs/node": "11.1.5",
+    "@astrojs/react": "6.0.5",
+    "astro": "7.3.2",
+    "better-sqlite3": "12.11.1",
+    "emdash": "1.0.1",
+    "react": "19.2.4",
+    "react-dom": "19.2.4"
+  },
+  "devDependencies": {
+    "@astrojs/check": "0.9.10",
+    "@types/node": "26.1.1",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "typescript": "6.0.3"
+  }
+}

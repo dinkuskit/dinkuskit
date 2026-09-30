@@ -1,0 +1,31 @@
+---
+interface Props { title: string; description: string }
+const { title, description } = Astro.props;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+import '../styles/site.css';
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <title>{title} · DinkusKit</title>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header>
+      <a class="brand" href="/">DinkusKit <span aria-hidden="true">* * *</span></a>
+      <nav aria-label="Main navigation">
+        <a href="/getting-started">Getting started</a>
+        <a href="https://github.com/dinkuskit">GitHub</a>
+      </nav>
+    </header>
+    <main id="main"><slot /></main>
+    <footer>
+      <p>Built with EmDash. Growing in the open.</p>
+      <a href="https://github.com/dinkuskit/dinkuskit">Website source</a>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,84 @@
+{
+  "sources": [
+    {
+      "path": ".github/workflows/verify.yml",
+      "sha256": "c3910f6de94b7a8e725a1b517d66f0b99bb06d941549c60411ddd1d990f3cb60"
+    },
+    {
+      "path": ".gitignore",
+      "sha256": "73bfdfd681db6fbc794dbce9b3c1ebf281a5ecbee1b82a004220229b2fe4b57d"
+    },
+    {
+      "path": ".nvmrc",
+      "sha256": "08062faf0d7a2d22f5d7933c50e975dd1527034275597be7c1b3b9fd2b9d079a"
+    },
+    {
+      "path": "astro.config.mjs",
+      "sha256": "3c153498a1f923a5cfd2cd1cfbdcff672a35a8efde89d8246ae707f7e3477c55"
+    },
+    {
+      "path": "package-lock.json",
+      "sha256": "b7be2c200bbd89a4ca123ab78e5742ff290fe2221767eef972727c80cecb3010"
+    },
+    {
+      "path": "package.json",
+      "sha256": "bcedf6290673462adf018cd04c0515caa15844888ef960da32868e2081f2c08d"
+    },
+    {
+      "path": "scripts/audit-repo.mjs",
+      "sha256": "9262e22b48f86a045d2f3d39bb8dc559c23ff115c8f3acec5fc8d40348b25971"
+    },
+    {
+      "path": "scripts/prepare-local.mjs",
+      "sha256": "1eefd2624833157d7f8986247e47e679d1cdb393d184de43b50fa6e87f15fd04"
+    },
+    {
+      "path": "scripts/smoke.mjs",
+      "sha256": "40efb542e6056286ccbc48ef2304534d1a1567cfd7db14cdbf69e0d216f2d3c9"
+    },
+    {
+      "path": "seed/seed.json",
+      "sha256": "9df1ffb3e35cb4fc388dd12cc577f7e253d7b78e2ee7361d7bfdfb2e7fcd2b07"
+    },
+    {
+      "path": "src/components/ContentPage.astro",
+      "sha256": "c679d245d9c566454411cec43e1e0e4a3e407e62c2df8a6714a97e3774ca5e5f"
+    },
+    {
+      "path": "src/components/TextSection.astro",
+      "sha256": "038bb23007bc7e68a9a8c955e373e57f5fd8727b26ff5a5fb041a4d8870d8fb9"
+    },
+    {
+      "path": "src/env.d.ts",
+      "sha256": "8200673547ce0e2dcf9601453b09b12bab0b613e3ce45a957ecbbdd07ea5c57b"
+    },
+    {
+      "path": "src/layouts/Site.astro",
+      "sha256": "4198b1060aebce91442ee9d710a027d0bb6f9849acd23978d4e162c97418e879"
+    },
+    {
+      "path": "src/live.config.ts",
+      "sha256": "3dc6081bf76307af1f5ad1915c00752aec36dd51c5ad696359a45a7a3e8f04c3"
+    },
+    {
+      "path": "src/pages/404.astro",
+      "sha256": "126029adcd7ba265c489cda5c6c7ee151ed06f154847ac408bb2c7b5b481dd45"
+    },
+    {
+      "path": "src/pages/getting-started.astro",
+      "sha256": "1acd86b57de63ca13b40bff096a908040a251697b9c7c8428aced3e54d430983"
+    },
+    {
+      "path": "src/pages/index.astro",
+      "sha256": "ed247b7735f20d47c563b50287399bd228df9bb244d12565dcae035b26a5b5a0"
+    },
+    {
+      "path": "src/styles/site.css",
+      "sha256": "45908ec87ee89623ffc25d5eb9a48f868918c7519b6c831f4c597288fe266e5a"
+    },
+    {
+      "path": "tsconfig.json",
+      "sha256": "85506dd04bba723b2bed80eabedc8f2b3fd23bcb8c79838ed741bbc83f633efc"
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+---
+import { getEmDashEntry } from 'emdash';
+import { Blocks, type BlockValue } from 'emdash/ui';
+import Site from '../layouts/Site.astro';
+import TextSection from './TextSection.astro';
+
+interface Props { slug: string }
+const { entry } = await getEmDashEntry('pages', Astro.props.slug);
+const page = entry?.data as { title?: string; description?: string; layout?: BlockValue[] } | undefined;
+if (!page) Astro.response.status = 503;
+---
+<Site title={page?.title ?? 'Content unavailable'} description={page?.description ?? 'The DinkusKit website is being prepared.'}>
+  {page ? (
+    <>
+      <div class="intro">
+        <p class="eyebrow">Commerce for EmDash</p>
+        <h1>{page.title}</h1>
+        <p class="lead">{page.description}</p>
+      </div>
+      <div class="page-sections" data-native-blocks>
+        <Blocks value={page.layout ?? []} components={{ text_section: TextSection }} />
+      </div>
+    </>
+  ) : (
+    <div class="intro">
+      <h1>Content is not available yet.</h1>
+      <p>Please try again later.</p>
+    </div>
+  )}
+</Site>

@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createAuthenticatedEditor } from './helpers/emdash-editor.mjs';
-import { request, signup, startMerchantTestRuntime, stopRuntime } from './helpers/merchant-harness.mjs';
+import { request, signup, startCmsMerchantTestRuntime, stopRuntime } from './helpers/merchant-harness.mjs';
 
 test('CMS admin and merchant sessions stay isolated on workerd', async () => {
-  const runtime = await startMerchantTestRuntime();
+  const runtime = await startCmsMerchantTestRuntime();
   const merchantJar = new Map();
   const cmsJar = new Map();
   try {

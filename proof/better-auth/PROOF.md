@@ -2,9 +2,9 @@
 
 Better Auth1.7.6 backs merchant signup, sign-in, recovery, logout and protected account routes in the Astro Cloudflare worker. CMS D1 `DB`, merchant D1 `MERCHANT_DB`, cookies and identities are separate. Issuer is `https://dinkuskit.com/account`; the merchant subject and canonical `JSON.stringify([issuer, sub])` account key are independent of email/provider identifiers.
 
-## Parent verification
+## Historical verification at `04f6ebb2a0b32140b633134591ddc1e261ac104e`
 
-`npm run verify` independently passed on Node22.23.2 after the final source correction and a fresh `npm ci`: repository audit, local-only versioned D1 setup, Wrangler types, typecheck0errors/0warnings/0hints, Cloudflare build,16merchant tests,8EmDash public-auth feasibility tests and7HTTP smoke checks. The implementation input hashes are in [implementation-manifest.json](implementation-manifest.json). The feasibility tests remain historical CMS-helper evidence; they are not the Better Auth browser proof.
+At head `04f6ebb2a0b32140b633134591ddc1e261ac104e`, `npm run verify` independently passed on Node22.23.2 after the final source correction and a fresh `npm ci`: repository audit, local-only versioned D1 setup, Wrangler types, typecheck0errors/0warnings/0hints, Cloudflare build,16merchant tests,8EmDash public-auth feasibility tests and7HTTP smoke checks. Those 16 merchant and 7 smoke counts are historical at that head, not the current repair suite. Current Cloudflare stack-repair verification is 17 merchant tests, 8 HTTP smoke checks, and the local Astro-dev CMS check; see [REPAIR.md](REPAIR.md). The implementation input hashes are in [implementation-manifest.json](implementation-manifest.json). The feasibility tests remain historical CMS-helper evidence; they are not the Better Auth browser proof.
 
 Merchant workerd checks include persistence/restart, separate users, single-use/expired/concurrent magic links, current disabled state, foreign/missing Origin rejection, safe redirects, fresh/upgrade migrations, and authenticated CMS isolation. The CMS positive control registers and authenticates a software passkey through public EmDash setup/auth routes, reaches protected settings, and proves bidirectional isolation. No CMS auth rows are fabricated.
 
@@ -18,23 +18,23 @@ Connect fixtures cover two merchants/sites, pending-owner isolation, every recei
 
 Attended local browser proof used the built worker and a separate test entry with captured delivery. Signup, sign-in, recovery, logout and protected-page redirect passed. Captured mail completion invokes the actual Better Auth verification handler and forwards its cookies; raw links/tokens never enter the browser or proof. Final signup/account/consent pages were inspected after the copy correction. Simulated consent created a local grant and the browser revoke action showed revoked state.
 
-The placeholder `.example` callback did not load; return-to-hosted-Inventory delivery is not claimed. Selected screenshots use only synthetic email/site fixtures. No tokens, keys, cookies or customer data are visible. The selected release assets and their source binding are recorded below.
+The placeholder `.example` callback did not load; return-to-hosted-Inventory delivery is not claimed. Selected screenshots use only synthetic email/site fixtures. No tokens, keys, cookies or customer data are visible. The selected access-controlled assets and their source binding are recorded below.
 
 ## Source-bound browser assets
 
-[PR4](https://github.com/dinkuskit/dinkuskit/pull/4) targets base `347514c8c7757ce744b5f5e406b7fd00c014cc5c`. Browser captures bind to implementation head `089240aee0af0244ce231861a3eeb600bd7f1807`. Subsequent source corrections close the dependency lock and migration ledger, and normalize configured account origins; every page, layout and style still matches the capture source. Migration regressions and the full built-worker suite were rerun after the corrections. The updated [implementation manifest](implementation-manifest.json) binds the final tested source and dependency closure.
+Historical [PR4](https://github.com/dinkuskit/dinkuskit/pull/4) capture targeted base `347514c8c7757ce744b5f5e406b7fd00c014cc5c`. That base is capture provenance, not the current merge or repair target. Browser captures bind to implementation head `089240aee0af0244ce231861a3eeb600bd7f1807`. Subsequent source corrections close the dependency lock and migration ledger, and normalize configured account origins; every page, layout and style still matches the capture source. Migration regressions and the full built-worker suite were rerun after the corrections. Those captures do not prove the later production `/_emdash` gate; see [REPAIR.md](REPAIR.md).
 
-Shelf: `dinkuskit/dinkus-pr-assets`; [release dinkuskit-pr-4-089240aee0af](https://github.com/dinkuskit/dinkus-pr-assets/releases/tag/dinkuskit-pr-4-089240aee0af), ID `399745640`, published `2026-09-30T05:33:40Z`. The shelf is private and requires authenticated GitHub access. Unique release with no replacement; GitHub reports `immutable: false`, so server-enforced locking is not claimed. No repository setting was changed.
+The JPGs remain access-controlled. Private storage locators, release identifiers, download URLs, and asset IDs stay in ignored handoff. No private asset is republished and no public download link is fabricated. Capture date: 2026-09-30.
 
-| Asset | Bytes | SHA-256 | Asset ID |
-| --- | ---: | --- | ---: |
-| [account.jpg](https://github.com/dinkuskit/dinkus-pr-assets/releases/download/dinkuskit-pr-4-089240aee0af/account.jpg) | 57900 | `82942bb6146f596f83f2bd0206e9ce52d749db4860bea3cafaf4594d9a309bec` | `600124404` |
-| [consent-simulation.jpg](https://github.com/dinkuskit/dinkus-pr-assets/releases/download/dinkuskit-pr-4-089240aee0af/consent-simulation.jpg) | 58090 | `1b8702dd5f1a85e2e37d663eca09d7d482074a949a49a5f19360986c31f80d32` | `600124405` |
-| [manifest.json](https://github.com/dinkuskit/dinkus-pr-assets/releases/download/dinkuskit-pr-4-089240aee0af/manifest.json) | 2097 | `81dc1f8ed28ae874d358849ca7a64dfdd814005a1acb1e9c82fd5f4bb4191220` | `600124402` |
-| [PUBLISHED_MANIFEST.md](https://github.com/dinkuskit/dinkus-pr-assets/releases/download/dinkuskit-pr-4-089240aee0af/PUBLISHED_MANIFEST.md) | 1823 | `8032964bdb8b1c2f3e9e4f49cad62ccfd2dc3a67baaec5d55370c7993e2d0cec` | `600124406` |
-| [signup.jpg](https://github.com/dinkuskit/dinkus-pr-assets/releases/download/dinkuskit-pr-4-089240aee0af/signup.jpg) | 53221 | `8fd4b03003fc48979da70f912117ab0693e043fd2eb8589879f248d847b02681` | `600124401` |
+| Asset | Bytes | SHA-256 |
+| --- | ---: | --- |
+| `account.jpg` | 57900 | `82942bb6146f596f83f2bd0206e9ce52d749db4860bea3cafaf4594d9a309bec` |
+| `consent-simulation.jpg` | 58090 | `1b8702dd5f1a85e2e37d663eca09d7d482074a949a49a5f19360986c31f80d32` |
+| `manifest.json` | 2097 | `81dc1f8ed28ae874d358849ca7a64dfdd814005a1acb1e9c82fd5f4bb4191220` |
+| `PUBLISHED_MANIFEST.md` | 1823 | `8032964bdb8b1c2f3e9e4f49cad62ccfd2dc3a67baaec5d55370c7993e2d0cec` |
+| `signup.jpg` | 53221 | `8fd4b03003fc48979da70f912117ab0693e043fd2eb8589879f248d847b02681` |
 
-Downloaded assets and manifests matched their original local bytes, sizes, SHA-256 hashes and GitHub digests. The three unedited JPGs use the existing 2560x1440 desktop viewport. Parent visual inspection found only synthetic email/site fixtures; no raw verification links, tokens, keys, cookies, credentials or customer data. Unselected captures were not uploaded.
+Local copies and their storage metadata remain access controlled. Sizes and SHA-256 values above are the public provenance record and match the historical capture source. The three unedited JPGs use the existing 2560x1440 desktop viewport. Parent visual inspection found only synthetic email/site fixtures; no raw verification links, tokens, keys, cookies, credentials or customer data. Unselected captures were not uploaded.
 
 Account and signup show the actual local built-worker pages. Consent is explicitly injected simulation; it does not prove remote EmDash administration, hosted callback delivery or live service activation. No mobile or final visual design claim.
 

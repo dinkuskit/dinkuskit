@@ -38,14 +38,19 @@ async function emitProofFetch() {
   );
 }
 
-async function prepareBuiltTestConfig({ persistTo, secret, origin, jwt }) {
+async function prepareBuiltTestConfig({ persistTo, secret, origin, jwt, cmsProof = false }) {
   const built = JSON.parse(await readFile('dist/server/wrangler.json', 'utf8'));
+  const main = cmsProof ? 'cms-test-entry.mjs' : 'test-entry.mjs';
   await copyFile('tests/fixtures/built-test-entry.mjs', 'dist/server/test-entry.mjs');
+  if (cmsProof) {
+    await copyFile('tests/fixtures/cms-proof-als.mjs', 'dist/server/cms-proof-als.mjs');
+    await copyFile('tests/fixtures/built-cms-test-entry.mjs', 'dist/server/cms-test-entry.mjs');
+  }
   await emitProofFetch();
   const config = {
     ...built,
-    name: 'dinkuskit-website-test',
-    main: 'test-entry.mjs',
+    name: cmsProof ? 'dinkuskit-website-cms-test' : 'dinkuskit-website-test',
+    main,
     no_bundle: true,
     kv_namespaces: [
       ...(built.kv_namespaces ?? []),
@@ -72,8 +77,15 @@ export async function startMerchantTestRuntime(options = {}) {
   const origin = options.origin ?? `http://127.0.0.1:${port}`;
   const configuredBaseURL = options.configuredBaseURL
     ?? (options.trailingSlashBaseURL ? `${origin}/` : origin);
-  const config = await prepareBuiltTestConfig({ persistTo, secret, origin: configuredBaseURL, jwt });
-  const worker = await unstable_dev('dist/server/test-entry.mjs', {
+  const config = await prepareBuiltTestConfig({
+    persistTo,
+    secret,
+    origin: configuredBaseURL,
+    jwt,
+    cmsProof: options.cmsProof === true,
+  });
+  const entry = options.cmsProof === true ? 'dist/server/cms-test-entry.mjs' : 'dist/server/test-entry.mjs';
+  const worker = await unstable_dev(entry, {
     config,
     ip: '127.0.0.1',
     port,
@@ -110,6 +122,10 @@ export async function startMerchantTestRuntime(options = {}) {
   };
 }
 
+export async function startCmsMerchantTestRuntime(options = {}) {
+  return startMerchantTestRuntime({ ...options, cmsProof: true });
+}
+
 export async function startProductionWorker(options = {}) {
   const built = JSON.parse(await readFile('dist/server/wrangler.json', 'utf8'));
   const persistTo = options.persistTo;
@@ -123,6 +139,7 @@ export async function startProductionWorker(options = {}) {
       ...(options.rogueTestBindings ? [
         { binding: 'MERCHANT_MAIL_CAPTURE', id: '00000000-0000-0000-0000-000000000031' },
         { binding: 'MERCHANT_PROOF_SIMULATION', id: '00000000-0000-0000-0000-000000000032' },
+        { binding: 'CMS_PROOF_UNLOCK', id: '00000000-0000-0000-0000-000000000033' },
       ] : []),
     ],
     vars: {
@@ -130,6 +147,12 @@ export async function startProductionWorker(options = {}) {
       ...(options.secret ? { MERCHANT_AUTH_SECRET: options.secret } : {}),
       ...(options.origin ? { MERCHANT_BASE_URL: options.origin } : {}),
       ...(typeof options.jwt === 'string' ? { MERCHANT_JWT_PRIVATE_JWK: options.jwt } : {}),
+      ...(options.rogueTestBindings ? {
+        EMDASH_UNLOCK: '1',
+        CMS_PROOF: '1',
+        DINKUSKIT_CMS_PROOF: '1',
+        DEV: '1',
+      } : {}),
       ...(options.vars ?? {}),
     },
   };

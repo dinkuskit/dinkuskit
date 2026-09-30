@@ -1,9 +1,9 @@
 {
-  "purpose": "Parent-tested implementation inputs; proof metadata and ledger excluded",
+  "purpose": "Final tested implementation inputs after Cloudflare stack repair. Historical browser captures remain bound to 089240aee0af0244ce231861a3eeb600bd7f1807 and do not prove the repaired /_emdash middleware.",
   "files": [
     {
       "path": "astro.config.mjs",
-      "sha256": "8ff79905c7166862503f2d8dc0d1b1ca4ebe67758d30f568b7d707ad1bf7085b"
+      "sha256": "65b0e31ffb841ba4f262292f17b092fb8d36cf21014322b0128c0209cd31cc18"
     },
     {
       "path": "migrations/merchant/0001_better_auth.sql",
@@ -23,11 +23,15 @@
     },
     {
       "path": "package.json",
-      "sha256": "73de72d19c2eabb5fb87822d694385c7b5c941206b0722aa0569ec85ed56309d"
+      "sha256": "7d8512b9017363ed347ee4e2a05c501a2fd5716d651539e2fad9fa4ea097a0de"
     },
     {
       "path": "scripts/audit-repo.mjs",
       "sha256": "90e0a48c29c22c25ef283afd8cab50e8b6e8f15948aee074cfa7d779b24a7014"
+    },
+    {
+      "path": "scripts/dev-cms.mjs",
+      "sha256": "00197c827f8c436b92a25410e1eb974450ef86c2b539cef62641f14ee4bf1fa3"
     },
     {
       "path": "scripts/generate-merchant-schema.mjs",
@@ -47,7 +51,7 @@
     },
     {
       "path": "scripts/smoke.mjs",
-      "sha256": "aae7a6ac6cffb0615559b92fabd0d392048f27842ec0b5385ae2e15364b4c20d"
+      "sha256": "8e82e39b0f359735bab8d788e5337f2b9ba6f48c8608b514676123f6c5147e8b"
     },
     {
       "path": "seed/seed.json",
@@ -146,6 +150,10 @@
       "sha256": "038bb23007bc7e68a9a8c955e373e57f5fd8727b26ff5a5fb041a4d8870d8fb9"
     },
     {
+      "path": "src/emdash-namespace-guard.ts",
+      "sha256": "1cd0167168320c45bf6d022922d8672515850e3bac25d13e36f2c3ebe8f51d46"
+    },
+    {
       "path": "src/env.d.ts",
       "sha256": "eef548112b24fcaa01e90925ba45ac91d80cfef9764690c00b9f6519895cd8f4"
     },
@@ -239,19 +247,31 @@
     },
     {
       "path": "tests/better-auth-routes.test.mjs",
-      "sha256": "45827b8f3083466106d69cff430d80d0b0e97fbb981cbe45dc5d5236141c4ef0"
+      "sha256": "e4acab4ec0633ebc2cd96e22872e7c8cf11389b3ffd422319f2498c6ebfdb69e"
     },
     {
       "path": "tests/cms-merchant-isolation.test.mjs",
-      "sha256": "0fb7e6dccf101e292c2a550ec9b9c2a682f5fa84e1a60de2c980c99c16726829"
+      "sha256": "aed4d42624ecd2b02c3b1e273cb34fe1f4d97c225a9b3a4e071daed1109aa19f"
     },
     {
       "path": "tests/emdash-public-auth-feasibility.test.mjs",
       "sha256": "14cbf77f0dc933fc9c14bc5bf92b6ee20075b44a4464ea3e9333ad518b266d4c"
     },
     {
+      "path": "tests/fixtures/built-cms-seed-entry.mjs",
+      "sha256": "bde6abaa9e4e169777808457251c36dc187af11cd5d0099189ff2d93a93866d0"
+    },
+    {
+      "path": "tests/fixtures/built-cms-test-entry.mjs",
+      "sha256": "8d2f0186da183bfbd88e12942310e00bf24970c51706ed8a3953a4453d54e798"
+    },
+    {
       "path": "tests/fixtures/built-test-entry.mjs",
       "sha256": "ca4be3157a265350e84cd90ad789f9102a0a9f7aaaa286a8a1422422d98a7c38"
+    },
+    {
+      "path": "tests/fixtures/cms-proof-als.mjs",
+      "sha256": "ef0128e410fec878c3a0d09ebedc0ae9ef28f5fa23f1cb3eee698ebd3c69a26b"
     },
     {
       "path": "tests/helpers/emdash-editor.mjs",
@@ -271,7 +291,7 @@
     },
     {
       "path": "tests/helpers/merchant-harness.mjs",
-      "sha256": "4c9f1b7e745da7799e41ad1ce41c980223f89592124ff7f35360e6ac62c29fb3"
+      "sha256": "8b55106c8bd39f3350f46b993df76ebb7de79a80587d87449e8c0c5572e4ac1d"
     },
     {
       "path": "tests/merchant-auth-http.test.mjs",
@@ -301,5 +321,11 @@
       "path": "wrangler.test.jsonc",
       "sha256": "e4858b6937e28906dfe6cdd15664bd5e03aa4af5ce71d1b56b730490300b6da2"
     }
-  ]
+  ],
+  "historical_capture_head": "089240aee0af0244ce231861a3eeb600bd7f1807",
+  "repair_working_tree": {
+    "head": "04f6ebb2a0b32140b633134591ddc1e261ac104e",
+    "merge_head": "8ea9cb58ce143eecaf7df0bd2d03ade1e9037f90",
+    "pr1_settled": "ad2c5e23d261b3ec22e79829ba868885a60f5599"
+  }
 }

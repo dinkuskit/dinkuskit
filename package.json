@@ -24,7 +24,8 @@
     "test:smoke": "node scripts/smoke.mjs",
     "test:account": "node --experimental-strip-types --test tests/emdash-public-auth-feasibility.test.mjs",
     "test:merchant": "node --experimental-strip-types --test --test-concurrency=1 --test-timeout=180000 tests/better-auth-routes.test.mjs tests/store-connections.test.mjs tests/merchant-migrations.test.mjs tests/cms-merchant-isolation.test.mjs",
-    "verify": "npm run audit:repo && npm run setup && npm run types:wrangler && npm run typecheck && npm run test:account && npm run build && npm run test:merchant && npm run test:smoke"
+    "test:dev-cms": "node scripts/dev-cms.mjs",
+    "verify": "npm run audit:repo && npm run setup && npm run types:wrangler && npm run typecheck && npm run test:account && npm run build && npm run test:merchant && npm run test:smoke && npm run test:dev-cms"
   },
   "dependencies": {
     "@astrojs/node": "11.1.5",

@@ -227,3 +227,48 @@ test('production entry ignores rogue simulation bindings', async () => {
     await stopRuntime({ ...runtime, ownedPersist: false });
   }
 });
+
+test('production entry denies CMS namespace and ignores rogue unlock bindings', async () => {
+  const runtime = await startProductionWorker({
+    rogueTestBindings: true,
+    vars: { MERCHANT_PROOF_SINK: '1', ASTRO_DEV: '1' },
+  });
+  try {
+    const denied = [
+      '/_emdash/admin',
+      '/_emdash/admin/setup',
+      '/_emdash/admin/setup?dev=1',
+      '/_emdash/api/setup',
+      '/_emdash/api/media/file/missing',
+      '/%5F%65%6D%64%61%73%68/admin',
+      '//_emdash/admin/setup',
+    ];
+    for (const path of denied) {
+      const response = await runtime.worker.fetch(`${runtime.origin}${path}`, {
+        redirect: 'manual',
+        headers: {
+          Host: 'localhost',
+          origin: 'http://localhost',
+          cookie: 'emdash_session=fake; cms_proof=1',
+        },
+      });
+      assert.equal(response.status, 404, path);
+      assert.equal(response.headers.get('location'), null, path);
+    }
+    const setup = await runtime.worker.fetch(new URL('/_emdash/api/setup/admin', runtime.origin), {
+      method: 'POST',
+      redirect: 'manual',
+      headers: { 'content-type': 'application/json', origin: runtime.origin },
+      body: JSON.stringify({ email: 'rogue-cms@example.test', name: 'Rogue' }),
+    });
+    assert.equal(setup.status, 404);
+    const take = await runtime.worker.fetch(new URL('/__proof/mail/take', runtime.origin), {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', origin: runtime.origin },
+      body: JSON.stringify({ email: 'rogue-cms@example.test' }),
+    });
+    assert.notEqual(take.status, 200);
+  } finally {
+    await stopRuntime({ ...runtime, ownedPersist: false });
+  }
+});

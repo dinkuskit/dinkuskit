@@ -15,6 +15,9 @@ export default defineConfig({
       database: d1({ binding: 'DB', session: 'disabled' }),
       storage: r2({ binding: 'MEDIA' }),
       sandboxRunner: sandbox(),
+      middleware: {
+        outer: './src/emdash-namespace-guard.ts',
+      },
     }),
   ],
   devToolbar: { enabled: false },

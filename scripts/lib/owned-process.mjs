@@ -12,6 +12,7 @@ import { once } from 'node:events';
 import { setTimeout as sleep } from 'node:timers/promises';
 
 export function descendantPids(pid) {
+  if (!Number.isInteger(pid) || pid <= 0) return [];
   const found = [];
   const queue = [pid];
   while (queue.length) {
@@ -45,11 +46,22 @@ export function processAlive(pid) {
   }
 }
 
-export function mergeRecordedPids(recorded, rootPid) {
+export function mergeRecordedPids(
+  recorded,
+  rootPid,
+  released = [],
+  getDescendants = descendantPids,
+  isAlive = processAlive,
+) {
+  const releasedSet = new Set((released ?? []).filter((pid) => Number.isInteger(pid) && pid > 0));
   const next = new Set((recorded ?? []).filter((pid) => Number.isInteger(pid) && pid > 0));
   if (Number.isInteger(rootPid) && rootPid > 0) next.add(rootPid);
   for (const pid of [...next]) {
-    for (const child of descendantPids(pid)) next.add(child);
+    // No scans from released parent PIDs that might be reused.
+    // Also only scan currently alive processes.
+    if (!releasedSet.has(pid) && isAlive(pid)) {
+      for (const child of getDescendants(pid)) next.add(child);
+    }
   }
   return [...next];
 }
@@ -58,17 +70,17 @@ export function recordedPidsStillAlive(recorded) {
   return (recorded ?? []).filter((pid) => processAlive(pid));
 }
 
-export function markReleasedPids(proc) {
+export function markReleasedPids(proc, isAlive = processAlive) {
   proc.releasedPids = proc.releasedPids ?? [];
   for (const pid of proc.recordedPids ?? []) {
-    if (!processAlive(pid) && !proc.releasedPids.includes(pid)) proc.releasedPids.push(pid);
+    if (!isAlive(pid) && !proc.releasedPids.includes(pid)) proc.releasedPids.push(pid);
   }
   return proc.releasedPids;
 }
 
-export function killableOwnedPids(proc) {
+export function killableOwnedPids(proc, isAlive = processAlive) {
   const released = new Set(proc.releasedPids ?? []);
-  return (proc.recordedPids ?? []).filter((pid) => !released.has(pid) && processAlive(pid));
+  return (proc.recordedPids ?? []).filter((pid) => !released.has(pid) && isAlive(pid));
 }
 
 export function leftoverOwned(owned) {
@@ -103,14 +115,14 @@ export function spawnLogged(owned, spawn, { label, command, args, options = {} }
   const child = spawn(command, args, {
     cwd: options.cwd,
     env: options.env ?? process.env,
-    stdio: ['ignore', 'pipe', 'pipe'],
+    stdio: options.stdio ?? ['ignore', 'pipe', 'pipe'],
   });
   let output = '';
   const capture = (chunk) => {
     output = (output + chunk.toString()).slice(-400_000);
   };
-  child.stdout.on('data', capture);
-  child.stderr.on('data', capture);
+  if (child.stdout) child.stdout.on('data', capture);
+  if (child.stderr) child.stderr.on('data', capture);
   const record = {
     label,
     pid: child.pid,
@@ -140,49 +152,121 @@ export function spawnLogged(owned, spawn, { label, command, args, options = {} }
   return record;
 }
 
-export function rememberOwnedTree(proc) {
-  proc.recordedPids = mergeRecordedPids(proc.recordedPids ?? [], proc.pid);
-  markReleasedPids(proc);
+export function rememberOwnedTree(proc, isAlive = processAlive, getDescendants = descendantPids) {
+  markReleasedPids(proc, isAlive);
+  proc.recordedPids = mergeRecordedPids(proc.recordedPids ?? [], proc.pid, proc.releasedPids, getDescendants, isAlive);
+  markReleasedPids(proc, isAlive);
   return proc.recordedPids;
 }
 
-export async function stopOwned(proc, { finallyBlock = false, termWaitMs = 15_000 } = {}) {
+export async function stopOwned(
+  proc,
+  {
+    finallyBlock = false,
+    termWaitMs = 15_000,
+    killWaitMs = 5_000,
+    _processAlive = processAlive,
+    _kill = (pid, sig) => process.kill(pid, sig),
+    _descendantPids = descendantPids,
+  } = {}
+) {
   if (!proc) return { code: null, signal: null };
-  rememberOwnedTree(proc);
-  if (!proc.child || proc.child.exitCode !== null) {
+  rememberOwnedTree(proc, _processAlive, _descendantPids);
+
+  const isRootReleased = () => (proc.releasedPids ?? []).includes(proc.pid);
+  const rootCanBeKilled = !isRootReleased() && proc.child && proc.child.exitCode === null && _processAlive(proc.pid);
+  const rootDone = isRootReleased() || !proc.child || proc.child.exitCode !== null || !_processAlive(proc.pid);
+
+  const initialLive = killableOwnedPids(proc, _processAlive);
+  if (initialLive.length === 0 && rootDone) {
     proc.stoppedInFinally = proc.stoppedInFinally || finallyBlock;
-    return proc.exit ? proc.exit : { code: proc.exitCode ?? null, signal: proc.signal ?? null };
+    if (isRootReleased() || !proc.exit) {
+      return { code: proc.exitCode ?? null, signal: proc.signal ?? null };
+    }
+    return await proc.exit;
   }
-  rememberOwnedTree(proc);
-  const tree = killableOwnedPids(proc);
-  proc.killedTree = [...tree];
-  try {
-    proc.child.kill('SIGTERM');
-  } catch {
-    // already gone
+
+  // Record all live PIDs in killedTree
+  proc.killedTree = [...new Set([...(proc.killedTree ?? []), ...initialLive])];
+
+  // Signal SIGTERM to parent (if alive and not released) and all live recorded owned descendants
+  if (rootCanBeKilled) {
+    try {
+      proc.child.kill('SIGTERM');
+    } catch {
+      // already gone
+    }
   }
-  for (const pid of tree) {
+  for (const pid of initialLive) {
     if (pid !== proc.pid) {
       try {
-        process.kill(pid, 'SIGTERM');
+        _kill(pid, 'SIGTERM');
       } catch {
         // already gone
       }
     }
   }
-  const finished = await Promise.race([proc.exit, sleep(termWaitMs).then(() => null)]);
-  rememberOwnedTree(proc);
-  if (!finished) {
-    for (const pid of killableOwnedPids(proc)) {
+
+  // Wait for parent AND live recorded descendants to exit up to termWaitMs
+  const termDeadline = Date.now() + termWaitMs;
+  while (Date.now() < termDeadline) {
+    rememberOwnedTree(proc, _processAlive, _descendantPids);
+    const alive = killableOwnedPids(proc, _processAlive);
+    const parentDone = isRootReleased() || !proc.child || proc.child.exitCode !== null || !_processAlive(proc.pid);
+    if (alive.length === 0 && parentDone) break;
+    await sleep(Math.min(50, Math.max(10, termDeadline - Date.now())));
+  }
+
+  // If live recorded descendants or parent still remain, escalate to SIGKILL
+  rememberOwnedTree(proc, _processAlive, _descendantPids);
+  let stillAlive = killableOwnedPids(proc, _processAlive);
+  const parentStillAlive = !isRootReleased() && proc.child && proc.child.exitCode === null && _processAlive(proc.pid);
+  if (stillAlive.length > 0 || parentStillAlive) {
+    proc.killedTree = [...new Set([...(proc.killedTree ?? []), ...stillAlive])];
+    if (parentStillAlive) {
       try {
-        process.kill(pid, 'SIGKILL');
+        proc.child.kill('SIGKILL');
       } catch {
         // already gone
       }
     }
-    await proc.exit;
+    for (const pid of stillAlive) {
+      if (pid !== proc.pid) {
+        try {
+          _kill(pid, 'SIGKILL');
+        } catch {
+          // already gone
+        }
+      }
+    }
+
+    // Bounded wait after SIGKILL
+    const killDeadline = Date.now() + killWaitMs;
+    while (Date.now() < killDeadline) {
+      rememberOwnedTree(proc, _processAlive, _descendantPids);
+      stillAlive = killableOwnedPids(proc, _processAlive);
+      const parentDone = isRootReleased() || !proc.child || proc.child.exitCode !== null || !_processAlive(proc.pid);
+      if (stillAlive.length === 0 && parentDone) break;
+      await sleep(Math.min(50, Math.max(10, killDeadline - Date.now())));
+    }
   }
-  rememberOwnedTree(proc);
+
+  rememberOwnedTree(proc, _processAlive, _descendantPids);
   proc.stoppedInFinally = proc.stoppedInFinally || finallyBlock;
-  return { code: proc.exitCode, signal: proc.signal };
+
+  // Verify no recorded survivors remain
+  const survivors = killableOwnedPids(proc, _processAlive);
+  if (survivors.length > 0) {
+    throw new Error(
+      `Owned process tree ${proc.label ?? proc.pid} failed to stop cleanly; survivors remain alive: ${survivors.join(', ')}`
+    );
+  }
+
+  if (proc.exit && !isRootReleased()) {
+    return await Promise.race([
+      proc.exit,
+      sleep(500).then(() => ({ code: proc.exitCode ?? null, signal: proc.signal ?? null })),
+    ]);
+  }
+  return { code: proc.exitCode ?? null, signal: proc.signal ?? null };
 }

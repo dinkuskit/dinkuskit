@@ -21,7 +21,13 @@
     "test:smoke": "node scripts/smoke.mjs",
     "test:dev-cms": "node scripts/dev-cms.mjs",
     "test:public-release-reuse": "node scripts/test-public-release-reuse.mjs",
-    "verify": "npm run audit:repo && npm run setup && npm run typecheck && npm run build && npm run test:smoke && npm run test:dev-cms && npm run test:public-release-reuse",
+    "test:cms-operation-helpers": "node scripts/test-cms-operation-helpers.mjs",
+    "test:access-gate": "node scripts/test-access-namespace-gate.mjs",
+    "test:cms-operation": "node scripts/cms-operation-fixture.mjs",
+    "test:cloudflare-candidate": "node scripts/cloudflare-candidate-denial.mjs",
+    "test:safe-http-url": "node scripts/test-safe-http-url.mjs",
+    "build:cloudflare": "astro build --config astro.cloudflare.config.mjs",
+    "verify": "npm run audit:repo && npm run setup && npm run typecheck && npm run build && npm run test:smoke && npm run test:dev-cms && npm run test:public-release-reuse && npm run test:cms-operation-helpers && npm run test:access-gate && npm run test:safe-http-url && npm run test:cms-operation && npm run test:cloudflare-candidate",
     "prepare:public-release": "npm run setup && npm run build && node scripts/prepare-public-release.mjs"
   },
   "dependencies": {
@@ -35,9 +41,12 @@
   },
   "devDependencies": {
     "@astrojs/check": "0.9.10",
+    "@astrojs/cloudflare": "14.3.3",
+    "@emdash-cms/cloudflare": "1.0.1",
     "@types/node": "26.1.1",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
-    "typescript": "6.0.3"
+    "typescript": "6.0.3",
+    "wrangler": "4.144.0"
   }
 }

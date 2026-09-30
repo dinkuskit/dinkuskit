@@ -56,7 +56,7 @@ try {
   }
   assert.ok(ready, `Server failed to start: ${logs.slice(-3000)}`);
   for (const [path, heading, body] of [
-    ['/', 'Commerce that belongs in EmDash.', 'Inventory, connected'],
+    ['/', 'Commerce that belongs in EmDash.', 'Inventory, coming soon'],
     ['/getting-started', 'Your site. One connected experience.', 'Trial access'],
   ]) {
     const response = await request(path);
@@ -66,6 +66,20 @@ try {
     assert.ok(html.includes('data-native-blocks'), `${path}: native blocks wrapper`);
     assert.ok(html.includes(body), `${path}: native block content rendered`);
     assert.ok(html.includes(`href="https://dinkuskit.com${path}"`), `${path}: canonical URL`);
+    if (path === '/getting-started') {
+      assert.ok(
+        html.includes('href="https://docs.emdashcms.com/getting-started/"')
+        && html.includes('>Create your first EmDash site</a>'),
+        `${path}: official install docs are a clickable http(s) anchor`,
+      );
+      assert.ok(
+        html.includes('href="https://docs.emdashcms.com/themes/overview/"')
+        && html.includes('>EmDash themes</a>'),
+        `${path}: official themes docs are a clickable http(s) anchor`,
+      );
+      assert.ok(!html.includes('coordinator-owned') && !html.includes('handoff'), `${path}: no internal coordination copy`);
+      assert.ok(html.includes('No demo or setup destination is available'), `${path}: demo/setup remain pending`);
+    }
     checks.push(`${path}: seeded CMS title, native block content and canonical URL`);
   }
   const beforeMutations = hashRuntime();

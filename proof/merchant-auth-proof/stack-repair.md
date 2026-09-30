@@ -1,6 +1,6 @@
 # Parent-stack reconciliation
 
-Bounded correctness and public-safety repair of the in-progress no-commit merge of settled `codex/auth-proof-assets` (`8ea9cb58ce143eecaf7df0bd2d03ade1e9037f90`, PR1 settled `ad2c5e23d261b3ec22e79829ba868885a60f5599`) into this Cloudflare merchant-auth branch (`04f6ebb2a0b32140b633134591ddc1e261ac104e`). Existing product locks are unchanged. GrillTrack ledger and events were left byte-identical and only CLI-validated.
+Bounded correctness and public-safety repair of the in-progress no-commit merge of settled `codex/auth-proof-assets` (`8ea9cb58ce14`, PR1 settled `ad2c5e23d261`) into this Cloudflare merchant-auth branch (`04f6ebb2a0b3`). Existing product locks are unchanged. GrillTrack ledger and events were left byte-identical and only CLI-validated.
 
 This note describes the resolved Cloudflare worker tree. Historical foundation and Node-adapter repair records were not rewritten to claim they prove this worker. Formal review remains with the rail owner and was not dispatched.
 
@@ -11,7 +11,7 @@ This note describes the resolved Cloudflare worker tree. Historical foundation a
 - Production never initializes or enters that CMS store
 - `package.json` keeps existing Cloudflare `test:account` / `test:merchant` / types / workerd start scripts and inherits `test:dev-cms`
 
-`proof/website-foundation/repair-source-manifest.json` and `REPAIR.md` remain the parent's foundation input record. Historical foundation screenshots at public product commit `dda0260636aa7723e28fefd10e1f3424ff24d1cf` do not prove this merged source. Current worker repair evidence is in `proof/better-auth/REPAIR.md`.
+`proof/website-foundation/repair-source-manifest.json` and `REPAIR.md` remain the parent's foundation input record. Historical foundation screenshots at public product commit `dda0260636aa` do not prove this merged source. Current worker repair evidence is in `proof/better-auth/REPAIR.md`.
 
 ## Existing auth source
 

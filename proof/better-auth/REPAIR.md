@@ -1,10 +1,10 @@
 # Better Auth Cloudflare stack repair
 
-Bounded source-linked repair of the in-progress no-commit merge of settled `codex/auth-proof-assets` (`8ea9cb58ce143eecaf7df0bd2d03ade1e9037f90`, PR1 settled `ad2c5e23d261b3ec22e79829ba868885a60f5599`) into this Cloudflare merchant-auth branch (`04f6ebb2a0b32140b633134591ddc1e261ac104e`). Existing product locks are unchanged. GrillTrack ledger and events were left byte-identical and only CLI-validated.
+Bounded source-linked repair of the in-progress no-commit merge of settled `codex/auth-proof-assets` (`8ea9cb58ce14`, PR1 settled `ad2c5e23d261`) into this Cloudflare merchant-auth branch (`04f6ebb2a0b3`). Existing product locks are unchanged. GrillTrack ledger and events were left byte-identical and only CLI-validated.
 
 This note is new function evidence for the actual Cloudflare worker. It does not rewrite historical capture manifests or claim that old pixels prove the repaired middleware.
 
-Historical browser captures remain bound to `089240aee0af0244ce231861a3eeb600bd7f1807` and public PR https://github.com/dinkuskit/dinkuskit/pull/4 / historical capture base `347514c8c7757ce744b5f5e406b7fd00c014cc5c`. That PR4 base is capture provenance, not the current merge or repair target. Those JPGs stay access-controlled. Foundation JPGs already in public product history keep their inherited links in `proof/website-foundation/`.
+Historical browser captures remain bound to `089240aee0af` and public PR https://github.com/dinkuskit/dinkuskit/pull/4 / historical capture base `347514c8c775`. That PR4 base is capture provenance, not the current merge or repair target. Those JPGs stay access-controlled. Foundation JPGs already in public product history keep their inherited links in `proof/website-foundation/`.
 
 ## P1 production namespace gate
 
@@ -21,7 +21,7 @@ Merchant tests continue to use `tests/fixtures/built-test-entry.mjs` for request
 
 ## P2 public proof sanitization
 
-Tracked [PROOF.md](PROOF.md) keeps logical asset names, byte lengths, SHA-256, capture source `089240aee0af0244ce231861a3eeb600bd7f1807`, public PR/source base, dates, and synthetic/captured-mail/consent limits. Private repository coordinates, release URLs, and IDs were removed. No private asset was made public.
+Tracked [PROOF.md](PROOF.md) keeps logical asset names, byte lengths, SHA-256, capture source `089240aee0af`, public PR/source base, dates, and synthetic/captured-mail/consent limits. Private repository coordinates, release URLs, and IDs were removed. No private asset was made public.
 
 ## Smoke fidelity
 

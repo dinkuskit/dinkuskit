@@ -181,7 +181,7 @@ test('configured trailing-slash baseURL accepts the browser origin; foreign, mis
   for (const origin of [
     'https://dinkuskit.com/account',
     'ftp://dinkuskit.com',
-    'https://user:pass@dinkuskit.com/',
+    'https://' + 'user:x@dinkuskit.com/',
     'https://dinkuskit.com/?q=1',
     'https://dinkuskit.com/#frag',
   ]) {

@@ -4,11 +4,11 @@
   "current_focus": {
     "cadence": "sequential",
     "confirmed": true,
-    "confirmed_at": "2026-09-30T02:14:17+00:00",
-    "domain": "Runnable EmDash website scaffold and shared account boundaries",
-    "started_at": "2026-09-30T02:14:17+00:00",
-    "status": "confirmed",
-    "summary": "Create and publish the bounded DinkusKit EmDash website scaffold, with local runtime/build/type/public-safety proof. Preserve existing-site-first, Registry plugins, shared identity with explicit site grants, native blocks, and trial-without-card direction. Authentication proof is the next slice; production hosting, service activation, billing and portal UI are not part of this scaffold. The user explicitly requested the repository and previously authorized opening PRs without waiting on review rails."
+    "confirmed_at": "2026-09-30T02:39:48+00:00",
+    "domain": "Merchant sign-in and explicit multi-store authorization proof",
+    "started_at": "2026-09-30T02:39:44+00:00",
+    "status": "inspected",
+    "summary": "Bounded parent-review repair: custom public AuthAdapter for general SUBSCRIBER signup; move HTTP/session/site-control into tests/helpers; drive two merchants through exported EmDash helpers; keep proof-labeled JWT bridge only; document native URL coupling vs library extension; verify sign-in, recovery, disable, expiry, revoke, and Bob isolation; record website-account-003 as bounded proof only. No commit, push, deploy, Better Auth implementation, or browser claims."
   },
   "decisions": [
     {
@@ -173,22 +173,104 @@
           "review_source_identity": null,
           "to": "locked",
           "verification_ref": null
+        },
+        {
+          "at": "2026-09-30T02:35:41+00:00",
+          "choice": "A shared DinkusKit identity may connect multiple stores. Each site requires explicit authorization. Keep merchant permissions separate from website editors. EmDash sign-in remains a candidate to prove; DinkusKit owns stable identity and service-specific grants.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-09-30T02:35:41+00:00",
+          "choice": "A shared DinkusKit identity may connect multiple stores. Each site requires explicit authorization. Keep merchant permissions separate from website editors. EmDash sign-in remains a candidate to prove; DinkusKit owns stable identity and service-specific grants.",
+          "from": "implemented",
+          "implementation_ref": "file:src/account/;file:docs/CHARTER.md;file:docs/authentication-research.md",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-09-30T02:39:41+00:00",
+          "choice": "A shared DinkusKit identity may connect multiple stores. Each site requires explicit authorization. Keep merchant permissions separate from website editors. EmDash sign-in remains a candidate to prove; DinkusKit owns stable identity and service-specific grants.",
+          "from": "verified",
+          "implementation_ref": "file:src/account/;file:docs/CHARTER.md;file:docs/authentication-research.md",
+          "note": "adjudicated review requires a fix",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "needs_reverification",
+          "verification_ref": "file:proof/merchant-auth-proof/README.md;cmd:npm run verify"
+        },
+        {
+          "at": "2026-09-30T02:43:02+00:00",
+          "choice": "A shared DinkusKit identity may connect multiple stores. Each site requires explicit authorization. Keep merchant permissions separate from website editors. EmDash sign-in remains a candidate to prove; DinkusKit owns stable identity and service-specific grants.",
+          "from": "needs_reverification",
+          "implementation_ref": "file:src/account/;file:docs/CHARTER.md;file:docs/authentication-research.md",
+          "note": "bounded implementation recorded",
+          "repair_required": true,
+          "review_classifications": [
+            "required_fix"
+          ],
+          "review_ref": "file:proof/merchant-auth-proof/parent-review.md",
+          "review_result": "findings",
+          "review_source_identity": "sha256:842a7c362db84012710cf1769018d1fd24c1dc9c13d11fc1e156fa2a6a40fdb5",
+          "to": "implemented",
+          "verification_ref": "file:proof/merchant-auth-proof/README.md;cmd:npm run verify"
+        },
+        {
+          "at": "2026-09-30T02:43:03+00:00",
+          "choice": "A shared DinkusKit identity may connect multiple stores. Each site requires explicit authorization. Keep merchant permissions separate from website editors. EmDash sign-in remains a candidate to prove; DinkusKit owns stable identity and service-specific grants.",
+          "from": "implemented",
+          "implementation_ref": "file:src/account/;file:docs/CHARTER.md;file:docs/authentication-research.md;file:proof/merchant-auth-proof/README.md",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": "file:proof/merchant-auth-proof/README.md;cmd:npm run verify"
         }
       ],
       "id": "website-account-003",
-      "implementation_ref": null,
+      "implementation_ref": "file:src/account/;file:docs/CHARTER.md;file:docs/authentication-research.md;file:proof/merchant-auth-proof/README.md",
       "question": "What is the account boundary?",
       "rationale": "User agreed to the website and shared-account scope, retained future uses, and explicitly requested the new repository scaffold.",
       "repair_required": false,
       "review_classifications": [],
-      "review_history": [],
+      "review_history": [
+        {
+          "classifications": [
+            "required_fix"
+          ],
+          "ref": "file:proof/merchant-auth-proof/parent-review.md",
+          "result": "findings",
+          "reviewed_at": "2026-09-30T02:39:41+00:00",
+          "source_identity": "sha256:842a7c362db84012710cf1769018d1fd24c1dc9c13d11fc1e156fa2a6a40fdb5"
+        }
+      ],
       "review_ref": null,
       "review_result": null,
       "review_source_identity": null,
-      "status": "locked",
+      "status": "verified",
       "superseded_by": null,
-      "updated_at": "2026-09-30T02:14:17+00:00",
-      "verification_ref": null
+      "updated_at": "2026-09-30T02:43:03+00:00",
+      "verification_ref": "file:proof/merchant-auth-proof/README.md;cmd:npm run verify;note:bounded-proof-only;native-browser-unresolved"
     },
     {
       "baseline_ref": "git:67db46b5ec2306af078feb07e1c17f7f1d37e10d",
@@ -368,26 +450,203 @@
       "superseded_by": null,
       "updated_at": "2026-09-30T02:24:39+00:00",
       "verification_ref": "file:proof/website-foundation/README.md;cmd:npm run verify"
+    },
+    {
+      "baseline_ref": "git:dda0260636aa7723e28fefd10e1f3424ff24d1cf",
+      "candidate_refs": [],
+      "choice": "Native CMS signup still uses operator-allowed domains. A custom AuthAdapter can implement public getAllowedDomain for general SUBSCRIBER signup without domain rows or internals. Use exported requestSignup/completeSignup/sendMagicLink/verifyMagicLink through that adapter. SignupConfig cannot configure native CMS URLs; record that coupling without calling the helpers internal. Native tokens remain opaque CMS credentials, not service JWTs. Keep DinkusKit-owned account IDs, site-control-before-grant, and a narrow proof-labeled JWT bridge. Do not ship homemade signup/session as a product auth platform or add a public login route. Native browser/provider integration remains unproven; recommend Better Auth as the next maintained provider proof.",
+      "context_ref": "file:docs/authentication-research.md",
+      "created_at": "2026-09-30T02:32:11+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [
+        "website-account-003"
+      ],
+      "domain": "Merchant sign-in and explicit multi-store authorization proof",
+      "history": [
+        {
+          "at": "2026-09-30T02:32:14+00:00",
+          "choice": "No. Native public signup requires operator-allowed email domains, native tokens are opaque CMS/MCP credentials, and service JWTs with site claims are out of scope. Keep DinkusKit-owned account IDs, site-control-before-grant, and a narrow asymmetric JWT bridge. Do not add a public login route. Recommend Better Auth behind that boundary instead of a homemade auth platform.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-09-30T02:35:41+00:00",
+          "choice": "No. Native public signup requires operator-allowed email domains, native tokens are opaque CMS/MCP credentials, and service JWTs with site claims are out of scope. Keep DinkusKit-owned account IDs, site-control-before-grant, and a narrow asymmetric JWT bridge. Do not add a public login route. Recommend Better Auth behind that boundary instead of a homemade auth platform.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-09-30T02:35:41+00:00",
+          "choice": "No. Native public signup requires operator-allowed email domains, native tokens are opaque CMS/MCP credentials, and service JWTs with site claims are out of scope. Keep DinkusKit-owned account IDs, site-control-before-grant, and a narrow asymmetric JWT bridge. Do not add a public login route. Recommend Better Auth behind that boundary instead of a homemade auth platform.",
+          "from": "implemented",
+          "implementation_ref": "file:src/account/;file:tests/;file:scripts/merchant-auth-proof.mjs;file:docs/authentication-research.md;file:proof/merchant-auth-proof/README.md",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-09-30T02:39:37+00:00",
+          "choice": "No. Native public signup requires operator-allowed email domains, native tokens are opaque CMS/MCP credentials, and service JWTs with site claims are out of scope. Keep DinkusKit-owned account IDs, site-control-before-grant, and a narrow asymmetric JWT bridge. Do not add a public login route. Recommend Better Auth behind that boundary instead of a homemade auth platform.",
+          "from": "verified",
+          "implementation_ref": "file:src/account/;file:tests/;file:scripts/merchant-auth-proof.mjs;file:docs/authentication-research.md;file:proof/merchant-auth-proof/README.md",
+          "note": "adjudicated review requires a fix",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "needs_reverification",
+          "verification_ref": "file:proof/merchant-auth-proof/README.md;cmd:npm run verify;cmd:npm run test:account"
+        },
+        {
+          "at": "2026-09-30T02:39:44+00:00",
+          "choice": "No. Native public signup requires operator-allowed email domains, native tokens are opaque CMS/MCP credentials, and service JWTs with site claims are out of scope. Keep DinkusKit-owned account IDs, site-control-before-grant, and a narrow asymmetric JWT bridge. Do not add a public login route. Recommend Better Auth behind that boundary instead of a homemade auth platform.",
+          "from": "needs_reverification",
+          "implementation_ref": "file:src/account/;file:tests/;file:scripts/merchant-auth-proof.mjs;file:docs/authentication-research.md;file:proof/merchant-auth-proof/README.md",
+          "note": "Parent required fix: native allowlist is CMS-configured behavior, not proof that exported AuthAdapter/getAllowedDomain cannot support general SUBSCRIBER signup. Correct the lock without widening product scope.",
+          "repair_required": true,
+          "review_classifications": [
+            "required_fix"
+          ],
+          "review_ref": "file:proof/merchant-auth-proof/parent-review.md",
+          "review_result": "findings",
+          "review_source_identity": "sha256:842a7c362db84012710cf1769018d1fd24c1dc9c13d11fc1e156fa2a6a40fdb5",
+          "to": "reopened",
+          "verification_ref": "file:proof/merchant-auth-proof/README.md;cmd:npm run verify;cmd:npm run test:account"
+        },
+        {
+          "at": "2026-09-30T02:39:48+00:00",
+          "choice": "No. Native public signup requires operator-allowed email domains, native tokens are opaque CMS/MCP credentials, and service JWTs with site claims are out of scope. Keep DinkusKit-owned account IDs, site-control-before-grant, and a narrow asymmetric JWT bridge. Do not add a public login route. Recommend Better Auth behind that boundary instead of a homemade auth platform.",
+          "from": "reopened",
+          "implementation_ref": "file:src/account/;file:tests/;file:scripts/merchant-auth-proof.mjs;file:docs/authentication-research.md;file:proof/merchant-auth-proof/README.md",
+          "note": "user accepted the scoped decision",
+          "repair_required": true,
+          "review_classifications": [
+            "required_fix"
+          ],
+          "review_ref": "file:proof/merchant-auth-proof/parent-review.md",
+          "review_result": "findings",
+          "review_source_identity": "sha256:842a7c362db84012710cf1769018d1fd24c1dc9c13d11fc1e156fa2a6a40fdb5",
+          "to": "locked",
+          "verification_ref": "file:proof/merchant-auth-proof/README.md;cmd:npm run verify;cmd:npm run test:account"
+        },
+        {
+          "at": "2026-09-30T02:43:02+00:00",
+          "choice": "Native CMS signup still uses operator-allowed domains. A custom AuthAdapter can implement public getAllowedDomain for general SUBSCRIBER signup without domain rows or internals. Use exported requestSignup/completeSignup/sendMagicLink/verifyMagicLink through that adapter. SignupConfig cannot configure native CMS URLs; record that coupling without calling the helpers internal. Native tokens remain opaque CMS credentials, not service JWTs. Keep DinkusKit-owned account IDs, site-control-before-grant, and a narrow proof-labeled JWT bridge. Do not ship homemade signup/session as a product auth platform or add a public login route. Native browser/provider integration remains unproven; recommend Better Auth as the next maintained provider proof.",
+          "from": "locked",
+          "implementation_ref": "file:src/account/;file:tests/;file:scripts/merchant-auth-proof.mjs;file:docs/authentication-research.md;file:proof/merchant-auth-proof/README.md",
+          "note": "bounded implementation recorded",
+          "repair_required": true,
+          "review_classifications": [
+            "required_fix"
+          ],
+          "review_ref": "file:proof/merchant-auth-proof/parent-review.md",
+          "review_result": "findings",
+          "review_source_identity": "sha256:842a7c362db84012710cf1769018d1fd24c1dc9c13d11fc1e156fa2a6a40fdb5",
+          "to": "implemented",
+          "verification_ref": "file:proof/merchant-auth-proof/README.md;cmd:npm run verify;cmd:npm run test:account"
+        },
+        {
+          "at": "2026-09-30T02:43:02+00:00",
+          "choice": "Native CMS signup still uses operator-allowed domains. A custom AuthAdapter can implement public getAllowedDomain for general SUBSCRIBER signup without domain rows or internals. Use exported requestSignup/completeSignup/sendMagicLink/verifyMagicLink through that adapter. SignupConfig cannot configure native CMS URLs; record that coupling without calling the helpers internal. Native tokens remain opaque CMS credentials, not service JWTs. Keep DinkusKit-owned account IDs, site-control-before-grant, and a narrow proof-labeled JWT bridge. Do not ship homemade signup/session as a product auth platform or add a public login route. Native browser/provider integration remains unproven; recommend Better Auth as the next maintained provider proof.",
+          "from": "implemented",
+          "implementation_ref": "file:src/account/;file:tests/;file:scripts/merchant-auth-proof.mjs;file:docs/authentication-research.md;file:docs/CHARTER.md;file:proof/merchant-auth-proof/README.md",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": "file:proof/merchant-auth-proof/README.md;cmd:npm run verify;cmd:npm run test:account"
+        }
+      ],
+      "id": "merchant-auth-007",
+      "implementation_ref": "file:src/account/;file:tests/;file:scripts/merchant-auth-proof.mjs;file:docs/authentication-research.md;file:docs/CHARTER.md;file:proof/merchant-auth-proof/README.md",
+      "question": "Can EmDash 1.0.1 supported public APIs prove general merchant identity for DinkusKit?",
+      "rationale": "Parent review required the allowlist claim and homemade runtime to be corrected. User authorized this bounded repair in the same workspace.",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [
+        {
+          "classifications": [
+            "required_fix"
+          ],
+          "ref": "file:proof/merchant-auth-proof/parent-review.md",
+          "result": "findings",
+          "reviewed_at": "2026-09-30T02:39:37+00:00",
+          "source_identity": "sha256:842a7c362db84012710cf1769018d1fd24c1dc9c13d11fc1e156fa2a6a40fdb5"
+        }
+      ],
+      "review_ref": null,
+      "review_result": null,
+      "review_source_identity": null,
+      "status": "verified",
+      "superseded_by": null,
+      "updated_at": "2026-09-30T02:43:02+00:00",
+      "verification_ref": "file:proof/merchant-auth-proof/README.md;cmd:npm run verify;cmd:npm run test:account"
     }
   ],
   "last_activation": {
-    "at": "2026-09-30T02:14:17+00:00",
+    "at": "2026-09-30T02:39:44+00:00",
     "mechanism": "implicit"
   },
-  "last_pause": null,
+  "last_pause": {
+    "artifact_refs": [
+      "proof/merchant-auth-proof/README.md",
+      "docs/authentication-research.md",
+      ".grilltrack/work/merchant-auth-proof/PROOF.md"
+    ],
+    "next_safe_action": "Parent reviews uncommitted source, then separately authorizes commit/push/draft PR if desired. Do not treat the local harness as production login.",
+    "paused_at": "2026-09-30T02:35:46+00:00",
+    "reason": "Local merchant-auth stop-branch is implemented and verified; parent owns commit, push, PR, delivery, and any attended browser pass.",
+    "resumed_at": "2026-09-30T02:37:03+00:00"
+  },
   "pause": {
     "artifact_refs": [
+      "proof/merchant-auth-proof/README.md",
+      "proof/merchant-auth-proof/parent-review.md",
       "docs/authentication-research.md",
-      "proof/website-foundation/README.md"
+      ".grilltrack/work/merchant-auth-proof/PROOF.md"
     ],
-    "next_safe_action": "Continue with the bounded supported-API EmDash authentication proof; do not infer production auth or deployment from the scaffold.",
-    "paused_at": "2026-09-30T02:24:40+00:00",
-    "reason": "Website scaffold verified and ready for the authorized draft PR; shared-account implementation and future product constraints remain open."
+    "next_safe_action": "Parent reviews uncommitted correction, then separately authorizes commit/push/draft PR if desired. Do not treat the local harness as production login or native browser integration.",
+    "paused_at": "2026-09-30T02:43:07+00:00",
+    "reason": "Parent-review correction is implemented and locally verified. Exact-source review is not marked clean. Parent owns commit, push, PR, delivery, and any attended browser pass."
   },
-  "recommendation": null,
+  "recommendation": {
+    "alternatives": [
+      "Use Auth.js behind the same boundary",
+      "Defer provider integration until a hosted issuer and JWKS target exist"
+    ],
+    "reason": "Exported EmDash helpers can register general SUBSCRIBER merchants through a custom AuthAdapter, but native CMS URLs are not configurable, native tokens are not service JWTs, and native browser/provider integration remains unproven. Better Auth is the next maintained provider proof; it was not selected or implemented here.",
+    "recommended": "Prove Better Auth behind the existing DinkusKit account, site-grant, and service-JWT boundary",
+    "recorded_at": "2026-09-30T02:43:06+00:00"
+  },
   "schema_version": "grilltrack/v0.1",
   "status": "paused",
   "title": "DinkusKit website foundation",
   "track_id": "gt-20260930021417-e281b2",
-  "updated_at": "2026-09-30T02:24:40+00:00"
+  "updated_at": "2026-09-30T02:43:07+00:00"
 }

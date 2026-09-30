@@ -14,11 +14,11 @@ Daily product, stock and order management remains in the merchant's EmDash site 
 
 ## Identity boundary
 
-One merchant identity can connect multiple stores. Each site requires explicit verified authorization. DinkusKit owns stable account identity, site grants and service-specific access. EmDash's sign-in capabilities are a candidate for a bounded proof, not a production authentication commitment.
+One merchant identity can connect multiple stores. Each site requires explicit verified authorization. DinkusKit owns stable account identity, site grants and service-specific access. EmDash 1.0.1 native CMS signup still uses operator-allowed email domains. A custom public `AuthAdapter` can implement general `SUBSCRIBER` signup through `getAllowedDomain`. Exported helpers still couple to native CMS URLs that `SignupConfig` cannot change, and native tokens are opaque CMS credentials rather than service JWTs. Native browser and provider integration remain unproven.
 
-The existing service prototypes expect a stable issuer/subject pair, an authorized site claim, a service audience and service-specific scopes. Native EmDash OAuth does not directly satisfy that contract. Keep merchant permissions distinct from permission to edit this website.
+The hosted services expect a stable issuer/subject pair, an authorized site claim, a service audience and service-specific scopes. Keep merchant permissions distinct from permission to edit this website. A maintained identity provider should sit behind the DinkusKit account boundary; Better Auth is the current recommendation for the next provider proof.
 
-See `docs/authentication-research.md` for the evidence and bounded proof. Authentication implementation must not fork EmDash or depend on internal handlers without a new decision.
+See `docs/authentication-research.md` for the evidence, bounded proof, and local limits. Authentication implementation must not fork EmDash or depend on internal handlers without a new decision. This website must not present a public login that does not exist.
 
 ## Current scaffold slice
 

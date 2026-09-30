@@ -27,4 +27,4 @@ Screenshots use the browser's existing desktop viewport. No mobile-device or res
 
 This proves a local EmDash website foundation, not merchant authentication, email recovery, site grants, Registry delivery, Inventory/Stripe activation, subscriptions or deployment. The canonical domain is configured in source; DNS and the Cloudflare account were not changed. Formal external review remains pending, as the owner explicitly requested publication without waiting on review rails.
 
-The next functional slice is the supported-API authentication proof described in `docs/authentication-research.md`.
+The next functional slice was the supported-API authentication proof described in `docs/authentication-research.md`. Native CMS allowlists still constrain configured signup, but a custom public AuthAdapter can implement general SUBSCRIBER signup. Native browser and provider integration remain unresolved. See `proof/merchant-auth-proof/README.md`.

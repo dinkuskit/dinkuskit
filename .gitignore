@@ -141,3 +141,13 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# Local EmDash runtime and generated artifacts
+.local/
+.astro/
+.emdash/
+emdash-env.d.ts
+.grilltrack/work/
+.DS_Store
+*.db
+*.db-*

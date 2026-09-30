@@ -632,22 +632,10 @@
     }
   ],
   "last_activation": {
-    "at": "2026-09-30T02:50:51+00:00",
+    "at": "2026-09-30T02:52:54+00:00",
     "mechanism": "implicit"
   },
   "last_pause": {
-    "artifact_refs": [
-      "proof/merchant-auth-proof/README.md",
-      "proof/merchant-auth-proof/parent-review.md",
-      "docs/authentication-research.md",
-      ".grilltrack/work/merchant-auth-proof/PROOF.md"
-    ],
-    "next_safe_action": "Parent reviews uncommitted correction, then separately authorizes commit/push/draft PR if desired. Do not treat the local harness as production login or native browser integration.",
-    "paused_at": "2026-09-30T02:43:07+00:00",
-    "reason": "Parent-review correction is implemented and locally verified. Exact-source review is not marked clean. Parent owns commit, push, PR, delivery, and any attended browser pass.",
-    "resumed_at": "2026-09-30T02:50:51+00:00"
-  },
-  "pause": {
     "artifact_refs": [
       "proof/merchant-auth-proof/final-review.md",
       "proof/merchant-auth-proof/README.md",
@@ -655,7 +643,19 @@
     ],
     "next_safe_action": "Publish the authorized stacked draft PR, then choose the maintained-provider/browser/real-site-control proof. Do not merge or deploy.",
     "paused_at": "2026-09-30T02:50:52+00:00",
-    "reason": "Bounded local merchant-auth proof independently verified and locally reviewed; draft publication already authorized. Production/runtime integration remains unresolved."
+    "reason": "Bounded local merchant-auth proof independently verified and locally reviewed; draft publication already authorized. Production/runtime integration remains unresolved.",
+    "resumed_at": "2026-09-30T02:52:54+00:00"
+  },
+  "pause": {
+    "artifact_refs": [
+      "https://github.com/dinkuskit/dinkuskit/pull/3",
+      "proof/merchant-auth-proof/final-review.md",
+      "proof/merchant-auth-proof/README.md",
+      "docs/authentication-research.md"
+    ],
+    "next_safe_action": "Choose the next maintained-provider proof and integrate actual Astro/browser sessions plus real EmDash Connect/plugin site attestation. Better Auth is recommended; no provider selection, merge, or deployment is implied.",
+    "paused_at": "2026-09-30T02:52:54+00:00",
+    "reason": "Bounded local merchant-auth proof independently verified, locally reviewed, and published as authorized stacked draft PR. Track remains open for native runtime/provider and real site-control work."
   },
   "recommendation": {
     "alternatives": [],
@@ -667,5 +667,5 @@
   "status": "paused",
   "title": "DinkusKit website foundation",
   "track_id": "gt-20260930021417-e281b2",
-  "updated_at": "2026-09-30T02:50:52+00:00"
+  "updated_at": "2026-09-30T02:52:54+00:00"
 }

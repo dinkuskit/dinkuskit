@@ -73,7 +73,7 @@
     },
     {
       "path": "proof/better-auth/REPAIR.md",
-      "sha256": "19bed22443f601bca6b656a2a75a5064585c973f8dae9c4d41640f5bdd785618"
+      "sha256": "15436f30a71d99aefd9202be232f557dfe2ab85fb8810d378b581ed79f65f08f"
     },
     {
       "path": "proof/better-auth/implementation-manifest.json",
@@ -85,5 +85,6 @@
     }
   ],
   "baseline_head": "04f6ebb2a0b32140b633134591ddc1e261ac104e",
-  "initial_parent_head": "8ea9cb58ce143eecaf7df0bd2d03ade1e9037f90"
+  "initial_parent_head": "8ea9cb58ce143eecaf7df0bd2d03ade1e9037f90",
+  "final_parent_head": "d1ca3a9fab0087c83161ea202a0ebd3cd26a2da4"
 }

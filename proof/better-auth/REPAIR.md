@@ -33,7 +33,7 @@ Node 22.23.2. Current repair counts are 17 merchant tests, 8 HTTP smoke checks, 
 
 The first parent `npm run verify` on this resolved tree passed audit, setup, types, typecheck, account, build, `test:merchant` 17/0, and `test:smoke` 8 PASS. Final `scripts/dev-cms.mjs` failed: pinned Astro 7.3.2 CLI auto-detected the parent agent environment and launched a background daemon; the launcher exited and the readiness loop saw that exit. That is a local-dev lifecycle failure only, not an all-suite production/merchant failure. Evidence: ignored `.grilltrack/work/website-review-repair-20260930/parent-verify.log` and `parent-failure-and-cleanup.json`. Parent confirmed the exact owned daemon (PID 18769, port 53949) from startup stdout and `astro dev status`, then sent TERM.
 
-The launcher now uses the supported public API `import { dev } from 'astro'`, `await dev({ server: { host: '127.0.0.1', port } })`, an HTTP setup positive check, and `await server.stop()` in `finally`. That path starts the direct runtime and does not enter the CLI agent/background path. Local API checks passed twice in this agent environment and rebound the exact bound port after stop. Parent full `npm run verify` rerun is pending.
+The launcher now uses the supported public API `import { dev } from 'astro'`, `await dev({ server: { host: '127.0.0.1', port } })`, an HTTP setup positive check, and `await server.stop()` in `finally`. That path starts the direct runtime and does not enter the CLI agent/background path. Local API checks passed twice in this agent environment and rebound the exact bound port after stop. The final independent full npm run verify passed after the correction.
 
 - `audit:repo`: 116 files
 - `setup`: local merchant migrations applied; no remote

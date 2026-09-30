@@ -1,7 +1,9 @@
-# Design status
+# Design direction
 
-The visual direction is not yet selected. The current scope is a technical EmDash scaffold with legible, accessible public content.
+The public introduction retains the colors and simple layout inspected in the local preview. Bobby explicitly approved those colors and simplicity on September 30, 2026, then instructed us to proceed.
 
-Confirmed constraints: use EmDash and upstream native blocks; serve existing EmDash site owners first; keep merchant sign-in separate from website editing; merchant account routes exist, but do not present hosted trial activation, site grants, or Stripe connection as working.
+Keep the light background, green accents, readable typography, restrained page composition, and current logo treatment. No visual redesign is required for this release.
 
-Typography, palette, composition, logo treatment and final content hierarchy remain open. Placeholder scaffold styling is not a product design lock.
+Confirmed constraints: use EmDash and upstream native blocks; serve existing EmDash site owners first; keep merchant sign-in separate from website editing; merchant account routes exist, but do not present hosted trial activation, site grants, or Stripe connection as working; describe unavailable account and service features honestly.
+
+The approval covers the current desktop public-page presentation. It does not claim mobile proof or approve new account/portal designs.

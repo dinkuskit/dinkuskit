@@ -26,7 +26,7 @@ The production issuer is the configured `https://dinkuskit.com/account` value, n
 
 Deliver an independently versioned, runnable EmDash website foundation, public homepage/getting-started content, native-block readiness, local merchant account routes, and durable product decisions. Hosted trial activation and Stripe connection are still not implemented and must not be presented as working.
 
-Keep styling minimal and accessible. This is a technical scaffold, not a confirmed visual design. Do not add duplicate inventory, test tenants presented as live customers, analytics, live email sending, payments or remote infrastructure. The public site and merchant routes run on the Cloudflare Workers adapter with separate CMS D1 and merchant D1. Cloudflare Email Sending is a delivery boundary only; missing delivery is unavailable, not a sent claim. Local proof uses an isolated test-entry sink.
+Keep styling minimal and accessible. Bobby approved the current colors and simple layout for the public introduction. See design.md and docs/public-launch.md for the accepted release scope. Do not add duplicate inventory, test tenants presented as live customers, analytics, live email sending, payments or remote infrastructure. The public site and merchant routes run on the Cloudflare Workers adapter with separate CMS D1 and merchant D1. Cloudflare Email Sending is a delivery boundary only; missing delivery is unavailable, not a sent claim. Local proof uses an isolated test-entry sink.
 
 ## Future possibilities
 

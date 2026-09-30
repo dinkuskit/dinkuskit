@@ -4,11 +4,11 @@
   "current_focus": {
     "cadence": "sequential",
     "confirmed": true,
-    "confirmed_at": "2026-09-30T06:08:06+00:00",
-    "domain": "Better Auth merchant routes on Cloudflare Workers and D1",
-    "started_at": "2026-09-30T06:08:06+00:00",
+    "confirmed_at": "2026-09-30T15:06:18+00:00",
+    "domain": "Public introduction launch and accepted visual direction",
+    "started_at": "2026-09-30T15:06:18+00:00",
     "status": "confirmed",
-    "summary": "Normalize accepted root http(s) configured MERCHANT_BASE_URL to canonical origin at the binding boundary so Better Auth baseURL/trustedOrigins and custom CSRF compare the same origin. Preserve fail-closed secret/base, credentials/query/hash, and unsupported scheme/path. Missing or foreign Origin still 403. Add actual built-worker regressions: configured trailing slash plus valid origin succeeds; foreign/missing origins rejected; malformed configuration fails 503. Prove the regression fails before the fix, then minimal fix and full npm run verify on Node 22.23.2. Leave merchant-better-auth-008 IMPLEMENTED for parent public proof. No pages, copy, migrations, packages, workflows, store protocol, screenshots, public proof, commit, push, merge, deploy, or review-rail actions."
+    "summary": "Keep the accepted colors and simple layout; prepare the two public native EmDash pages for an early Workers Static Assets release on dinkuskit.com. Merchant services remain unavailable. Do local preparation and review; preserve separate gates on merges and production deployment."
   },
   "decisions": [
     {
@@ -173,115 +173,22 @@
           "review_source_identity": null,
           "to": "locked",
           "verification_ref": null
-        },
-        {
-          "at": "2026-09-30T02:35:41+00:00",
-          "choice": "A shared DinkusKit identity may connect multiple stores. Each site requires explicit authorization. Keep merchant permissions separate from website editors. EmDash sign-in remains a candidate to prove; DinkusKit owns stable identity and service-specific grants.",
-          "from": "locked",
-          "implementation_ref": null,
-          "note": "bounded implementation recorded",
-          "repair_required": false,
-          "review_classifications": [],
-          "review_ref": null,
-          "review_result": null,
-          "review_source_identity": null,
-          "to": "implemented",
-          "verification_ref": null
-        },
-        {
-          "at": "2026-09-30T02:35:41+00:00",
-          "choice": "A shared DinkusKit identity may connect multiple stores. Each site requires explicit authorization. Keep merchant permissions separate from website editors. EmDash sign-in remains a candidate to prove; DinkusKit owns stable identity and service-specific grants.",
-          "from": "implemented",
-          "implementation_ref": "file:src/account/;file:docs/CHARTER.md;file:docs/authentication-research.md",
-          "note": "verification recorded in cumulative context",
-          "repair_required": false,
-          "review_classifications": [],
-          "review_ref": null,
-          "review_result": null,
-          "review_source_identity": null,
-          "to": "verified",
-          "verification_ref": null
-        },
-        {
-          "at": "2026-09-30T02:39:41+00:00",
-          "choice": "A shared DinkusKit identity may connect multiple stores. Each site requires explicit authorization. Keep merchant permissions separate from website editors. EmDash sign-in remains a candidate to prove; DinkusKit owns stable identity and service-specific grants.",
-          "from": "verified",
-          "implementation_ref": "file:src/account/;file:docs/CHARTER.md;file:docs/authentication-research.md",
-          "note": "adjudicated review requires a fix",
-          "repair_required": false,
-          "review_classifications": [],
-          "review_ref": null,
-          "review_result": null,
-          "review_source_identity": null,
-          "to": "needs_reverification",
-          "verification_ref": "file:proof/merchant-auth-proof/README.md;cmd:npm run verify"
-        },
-        {
-          "at": "2026-09-30T02:43:02+00:00",
-          "choice": "A shared DinkusKit identity may connect multiple stores. Each site requires explicit authorization. Keep merchant permissions separate from website editors. EmDash sign-in remains a candidate to prove; DinkusKit owns stable identity and service-specific grants.",
-          "from": "needs_reverification",
-          "implementation_ref": "file:src/account/;file:docs/CHARTER.md;file:docs/authentication-research.md",
-          "note": "bounded implementation recorded",
-          "repair_required": true,
-          "review_classifications": [
-            "required_fix"
-          ],
-          "review_ref": "file:proof/merchant-auth-proof/parent-review.md",
-          "review_result": "findings",
-          "review_source_identity": "sha256:842a7c362db84012710cf1769018d1fd24c1dc9c13d11fc1e156fa2a6a40fdb5",
-          "to": "implemented",
-          "verification_ref": "file:proof/merchant-auth-proof/README.md;cmd:npm run verify"
-        },
-        {
-          "at": "2026-09-30T02:43:03+00:00",
-          "choice": "A shared DinkusKit identity may connect multiple stores. Each site requires explicit authorization. Keep merchant permissions separate from website editors. EmDash sign-in remains a candidate to prove; DinkusKit owns stable identity and service-specific grants.",
-          "from": "implemented",
-          "implementation_ref": "file:src/account/;file:docs/CHARTER.md;file:docs/authentication-research.md;file:proof/merchant-auth-proof/README.md",
-          "note": "verification recorded in cumulative context",
-          "repair_required": false,
-          "review_classifications": [],
-          "review_ref": null,
-          "review_result": null,
-          "review_source_identity": null,
-          "to": "verified",
-          "verification_ref": "file:proof/merchant-auth-proof/README.md;cmd:npm run verify"
         }
       ],
       "id": "website-account-003",
-      "implementation_ref": "file:src/account/;file:docs/CHARTER.md;file:docs/authentication-research.md;file:proof/merchant-auth-proof/README.md",
+      "implementation_ref": null,
       "question": "What is the account boundary?",
       "rationale": "User agreed to the website and shared-account scope, retained future uses, and explicitly requested the new repository scaffold.",
       "repair_required": false,
-      "review_classifications": [
-        "defer"
-      ],
-      "review_history": [
-        {
-          "classifications": [
-            "required_fix"
-          ],
-          "ref": "file:proof/merchant-auth-proof/parent-review.md",
-          "result": "findings",
-          "reviewed_at": "2026-09-30T02:39:41+00:00",
-          "source_identity": "sha256:842a7c362db84012710cf1769018d1fd24c1dc9c13d11fc1e156fa2a6a40fdb5"
-        },
-        {
-          "classifications": [
-            "defer"
-          ],
-          "ref": "file:proof/merchant-auth-proof/final-review.md",
-          "result": "findings",
-          "reviewed_at": "2026-09-30T02:50:51+00:00",
-          "source_identity": "git:86e4d211069cef5c1b0b21d2fdeac81676d7c51d"
-        }
-      ],
-      "review_ref": "file:proof/merchant-auth-proof/final-review.md",
-      "review_result": "findings",
-      "review_source_identity": "git:86e4d211069cef5c1b0b21d2fdeac81676d7c51d",
-      "status": "verified",
+      "review_classifications": [],
+      "review_history": [],
+      "review_ref": null,
+      "review_result": null,
+      "review_source_identity": null,
+      "status": "locked",
       "superseded_by": null,
-      "updated_at": "2026-09-30T02:50:51+00:00",
-      "verification_ref": "file:proof/merchant-auth-proof/README.md;cmd:npm run verify;note:bounded-proof-only;native-browser-unresolved"
+      "updated_at": "2026-09-30T02:14:17+00:00",
+      "verification_ref": null
     },
     {
       "baseline_ref": "git:67db46b5ec2306af078feb07e1c17f7f1d37e10d",
@@ -463,21 +370,19 @@
       "verification_ref": "file:proof/website-foundation/README.md;cmd:npm run verify"
     },
     {
-      "baseline_ref": "git:dda0260636aa7723e28fefd10e1f3424ff24d1cf",
+      "baseline_ref": "git:15d92b247d5e5068f7e7bf7e3bbe643758990dca",
       "candidate_refs": [],
-      "choice": "Native CMS signup still uses operator-allowed domains. A custom AuthAdapter can implement public getAllowedDomain for general SUBSCRIBER signup without domain rows or internals. Use exported requestSignup/completeSignup/sendMagicLink/verifyMagicLink through that adapter. SignupConfig cannot configure native CMS URLs; record that coupling without calling the helpers internal. Native tokens remain opaque CMS credentials, not service JWTs. Keep DinkusKit-owned account IDs, site-control-before-grant, and a narrow proof-labeled JWT bridge. Do not ship homemade signup/session as a product auth platform or add a public login route. Native browser/provider integration remains unproven; recommend Better Auth as the next maintained provider proof.",
-      "context_ref": "file:docs/authentication-research.md",
-      "created_at": "2026-09-30T02:32:11+00:00",
+      "choice": "Retain the current light background, green accents, typography and simple layout shown in the inspected public preview.",
+      "context_ref": "file:design.md",
+      "created_at": "2026-09-30T15:06:18+00:00",
       "deferred_reason": null,
       "delivery_ref": null,
-      "dependencies": [
-        "website-account-003"
-      ],
-      "domain": "Merchant sign-in and explicit multi-store authorization proof",
+      "dependencies": [],
+      "domain": "Public introduction launch and accepted visual direction",
       "history": [
         {
-          "at": "2026-09-30T02:32:14+00:00",
-          "choice": "No. Native public signup requires operator-allowed email domains, native tokens are opaque CMS/MCP credentials, and service JWTs with site claims are out of scope. Keep DinkusKit-owned account IDs, site-control-before-grant, and a narrow asymmetric JWT bridge. Do not add a public login route. Recommend Better Auth behind that boundary instead of a homemade auth platform.",
+          "at": "2026-09-30T15:06:18+00:00",
+          "choice": "Retain the current light background, green accents, typography and simple layout shown in the inspected public preview.",
           "from": "proposed",
           "implementation_ref": null,
           "note": "user accepted the scoped decision",
@@ -490,8 +395,8 @@
           "verification_ref": null
         },
         {
-          "at": "2026-09-30T02:35:41+00:00",
-          "choice": "No. Native public signup requires operator-allowed email domains, native tokens are opaque CMS/MCP credentials, and service JWTs with site claims are out of scope. Keep DinkusKit-owned account IDs, site-control-before-grant, and a narrow asymmetric JWT bridge. Do not add a public login route. Recommend Better Auth behind that boundary instead of a homemade auth platform.",
+          "at": "2026-09-30T15:25:13+00:00",
+          "choice": "Retain the current light background, green accents, typography and simple layout shown in the inspected public preview.",
           "from": "locked",
           "implementation_ref": null,
           "note": "bounded implementation recorded",
@@ -504,10 +409,93 @@
           "verification_ref": null
         },
         {
-          "at": "2026-09-30T02:35:41+00:00",
-          "choice": "No. Native public signup requires operator-allowed email domains, native tokens are opaque CMS/MCP credentials, and service JWTs with site claims are out of scope. Keep DinkusKit-owned account IDs, site-control-before-grant, and a narrow asymmetric JWT bridge. Do not add a public login route. Recommend Better Auth behind that boundary instead of a homemade auth platform.",
+          "at": "2026-09-30T15:25:13+00:00",
+          "choice": "Retain the current light background, green accents, typography and simple layout shown in the inspected public preview.",
           "from": "implemented",
-          "implementation_ref": "file:src/account/;file:tests/;file:scripts/merchant-auth-proof.mjs;file:docs/authentication-research.md;file:proof/merchant-auth-proof/README.md",
+          "implementation_ref": "file:design.md;file:docs/CHARTER.md",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": null
+        }
+      ],
+      "id": "website-visual-007",
+      "implementation_ref": "file:design.md;file:docs/CHARTER.md",
+      "question": "What visual direction should the public introduction retain?",
+      "rationale": "Bobby explicitly praised the colors and simplicity and instructed us to proceed.",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [
+        {
+          "classifications": [],
+          "ref": "file:.grilltrack/work/site-launch-20260930/EXPORTER-REVIEW-DISPOSITION.md",
+          "result": "clean",
+          "reviewed_at": "2026-09-30T15:25:13+00:00",
+          "source_identity": "sha256:4c3c10f3a8e8a82ae32a0e4bb6063b67bbb64ae795f3469b9002e95c6ecc1244"
+        }
+      ],
+      "review_ref": "file:.grilltrack/work/site-launch-20260930/EXPORTER-REVIEW-DISPOSITION.md",
+      "review_result": "clean",
+      "review_source_identity": "sha256:4c3c10f3a8e8a82ae32a0e4bb6063b67bbb64ae795f3469b9002e95c6ecc1244",
+      "status": "verified",
+      "superseded_by": null,
+      "updated_at": "2026-09-30T15:25:13+00:00",
+      "verification_ref": "file:.grilltrack/work/site-launch-20260930/candidate-homepage.png;file:.grilltrack/work/site-launch-20260930/final-export-regression.json"
+    },
+    {
+      "baseline_ref": null,
+      "candidate_refs": [
+        "file:.grilltrack/work/site-launch-20260930/release-manifest.json"
+      ],
+      "choice": "Prepare the current two public EmDash pages as a frozen Workers Static Assets release for dinkuskit.com. Merchant accounts, hosted Connect, service activation and payments remain unavailable. Source remains EmDash/native blocks; changes require rebuild and republication.",
+      "context_ref": "file:docs/public-launch.md",
+      "created_at": "2026-09-30T15:06:18+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [
+        "website-platform-001",
+        "website-domain-006",
+        "website-visual-007"
+      ],
+      "domain": "Public introduction launch and accepted visual direction",
+      "history": [
+        {
+          "at": "2026-09-30T15:06:18+00:00",
+          "choice": "Prepare the current two public EmDash pages as a frozen Workers Static Assets release for dinkuskit.com. Merchant accounts, hosted Connect, service activation and payments remain unavailable. Source remains EmDash/native blocks; changes require rebuild and republication.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-09-30T15:25:13+00:00",
+          "choice": "Prepare the current two public EmDash pages as a frozen Workers Static Assets release for dinkuskit.com. Merchant accounts, hosted Connect, service activation and payments remain unavailable. Source remains EmDash/native blocks; changes require rebuild and republication.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-09-30T15:25:14+00:00",
+          "choice": "Prepare the current two public EmDash pages as a frozen Workers Static Assets release for dinkuskit.com. Merchant accounts, hosted Connect, service activation and payments remain unavailable. Source remains EmDash/native blocks; changes require rebuild and republication.",
+          "from": "implemented",
+          "implementation_ref": "file:scripts/prepare-public-release.mjs;file:docs/public-launch.md;file:package.json",
           "note": "verification recorded in cumulative context",
           "repair_required": false,
           "review_classifications": [],
@@ -518,10 +506,10 @@
           "verification_ref": null
         },
         {
-          "at": "2026-09-30T02:39:37+00:00",
-          "choice": "No. Native public signup requires operator-allowed email domains, native tokens are opaque CMS/MCP credentials, and service JWTs with site claims are out of scope. Keep DinkusKit-owned account IDs, site-control-before-grant, and a narrow asymmetric JWT bridge. Do not add a public login route. Recommend Better Auth behind that boundary instead of a homemade auth platform.",
+          "at": "2026-09-30T15:25:14+00:00",
+          "choice": "Prepare the current two public EmDash pages as a frozen Workers Static Assets release for dinkuskit.com. Merchant accounts, hosted Connect, service activation and payments remain unavailable. Source remains EmDash/native blocks; changes require rebuild and republication.",
           "from": "verified",
-          "implementation_ref": "file:src/account/;file:tests/;file:scripts/merchant-auth-proof.mjs;file:docs/authentication-research.md;file:proof/merchant-auth-proof/README.md",
+          "implementation_ref": "file:scripts/prepare-public-release.mjs;file:docs/public-launch.md;file:package.json",
           "note": "adjudicated review requires a fix",
           "repair_required": false,
           "review_classifications": [],
@@ -529,61 +517,29 @@
           "review_result": null,
           "review_source_identity": null,
           "to": "needs_reverification",
-          "verification_ref": "file:proof/merchant-auth-proof/README.md;cmd:npm run verify;cmd:npm run test:account"
+          "verification_ref": "file:.grilltrack/work/site-launch-20260930/reproducibility-proof.json"
         },
         {
-          "at": "2026-09-30T02:39:44+00:00",
-          "choice": "No. Native public signup requires operator-allowed email domains, native tokens are opaque CMS/MCP credentials, and service JWTs with site claims are out of scope. Keep DinkusKit-owned account IDs, site-control-before-grant, and a narrow asymmetric JWT bridge. Do not add a public login route. Recommend Better Auth behind that boundary instead of a homemade auth platform.",
+          "at": "2026-09-30T15:25:14+00:00",
+          "choice": "Prepare the current two public EmDash pages as a frozen Workers Static Assets release for dinkuskit.com. Merchant accounts, hosted Connect, service activation and payments remain unavailable. Source remains EmDash/native blocks; changes require rebuild and republication.",
           "from": "needs_reverification",
-          "implementation_ref": "file:src/account/;file:tests/;file:scripts/merchant-auth-proof.mjs;file:docs/authentication-research.md;file:proof/merchant-auth-proof/README.md",
-          "note": "Parent required fix: native allowlist is CMS-configured behavior, not proof that exported AuthAdapter/getAllowedDomain cannot support general SUBSCRIBER signup. Correct the lock without widening product scope.",
-          "repair_required": true,
-          "review_classifications": [
-            "required_fix"
-          ],
-          "review_ref": "file:proof/merchant-auth-proof/parent-review.md",
-          "review_result": "findings",
-          "review_source_identity": "sha256:842a7c362db84012710cf1769018d1fd24c1dc9c13d11fc1e156fa2a6a40fdb5",
-          "to": "reopened",
-          "verification_ref": "file:proof/merchant-auth-proof/README.md;cmd:npm run verify;cmd:npm run test:account"
-        },
-        {
-          "at": "2026-09-30T02:39:48+00:00",
-          "choice": "No. Native public signup requires operator-allowed email domains, native tokens are opaque CMS/MCP credentials, and service JWTs with site claims are out of scope. Keep DinkusKit-owned account IDs, site-control-before-grant, and a narrow asymmetric JWT bridge. Do not add a public login route. Recommend Better Auth behind that boundary instead of a homemade auth platform.",
-          "from": "reopened",
-          "implementation_ref": "file:src/account/;file:tests/;file:scripts/merchant-auth-proof.mjs;file:docs/authentication-research.md;file:proof/merchant-auth-proof/README.md",
-          "note": "user accepted the scoped decision",
-          "repair_required": true,
-          "review_classifications": [
-            "required_fix"
-          ],
-          "review_ref": "file:proof/merchant-auth-proof/parent-review.md",
-          "review_result": "findings",
-          "review_source_identity": "sha256:842a7c362db84012710cf1769018d1fd24c1dc9c13d11fc1e156fa2a6a40fdb5",
-          "to": "locked",
-          "verification_ref": "file:proof/merchant-auth-proof/README.md;cmd:npm run verify;cmd:npm run test:account"
-        },
-        {
-          "at": "2026-09-30T02:43:02+00:00",
-          "choice": "Native CMS signup still uses operator-allowed domains. A custom AuthAdapter can implement public getAllowedDomain for general SUBSCRIBER signup without domain rows or internals. Use exported requestSignup/completeSignup/sendMagicLink/verifyMagicLink through that adapter. SignupConfig cannot configure native CMS URLs; record that coupling without calling the helpers internal. Native tokens remain opaque CMS credentials, not service JWTs. Keep DinkusKit-owned account IDs, site-control-before-grant, and a narrow proof-labeled JWT bridge. Do not ship homemade signup/session as a product auth platform or add a public login route. Native browser/provider integration remains unproven; recommend Better Auth as the next maintained provider proof.",
-          "from": "locked",
-          "implementation_ref": "file:src/account/;file:tests/;file:scripts/merchant-auth-proof.mjs;file:docs/authentication-research.md;file:proof/merchant-auth-proof/README.md",
+          "implementation_ref": "file:scripts/prepare-public-release.mjs;file:docs/public-launch.md;file:package.json",
           "note": "bounded implementation recorded",
           "repair_required": true,
           "review_classifications": [
             "required_fix"
           ],
-          "review_ref": "file:proof/merchant-auth-proof/parent-review.md",
+          "review_ref": "file:.grilltrack/work/site-launch-20260930/EXPORTER-REVIEW-DISPOSITION.md",
           "review_result": "findings",
-          "review_source_identity": "sha256:842a7c362db84012710cf1769018d1fd24c1dc9c13d11fc1e156fa2a6a40fdb5",
+          "review_source_identity": "sha256:4c3c10f3a8e8a82ae32a0e4bb6063b67bbb64ae795f3469b9002e95c6ecc1244",
           "to": "implemented",
-          "verification_ref": "file:proof/merchant-auth-proof/README.md;cmd:npm run verify;cmd:npm run test:account"
+          "verification_ref": "file:.grilltrack/work/site-launch-20260930/reproducibility-proof.json"
         },
         {
-          "at": "2026-09-30T02:43:02+00:00",
-          "choice": "Native CMS signup still uses operator-allowed domains. A custom AuthAdapter can implement public getAllowedDomain for general SUBSCRIBER signup without domain rows or internals. Use exported requestSignup/completeSignup/sendMagicLink/verifyMagicLink through that adapter. SignupConfig cannot configure native CMS URLs; record that coupling without calling the helpers internal. Native tokens remain opaque CMS credentials, not service JWTs. Keep DinkusKit-owned account IDs, site-control-before-grant, and a narrow proof-labeled JWT bridge. Do not ship homemade signup/session as a product auth platform or add a public login route. Native browser/provider integration remains unproven; recommend Better Auth as the next maintained provider proof.",
+          "at": "2026-09-30T15:25:14+00:00",
+          "choice": "Prepare the current two public EmDash pages as a frozen Workers Static Assets release for dinkuskit.com. Merchant accounts, hosted Connect, service activation and payments remain unavailable. Source remains EmDash/native blocks; changes require rebuild and republication.",
           "from": "implemented",
-          "implementation_ref": "file:src/account/;file:tests/;file:scripts/merchant-auth-proof.mjs;file:docs/authentication-research.md;file:docs/CHARTER.md;file:proof/merchant-auth-proof/README.md",
+          "implementation_ref": "file:scripts/prepare-public-release.mjs;file:docs/public-launch.md;file:package.json",
           "note": "verification recorded in cumulative context",
           "repair_required": false,
           "review_classifications": [],
@@ -591,494 +547,120 @@
           "review_result": null,
           "review_source_identity": null,
           "to": "verified",
-          "verification_ref": "file:proof/merchant-auth-proof/README.md;cmd:npm run verify;cmd:npm run test:account"
+          "verification_ref": "file:.grilltrack/work/site-launch-20260930/reproducibility-proof.json"
+        },
+        {
+          "at": "2026-09-30T16:36:17+00:00",
+          "choice": "Prepare the current two public EmDash pages as a frozen Workers Static Assets release for dinkuskit.com. Merchant accounts, hosted Connect, service activation and payments remain unavailable. Source remains EmDash/native blocks; changes require rebuild and republication.",
+          "from": "verified",
+          "implementation_ref": "file:scripts/prepare-public-release.mjs;file:docs/public-launch.md;file:package.json",
+          "note": "adjudicated review requires a fix",
+          "repair_required": false,
+          "review_classifications": [
+            "defer",
+            "human_gate"
+          ],
+          "review_ref": "file:.grilltrack/work/site-launch-20260930/EXPORTER-REVIEW-DISPOSITION.md;file:.grilltrack/work/site-launch-20260930/final-export-regression.json",
+          "review_result": "findings",
+          "review_source_identity": "sha256:c07f05585bfbbc67d1eb0e2fa2e3629fdbd3f5eb37553e634600f499eb57017d",
+          "to": "needs_reverification",
+          "verification_ref": "file:.grilltrack/work/site-launch-20260930/final-export-regression.json;file:.grilltrack/work/site-launch-20260930/final-dry-run.log"
+        },
+        {
+          "at": "2026-09-30T16:36:17+00:00",
+          "choice": "Prepare the current two public EmDash pages as a frozen Workers Static Assets release for dinkuskit.com. Merchant accounts, hosted Connect, service activation and payments remain unavailable. Source remains EmDash/native blocks; changes require rebuild and republication.",
+          "from": "needs_reverification",
+          "implementation_ref": "file:scripts/prepare-public-release.mjs;file:docs/public-launch.md;file:package.json",
+          "note": "bounded implementation recorded",
+          "repair_required": true,
+          "review_classifications": [
+            "required_fix"
+          ],
+          "review_ref": "file:.grilltrack/work/site-launch-20260930/stale-output-fix/DISPOSITION.md",
+          "review_result": "findings",
+          "review_source_identity": "git:f0fdeb8abe623ef6df682d0fa2afefe6bc8436e9",
+          "to": "implemented",
+          "verification_ref": "file:.grilltrack/work/site-launch-20260930/final-export-regression.json;file:.grilltrack/work/site-launch-20260930/final-dry-run.log"
+        },
+        {
+          "at": "2026-09-30T16:36:17+00:00",
+          "choice": "Prepare the current two public EmDash pages as a frozen Workers Static Assets release for dinkuskit.com. Merchant accounts, hosted Connect, service activation and payments remain unavailable. Source remains EmDash/native blocks; changes require rebuild and republication.",
+          "from": "implemented",
+          "implementation_ref": "file:scripts/prepare-public-release.mjs;file:scripts/test-public-release-reuse.mjs",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": "file:.grilltrack/work/site-launch-20260930/final-export-regression.json;file:.grilltrack/work/site-launch-20260930/final-dry-run.log"
         }
       ],
-      "id": "merchant-auth-007",
-      "implementation_ref": "file:src/account/;file:tests/;file:scripts/merchant-auth-proof.mjs;file:docs/authentication-research.md;file:docs/CHARTER.md;file:proof/merchant-auth-proof/README.md",
-      "question": "Can EmDash 1.0.1 supported public APIs prove general merchant identity for DinkusKit?",
-      "rationale": "Parent review required the allowlist claim and homemade runtime to be corrected. User authorized this bounded repair in the same workspace.",
+      "id": "website-public-launch-008",
+      "implementation_ref": "file:scripts/prepare-public-release.mjs;file:scripts/test-public-release-reuse.mjs",
+      "question": "Should the public introduction launch before merchant hosting?",
+      "rationale": "Bobby instructed proceed in response to the public-only launch recommendation. Merges and live deployment still require separate approval after current formal reviews and account/domain verification.",
       "repair_required": false,
-      "review_classifications": [
-        "defer"
-      ],
+      "review_classifications": [],
       "review_history": [
         {
           "classifications": [
             "required_fix"
           ],
-          "ref": "file:proof/merchant-auth-proof/parent-review.md",
+          "ref": "file:.grilltrack/work/site-launch-20260930/EXPORTER-REVIEW-DISPOSITION.md",
           "result": "findings",
-          "reviewed_at": "2026-09-30T02:39:37+00:00",
-          "source_identity": "sha256:842a7c362db84012710cf1769018d1fd24c1dc9c13d11fc1e156fa2a6a40fdb5"
+          "reviewed_at": "2026-09-30T15:25:14+00:00",
+          "source_identity": "sha256:4c3c10f3a8e8a82ae32a0e4bb6063b67bbb64ae795f3469b9002e95c6ecc1244"
         },
         {
           "classifications": [
-            "defer"
+            "defer",
+            "human_gate"
           ],
-          "ref": "file:proof/merchant-auth-proof/final-review.md",
+          "ref": "file:.grilltrack/work/site-launch-20260930/EXPORTER-REVIEW-DISPOSITION.md;file:.grilltrack/work/site-launch-20260930/final-export-regression.json",
           "result": "findings",
-          "reviewed_at": "2026-09-30T02:50:51+00:00",
-          "source_identity": "git:86e4d211069cef5c1b0b21d2fdeac81676d7c51d"
+          "reviewed_at": "2026-09-30T15:25:14+00:00",
+          "source_identity": "sha256:c07f05585bfbbc67d1eb0e2fa2e3629fdbd3f5eb37553e634600f499eb57017d"
+        },
+        {
+          "classifications": [
+            "required_fix"
+          ],
+          "ref": "file:.grilltrack/work/site-launch-20260930/stale-output-fix/DISPOSITION.md",
+          "result": "findings",
+          "reviewed_at": "2026-09-30T16:36:17+00:00",
+          "source_identity": "git:f0fdeb8abe623ef6df682d0fa2afefe6bc8436e9"
         }
       ],
-      "review_ref": "file:proof/merchant-auth-proof/final-review.md",
-      "review_result": "findings",
-      "review_source_identity": "git:86e4d211069cef5c1b0b21d2fdeac81676d7c51d",
-      "status": "verified",
-      "superseded_by": null,
-      "updated_at": "2026-09-30T02:50:51+00:00",
-      "verification_ref": "file:proof/merchant-auth-proof/README.md;cmd:npm run verify;cmd:npm run test:account"
-    },
-    {
-      "baseline_ref": "git:60fa92ba1b53305eec883de849ef8766a11d76fe",
-      "candidate_refs": [],
-      "choice": "Keep the previously verified Better Auth merchant product, workers-types pin 5.20260926.1, and merchant migration ledger lifecycle. Normalize accepted root http(s) MERCHANT_BASE_URL to canonical origin at the binding boundary so Better Auth baseURL/trustedOrigins and custom CSRF compare the same origin. Preserve fail-closed missing/non-host secret and base, credentials/query/hash rejection, and unsupported scheme/path rejection because account routes are at origin root. Missing or foreign Origin still 403. No weakening of CSRF, default production redirect, or issuer. Add built-worker regressions for trailing-slash valid origin, foreign/missing origin, and malformed configuration. Leave public verify to parent.",
-      "context_ref": "file:docs/CHARTER.md",
-      "created_at": "2026-09-30T03:07:58+00:00",
-      "deferred_reason": null,
-      "delivery_ref": null,
-      "dependencies": [
-        "merchant-auth-007"
-      ],
-      "domain": "Better Auth merchant routes on Cloudflare Workers and D1",
-      "history": [
-        {
-          "at": "2026-09-30T03:07:59+00:00",
-          "choice": "Better Auth using supported public APIs and persistent merchant storage separate from EmDash editors. Deliver real website signup, sign-in, recovery and logout, stable DinkusKit subjects, and Cloudflare Workers/D1 runtime proof. Implement explicit verified site consent and scoped service access when the Inventory Connect protocol is established.",
-          "from": "proposed",
-          "implementation_ref": null,
-          "note": "user accepted the scoped decision",
-          "repair_required": false,
-          "review_classifications": [],
-          "review_ref": null,
-          "review_result": null,
-          "review_source_identity": null,
-          "to": "locked",
-          "verification_ref": null
-        },
-        {
-          "at": "2026-09-30T03:22:11+00:00",
-          "choice": "Better Auth using supported public APIs and persistent merchant storage separate from EmDash editors. Deliver real website signup, sign-in, recovery and logout, stable DinkusKit subjects, and Cloudflare Workers/D1 runtime proof. Implement explicit verified site consent and scoped service access when the Inventory Connect protocol is established.",
-          "from": "locked",
-          "implementation_ref": null,
-          "note": "bounded implementation recorded",
-          "repair_required": false,
-          "review_classifications": [],
-          "review_ref": null,
-          "review_result": null,
-          "review_source_identity": null,
-          "to": "implemented",
-          "verification_ref": null
-        },
-        {
-          "at": "2026-09-30T04:02:02+00:00",
-          "choice": "Better Auth using supported public APIs and persistent merchant storage separate from EmDash editors. Deliver real website signup, sign-in, recovery and logout, stable DinkusKit subjects, and Cloudflare Workers/D1 runtime proof. Implement explicit verified site consent and scoped service access when the Inventory Connect protocol is established.",
-          "from": "implemented",
-          "implementation_ref": "file:src/pages/account/;file:src/pages/api/auth/;file:src/account/;file:src/merchant-worker.ts;file:wrangler.jsonc;file:migrations/merchant/;file:docs/CHARTER.md;file:docs/authentication-research.md;file:proof/better-auth/README.md",
-          "note": "Corrective Cloudflare/Connect implementation replaced the stand-alone merchant-worker and test overlay.",
-          "repair_required": false,
-          "review_classifications": [],
-          "review_ref": null,
-          "review_result": null,
-          "review_source_identity": null,
-          "to": "reopened",
-          "verification_ref": null
-        },
-        {
-          "at": "2026-09-30T04:02:39+00:00",
-          "choice": "Better Auth using supported public APIs and persistent merchant storage separate from EmDash editors. Deliver real website signup, sign-in, recovery and logout, stable DinkusKit subjects, and Cloudflare Workers/D1 runtime proof. Implement explicit verified site consent and scoped service access when the Inventory Connect protocol is established.",
-          "from": "reopened",
-          "implementation_ref": "file:src/pages/account/;file:src/pages/api/auth/;file:src/account/;file:src/merchant-worker.ts;file:wrangler.jsonc;file:migrations/merchant/;file:docs/CHARTER.md;file:docs/authentication-research.md;file:proof/better-auth/README.md",
-          "note": "user accepted the scoped decision",
-          "repair_required": false,
-          "review_classifications": [],
-          "review_ref": null,
-          "review_result": null,
-          "review_source_identity": null,
-          "to": "locked",
-          "verification_ref": null
-        },
-        {
-          "at": "2026-09-30T04:02:39+00:00",
-          "choice": "Better Auth using supported public APIs and persistent merchant storage separate from EmDash editors. Deliver real website signup, sign-in, recovery and logout, stable DinkusKit subjects, and Cloudflare Workers/D1 runtime proof. Implement explicit verified site consent and scoped service access when the Inventory Connect protocol is established.",
-          "from": "locked",
-          "implementation_ref": "file:src/pages/account/;file:src/pages/api/auth/;file:src/account/;file:src/merchant-worker.ts;file:wrangler.jsonc;file:migrations/merchant/;file:docs/CHARTER.md;file:docs/authentication-research.md;file:proof/better-auth/README.md",
-          "note": "bounded implementation recorded",
-          "repair_required": false,
-          "review_classifications": [],
-          "review_ref": null,
-          "review_result": null,
-          "review_source_identity": null,
-          "to": "implemented",
-          "verification_ref": null
-        },
-        {
-          "at": "2026-09-30T04:29:16+00:00",
-          "choice": "Better Auth using supported public APIs and persistent merchant storage separate from EmDash editors. Deliver real website signup, sign-in, recovery and logout, stable DinkusKit subjects, and Cloudflare Workers/D1 runtime proof. Implement explicit verified site consent and scoped service access when the Inventory Connect protocol is established.",
-          "from": "implemented",
-          "implementation_ref": "file:src/worker.ts;file:src/pages/account/;file:src/pages/api/store-connections/;file:src/pages/api/auth/;file:src/account/;file:wrangler.jsonc;file:migrations/merchant/;file:tests/better-auth-routes.test.mjs;file:tests/store-connections.test.mjs;file:tests/fixtures/built-test-entry.mjs",
-          "note": "Parent confirmed pending-merchant isolation, ghost-grant race, production test-binding acceptance, duplicated fetch-probe, empty CMS isolation, and browser token leakage. Reopen for bounded source corrections only.",
-          "repair_required": false,
-          "review_classifications": [],
-          "review_ref": null,
-          "review_result": null,
-          "review_source_identity": null,
-          "to": "reopened",
-          "verification_ref": null
-        },
-        {
-          "at": "2026-09-30T04:29:16+00:00",
-          "choice": "Better Auth using supported public APIs and persistent merchant storage separate from EmDash editors. Deliver real website signup, sign-in, recovery and logout, stable DinkusKit subjects, and Cloudflare Workers/D1 runtime proof. Implement explicit verified site consent and scoped service access when the Inventory Connect protocol is established.",
-          "from": "reopened",
-          "implementation_ref": "file:src/worker.ts;file:src/pages/account/;file:src/pages/api/store-connections/;file:src/pages/api/auth/;file:src/account/;file:wrangler.jsonc;file:migrations/merchant/;file:tests/better-auth-routes.test.mjs;file:tests/store-connections.test.mjs;file:tests/fixtures/built-test-entry.mjs",
-          "note": "user accepted the scoped decision",
-          "repair_required": false,
-          "review_classifications": [],
-          "review_ref": null,
-          "review_result": null,
-          "review_source_identity": null,
-          "to": "locked",
-          "verification_ref": null
-        },
-        {
-          "at": "2026-09-30T04:40:57+00:00",
-          "choice": "Correct Better Auth merchant routes on the Astro Cloudflare worker: bind pending-connection ownership atomically; make approve+grant and redeem atomic with current-account/expiry/grant predicates; keep simulation/mail capture structurally test-only via injectable factory; fail-closed production Connect grants until Workers-safe fetch and plugin dispatcher exist; prove CMS/editor isolation with public setup plus authenticated editor session; complete captured mail through a test-only form that invokes Better Auth verify without exposing tokens.",
-          "from": "locked",
-          "implementation_ref": "file:src/worker.ts;file:src/pages/account/;file:src/pages/api/store-connections/;file:src/pages/api/auth/;file:src/account/;file:wrangler.jsonc;file:migrations/merchant/;file:tests/better-auth-routes.test.mjs;file:tests/store-connections.test.mjs;file:tests/fixtures/built-test-entry.mjs",
-          "note": "bounded implementation recorded",
-          "repair_required": false,
-          "review_classifications": [],
-          "review_ref": null,
-          "review_result": null,
-          "review_source_identity": null,
-          "to": "implemented",
-          "verification_ref": null
-        },
-        {
-          "at": "2026-09-30T04:47:47+00:00",
-          "choice": "Correct Better Auth merchant routes on the Astro Cloudflare worker: bind pending-connection ownership atomically; make approve+grant and redeem atomic with current-account/expiry/grant predicates; keep simulation/mail capture structurally test-only via injectable factory; fail-closed production Connect grants until Workers-safe fetch and plugin dispatcher exist; prove CMS/editor isolation with public setup plus authenticated editor session; complete captured mail through a test-only form that invokes Better Auth verify without exposing tokens.",
-          "from": "implemented",
-          "implementation_ref": "file:.grilltrack/work/better-auth/PROOF.md",
-          "note": "Parent final correction after job 8cc: Wrangler 4.144.0 rejects --yes on local D1 apply; malformed EC keys pass inspectSigningKey then consume; production token POST still exchanges while the HTTPS/dispatcher seam is unproved.",
-          "repair_required": false,
-          "review_classifications": [],
-          "review_ref": null,
-          "review_result": null,
-          "review_source_identity": null,
-          "to": "reopened",
-          "verification_ref": null
-        },
-        {
-          "at": "2026-09-30T04:47:47+00:00",
-          "choice": "Correct Better Auth merchant routes on the Astro Cloudflare worker: bind pending-connection ownership atomically; make approve+grant and redeem atomic with current-account/expiry/grant predicates; keep simulation/mail capture structurally test-only via injectable factory; fail-closed production Connect grants until Workers-safe fetch and plugin dispatcher exist; prove CMS/editor isolation with public setup plus authenticated editor session; complete captured mail through a test-only form that invokes Better Auth verify without exposing tokens.",
-          "from": "reopened",
-          "implementation_ref": "file:.grilltrack/work/better-auth/PROOF.md",
-          "note": "user accepted the scoped decision",
-          "repair_required": false,
-          "review_classifications": [],
-          "review_ref": null,
-          "review_result": null,
-          "review_source_identity": null,
-          "to": "locked",
-          "verification_ref": null
-        },
-        {
-          "at": "2026-09-30T04:51:33+00:00",
-          "choice": "Narrow parent-required corrections only: local wrangler D1 apply without --yes using supported noninteractive local-only flags; prepare/import/sign inventory JWT before atomic redeem and mask invalid_signing_key; production token issuance returns integration_unavailable unless the request-scoped test-only transport/capability seam is present, even when approved fixture rows and rogue test bindings exist.",
-          "from": "locked",
-          "implementation_ref": "file:.grilltrack/work/better-auth/PROOF.md",
-          "note": "bounded implementation recorded",
-          "repair_required": false,
-          "review_classifications": [],
-          "review_ref": null,
-          "review_result": null,
-          "review_source_identity": null,
-          "to": "implemented",
-          "verification_ref": null
-        },
-        {
-          "at": "2026-09-30T05:14:00+00:00",
-          "choice": "Narrow parent-required corrections only: local wrangler D1 apply without --yes using supported noninteractive local-only flags; prepare/import/sign inventory JWT before atomic redeem and mask invalid_signing_key; production token issuance returns integration_unavailable unless the request-scoped test-only transport/capability seam is present, even when approved fixture rows and rogue test bindings exist.",
-          "from": "implemented",
-          "implementation_ref": "file:scripts/prepare-local.mjs;file:src/account/jwt.ts;file:src/account/connect.ts;file:src/pages/api/store-connections/token.ts;file:tests/store-connections.test.mjs;file:tests/helpers/merchant-harness.mjs",
-          "note": "verification recorded in cumulative context",
-          "repair_required": false,
-          "review_classifications": [],
-          "review_ref": null,
-          "review_result": null,
-          "review_source_identity": null,
-          "to": "verified",
-          "verification_ref": null
-        },
-        {
-          "at": "2026-09-30T05:34:00+00:00",
-          "choice": "Narrow parent-required corrections only: local wrangler D1 apply without --yes using supported noninteractive local-only flags; prepare/import/sign inventory JWT before atomic redeem and mask invalid_signing_key; production token issuance returns integration_unavailable unless the request-scoped test-only transport/capability seam is present, even when approved fixture rows and rogue test bindings exist.",
-          "from": "verified",
-          "implementation_ref": "file:scripts/prepare-local.mjs;file:src/account/jwt.ts;file:src/account/connect.ts;file:src/pages/api/store-connections/token.ts;file:tests/store-connections.test.mjs;file:tests/helpers/merchant-harness.mjs",
-          "note": "CI 36673237919 failed npm ci with EUSAGE: @cloudflare/workers-types@5.20260930.1 missing from package-lock.json. Wrangler 4.144.0 optional peer ^5.20260926.1 was range-only; existing node_modules masked the incomplete peer-lock closure. Reopen only to pin and lock an exact workers-types version. Preserve prior product lineage. No product, runtime, test, page, workflow, or screenshot changes.",
-          "repair_required": false,
-          "review_classifications": [],
-          "review_ref": null,
-          "review_result": null,
-          "review_source_identity": null,
-          "to": "reopened",
-          "verification_ref": "file:proof/better-auth/PROOF.md"
-        },
-        {
-          "at": "2026-09-30T05:34:20+00:00",
-          "choice": "Narrow parent-required corrections only: local wrangler D1 apply without --yes using supported noninteractive local-only flags; prepare/import/sign inventory JWT before atomic redeem and mask invalid_signing_key; production token issuance returns integration_unavailable unless the request-scoped test-only transport/capability seam is present, even when approved fixture rows and rogue test bindings exist.",
-          "from": "reopened",
-          "implementation_ref": "file:scripts/prepare-local.mjs;file:src/account/jwt.ts;file:src/account/connect.ts;file:src/pages/api/store-connections/token.ts;file:tests/store-connections.test.mjs;file:tests/helpers/merchant-harness.mjs",
-          "note": "user accepted the scoped decision",
-          "repair_required": false,
-          "review_classifications": [],
-          "review_ref": null,
-          "review_result": null,
-          "review_source_identity": null,
-          "to": "locked",
-          "verification_ref": "file:proof/better-auth/PROOF.md"
-        },
-        {
-          "at": "2026-09-30T05:35:03+00:00",
-          "choice": "Keep the previously verified Better Auth merchant product. Repair only the clean-install peer-lock gap: pin @cloudflare/workers-types to exact 5.20260926.1 (wrangler 4.144.0 peer floor; workerd 1.20260926.1 already locked) and record that package in package-lock.json so npm ci cannot resolve a floating daily types peer such as 5.20260930.1. No product, runtime, test, page, workflow, or screenshot changes.",
-          "from": "locked",
-          "implementation_ref": "file:scripts/prepare-local.mjs;file:src/account/jwt.ts;file:src/account/connect.ts;file:src/pages/api/store-connections/token.ts;file:tests/store-connections.test.mjs;file:tests/helpers/merchant-harness.mjs",
-          "note": "bounded implementation recorded",
-          "repair_required": false,
-          "review_classifications": [],
-          "review_ref": null,
-          "review_result": null,
-          "review_source_identity": null,
-          "to": "implemented",
-          "verification_ref": "file:proof/better-auth/PROOF.md"
-        },
-        {
-          "at": "2026-09-30T05:36:45+00:00",
-          "choice": "Keep the previously verified Better Auth merchant product. Repair only the clean-install peer-lock gap: pin @cloudflare/workers-types to exact 5.20260926.1 (wrangler 4.144.0 peer floor; workerd 1.20260926.1 already locked) and record that package in package-lock.json so npm ci cannot resolve a floating daily types peer such as 5.20260930.1. No product, runtime, test, page, workflow, or screenshot changes.",
-          "from": "implemented",
-          "implementation_ref": "file:package.json;file:package-lock.json",
-          "note": "verification recorded in cumulative context",
-          "repair_required": false,
-          "review_classifications": [],
-          "review_ref": null,
-          "review_result": null,
-          "review_source_identity": null,
-          "to": "verified",
-          "verification_ref": "file:proof/better-auth/PROOF.md"
-        },
-        {
-          "at": "2026-09-30T05:39:26+00:00",
-          "choice": "Keep the previously verified Better Auth merchant product. Repair only the clean-install peer-lock gap: pin @cloudflare/workers-types to exact 5.20260926.1 (wrangler 4.144.0 peer floor; workerd 1.20260926.1 already locked) and record that package in package-lock.json so npm ci cannot resolve a floating daily types peer such as 5.20260930.1. No product, runtime, test, page, workflow, or screenshot changes.",
-          "from": "verified",
-          "implementation_ref": "file:package.json;file:package-lock.json",
-          "note": "Parent independently passed fresh npm ci and full npm run verify after the peer-lock repair. Reopen only to replace the ignored worker proof reference with the durable public cumulative proof; no product or decision change.",
-          "repair_required": false,
-          "review_classifications": [],
-          "review_ref": null,
-          "review_result": null,
-          "review_source_identity": null,
-          "to": "reopened",
-          "verification_ref": "file:.grilltrack/work/better-auth/ci-lock-repair/PROOF.md;cmd:npm ci;cmd:npm run verify"
-        },
-        {
-          "at": "2026-09-30T05:39:27+00:00",
-          "choice": "Keep the previously verified Better Auth merchant product. Repair only the clean-install peer-lock gap: pin @cloudflare/workers-types to exact 5.20260926.1 (wrangler 4.144.0 peer floor; workerd 1.20260926.1 already locked) and record that package in package-lock.json so npm ci cannot resolve a floating daily types peer such as 5.20260930.1. No product, runtime, test, page, workflow, or screenshot changes.",
-          "from": "reopened",
-          "implementation_ref": "file:package.json;file:package-lock.json",
-          "note": "user accepted the scoped decision",
-          "repair_required": false,
-          "review_classifications": [],
-          "review_ref": null,
-          "review_result": null,
-          "review_source_identity": null,
-          "to": "locked",
-          "verification_ref": "file:.grilltrack/work/better-auth/ci-lock-repair/PROOF.md;cmd:npm ci;cmd:npm run verify"
-        },
-        {
-          "at": "2026-09-30T05:40:00+00:00",
-          "choice": "Keep the previously verified Better Auth merchant product. Repair only the clean-install peer-lock gap: pin @cloudflare/workers-types to exact 5.20260926.1 (wrangler 4.144.0 peer floor; workerd 1.20260926.1 already locked) and record that package in package-lock.json so npm ci cannot resolve a floating daily types peer such as 5.20260930.1. No product, runtime, test, page, workflow, or screenshot changes.",
-          "from": "locked",
-          "implementation_ref": "file:package.json;file:package-lock.json",
-          "note": "bounded implementation recorded",
-          "repair_required": false,
-          "review_classifications": [],
-          "review_ref": null,
-          "review_result": null,
-          "review_source_identity": null,
-          "to": "implemented",
-          "verification_ref": "file:.grilltrack/work/better-auth/ci-lock-repair/PROOF.md;cmd:npm ci;cmd:npm run verify"
-        },
-        {
-          "at": "2026-09-30T05:40:00+00:00",
-          "choice": "Keep the previously verified Better Auth merchant product. Repair only the clean-install peer-lock gap: pin @cloudflare/workers-types to exact 5.20260926.1 (wrangler 4.144.0 peer floor; workerd 1.20260926.1 already locked) and record that package in package-lock.json so npm ci cannot resolve a floating daily types peer such as 5.20260930.1. No product, runtime, test, page, workflow, or screenshot changes.",
-          "from": "implemented",
-          "implementation_ref": "file:src/account;file:src/pages/account;file:src/pages/api;file:src/worker.ts;file:migrations/merchant;file:package.json;file:package-lock.json;file:tests",
-          "note": "verification recorded in cumulative context",
-          "repair_required": false,
-          "review_classifications": [],
-          "review_ref": null,
-          "review_result": null,
-          "review_source_identity": null,
-          "to": "verified",
-          "verification_ref": "file:.grilltrack/work/better-auth/ci-lock-repair/PROOF.md;cmd:npm ci;cmd:npm run verify"
-        },
-        {
-          "at": "2026-09-30T05:50:12+00:00",
-          "choice": "Keep the previously verified Better Auth merchant product. Repair only the clean-install peer-lock gap: pin @cloudflare/workers-types to exact 5.20260926.1 (wrangler 4.144.0 peer floor; workerd 1.20260926.1 already locked) and record that package in package-lock.json so npm ci cannot resolve a floating daily types peer such as 5.20260930.1. No product, runtime, test, page, workflow, or screenshot changes.",
-          "from": "verified",
-          "implementation_ref": "file:src/account;file:src/pages/account;file:src/pages/api;file:src/worker.ts;file:migrations/merchant;file:package.json;file:package-lock.json;file:tests",
-          "note": "Spark req-20260930T054205Z-155277014346 comprehensive exact-source review required_fix: external wrangler d1 migrations apply of 0001/0002/0003 leaves dinkuskit_schema_migrations empty, so currentMerchantSchemaVersion returns 0 and the next account request CREATE TABLE user fails. Parent reproduced CLI exit 0 then two /account/signup 500 D1_ERROR table user already exists. Record already-applied versions; keep contiguous history for runtime-fresh and legacy-2 upgrade.",
-          "repair_required": false,
-          "review_classifications": [],
-          "review_ref": null,
-          "review_result": null,
-          "review_source_identity": null,
-          "to": "reopened",
-          "verification_ref": "file:proof/better-auth/PROOF.md"
-        },
-        {
-          "at": "2026-09-30T05:50:12+00:00",
-          "choice": "Keep the previously verified Better Auth merchant product. Repair only the clean-install peer-lock gap: pin @cloudflare/workers-types to exact 5.20260926.1 (wrangler 4.144.0 peer floor; workerd 1.20260926.1 already locked) and record that package in package-lock.json so npm ci cannot resolve a floating daily types peer such as 5.20260930.1. No product, runtime, test, page, workflow, or screenshot changes.",
-          "from": "reopened",
-          "implementation_ref": "file:src/account;file:src/pages/account;file:src/pages/api;file:src/worker.ts;file:migrations/merchant;file:package.json;file:package-lock.json;file:tests",
-          "note": "user accepted the scoped decision",
-          "repair_required": false,
-          "review_classifications": [],
-          "review_ref": null,
-          "review_result": null,
-          "review_source_identity": null,
-          "to": "locked",
-          "verification_ref": "file:proof/better-auth/PROOF.md"
-        },
-        {
-          "at": "2026-09-30T05:52:55+00:00",
-          "choice": "Keep the previously verified Better Auth merchant product and accepted workers-types pin 5.20260926.1. Repair only the merchant migration ledger lifecycle so externally applied wrangler 0001/0002/0003, runtime-fresh 0 to 3, and legacy-2 upgrade all record contiguous versions 1/2/3 and never recreate existing user tables. Add built-worker regressions for CLI-all-3, runtime-fresh, and upgrade, each with repeat and restart. No package, page, copy, protocol, workflow, or media changes.",
-          "from": "locked",
-          "implementation_ref": "file:src/account;file:src/pages/account;file:src/pages/api;file:src/worker.ts;file:migrations/merchant;file:package.json;file:package-lock.json;file:tests",
-          "note": "bounded implementation recorded",
-          "repair_required": false,
-          "review_classifications": [],
-          "review_ref": null,
-          "review_result": null,
-          "review_source_identity": null,
-          "to": "implemented",
-          "verification_ref": "file:proof/better-auth/PROOF.md"
-        },
-        {
-          "at": "2026-09-30T05:55:37+00:00",
-          "choice": "Keep the previously verified Better Auth merchant product and accepted workers-types pin 5.20260926.1. Repair only the merchant migration ledger lifecycle so externally applied wrangler 0001/0002/0003, runtime-fresh 0 to 3, and legacy-2 upgrade all record contiguous versions 1/2/3 and never recreate existing user tables. Add built-worker regressions for CLI-all-3, runtime-fresh, and upgrade, each with repeat and restart. No package, page, copy, protocol, workflow, or media changes.",
-          "from": "implemented",
-          "implementation_ref": "file:migrations/merchant/0003_store_connect.sql;file:src/account/migrate.ts;file:src/account/migration-sql.ts;file:tests/merchant-migrations.test.mjs",
-          "note": "verification recorded in cumulative context",
-          "repair_required": false,
-          "review_classifications": [],
-          "review_ref": null,
-          "review_result": null,
-          "review_source_identity": null,
-          "to": "verified",
-          "verification_ref": "file:proof/better-auth/PROOF.md"
-        },
-        {
-          "at": "2026-09-30T06:08:06+00:00",
-          "choice": "Keep the previously verified Better Auth merchant product and accepted workers-types pin 5.20260926.1. Repair only the merchant migration ledger lifecycle so externally applied wrangler 0001/0002/0003, runtime-fresh 0 to 3, and legacy-2 upgrade all record contiguous versions 1/2/3 and never recreate existing user tables. Add built-worker regressions for CLI-all-3, runtime-fresh, and upgrade, each with repeat and restart. No package, page, copy, protocol, workflow, or media changes.",
-          "from": "verified",
-          "implementation_ref": "file:migrations/merchant/0003_store_connect.sql;file:src/account/migrate.ts;file:src/account/migration-sql.ts;file:tests/merchant-migrations.test.mjs",
-          "note": "Spark req-20260930T055801Z-15755493714 comprehensive exact-source review required_fix P2: readMerchantEnv validates MERCHANT_BASE_URL but retains the raw string; rejectCrossOriginMutation compares that raw value to the browser Origin. Configured https://dinkuskit.com/ makes custom forms 403 invalid_origin. Parent production-entry probe confirmed configured slash / browser-normal origin /account/sign-in 403 invalid_origin. No live email was sent.",
-          "repair_required": false,
-          "review_classifications": [],
-          "review_ref": null,
-          "review_result": null,
-          "review_source_identity": null,
-          "to": "reopened",
-          "verification_ref": "file:proof/better-auth/PROOF.md"
-        },
-        {
-          "at": "2026-09-30T06:08:06+00:00",
-          "choice": "Keep the previously verified Better Auth merchant product and accepted workers-types pin 5.20260926.1. Repair only the merchant migration ledger lifecycle so externally applied wrangler 0001/0002/0003, runtime-fresh 0 to 3, and legacy-2 upgrade all record contiguous versions 1/2/3 and never recreate existing user tables. Add built-worker regressions for CLI-all-3, runtime-fresh, and upgrade, each with repeat and restart. No package, page, copy, protocol, workflow, or media changes.",
-          "from": "reopened",
-          "implementation_ref": "file:migrations/merchant/0003_store_connect.sql;file:src/account/migrate.ts;file:src/account/migration-sql.ts;file:tests/merchant-migrations.test.mjs",
-          "note": "user accepted the scoped decision",
-          "repair_required": false,
-          "review_classifications": [],
-          "review_ref": null,
-          "review_result": null,
-          "review_source_identity": null,
-          "to": "locked",
-          "verification_ref": "file:proof/better-auth/PROOF.md"
-        },
-        {
-          "at": "2026-09-30T06:11:12+00:00",
-          "choice": "Keep the previously verified Better Auth merchant product, workers-types pin 5.20260926.1, and merchant migration ledger lifecycle. Normalize accepted root http(s) MERCHANT_BASE_URL to canonical origin at the binding boundary so Better Auth baseURL/trustedOrigins and custom CSRF compare the same origin. Preserve fail-closed missing/non-host secret and base, credentials/query/hash rejection, and unsupported scheme/path rejection because account routes are at origin root. Missing or foreign Origin still 403. No weakening of CSRF, default production redirect, or issuer. Add built-worker regressions for trailing-slash valid origin, foreign/missing origin, and malformed configuration. Leave public verify to parent.",
-          "from": "locked",
-          "implementation_ref": "file:migrations/merchant/0003_store_connect.sql;file:src/account/migrate.ts;file:src/account/migration-sql.ts;file:tests/merchant-migrations.test.mjs",
-          "note": "bounded implementation recorded",
-          "repair_required": false,
-          "review_classifications": [],
-          "review_ref": null,
-          "review_result": null,
-          "review_source_identity": null,
-          "to": "implemented",
-          "verification_ref": "file:proof/better-auth/PROOF.md"
-        },
-        {
-          "at": "2026-09-30T06:13:51+00:00",
-          "choice": "Keep the previously verified Better Auth merchant product, workers-types pin 5.20260926.1, and merchant migration ledger lifecycle. Normalize accepted root http(s) MERCHANT_BASE_URL to canonical origin at the binding boundary so Better Auth baseURL/trustedOrigins and custom CSRF compare the same origin. Preserve fail-closed missing/non-host secret and base, credentials/query/hash rejection, and unsupported scheme/path rejection because account routes are at origin root. Missing or foreign Origin still 403. No weakening of CSRF, default production redirect, or issuer. Add built-worker regressions for trailing-slash valid origin, foreign/missing origin, and malformed configuration. Leave public verify to parent.",
-          "from": "implemented",
-          "implementation_ref": "file:src/account/bindings.ts;file:tests/better-auth-routes.test.mjs;file:tests/helpers/merchant-harness.mjs",
-          "note": "verification recorded in cumulative context",
-          "repair_required": false,
-          "review_classifications": [],
-          "review_ref": null,
-          "review_result": null,
-          "review_source_identity": null,
-          "to": "verified",
-          "verification_ref": "file:proof/better-auth/PROOF.md"
-        }
-      ],
-      "id": "merchant-better-auth-008",
-      "implementation_ref": "file:src/account/bindings.ts;file:tests/better-auth-routes.test.mjs;file:tests/helpers/merchant-harness.mjs",
-      "question": "Which maintained identity implementation backs merchant accounts?",
-      "rationale": "Parent-adjudicated Spark P2. Common production config https://dinkuskit.com/ is a valid root URL but is not the browser Origin string. Binding-boundary canonicalization is the minimal correction. No pages, copy, migrations, packages, workflows, store protocol, screenshots, or public proof changes.",
-      "repair_required": false,
-      "review_classifications": [],
-      "review_history": [],
       "review_ref": null,
       "review_result": null,
       "review_source_identity": null,
       "status": "verified",
       "superseded_by": null,
-      "updated_at": "2026-09-30T06:13:51+00:00",
-      "verification_ref": "file:proof/better-auth/PROOF.md"
+      "updated_at": "2026-09-30T16:36:17+00:00",
+      "verification_ref": "file:.grilltrack/work/site-launch-20260930/stale-output-fix/parent-verify.log;file:.grilltrack/work/site-launch-20260930/stale-output-fix/baseline-regression.json"
     }
   ],
   "last_activation": {
-    "at": "2026-09-30T06:08:06+00:00",
+    "at": "2026-09-30T15:06:18+00:00",
     "mechanism": "implicit"
   },
   "last_pause": {
     "artifact_refs": [
-      "file:.grilltrack/work/better-auth/PROOF.md",
-      "file:.grilltrack/work/better-auth/PARENT_REVIEW.md",
-      "file:.grilltrack/work/better-auth/CONTRACT.md"
+      "docs/authentication-research.md",
+      "proof/website-foundation/README.md"
     ],
-    "next_safe_action": "Parent independently reruns full npm run verify plus browser/isolation probes, then owns review and commit. Do not merge 347514c while this tree is dirty.",
-    "paused_at": "2026-09-30T04:51:33+00:00",
-    "reason": "Bounded merchant-better-auth-008 final corrections are implemented and locally checked. Parent owns verification, browser, review, commit, 347514c reconciliation, and draft PR.",
-    "resumed_at": "2026-09-30T05:13:34+00:00"
+    "next_safe_action": "Continue with the bounded supported-API EmDash authentication proof; do not infer production auth or deployment from the scaffold.",
+    "paused_at": "2026-09-30T02:24:40+00:00",
+    "reason": "Website scaffold verified and ready for the authorized draft PR; shared-account implementation and future product constraints remain open.",
+    "resumed_at": "2026-09-30T15:06:18+00:00"
   },
   "pause": null,
-  "recommendation": {
-    "alternatives": [
-      "Hosted Inventory dispatcher and live Cloudflare Email remain fail-closed until those operator seams exist."
-    ],
-    "reason": "Three parent-required corrections are implemented and locally checked on Node 22.23.2. Parent owns verification. Inventory PR35 live website transport remains simulation.",
-    "recommended": "Parent independently reruns full npm run verify and browser probes, then owns review, commit, 347514c reconciliation, and draft PR.",
-    "recorded_at": "2026-09-30T04:51:33+00:00"
-  },
+  "recommendation": null,
   "schema_version": "grilltrack/v0.1",
   "status": "active",
   "title": "DinkusKit website foundation",
   "track_id": "gt-20260930021417-e281b2",
-  "updated_at": "2026-09-30T06:13:51+00:00"
+  "updated_at": "2026-09-30T16:36:17+00:00"
 }

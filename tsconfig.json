@@ -3,7 +3,8 @@
   "compilerOptions": {
     "types": ["node"],
     "ignoreDeprecations": "6.0",
-    "allowImportingTsExtensions": true
+    "allowImportingTsExtensions": true,
+    "allowJs": true
   },
   "include": ["src", ".astro/types.d.ts", "emdash-env.d.ts", "worker-configuration.d.ts"]
 }

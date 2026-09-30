@@ -210,7 +210,7 @@ try {
   const production = await startWorker('production-seeded', join(root, 'dist/server/wrangler.json'), port);
   assert.ok(await waitReady(production, base), `Seeded production workerd failed to start: ${production.logs().slice(-3000)}`);
   for (const [path, heading, body] of [
-    ['/', 'Commerce that belongs in EmDash.', 'Inventory, connected'],
+    ['/', 'Commerce that belongs in EmDash.', 'Inventory, coming soon'],
     ['/getting-started', 'Your site. One connected experience.', 'Trial access'],
   ]) {
     const response = await request(base, path);
@@ -220,6 +220,20 @@ try {
     assert.ok(html.includes('data-native-blocks'), `${path}: native blocks wrapper`);
     assert.ok(html.includes(body), `${path}: native block content rendered`);
     checks.push(`${path}: seeded CMS title and native block content on production workerd`);
+    if (path === '/getting-started') {
+      assert.ok(
+        html.includes('href="https://docs.emdashcms.com/getting-started/"')
+        && html.includes('>Create your first EmDash site</a>'),
+        `${path}: official install docs are a clickable http(s) anchor`,
+      );
+      assert.ok(
+        html.includes('href="https://docs.emdashcms.com/themes/overview/"')
+        && html.includes('>EmDash themes</a>'),
+        `${path}: official themes docs are a clickable http(s) anchor`,
+      );
+      assert.ok(!html.includes('coordinator-owned') && !html.includes('handoff'), `${path}: no internal coordination copy`);
+      assert.ok(html.includes('No demo or setup destination is available'), `${path}: demo/setup remain pending`);
+    }
   }
   await denyCmsSurface(base, 'seeded-production');
   checks.push('Production /_emdash remains denied after fixture seed, including spoofed and encoded variants');

@@ -4,11 +4,11 @@
   "current_focus": {
     "cadence": "sequential",
     "confirmed": true,
-    "confirmed_at": "2026-09-30T21:36:33+00:00",
-    "domain": "Better Auth merchant routes on Cloudflare Workers and D1",
-    "started_at": "2026-09-30T21:36:33+00:00",
-    "status": "confirmed",
-    "summary": "Normalize accepted root http(s) configured MERCHANT_BASE_URL to canonical origin at the binding boundary so Better Auth baseURL/trustedOrigins and custom CSRF compare the same origin. Preserve fail-closed secret/base, credentials/query/hash, and unsupported scheme/path. Missing or foreign Origin still 403. Add actual built-worker regressions: configured trailing slash plus valid origin succeeds; foreign/missing origins rejected; malformed configuration fails 503. Prove the regression fails before the fix, then minimal fix and full npm run verify on Node 22.23.2. Leave merchant-better-auth-008 IMPLEMENTED for parent public proof. No pages, copy, migrations, packages, workflows, store protocol, screenshots, public proof, commit, push, merge, deploy, or review-rail actions."
+    "confirmed_at": "2026-09-30T17:51:05+00:00",
+    "domain": "website-operation",
+    "started_at": "2026-09-30T17:51:04+00:00",
+    "status": "inspected",
+    "summary": "Bobby lifted hold, approved scoped website deployment and named two Google Workspace accounts allowed to edit. Preserve native EmDash and the approved design; new source merge remains separately gated."
   },
   "decisions": [
     {
@@ -642,21 +642,19 @@
       "verification_ref": "file:.grilltrack/work/site-launch-20260930/stale-output-fix/parent-verify.log;file:.grilltrack/work/site-launch-20260930/stale-output-fix/baseline-regression.json"
     },
     {
-      "baseline_ref": "git:dda0260636aa7723e28fefd10e1f3424ff24d1cf",
+      "baseline_ref": null,
       "candidate_refs": [],
-      "choice": "Native CMS signup still uses operator-allowed domains. A custom AuthAdapter can implement public getAllowedDomain for general SUBSCRIBER signup without domain rows or internals. Use exported requestSignup/completeSignup/sendMagicLink/verifyMagicLink through that adapter. SignupConfig cannot configure native CMS URLs; record that coupling without calling the helpers internal. Native tokens remain opaque CMS credentials, not service JWTs. Keep DinkusKit-owned account IDs, site-control-before-grant, and a narrow proof-labeled JWT bridge. Do not ship homemade signup/session as a product auth platform or add a public login route. Native browser/provider integration remains unproven; recommend Better Auth as the next maintained provider proof.",
-      "context_ref": "file:docs/authentication-research.md",
-      "created_at": "2026-09-30T21:36:33+00:00",
+      "choice": "Preserve the approved design; qualify actual persistent EmDash content management with safe operator editing and understandable installation/theme/storefront guidance. The static introduction remains an honest initial release.",
+      "context_ref": "file:plans/2026-09-30-usable-site.md",
+      "created_at": "2026-09-30T16:39:55+00:00",
       "deferred_reason": null,
       "delivery_ref": null,
-      "dependencies": [
-        "website-account-003"
-      ],
-      "domain": "Better Auth merchant routes on Cloudflare Workers and D1",
+      "dependencies": [],
+      "domain": "Usable EmDash site and coordinated Commerce Template Store launch",
       "history": [
         {
-          "at": "2026-09-30T21:36:33+00:00",
-          "choice": "Native CMS signup still uses operator-allowed domains. A custom AuthAdapter can implement public getAllowedDomain for general SUBSCRIBER signup without domain rows or internals. Use exported requestSignup/completeSignup/sendMagicLink/verifyMagicLink through that adapter. SignupConfig cannot configure native CMS URLs; record that coupling without calling the helpers internal. Native tokens remain opaque CMS credentials, not service JWTs. Keep DinkusKit-owned account IDs, site-control-before-grant, and a narrow proof-labeled JWT bridge. Do not ship homemade signup/session as a product auth platform or add a public login route. Native browser/provider integration remains unproven; recommend Better Auth as the next maintained provider proof.",
+          "at": "2026-09-30T16:39:55+00:00",
+          "choice": "Preserve the approved design; qualify actual persistent EmDash content management with safe operator editing and understandable installation/theme/storefront guidance. The static introduction remains an honest initial release.",
           "from": "proposed",
           "implementation_ref": null,
           "note": "user accepted the scoped decision",
@@ -669,8 +667,8 @@
           "verification_ref": null
         },
         {
-          "at": "2026-09-30T21:36:33+00:00",
-          "choice": "Native CMS signup still uses operator-allowed domains. A custom AuthAdapter can implement public getAllowedDomain for general SUBSCRIBER signup without domain rows or internals. Use exported requestSignup/completeSignup/sendMagicLink/verifyMagicLink through that adapter. SignupConfig cannot configure native CMS URLs; record that coupling without calling the helpers internal. Native tokens remain opaque CMS credentials, not service JWTs. Keep DinkusKit-owned account IDs, site-control-before-grant, and a narrow proof-labeled JWT bridge. Do not ship homemade signup/session as a product auth platform or add a public login route. Native browser/provider integration remains unproven; recommend Better Auth as the next maintained provider proof.",
+          "at": "2026-09-30T18:47:01+00:00",
+          "choice": "Preserve the approved design; qualify actual persistent EmDash content management with safe operator editing and understandable installation/theme/storefront guidance. The static introduction remains an honest initial release.",
           "from": "locked",
           "implementation_ref": null,
           "note": "bounded implementation recorded",
@@ -681,65 +679,37 @@
           "review_source_identity": null,
           "to": "implemented",
           "verification_ref": null
-        },
-        {
-          "at": "2026-09-30T21:36:33+00:00",
-          "choice": "Native CMS signup still uses operator-allowed domains. A custom AuthAdapter can implement public getAllowedDomain for general SUBSCRIBER signup without domain rows or internals. Use exported requestSignup/completeSignup/sendMagicLink/verifyMagicLink through that adapter. SignupConfig cannot configure native CMS URLs; record that coupling without calling the helpers internal. Native tokens remain opaque CMS credentials, not service JWTs. Keep DinkusKit-owned account IDs, site-control-before-grant, and a narrow proof-labeled JWT bridge. Do not ship homemade signup/session as a product auth platform or add a public login route. Native browser/provider integration remains unproven; recommend Better Auth as the next maintained provider proof.",
-          "from": "implemented",
-          "implementation_ref": "file:src/account/;file:tests/;file:scripts/merchant-auth-proof.mjs;file:docs/authentication-research.md;file:docs/CHARTER.md;file:proof/merchant-auth-proof/README.md",
-          "note": "verification recorded in cumulative context",
-          "repair_required": false,
-          "review_classifications": [],
-          "review_ref": null,
-          "review_result": null,
-          "review_source_identity": null,
-          "to": "verified",
-          "verification_ref": null
         }
       ],
-      "id": "merchant-auth-007",
-      "implementation_ref": "file:src/account/;file:tests/;file:scripts/merchant-auth-proof.mjs;file:docs/authentication-research.md;file:docs/CHARTER.md;file:proof/merchant-auth-proof/README.md",
-      "question": "Can EmDash 1.0.1 supported public APIs prove general merchant identity for DinkusKit?",
-      "rationale": "Parent review required the allowlist claim and homemade runtime to be corrected. User authorized this bounded repair in the same workspace.",
+      "id": "website-operation-009",
+      "implementation_ref": "file:scripts/cms-operation-fixture.mjs;file:docs/getting-started.md;scope:local qualification and candidate, hosted operation pending",
+      "question": "What is required to call the website usable?",
+      "rationale": "Explicit user direction recorded for the bounded website follow-up; no design reconfirmation or current frozen candidate expansion.",
       "repair_required": false,
-      "review_classifications": [
-        "defer"
-      ],
-      "review_history": [
-        {
-          "classifications": [
-            "defer"
-          ],
-          "ref": "file:proof/merchant-auth-proof/final-review.md",
-          "result": "findings",
-          "reviewed_at": "2026-09-30T21:36:33+00:00",
-          "source_identity": "git:86e4d211069cef5c1b0b21d2fdeac81676d7c51d"
-        }
-      ],
-      "review_ref": "file:proof/merchant-auth-proof/final-review.md",
-      "review_result": "findings",
-      "review_source_identity": "git:86e4d211069cef5c1b0b21d2fdeac81676d7c51d",
-      "status": "verified",
+      "review_classifications": [],
+      "review_history": [],
+      "review_ref": null,
+      "review_result": null,
+      "review_source_identity": null,
+      "status": "implemented",
       "superseded_by": null,
-      "updated_at": "2026-09-30T21:36:33+00:00",
-      "verification_ref": "file:proof/merchant-auth-proof/README.md;cmd:npm run verify;cmd:npm run test:account"
+      "updated_at": "2026-09-30T18:47:01+00:00",
+      "verification_ref": null
     },
     {
-      "baseline_ref": "git:60fa92ba1b53305eec883de849ef8766a11d76fe",
+      "baseline_ref": null,
       "candidate_refs": [],
-      "choice": "Keep the previously verified Better Auth merchant product, workers-types pin 5.20260926.1, and merchant migration ledger lifecycle. Normalize accepted root http(s) MERCHANT_BASE_URL to canonical origin at the binding boundary so Better Auth baseURL/trustedOrigins and custom CSRF compare the same origin. Preserve fail-closed missing/non-host secret and base, credentials/query/hash rejection, and unsupported scheme/path rejection because account routes are at origin root. Missing or foreign Origin still 403. No weakening of CSRF, default production redirect, or issuer. Add built-worker regressions for trailing-slash valid origin, foreign/missing origin, and malformed configuration. Leave public verify to parent.",
-      "context_ref": "file:docs/CHARTER.md",
-      "created_at": "2026-09-30T21:36:33+00:00",
+      "choice": "Inventory is Coming soon and develops concurrently without holding Commerce v1. Plan hosted onboarding and a documented open-source self-hosted path; use the verified release matrix for payments, checkout, shipping, coupons and bundles. Pricing, billing and exact hosted rollout remain undecided.",
+      "context_ref": "file:plans/2026-09-30-usable-site.md",
+      "created_at": "2026-09-30T16:39:55+00:00",
       "deferred_reason": null,
       "delivery_ref": null,
-      "dependencies": [
-        "merchant-auth-007"
-      ],
-      "domain": "Better Auth merchant routes on Cloudflare Workers and D1",
+      "dependencies": [],
+      "domain": "Usable EmDash site and coordinated Commerce Template Store launch",
       "history": [
         {
-          "at": "2026-09-30T21:36:33+00:00",
-          "choice": "Keep the previously verified Better Auth merchant product, workers-types pin 5.20260926.1, and merchant migration ledger lifecycle. Normalize accepted root http(s) MERCHANT_BASE_URL to canonical origin at the binding boundary so Better Auth baseURL/trustedOrigins and custom CSRF compare the same origin. Preserve fail-closed missing/non-host secret and base, credentials/query/hash rejection, and unsupported scheme/path rejection because account routes are at origin root. Missing or foreign Origin still 403. No weakening of CSRF, default production redirect, or issuer. Add built-worker regressions for trailing-slash valid origin, foreign/missing origin, and malformed configuration. Leave public verify to parent.",
+          "at": "2026-09-30T16:39:55+00:00",
+          "choice": "Inventory is Coming soon and develops concurrently without holding Commerce v1. Plan hosted onboarding and a documented open-source self-hosted path; use the verified release matrix for payments, checkout, shipping, coupons and bundles. Pricing, billing and exact hosted rollout remain undecided.",
           "from": "proposed",
           "implementation_ref": null,
           "note": "user accepted the scoped decision",
@@ -752,8 +722,106 @@
           "verification_ref": null
         },
         {
-          "at": "2026-09-30T21:36:33+00:00",
-          "choice": "Keep the previously verified Better Auth merchant product, workers-types pin 5.20260926.1, and merchant migration ledger lifecycle. Normalize accepted root http(s) MERCHANT_BASE_URL to canonical origin at the binding boundary so Better Auth baseURL/trustedOrigins and custom CSRF compare the same origin. Preserve fail-closed missing/non-host secret and base, credentials/query/hash rejection, and unsupported scheme/path rejection because account routes are at origin root. Missing or foreign Origin still 403. No weakening of CSRF, default production redirect, or issuer. Add built-worker regressions for trailing-slash valid origin, foreign/missing origin, and malformed configuration. Leave public verify to parent.",
+          "at": "2026-09-30T18:47:01+00:00",
+          "choice": "Inventory is Coming soon and develops concurrently without holding Commerce v1. Plan hosted onboarding and a documented open-source self-hosted path; use the verified release matrix for payments, checkout, shipping, coupons and bundles. Pricing, billing and exact hosted rollout remain undecided.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": null
+        }
+      ],
+      "id": "website-availability-010",
+      "implementation_ref": "file:seed/seed.json;file:docs/getting-started.md;scope:availability guidance, coordinated release matrix pending",
+      "question": "How should inventory and service availability be communicated?",
+      "rationale": "Explicit user direction recorded for the bounded website follow-up; no design reconfirmation or current frozen candidate expansion.",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [],
+      "review_ref": null,
+      "review_result": null,
+      "review_source_identity": null,
+      "status": "implemented",
+      "superseded_by": null,
+      "updated_at": "2026-09-30T18:47:01+00:00",
+      "verification_ref": null
+    },
+    {
+      "baseline_ref": null,
+      "candidate_refs": [],
+      "choice": "Commerce v1 and Template Store release as an exact verified pair. Consume the coordinator handoff and add verified real Try the demo and Use this template/setup paths for the actual interactive frontend, using synthetic content and explicit safe demo behavior; no unavailable inventory or real charges.",
+      "context_ref": "file:plans/2026-09-30-usable-site.md",
+      "created_at": "2026-09-30T16:39:55+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [],
+      "domain": "Usable EmDash site and coordinated Commerce Template Store launch",
+      "history": [
+        {
+          "at": "2026-09-30T16:39:56+00:00",
+          "choice": "Commerce v1 and Template Store release as an exact verified pair. Consume the coordinator handoff and add verified real Try the demo and Use this template/setup paths for the actual interactive frontend, using synthetic content and explicit safe demo behavior; no unavailable inventory or real charges.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        }
+      ],
+      "id": "website-template-demo-011",
+      "implementation_ref": null,
+      "question": "What Template Store path must the website provide?",
+      "rationale": "Explicit user direction recorded for the bounded website follow-up; no design reconfirmation or current frozen candidate expansion.",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [],
+      "review_ref": null,
+      "review_result": null,
+      "review_source_identity": null,
+      "status": "locked",
+      "superseded_by": null,
+      "updated_at": "2026-09-30T16:39:56+00:00",
+      "verification_ref": null
+    },
+    {
+      "baseline_ref": null,
+      "candidate_refs": [],
+      "choice": "Prepare the official EmDash Cloudflare D1/R2 runtime with a fail-closed Cloudflare Access operator gate across the complete CMS namespace. Use the two owner-designated Google Workspace identities, keep their addresses and site binding values outside public source, bootstrap only behind the restricted operator boundary, and leave hosted merchant identity unchanged. Access is the sole production CMS identity mode; local native passkey proof qualifies the adapter and persistence only. Activation requires the source review/merge gate and a human-owned first operator login.",
+      "context_ref": "plans/2026-09-30-usable-site.md",
+      "created_at": "2026-09-30T17:51:05+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [
+        "website-operation-009"
+      ],
+      "domain": "website-operation",
+      "history": [
+        {
+          "at": "2026-09-30T17:51:05+00:00",
+          "choice": "Prepare the official EmDash Cloudflare D1/R2 runtime with a fail-closed Cloudflare Access operator gate across the complete CMS namespace. Use the two owner-designated Google Workspace identities, keep their addresses and site binding values outside public source, bootstrap only behind the restricted operator boundary, and leave hosted merchant identity unchanged. Access is the sole production CMS identity mode; local native passkey proof qualifies the adapter and persistence only. Activation requires the source review/merge gate and a human-owned first operator login.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-09-30T18:41:59+00:00",
+          "choice": "Prepare the official EmDash Cloudflare D1/R2 runtime with a fail-closed Cloudflare Access operator gate across the complete CMS namespace. Use the two owner-designated Google Workspace identities, keep their addresses and site binding values outside public source, bootstrap only behind the restricted operator boundary, and leave hosted merchant identity unchanged. Access is the sole production CMS identity mode; local native passkey proof qualifies the adapter and persistence only. Activation requires the source review/merge gate and a human-owned first operator login.",
           "from": "locked",
           "implementation_ref": null,
           "note": "bounded implementation recorded",
@@ -766,10 +834,10 @@
           "verification_ref": null
         },
         {
-          "at": "2026-09-30T21:36:33+00:00",
-          "choice": "Keep the previously verified Better Auth merchant product, workers-types pin 5.20260926.1, and merchant migration ledger lifecycle. Normalize accepted root http(s) MERCHANT_BASE_URL to canonical origin at the binding boundary so Better Auth baseURL/trustedOrigins and custom CSRF compare the same origin. Preserve fail-closed missing/non-host secret and base, credentials/query/hash rejection, and unsupported scheme/path rejection because account routes are at origin root. Missing or foreign Origin still 403. No weakening of CSRF, default production redirect, or issuer. Add built-worker regressions for trailing-slash valid origin, foreign/missing origin, and malformed configuration. Leave public verify to parent.",
+          "at": "2026-09-30T18:45:40+00:00",
+          "choice": "Prepare the official EmDash Cloudflare D1/R2 runtime with a fail-closed Cloudflare Access operator gate across the complete CMS namespace. Use the two owner-designated Google Workspace identities, keep their addresses and site binding values outside public source, bootstrap only behind the restricted operator boundary, and leave hosted merchant identity unchanged. Access is the sole production CMS identity mode; local native passkey proof qualifies the adapter and persistence only. Activation requires the source review/merge gate and a human-owned first operator login.",
           "from": "implemented",
-          "implementation_ref": "file:src/account/bindings.ts;file:tests/better-auth-routes.test.mjs;file:tests/helpers/merchant-harness.mjs",
+          "implementation_ref": "file:scripts/lib/access-namespace-gate.mjs;file:src/access-namespace-guard.ts;file:scripts/test-access-namespace-gate.mjs;file:scripts/cloudflare-candidate-denial.mjs;file:docs/hosted-runtime-candidate.md",
           "note": "verification recorded in cumulative context",
           "repair_required": false,
           "review_classifications": [],
@@ -780,10 +848,10 @@
           "verification_ref": null
         }
       ],
-      "id": "merchant-better-auth-008",
-      "implementation_ref": "file:src/account/bindings.ts;file:tests/better-auth-routes.test.mjs;file:tests/helpers/merchant-harness.mjs",
-      "question": "Which maintained identity implementation backs merchant accounts?",
-      "rationale": "Parent-adjudicated Spark P2. Common production config https://dinkuskit.com/ is a valid root URL but is not the browser Origin string. Binding-boundary canonicalization is the minimal correction. No pages, copy, migrations, packages, workflows, store protocol, screenshots, or public proof changes.",
+      "id": "website-operator-012",
+      "implementation_ref": "file:scripts/lib/access-namespace-gate.mjs;file:src/access-namespace-guard.ts;file:scripts/test-access-namespace-gate.mjs;file:scripts/cloudflare-candidate-denial.mjs;file:docs/hosted-runtime-candidate.md",
+      "question": "How should the website CMS be safely operated on Cloudflare?",
+      "rationale": "The owner requires a usable EmDash website and explicitly designated website editors. Official Access mode validates signed issuer/audience credentials and avoids public first-admin enrollment.",
       "repair_required": false,
       "review_classifications": [],
       "review_history": [],
@@ -792,8 +860,8 @@
       "review_source_identity": null,
       "status": "verified",
       "superseded_by": null,
-      "updated_at": "2026-09-30T21:36:33+00:00",
-      "verification_ref": "file:proof/better-auth/PROOF.md"
+      "updated_at": "2026-09-30T18:45:40+00:00",
+      "verification_ref": "file:proof/hosted-runtime-candidate/PROOF.md;cmd:npm run verify;file:.grilltrack/work/cloudflare-candidate-20260930/PROOF.json;file:.grilltrack/work/cloudflare-candidate-20260930/parent-encoded-route-proof.json"
     }
   ],
   "last_activation": {
@@ -811,10 +879,18 @@
     "resumed_at": "2026-09-30T15:06:18+00:00"
   },
   "pause": null,
-  "recommendation": null,
+  "recommendation": {
+    "alternatives": [
+      "Human-owned Access application plus protected staging Worker/D1/R2 provision in the documented bootstrap order, still without public hostname cutover.",
+      "Continue locked usable-site guidance (getting-started / template-demo) without activating the CMS candidate."
+    ],
+    "reason": "website-operator-012 is locally verified for fail-closed Access gating including the demonstrated encoded bypass. Hosted Access, first owner login, merge, and cutover remain separate human gates.",
+    "recommended": "Exact-source review of the encoded-namespace gate repair after a separately authorized commit; do not treat local workerd denial as hosted Access proof.",
+    "recorded_at": "2026-09-30T18:45:44+00:00"
+  },
   "schema_version": "grilltrack/v0.1",
   "status": "active",
   "title": "DinkusKit website foundation",
   "track_id": "gt-20260930021417-e281b2",
-  "updated_at": "2026-09-30T21:36:33+00:00"
+  "updated_at": "2026-09-30T18:47:01+00:00"
 }

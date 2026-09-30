@@ -150,6 +150,8 @@ vite.config.ts.timestamp-*
 .dev.vars
 emdash-env.d.ts
 .grilltrack/work/
+cloudflare/wrangler.local.jsonc
+cloudflare/.dev.vars
 .DS_Store
 *.db
 *.db-*

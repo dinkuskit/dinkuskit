@@ -1,5 +1,5 @@
 import { defineMiddleware } from 'astro:middleware';
-import { isProtectedAccountPath, MerchantUnavailableError, seeOther, unavailableResponse } from './account/config.ts';
+import { isProtectedAccountPath, MerchantUnavailableError, safeAccountPath, seeOther, unavailableResponse } from './account/config.ts';
 import { getMerchantEnv } from './account/bindings.ts';
 import { createMerchantRuntime } from './account/auth.ts';
 import { resolveMerchant } from './account/session.ts';
@@ -18,6 +18,11 @@ export const onRequest = defineMiddleware(async (context, next) => {
     throw error;
   }
   if (isProtectedAccountPath(context.url.pathname) && !context.locals.merchant) {
+    const candidate = context.url.pathname + context.url.search;
+    const continuation = safeAccountPath(candidate, '');
+    if (continuation && continuation !== '/account') {
+      return seeOther(`/account/sign-in?callbackURL=${encodeURIComponent(continuation)}`);
+    }
     return seeOther('/account/sign-in');
   }
   return next();

@@ -19,16 +19,19 @@ export async function submitMagicLinkForm(context: AstroLike, intent: MerchantMa
   if (blocked) return blocked;
   const runtime = createMerchantRuntime(env);
   const form = await context.request.formData();
+  const callbackURL = safeAccountPath(String(form.get('callbackURL') ?? ''), '');
   const email = String(form.get('email') ?? '').trim().toLowerCase();
   if (!email || email.length > 200 || !email.includes('@')) {
-    return seeOther(`/${intent === 'signup' ? 'account/signup' : intent === 'recovery' ? 'account/recover' : 'account/sign-in'}?error=invalid_email`);
+    const base = intent === 'signup' ? '/account/signup' : intent === 'recovery' ? '/account/recover' : '/account/sign-in';
+    const query = new URLSearchParams({ error: 'invalid_email' });
+    if (callbackURL) query.set('callbackURL', callbackURL);
+    return seeOther(`${base}?${query.toString()}`);
   }
-  const callbackURL = safeAccountPath(String(form.get('callbackURL') ?? '/account'));
   try {
     await runtime.auth.api.signInMagicLink({
       body: {
         email,
-        callbackURL,
+        callbackURL: callbackURL || '/account',
         errorCallbackURL: intent === 'signup' ? '/account/signup' : intent === 'recovery' ? '/account/recover' : '/account/sign-in',
         metadata: { intent },
       },

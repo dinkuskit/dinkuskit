@@ -5,7 +5,8 @@ import { mkdtemp } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
-import { grantPresent, request, signup, startMerchantTestRuntime, startProductionWorker, stopRuntime } from './helpers/merchant-harness.mjs';
+import { createLocalJWKSet, jwtVerify } from "jose";
+import { completeProofMail, grantPresent, request, signup, startMerchantTestRuntime, startProductionWorker, stopRuntime } from './helpers/merchant-harness.mjs';
 
 const ALICE = 'alice-connect@merchant.example';
 const BOB = 'bob-connect@merchant.example';
@@ -225,7 +226,18 @@ test('store-connections protocol: consent, PKCE, uniqueness, revoke, already_red
       headers: { 'content-type': 'application/x-www-form-urlencoded' },
       body: 'action=approve',
     });
-    assert.match(remint.headers.get('location') ?? '', /error=reinstall_requires_manual_migration|error=/);
+    const remintLoc = new URL(remint.headers.get('location'), runtime.origin);
+    assert.equal(remintLoc.searchParams.get('error'), 'reinstall_requires_manual_migration');
+    const blockedRemintToken = await request(runtime, new Map(), '/api/store-connections/token', {
+      method: 'POST',
+      body: JSON.stringify({
+        client_id: 'dinkus-inventory-emdash',
+        connection_id: afterRevoke.body.connection_id,
+        code_verifier: afterRevoke.pkce.verifier,
+      }),
+    });
+    assert.notEqual(blockedRemintToken.status, 200);
+    assert.equal((await blockedRemintToken.json()).error, 'authorization_pending');
   } finally {
     await stopRuntime(runtime);
   }
@@ -603,5 +615,225 @@ test('production entry cannot mint persisted approved rows even with rogue bindi
     assert.equal(typeof body.access_token, 'string');
   } finally {
     await stopRuntime({ ...simulation, ownedPersist: true });
+  }
+});
+
+test("unauthenticated connect preserves safe continuation to sign-in and signup through magic link to consent; rejects malformed continuation", async () => {
+  const runtime = await startMerchantTestRuntime();
+  const anonJar = new Map();
+  const existingEmail = "merchant-existing@example.com";
+  const existingJar = new Map();
+  const newEmail = "merchant-new@example.com";
+  const newJar = new Map();
+  try {
+    // Pre-create existing merchant
+    await signup(runtime, existingEmail, existingJar);
+
+    const site = originFor("continuation-site");
+    const start = await startConnection(runtime, "site-cont", site);
+    start.siteId = "site-cont";
+    start.siteOrigin = site;
+    await storeReceipt(runtime, start);
+    const connId = start.body.connection_id;
+    const expectedContinuation = `/account/connect?connection_id=${encodeURIComponent(connId)}`;
+
+    // 1. Unauthenticated request to /account/connect?connection_id=... redirects to sign-in preserving continuation
+    const unauthConnect = await request(runtime, anonJar, `/account/connect?connection_id=${connId}`, { redirect: "manual" });
+    assert.equal(unauthConnect.status, 303);
+    assert.equal(
+      unauthConnect.headers.get("location"),
+      `/account/sign-in?callbackURL=${encodeURIComponent(expectedContinuation)}`
+    );
+
+    // 2. Anonymous cannot approve
+    const anonPost = await request(runtime, new Map(), `/account/connect?connection_id=${connId}`, {
+      method: "POST",
+      headers: { "content-type": "application/x-www-form-urlencoded" },
+      body: "action=approve",
+      redirect: "manual",
+    });
+    assert.equal(anonPost.status, 303);
+    assert.equal(
+      anonPost.headers.get("location"),
+      `/account/sign-in?callbackURL=${encodeURIComponent(expectedContinuation)}`
+    );
+
+    // 3. Direct probe for malformed URI sequences on protected account path must fail closed to /account/sign-in without throwing URIError
+    const unauthPercent = await request(runtime, anonJar, "/account/%", { redirect: "manual" });
+    assert.equal(unauthPercent.status, 303);
+    assert.equal(unauthPercent.headers.get("location"), "/account/sign-in");
+
+    const unauthTruncatedUtf8 = await request(runtime, anonJar, "/account/%E0%A4%A", { redirect: "manual" });
+    assert.equal(unauthTruncatedUtf8.status, 303);
+    assert.equal(unauthTruncatedUtf8.headers.get("location"), "/account/sign-in");
+
+    // Foreign, CMS, duplicate query, and malformed continuation are rejected and fallback safely to /account
+    const malformedCases = [
+      "https://evil.example/drain",
+      "//evil.example/drain",
+      "/_emdash/admin",
+      "/%5F%65%6D%64%61%73%68/admin",
+      `/account/connect?connection_id=${connId}&connection_id=duplicate`,
+      `/account/connect?connection_id=${connId}&rogue=true`,
+      "/account/connect?connection_id=invalid%20spaced%20id",
+      "/account/connect",
+      "/account/other-nonexistent?foo=bar",
+      "/account/%",
+      "/account/%E0%A4%A",
+    ];
+
+    for (const bad of malformedCases) {
+      const probeJar = new Map();
+      const signinPost = await request(runtime, probeJar, "/account/sign-in", {
+        method: "POST",
+        headers: { "content-type": "application/x-www-form-urlencoded" },
+        body: `email=${encodeURIComponent(existingEmail)}&callbackURL=${encodeURIComponent(bad)}`,
+      });
+      assert.equal(signinPost.status, 303);
+      assert.equal(signinPost.headers.get("location"), "/account/check-email");
+      const mail = await completeProofMail(runtime, probeJar, existingEmail);
+      assert.equal(mail.status, 303);
+      // Fallback location must be /account, never the malicious or malformed continuation
+      const locUrl = new URL(mail.headers.get("location"), runtime.origin);
+      assert.equal(locUrl.origin, runtime.origin);
+      assert.equal(locUrl.pathname + locUrl.search, "/account");
+    }
+
+    // 4. Valid continuation through Better Auth magic-link sign-in back to consent
+    const signinPost = await request(runtime, existingJar, "/account/sign-in", {
+      method: "POST",
+      headers: { "content-type": "application/x-www-form-urlencoded" },
+      body: `email=${encodeURIComponent(existingEmail)}&callbackURL=${encodeURIComponent(expectedContinuation)}`,
+    });
+    assert.equal(signinPost.status, 303);
+    assert.equal(signinPost.headers.get("location"), "/account/check-email");
+
+    const completed = await completeProofMail(runtime, existingJar, existingEmail);
+    assert.equal(completed.status, 303);
+    const completedUrl = new URL(completed.headers.get("location"), runtime.origin);
+    assert.equal(completedUrl.origin, runtime.origin);
+    assert.equal(completedUrl.pathname + completedUrl.search, expectedContinuation);
+
+    // 5. Merchant now views the consent page authenticated
+    const connectPage = await request(runtime, existingJar, expectedContinuation);
+    assert.equal(connectPage.status, 200);
+    const html = await connectPage.text();
+    assert.match(html, /Connect this store/);
+    assert.match(html, /continuation-site\.stores\.example/);
+
+    // 6. Merchant approves connection
+    const approve = await request(runtime, existingJar, expectedContinuation, {
+      method: "POST",
+      headers: { "content-type": "application/x-www-form-urlencoded" },
+      body: "action=approve",
+    });
+    assert.equal(approve.status, 303);
+    assert.equal(approve.headers.get("location"), start.callback);
+
+    // 7. Token exchange succeeds with S256 verifier
+    const tokenRes = await request(runtime, new Map(), "/api/store-connections/token", {
+      method: "POST",
+      body: JSON.stringify({
+        client_id: "dinkus-inventory-emdash",
+        connection_id: connId,
+        code_verifier: start.pkce.verifier,
+      }),
+    });
+    assert.equal(tokenRes.status, 200);
+    const tokenBody = await tokenRes.json();
+    assert.equal(tokenBody.token_type, "Bearer");
+    assert.equal(tokenBody.site_id, "site-cont");
+    assert.equal(typeof tokenBody.access_token, "string");
+    assert.ok(tokenBody.expires_in <= 300);
+
+    // 8. Verify JWT claims, signature via public JWKS endpoint, and expiry semantics
+    const jwksRes = await request(runtime, new Map(), "/account/.well-known/jwks.json");
+    assert.equal(jwksRes.status, 200);
+    const jwks = await jwksRes.json();
+    const keySet = createLocalJWKSet(jwks);
+    const verified = await jwtVerify(tokenBody.access_token, keySet, {
+      issuer: "https://dinkuskit.com/account",
+      audience: "inventory",
+    });
+    assert.equal(verified.payload.site_id, "site-cont");
+    assert.equal(verified.payload.scope, "inventory:admin");
+    assert.ok(typeof verified.payload.sub === "string" && verified.payload.sub.length > 0);
+    assert.ok(verified.payload.exp && verified.payload.iat);
+    assert.ok(verified.payload.exp - verified.payload.iat <= 300);
+
+    // 9. Revoke site binding blocks new issuance
+    const revoke = await request(runtime, existingJar, "/account/sites", {
+      method: "POST",
+      headers: { "content-type": "application/x-www-form-urlencoded" },
+      body: "action=revoke&site_id=site-cont",
+    });
+    assert.equal(revoke.status, 303);
+
+    // A new connection attempt for the revoked site cannot exchange tokens
+    const nextStart = await startConnection(runtime, "site-cont", site);
+    nextStart.siteId = "site-cont";
+    nextStart.siteOrigin = site;
+    await storeReceipt(runtime, nextStart);
+    const reApprove = await request(runtime, existingJar, `/account/connect?connection_id=${nextStart.body.connection_id}`, {
+      method: "POST",
+      headers: { "content-type": "application/x-www-form-urlencoded" },
+      body: "action=approve",
+    });
+    const reApproveLoc = new URL(reApprove.headers.get("location"), runtime.origin);
+    assert.equal(reApproveLoc.searchParams.get("error"), "reinstall_requires_manual_migration");
+    const blockedToken = await request(runtime, new Map(), "/api/store-connections/token", {
+      method: "POST",
+      body: JSON.stringify({
+        client_id: "dinkus-inventory-emdash",
+        connection_id: nextStart.body.connection_id,
+        code_verifier: nextStart.pkce.verifier,
+      }),
+    });
+    assert.notEqual(blockedToken.status, 200);
+    assert.equal((await blockedToken.json()).error, "authorization_pending");
+
+    // Already-issued JWT remains valid until exp (no immediate revocation/introspection per CHARTER)
+    const reverified = await jwtVerify(tokenBody.access_token, keySet, {
+      issuer: "https://dinkuskit.com/account",
+      audience: "inventory",
+    });
+    assert.equal(reverified.payload.site_id, "site-cont");
+
+    // Cryptographic exp rejection at a test future clock without sleeping
+    await assert.rejects(
+      jwtVerify(tokenBody.access_token, keySet, {
+        issuer: "https://dinkuskit.com/account",
+        audience: "inventory",
+        currentDate: new Date((verified.payload.exp + 30) * 1000),
+      }),
+      { code: "ERR_JWT_EXPIRED" }
+    );
+
+    // 10. Also verify new merchant signup continuation flow
+    const startNew = await startConnection(runtime, "site-cont-new", originFor("continuation-site-new"));
+    startNew.siteId = "site-cont-new";
+    startNew.siteOrigin = originFor("continuation-site-new");
+    await storeReceipt(runtime, startNew);
+    const newExpected = `/account/connect?connection_id=${encodeURIComponent(startNew.body.connection_id)}`;
+
+    const signupPost = await request(runtime, newJar, "/account/signup", {
+      method: "POST",
+      headers: { "content-type": "application/x-www-form-urlencoded" },
+      body: `email=${encodeURIComponent(newEmail)}&callbackURL=${encodeURIComponent(newExpected)}`,
+    });
+    assert.equal(signupPost.status, 303);
+    assert.equal(signupPost.headers.get("location"), "/account/check-email");
+
+    const signupCompleted = await completeProofMail(runtime, newJar, newEmail);
+    assert.equal(signupCompleted.status, 303);
+    const signupUrl = new URL(signupCompleted.headers.get("location"), runtime.origin);
+    assert.equal(signupUrl.origin, runtime.origin);
+    assert.equal(signupUrl.pathname + signupUrl.search, newExpected);
+
+    const newConnectPage = await request(runtime, newJar, newExpected);
+    assert.equal(newConnectPage.status, 200);
+    assert.match(await newConnectPage.text(), /continuation-site-new\.stores\.example/);
+  } finally {
+    await stopRuntime(runtime);
   }
 });

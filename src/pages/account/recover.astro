@@ -1,10 +1,13 @@
 ---
 import Site from '../../layouts/Site.astro';
 import { submitMagicLinkForm } from '../../account/actions.ts';
+import { safeAccountPath } from '../../account/config.ts';
 
 export const prerender = false;
 if (Astro.request.method === 'POST') return submitMagicLinkForm(Astro, 'recovery');
 const error = Astro.url.searchParams.get('error');
+const callbackURL = safeAccountPath(Astro.url.searchParams.get('callbackURL'), '');
+const signinHref = callbackURL ? `/account/sign-in?callbackURL=${encodeURIComponent(callbackURL)}` : '/account/sign-in';
 ---
 <Site title="Recover account" description="Recover a DinkusKit merchant account.">
   <div class="account-panel">
@@ -13,10 +16,11 @@ const error = Astro.url.searchParams.get('error');
     <p class="lead">If the account exists and is active, a single-use recovery link will be sent.</p>
     {error ? <p class="account-error" role="alert">Enter a valid email.</p> : null}
     <form method="post" action="/account/recover" class="account-form">
+      {callbackURL ? <input type="hidden" name="callbackURL" value={callbackURL} /> : null}
       <label for="email">Email</label>
       <input id="email" name="email" type="email" autocomplete="email" required maxlength="200" />
       <button type="submit">Email a recovery link</button>
     </form>
-    <p><a href="/account/sign-in">Back to sign in</a></p>
+    <p><a href={signinHref}>Back to sign in</a></p>
   </div>
 </Site>

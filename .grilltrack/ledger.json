@@ -4,11 +4,11 @@
   "current_focus": {
     "cadence": "sequential",
     "confirmed": true,
-    "confirmed_at": "2026-09-30T22:05:39+00:00",
-    "domain": "Better Auth merchant routes on Cloudflare Workers and D1",
-    "started_at": "2026-09-30T22:05:39+00:00",
+    "confirmed_at": "2026-10-01T04:32:08+00:00",
+    "domain": "merchant-connect-local-proof",
+    "started_at": "2026-10-01T04:31:57+00:00",
     "status": "confirmed",
-    "summary": "Normalize accepted root http(s) configured MERCHANT_BASE_URL to canonical origin at the binding boundary so Better Auth baseURL/trustedOrigins and custom CSRF compare the same origin. Preserve fail-closed secret/base, credentials/query/hash, and unsupported scheme/path. Missing or foreign Origin still 403. Add actual built-worker regressions: configured trailing slash plus valid origin succeeds; foreign/missing origins rejected; malformed configuration fails 503. Prove the regression fails before the fix, then minimal fix and full npm run verify on Node 22.23.2. Leave merchant-better-auth-008 IMPLEMENTED for parent public proof. No pages, copy, migrations, packages, workflows, store protocol, screenshots, public proof, commit, push, merge, deploy, or review-rail actions."
+    "summary": "Confirmed public-safe documentation and verification correction for merchant-connect-local-proof-009."
   },
   "decisions": [
     {
@@ -1016,10 +1016,137 @@
       "superseded_by": null,
       "updated_at": "2026-09-30T22:05:40+00:00",
       "verification_ref": "file:proof/better-auth/PROOF.md"
+    },
+    {
+      "baseline_ref": "git:cd1f75b9684bcbf43b9c5facdcf296f906f8cb47",
+      "candidate_refs": [],
+      "choice": "Preserve pending connection_id across unauthenticated /account/connect redirection to /account/sign-in and /account/signup. Validate strictly local account continuation path with single connection_id, no open redirects, no CMS namespace leakage, no duplicate parameters, preserving CSRF and disabled account checks. Follow original captured safe callback in local test harness without exposing tokens. Prove end-to-end connect consent, PKCE exchange, revocation, isolation, and fail-closed production boundaries with built workerd and synthetic mail sink.",
+      "context_ref": "file:docs/CHARTER.md",
+      "created_at": "2026-10-01T03:57:06+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [
+        "merchant-better-auth-008"
+      ],
+      "domain": "merchant-connect-local-proof",
+      "history": [
+        {
+          "at": "2026-10-01T03:57:09+00:00",
+          "choice": "Preserve pending connection_id across unauthenticated /account/connect redirection to /account/sign-in and /account/signup. Validate strictly local account continuation path with single connection_id, no open redirects, no CMS namespace leakage, no duplicate parameters, preserving CSRF and disabled account checks. Follow original captured safe callback in local test harness without exposing tokens. Prove end-to-end connect consent, PKCE exchange, revocation, isolation, and fail-closed production boundaries with built workerd and synthetic mail sink.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-01T04:11:24+00:00",
+          "choice": "Preserve pending connection_id across unauthenticated /account/connect redirection to /account/sign-in and /account/signup. Validate strictly local account continuation path with single connection_id, no open redirects, no CMS namespace leakage, no duplicate parameters, preserving CSRF and disabled account checks. Follow original captured safe callback in local test harness without exposing tokens. Prove end-to-end connect consent, PKCE exchange, revocation, isolation, and fail-closed production boundaries with built workerd and synthetic mail sink.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-01T04:11:31+00:00",
+          "choice": "Preserve pending connection_id across unauthenticated /account/connect redirection to /account/sign-in and /account/signup. Validate strictly local account continuation path with single connection_id, no open redirects, no CMS namespace leakage, no duplicate parameters, preserving CSRF and disabled account checks. Follow original captured safe callback in local test harness without exposing tokens. Prove end-to-end connect consent, PKCE exchange, revocation, isolation, and fail-closed production boundaries with built workerd and synthetic mail sink.",
+          "from": "implemented",
+          "implementation_ref": "src/account/config.ts,src/middleware.ts,src/pages/account/sign-in.astro,src/pages/account/signup.astro,src/pages/account/recover.astro,src/account/actions.ts,scripts/merchant-connect-proof-launcher.mjs",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-01T04:31:57+00:00",
+          "choice": "Preserve pending connection_id across unauthenticated /account/connect redirection to /account/sign-in and /account/signup. Validate strictly local account continuation path with single connection_id, no open redirects, no CMS namespace leakage, no duplicate parameters, preserving CSRF and disabled account checks. Follow original captured safe callback in local test harness without exposing tokens. Prove end-to-end connect consent, PKCE exchange, revocation, isolation, and fail-closed production boundaries with built workerd and synthetic mail sink.",
+          "from": "verified",
+          "implementation_ref": "src/account/config.ts,src/middleware.ts,src/pages/account/sign-in.astro,src/pages/account/signup.astro,src/pages/account/recover.astro,src/account/actions.ts,scripts/merchant-connect-proof-launcher.mjs",
+          "note": "Final verification and public documentation correction",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "reopened",
+          "verification_ref": "file:.grilltrack/work/merchant-connect-proof-20260930/PROOF.md;cmd:npm run verify;cmd:node scripts/merchant-connect-proof-launcher.mjs"
+        },
+        {
+          "at": "2026-10-01T04:32:01+00:00",
+          "choice": "Preserve pending connection_id across unauthenticated /account/connect redirection to /account/sign-in and /account/signup. Validate strictly local account continuation path with single connection_id, no open redirects, no CMS namespace leakage, no duplicate parameters, preserving CSRF and disabled account checks. Follow original captured safe callback in local test harness without exposing tokens. Prove end-to-end connect consent, PKCE exchange, revocation, isolation, and fail-closed production boundaries with built workerd and synthetic mail sink.",
+          "from": "reopened",
+          "implementation_ref": "src/account/config.ts,src/middleware.ts,src/pages/account/sign-in.astro,src/pages/account/signup.astro,src/pages/account/recover.astro,src/account/actions.ts,scripts/merchant-connect-proof-launcher.mjs",
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": "file:.grilltrack/work/merchant-connect-proof-20260930/PROOF.md;cmd:npm run verify;cmd:node scripts/merchant-connect-proof-launcher.mjs"
+        },
+        {
+          "at": "2026-10-01T04:32:11+00:00",
+          "choice": "Preserve pending connection_id across unauthenticated /account/connect redirection to /account/sign-in and /account/signup. Validate strictly local account continuation path with single connection_id, no open redirects, no CMS namespace leakage, no duplicate parameters, preserving CSRF and disabled account checks. Follow original captured safe callback in local test harness without exposing tokens. Prove end-to-end connect consent, PKCE exchange, revocation, isolation, and fail-closed production boundaries with built workerd and synthetic mail sink.",
+          "from": "locked",
+          "implementation_ref": "src/account/config.ts,src/middleware.ts,src/pages/account/sign-in.astro,src/pages/account/signup.astro,src/pages/account/recover.astro,src/account/actions.ts,scripts/merchant-connect-proof-launcher.mjs",
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": "file:.grilltrack/work/merchant-connect-proof-20260930/PROOF.md;cmd:npm run verify;cmd:node scripts/merchant-connect-proof-launcher.mjs"
+        },
+        {
+          "at": "2026-10-01T04:32:15+00:00",
+          "choice": "Preserve pending connection_id across unauthenticated /account/connect redirection to /account/sign-in and /account/signup. Validate strictly local account continuation path with single connection_id, no open redirects, no CMS namespace leakage, no duplicate parameters, preserving CSRF and disabled account checks. Follow original captured safe callback in local test harness without exposing tokens. Prove end-to-end connect consent, PKCE exchange, revocation, isolation, and fail-closed production boundaries with built workerd and synthetic mail sink.",
+          "from": "implemented",
+          "implementation_ref": "src/account/config.ts,src/middleware.ts,src/pages/account/sign-in.astro,src/pages/account/signup.astro,src/pages/account/recover.astro,src/account/actions.ts,scripts/merchant-connect-proof-launcher.mjs",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": "file:.grilltrack/work/merchant-connect-proof-20260930/PROOF.md;cmd:npm run verify;cmd:node scripts/merchant-connect-proof-launcher.mjs"
+        }
+      ],
+      "id": "merchant-connect-local-proof-009",
+      "implementation_ref": "src/account/config.ts,src/middleware.ts,src/pages/account/sign-in.astro,src/pages/account/signup.astro,src/pages/account/recover.astro,src/account/actions.ts,scripts/merchant-connect-proof-launcher.mjs",
+      "question": "How should unauthenticated merchant Connect continuation through Better Auth magic link be safely bounded and proven locally?",
+      "rationale": "Confirmed merchant Connect unauthenticated continuation through Better Auth magic link back to consent page, correcting continuation drop where middleware stripped connection_id while maintaining fail-closed security and KV simulation labels.",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [],
+      "review_ref": null,
+      "review_result": null,
+      "review_source_identity": null,
+      "status": "verified",
+      "superseded_by": null,
+      "updated_at": "2026-10-01T04:32:15+00:00",
+      "verification_ref": "file:.grilltrack/work/merchant-connect-proof-20260930/PROOF.md;cmd:npm run verify;cmd:node scripts/merchant-connect-proof-launcher.mjs"
     }
   ],
   "last_activation": {
-    "at": "2026-09-30T15:06:18+00:00",
+    "at": "2026-10-01T04:31:57+00:00",
     "mechanism": "implicit"
   },
   "last_pause": {
@@ -1046,5 +1173,5 @@
   "status": "active",
   "title": "DinkusKit website foundation",
   "track_id": "gt-20260930021417-e281b2",
-  "updated_at": "2026-09-30T22:05:40+00:00"
+  "updated_at": "2026-10-01T04:32:15+00:00"
 }

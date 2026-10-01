@@ -35,13 +35,36 @@ export function isProtectedAccountPath(pathname: string): boolean {
 }
 
 export function safeAccountPath(candidate: string | null | undefined, fallback = '/account'): string {
-  if (!candidate) return fallback;
+  if (!candidate || typeof candidate !== 'string') return fallback;
   if (!candidate.startsWith('/')) return fallback;
   if (candidate.startsWith('//')) return fallback;
   if (candidate.includes('://')) return fallback;
   if (candidate.includes('\\')) return fallback;
-  if (!candidate.startsWith('/account')) return fallback;
-  return candidate;
+  if (candidate.includes('\0') || candidate.includes('\r') || candidate.includes('\n')) return fallback;
+
+  try {
+    const url = new URL(candidate, 'http://localhost');
+    if (url.origin !== 'http://localhost') return fallback;
+    if (url.pathname !== '/account' && !url.pathname.startsWith('/account/')) return fallback;
+
+    const decodedPath = decodeURIComponent(url.pathname).toLowerCase();
+    if (decodedPath.includes('_emdash')) return fallback;
+
+    if (url.pathname === '/account/connect') {
+      const keys = Array.from(url.searchParams.keys());
+      if (keys.length !== 1 || keys[0] !== 'connection_id') return fallback;
+      const allValues = url.searchParams.getAll('connection_id');
+      if (allValues.length !== 1) return fallback;
+      const connId = allValues[0];
+      if (!/^[A-Za-z0-9_-]{1,128}$/.test(connId)) return fallback;
+      return `/account/connect?connection_id=${encodeURIComponent(connId)}`;
+    }
+
+    if (url.search) return fallback;
+    return url.pathname;
+  } catch {
+    return fallback;
+  }
 }
 
 export type MerchantMailIntent = 'signup' | 'signin' | 'recovery';

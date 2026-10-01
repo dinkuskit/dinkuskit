@@ -1,10 +1,14 @@
 ---
 import Site from '../../layouts/Site.astro';
 import { submitMagicLinkForm } from '../../account/actions.ts';
+import { safeAccountPath } from '../../account/config.ts';
 
 export const prerender = false;
 if (Astro.request.method === 'POST') return submitMagicLinkForm(Astro, 'signin');
 const error = Astro.url.searchParams.get('error');
+const callbackURL = safeAccountPath(Astro.url.searchParams.get('callbackURL'), '');
+const signupHref = callbackURL ? `/account/signup?callbackURL=${encodeURIComponent(callbackURL)}` : '/account/signup';
+const recoverHref = callbackURL ? `/account/recover?callbackURL=${encodeURIComponent(callbackURL)}` : '/account/recover';
 ---
 <Site title="Sign in" description="Sign in to your DinkusKit merchant account.">
   <div class="account-panel">
@@ -13,11 +17,12 @@ const error = Astro.url.searchParams.get('error');
     <p class="lead">Use the email for your DinkusKit account. This does not sign you into the website editor.</p>
     {error ? <p class="account-error" role="alert">Enter a valid email.</p> : null}
     <form method="post" action="/account/sign-in" class="account-form">
+      {callbackURL ? <input type="hidden" name="callbackURL" value={callbackURL} /> : null}
       <label for="email">Email</label>
       <input id="email" name="email" type="email" autocomplete="email" required maxlength="200" />
       <button type="submit">Email me a sign-in link</button>
     </form>
-    <p><a href="/account/recover">Need to recover access?</a></p>
-    <p><a href="/account/signup">Create an account</a></p>
+    <p><a href={recoverHref}>Need to recover access?</a></p>
+    <p><a href={signupHref}>Create an account</a></p>
   </div>
 </Site>

@@ -69,11 +69,15 @@ async function proofRoutes(request, env, ctx) {
   if (!url.pathname.startsWith('/__proof/')) return null;
 
   if (request.method === 'GET' && url.pathname === '/__proof/browser') {
-    return new Response(`<!doctype html><html><body>
-<form method="post" action="/__proof/browser/complete">
-<label>Email <input type="email" name="email" required maxlength="200"></label>
-<button type="submit">Continue</button>
-</form>
+    return new Response(`<!doctype html><html><head><title>Test Mailbox</title></head><body>
+<div style="padding:1rem;font-family:sans-serif;border:2px dashed #ca8a04;background:#fefce8;color:#713f12;">
+  <p><strong>[Test only / no external email]</strong></p>
+  <p>Local synthetic test mailbox sink. Enter merchant email to follow captured magic link and return to safe callback without exposing the token.</p>
+  <form method="post" action="/__proof/browser/complete">
+    <label>Email <input type="email" name="email" required maxlength="200"></label>
+    <button type="submit">Continue to safe callback</button>
+  </form>
+</div>
 </body></html>`, { headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'private, no-store' } });
   }
 
@@ -85,7 +89,15 @@ async function proofRoutes(request, env, ctx) {
     if (!token) {
       return new Response(null, { status: 303, headers: { location: '/account/sign-in?error=missing_mail', 'cache-control': 'private, no-store' } });
     }
-    const rewritten = new Request(new URL(`/api/auth/magic-link/verify?token=${encodeURIComponent(token)}&callbackURL=${encodeURIComponent('/account')}`, request.url), {
+    let verifyPath = `/api/auth/magic-link/verify?token=${encodeURIComponent(token)}&callbackURL=${encodeURIComponent('/account')}`;
+    try {
+      const parsedCaptured = new URL(captured.url);
+      const targetCallback = parsedCaptured.searchParams.get('callbackURL');
+      if (targetCallback) {
+        verifyPath = `${parsedCaptured.pathname}?token=${encodeURIComponent(token)}&callbackURL=${encodeURIComponent(targetCallback)}`;
+      }
+    } catch {}
+    const rewritten = new Request(new URL(verifyPath, request.url), {
       method: 'GET',
       headers: { origin: new URL(request.url).origin, cookie: request.headers.get('cookie') ?? '' },
       redirect: 'manual',

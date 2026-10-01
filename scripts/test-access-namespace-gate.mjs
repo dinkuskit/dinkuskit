@@ -14,6 +14,7 @@ import {
   requestPathname,
   resolveNamespacePathname,
 } from './lib/access-namespace-gate.mjs';
+import { registerAstroMiddlewareLoader } from './lib/astro-middleware-loader.mjs';
 
 const checks = [];
 const record = (check) => {
@@ -235,5 +236,122 @@ const loginMissing = await evaluateAccessGate({
 });
 assert.equal(loginMissing.reason, 'missing-config');
 record('Partial Access config still fail-closes login');
+
+// --- Regression: Cloudflare Adapter createLocals runtime-env resolution ---
+registerAstroMiddlewareLoader();
+
+const { createLocals } = await import('../node_modules/@astrojs/cloudflare/dist/utils/cf-helpers.js');
+const { createAccessNamespaceGuard, readGateEnv } = await import('../src/access-namespace-guard.ts');
+
+const adapterLocals = createLocals({});
+assert.throws(
+  () => adapterLocals.runtime.env,
+  /Astro\.locals\.runtime\.env has been removed in Astro v6/,
+  'Installed @astrojs/cloudflare createLocals runtime.env must be a throwing getter',
+);
+record('Installed @astrojs/cloudflare createLocals provides real throwing runtime.env getter');
+
+process.env[ACCESS_TEAM_DOMAIN_ENV] = 'team.fixture.invalid';
+process.env[ACCESS_AUDIENCE_ENV] = 'fixture-audience-not-production';
+process.env[OPERATOR_ALLOWLIST_ENV] = 'owner@fixture.invalid';
+
+const resolvedEnv = readGateEnv({ locals: adapterLocals });
+assert.equal(resolvedEnv[ACCESS_TEAM_DOMAIN_ENV], 'team.fixture.invalid');
+assert.equal(resolvedEnv[ACCESS_AUDIENCE_ENV], 'fixture-audience-not-production');
+assert.equal(resolvedEnv[OPERATOR_ALLOWLIST_ENV], 'owner@fixture.invalid');
+record('readGateEnv resolves runtime scalars from process.env without touching throwing locals.runtime.env');
+
+let verifierCalledWith = null;
+let verifierCalls = 0;
+const controlledVerifier = async (request, config) => {
+  verifierCalls++;
+  verifierCalledWith = config;
+  return { email: 'owner@fixture.invalid', name: 'Owner', role: INSTALLED_EDITOR_ROLE };
+};
+
+const middleware = createAccessNamespaceGuard({ authenticate: controlledVerifier });
+
+let nextCalled = false;
+const allowedContext = {
+  request: new Request('http://127.0.0.1/_emdash/admin/setup', {
+    headers: { 'cf-access-jwt-assertion': 'synthetic-jwt' },
+  }),
+  url: new URL('http://127.0.0.1/_emdash/admin/setup'),
+  locals: adapterLocals,
+};
+const allowedRes = await middleware(allowedContext, () => {
+  nextCalled = true;
+  return new Response('downstream-setup', { status: 200 });
+});
+assert.equal(verifierCalls, 1, 'Controlled verifier must be called exactly once');
+assert.equal(verifierCalledWith?.audience, 'fixture-audience-not-production', 'Runtime scalar audience must reach verifier');
+assert.equal(verifierCalledWith?.teamDomain, 'team.fixture.invalid', 'Runtime scalar team domain must reach verifier');
+assert.equal(nextCalled, true, 'Allowed identity calls downstream next');
+assert.equal(allowedRes.status, 200);
+record('Controlled verifier receives runtime scalar values and allowed identity calls next');
+
+const strangerVerifier = async () => ({
+  email: 'stranger@fixture.invalid',
+  name: 'Stranger',
+  role: INSTALLED_EDITOR_ROLE,
+});
+const strangerMiddleware = createAccessNamespaceGuard({ authenticate: strangerVerifier });
+let strangerNextCalled = false;
+const strangerRes = await strangerMiddleware(allowedContext, () => {
+  strangerNextCalled = true;
+  return new Response('downstream', { status: 200 });
+});
+assert.equal(strangerNextCalled, false, 'Unknown identity must not call downstream next');
+assert.equal(strangerRes.status, 404);
+assert.equal(await strangerRes.text(), 'Not Found');
+record('Controlled verifier: unknown identity remains 404 before downstream');
+
+let configMissingVerifierCalls = 0;
+const configMissingVerifier = async () => {
+  configMissingVerifierCalls++;
+  return { email: 'owner@fixture.invalid', name: 'Owner', role: INSTALLED_EDITOR_ROLE };
+};
+const missingConfigMiddleware = createAccessNamespaceGuard({ authenticate: configMissingVerifier });
+delete process.env[ACCESS_AUDIENCE_ENV];
+let missingNextCalled = false;
+const missingConfigRes = await missingConfigMiddleware(allowedContext, () => {
+  missingNextCalled = true;
+  return new Response('downstream', { status: 200 });
+});
+assert.equal(configMissingVerifierCalls, 0, 'Verifier must not be called when configuration is missing');
+assert.equal(missingNextCalled, false, 'Missing configuration must not call downstream next');
+assert.equal(missingConfigRes.status, 404);
+record('Missing configuration remains 404 before downstream and verifier');
+
+process.env[ACCESS_AUDIENCE_ENV] = 'fixture-audience-not-production';
+
+let anonNextCalled = false;
+const anonContext = {
+  request: new Request('http://127.0.0.1/_emdash/admin/setup'),
+  url: new URL('http://127.0.0.1/_emdash/admin/setup'),
+  locals: adapterLocals,
+};
+const anonRes = await middleware(anonContext, () => {
+  anonNextCalled = true;
+  return new Response('downstream', { status: 200 });
+});
+assert.equal(anonNextCalled, false, 'Anonymous request must not call downstream next');
+assert.equal(anonRes.status, 404);
+record('Anonymous protected request remains 404 before downstream');
+
+let publicNextCalled = false;
+const publicContext = {
+  request: new Request('http://127.0.0.1/'),
+  url: new URL('http://127.0.0.1/'),
+  locals: adapterLocals,
+};
+const publicRes = await middleware(publicContext, () => {
+  publicNextCalled = true;
+  return new Response('public-content', { status: 200 });
+});
+assert.equal(publicNextCalled, true, 'Public route passes through to downstream next');
+assert.equal(publicRes.status, 200);
+assert.equal(await publicRes.text(), 'public-content');
+record('Public route passes through to downstream next with adapter locals');
 
 console.log(checks.map((check) => `PASS ${check}`).join('\n'));

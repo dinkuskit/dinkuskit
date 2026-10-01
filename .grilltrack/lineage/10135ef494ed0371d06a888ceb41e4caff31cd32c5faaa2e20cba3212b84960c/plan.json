@@ -1,0 +1,329 @@
+{
+  "adjudicated_decisions": {
+    "website-template-demo-011": {
+      "reason": "Human confirmed completed verified demo-link record on main is authoritative, preserving PR9 merchant work and both original histories.",
+      "role": "incoming"
+    }
+  },
+  "adjudication": {
+    "decisions": {
+      "website-template-demo-011": {
+        "reason": "Human confirmed completed verified demo-link record on main is authoritative, preserving PR9 merchant work and both original histories.",
+        "role": "incoming"
+      }
+    },
+    "refs": {
+      "base": "cd1f75b9684bcbf43b9c5facdcf296f906f8cb47",
+      "current": "809a3f358ec4987ae88e9f17b53a3884b7da3fbb",
+      "incoming": "e4d645e3c03d3044d304f1f33ff9526fb7098156"
+    },
+    "schema": "grilltrack/adjudication/v1"
+  },
+  "composed_review": false,
+  "composed_verification": false,
+  "decision_ids": [
+    "merchant-auth-007",
+    "merchant-better-auth-008",
+    "merchant-connect-local-proof-009",
+    "website-account-003",
+    "website-audience-002",
+    "website-availability-010",
+    "website-domain-006",
+    "website-future-004",
+    "website-operation-009",
+    "website-operator-012",
+    "website-platform-001",
+    "website-public-launch-008",
+    "website-scaffold-005",
+    "website-template-demo-011",
+    "website-visual-007"
+  ],
+  "decision_provenance": {
+    "merchant-auth-007": [
+      {
+        "role": "base",
+        "source_identity": "git:cd1f75b9684bcbf43b9c5facdcf296f906f8cb47",
+        "track_id": "gt-20260930021417-e281b2"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:809a3f358ec4987ae88e9f17b53a3884b7da3fbb",
+        "track_id": "gt-20260930021417-e281b2"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:e4d645e3c03d3044d304f1f33ff9526fb7098156",
+        "track_id": "gt-20260930021417-e281b2"
+      }
+    ],
+    "merchant-better-auth-008": [
+      {
+        "role": "base",
+        "source_identity": "git:cd1f75b9684bcbf43b9c5facdcf296f906f8cb47",
+        "track_id": "gt-20260930021417-e281b2"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:809a3f358ec4987ae88e9f17b53a3884b7da3fbb",
+        "track_id": "gt-20260930021417-e281b2"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:e4d645e3c03d3044d304f1f33ff9526fb7098156",
+        "track_id": "gt-20260930021417-e281b2"
+      }
+    ],
+    "merchant-connect-local-proof-009": [
+      {
+        "role": "current",
+        "source_identity": "git:809a3f358ec4987ae88e9f17b53a3884b7da3fbb",
+        "track_id": "gt-20260930021417-e281b2"
+      }
+    ],
+    "website-account-003": [
+      {
+        "role": "base",
+        "source_identity": "git:cd1f75b9684bcbf43b9c5facdcf296f906f8cb47",
+        "track_id": "gt-20260930021417-e281b2"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:809a3f358ec4987ae88e9f17b53a3884b7da3fbb",
+        "track_id": "gt-20260930021417-e281b2"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:e4d645e3c03d3044d304f1f33ff9526fb7098156",
+        "track_id": "gt-20260930021417-e281b2"
+      }
+    ],
+    "website-audience-002": [
+      {
+        "role": "base",
+        "source_identity": "git:cd1f75b9684bcbf43b9c5facdcf296f906f8cb47",
+        "track_id": "gt-20260930021417-e281b2"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:809a3f358ec4987ae88e9f17b53a3884b7da3fbb",
+        "track_id": "gt-20260930021417-e281b2"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:e4d645e3c03d3044d304f1f33ff9526fb7098156",
+        "track_id": "gt-20260930021417-e281b2"
+      }
+    ],
+    "website-availability-010": [
+      {
+        "role": "base",
+        "source_identity": "git:cd1f75b9684bcbf43b9c5facdcf296f906f8cb47",
+        "track_id": "gt-20260930021417-e281b2"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:809a3f358ec4987ae88e9f17b53a3884b7da3fbb",
+        "track_id": "gt-20260930021417-e281b2"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:e4d645e3c03d3044d304f1f33ff9526fb7098156",
+        "track_id": "gt-20260930021417-e281b2"
+      }
+    ],
+    "website-domain-006": [
+      {
+        "role": "base",
+        "source_identity": "git:cd1f75b9684bcbf43b9c5facdcf296f906f8cb47",
+        "track_id": "gt-20260930021417-e281b2"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:809a3f358ec4987ae88e9f17b53a3884b7da3fbb",
+        "track_id": "gt-20260930021417-e281b2"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:e4d645e3c03d3044d304f1f33ff9526fb7098156",
+        "track_id": "gt-20260930021417-e281b2"
+      }
+    ],
+    "website-future-004": [
+      {
+        "role": "base",
+        "source_identity": "git:cd1f75b9684bcbf43b9c5facdcf296f906f8cb47",
+        "track_id": "gt-20260930021417-e281b2"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:809a3f358ec4987ae88e9f17b53a3884b7da3fbb",
+        "track_id": "gt-20260930021417-e281b2"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:e4d645e3c03d3044d304f1f33ff9526fb7098156",
+        "track_id": "gt-20260930021417-e281b2"
+      }
+    ],
+    "website-operation-009": [
+      {
+        "role": "base",
+        "source_identity": "git:cd1f75b9684bcbf43b9c5facdcf296f906f8cb47",
+        "track_id": "gt-20260930021417-e281b2"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:809a3f358ec4987ae88e9f17b53a3884b7da3fbb",
+        "track_id": "gt-20260930021417-e281b2"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:e4d645e3c03d3044d304f1f33ff9526fb7098156",
+        "track_id": "gt-20260930021417-e281b2"
+      }
+    ],
+    "website-operator-012": [
+      {
+        "role": "base",
+        "source_identity": "git:cd1f75b9684bcbf43b9c5facdcf296f906f8cb47",
+        "track_id": "gt-20260930021417-e281b2"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:809a3f358ec4987ae88e9f17b53a3884b7da3fbb",
+        "track_id": "gt-20260930021417-e281b2"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:e4d645e3c03d3044d304f1f33ff9526fb7098156",
+        "track_id": "gt-20260930021417-e281b2"
+      }
+    ],
+    "website-platform-001": [
+      {
+        "role": "base",
+        "source_identity": "git:cd1f75b9684bcbf43b9c5facdcf296f906f8cb47",
+        "track_id": "gt-20260930021417-e281b2"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:809a3f358ec4987ae88e9f17b53a3884b7da3fbb",
+        "track_id": "gt-20260930021417-e281b2"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:e4d645e3c03d3044d304f1f33ff9526fb7098156",
+        "track_id": "gt-20260930021417-e281b2"
+      }
+    ],
+    "website-public-launch-008": [
+      {
+        "role": "base",
+        "source_identity": "git:cd1f75b9684bcbf43b9c5facdcf296f906f8cb47",
+        "track_id": "gt-20260930021417-e281b2"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:809a3f358ec4987ae88e9f17b53a3884b7da3fbb",
+        "track_id": "gt-20260930021417-e281b2"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:e4d645e3c03d3044d304f1f33ff9526fb7098156",
+        "track_id": "gt-20260930021417-e281b2"
+      }
+    ],
+    "website-scaffold-005": [
+      {
+        "role": "base",
+        "source_identity": "git:cd1f75b9684bcbf43b9c5facdcf296f906f8cb47",
+        "track_id": "gt-20260930021417-e281b2"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:809a3f358ec4987ae88e9f17b53a3884b7da3fbb",
+        "track_id": "gt-20260930021417-e281b2"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:e4d645e3c03d3044d304f1f33ff9526fb7098156",
+        "track_id": "gt-20260930021417-e281b2"
+      }
+    ],
+    "website-template-demo-011": [
+      {
+        "role": "base",
+        "source_identity": "git:cd1f75b9684bcbf43b9c5facdcf296f906f8cb47",
+        "track_id": "gt-20260930021417-e281b2"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:809a3f358ec4987ae88e9f17b53a3884b7da3fbb",
+        "track_id": "gt-20260930021417-e281b2"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:e4d645e3c03d3044d304f1f33ff9526fb7098156",
+        "track_id": "gt-20260930021417-e281b2"
+      }
+    ],
+    "website-visual-007": [
+      {
+        "role": "base",
+        "source_identity": "git:cd1f75b9684bcbf43b9c5facdcf296f906f8cb47",
+        "track_id": "gt-20260930021417-e281b2"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:809a3f358ec4987ae88e9f17b53a3884b7da3fbb",
+        "track_id": "gt-20260930021417-e281b2"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:e4d645e3c03d3044d304f1f33ff9526fb7098156",
+        "track_id": "gt-20260930021417-e281b2"
+      }
+    ]
+  },
+  "joined_track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca",
+  "needs_reverification": [
+    "merchant-auth-007",
+    "merchant-better-auth-008",
+    "merchant-connect-local-proof-009",
+    "website-account-003",
+    "website-audience-002",
+    "website-availability-010",
+    "website-domain-006",
+    "website-future-004",
+    "website-operation-009",
+    "website-operator-012",
+    "website-platform-001",
+    "website-public-launch-008",
+    "website-scaffold-005",
+    "website-template-demo-011",
+    "website-visual-007"
+  ],
+  "plan_id": "10135ef494ed0371d06a888ceb41e4caff31cd32c5faaa2e20cba3212b84960c",
+  "refs": {
+    "base": "cd1f75b9684bcbf43b9c5facdcf296f906f8cb47",
+    "current": "809a3f358ec4987ae88e9f17b53a3884b7da3fbb",
+    "incoming": "e4d645e3c03d3044d304f1f33ff9526fb7098156"
+  },
+  "schema": "grilltrack/reconcile/v1",
+  "snapshot_ref": ".grilltrack/lineage/10135ef494ed0371d06a888ceb41e4caff31cd32c5faaa2e20cba3212b84960c",
+  "snapshots": {
+    "base": {
+      "events.jsonl": "d7bb7ecc412e47448d9c9efb80ddc3a11549ad5eecf626e4fc4c7e00c62c40ff",
+      "ledger.json": "6b46753b8a0ca805ef49c39b50082d9b771b48ef684b9289c78627c8a2ac55b8"
+    },
+    "current": {
+      "events.jsonl": "ac37ae8ba786937ec1ea7a59ff905c24d332704a8d8134b50725bfe112202c37",
+      "ledger.json": "ef76e3f63bc4211d1fb2a5287d5c0dec4dc9d7dd36e88092dea9fe9fe8ea59ba"
+    },
+    "incoming": {
+      "events.jsonl": "efcbaf20e219a7a5114536a72bb66556c4498f62f6e439f5ed3d1a7a7af9bbe8",
+      "ledger.json": "7484b21832ad440a6f86aeea6c7fe0a3dd187c00383bbd7b911e0dc5698d2ce7"
+    }
+  },
+  "title": "Website PR9 current-main reconciliation"
+}

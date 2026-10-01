@@ -1,8 +1,8 @@
 # Demo and Template Setup Links Proof
 
-Date: 2026-10-01  
-Decision ID: `website-template-demo-011`  
-Node Version: `v22.23.2`  
+Date: 2026-10-01
+Decision ID: `website-template-demo-011`
+Node Version: `v22.23.2`
 Working Tree: `codex/website-demo-links-20261001` at base `cd1f75b9684bcbf43b9c5facdcf296f906f8cb47`
 
 ## Scope and Intent

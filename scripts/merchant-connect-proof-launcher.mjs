@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import assert from 'node:assert/strict';
 import { createHash, randomBytes } from 'node:crypto';
-import { writeFile, unlink } from 'node:fs/promises';
+import { mkdir, writeFile, unlink } from 'node:fs/promises';
 import { createLocalJWKSet, jwtVerify } from 'jose';
 import {
   completeProofMail,
@@ -318,6 +318,7 @@ async function runProof({ serve = false } = {}) {
         owned_stop_handle: `kill ${process.pid}`,
       };
 
+      await mkdir(workDir, { recursive: true });
       await writeFile(pidPath, String(process.pid), 'utf8');
       await writeFile(interfacePath, JSON.stringify(safeInterface, null, 2), 'utf8');
 

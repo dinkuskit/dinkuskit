@@ -1,0 +1,22 @@
+---
+import Site from '../../layouts/Site.astro';
+import { submitMagicLinkForm } from '../../account/actions.ts';
+
+export const prerender = false;
+if (Astro.request.method === 'POST') return submitMagicLinkForm(Astro, 'signup');
+const error = Astro.url.searchParams.get('error');
+---
+<Site title="Create account" description="Create a DinkusKit merchant account with your email.">
+  <div class="account-panel">
+    <p class="eyebrow">Merchant account</p>
+    <h1>Create your account</h1>
+    <p class="lead">Use your email to create an account. This is separate from the website editor.</p>
+    {error ? <p class="account-error" role="alert">Enter a valid email.</p> : null}
+    <form method="post" action="/account/signup" class="account-form">
+      <label for="email">Email</label>
+      <input id="email" name="email" type="email" autocomplete="email" required maxlength="200" />
+      <button type="submit">Email me a signup link</button>
+    </form>
+    <p><a href="/account/sign-in">Already have an account? Sign in</a></p>
+  </div>
+</Site>

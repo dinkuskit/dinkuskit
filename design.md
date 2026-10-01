@@ -4,6 +4,6 @@ The public introduction retains the colors and simple layout inspected in the lo
 
 Keep the light background, green accents, readable typography, restrained page composition, and current logo treatment. No visual redesign is required for this release.
 
-Confirmed constraints: use EmDash and upstream native blocks; serve existing EmDash site owners first; keep merchant sign-in separate from website editing; describe unavailable account and service features honestly.
+Confirmed constraints: use EmDash and upstream native blocks; serve existing EmDash site owners first; keep merchant sign-in separate from website editing; merchant account routes exist, but do not present hosted trial activation, site grants, or Stripe connection as working; describe unavailable account and service features honestly.
 
 The approval covers the current desktop public-page presentation. It does not claim mobile proof or approve new account/portal designs.

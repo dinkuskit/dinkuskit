@@ -1,11 +1,15 @@
 import { mkdirSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 
-// Intentionally fixed to this checkout's local database; no remote target flag.
-mkdirSync('.local/uploads', { recursive: true });
-const result = spawnSync('node_modules/.bin/emdash', [
-  'seed', '--database=.local/content.db', '--uploads-dir=.local/uploads',
-  '--on-conflict=skip', 'seed/seed.json',
-], { stdio: 'inherit' });
-if (result.error) throw result.error;
-process.exitCode = result.status ?? 1;
+mkdirSync('.local/wrangler', { recursive: true });
+const apply = spawnSync('node_modules/.bin/wrangler', [
+  'd1', 'migrations', 'apply', 'dinkuskit-merchant-local',
+  '--local', '--persist-to', '.local/wrangler', '--config', 'wrangler.jsonc',
+], {
+  stdio: ['ignore', 'inherit', 'inherit'],
+});
+if (apply.error) throw apply.error;
+if (apply.status) process.exitCode = apply.status;
+else {
+  console.log('Merchant D1 migrations applied locally. CMS schema and seed.json apply on first workerd request via EmDash public seed APIs.');
+}

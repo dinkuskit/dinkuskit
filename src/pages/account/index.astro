@@ -1,0 +1,24 @@
+---
+import Site from '../../layouts/Site.astro';
+import { submitAccountPost } from '../../account/actions.ts';
+import { seeOther } from '../../account/config.ts';
+
+export const prerender = false;
+if (Astro.request.method === 'POST') return submitAccountPost(Astro);
+const merchant = Astro.locals.merchant;
+if (!merchant) return seeOther('/account/sign-in');
+---
+<Site title="Account" description="Your DinkusKit merchant account.">
+  <div class="account-panel">
+    <p class="eyebrow">Signed in</p>
+    <h1>Your DinkusKit account</h1>
+    <p>Email: {merchant.email}</p>
+    <p class="lead">This identity is separate from anyone who edits this website. Connect an Inventory site only after explicit consent.</p>
+    <form method="post" action="/account/logout"><button type="submit">Log out</button></form>
+    <form method="post" action="/account" class="account-form">
+      <input type="hidden" name="action" value="disable" />
+      <button type="submit">Disable this account</button>
+    </form>
+    <p><a href="/account/sites">Connected sites</a></p>
+  </div>
+</Site>

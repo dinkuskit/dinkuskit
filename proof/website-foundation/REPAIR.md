@@ -48,7 +48,7 @@ Required `npm run verify` passed after the source repair. The same built-adapter
 - public pages and an unknown route still behave as before
 - CMS media under `/_emdash` is denied by the same default
 
-The Astro-dev check loads the local setup form on 127.0.0.1 without creating an account.
+The local-dev CMS check now uses the supported public Astro API `import { dev } from 'astro'` on 127.0.0.1, loads the setup form without creating an account, and awaits `server.stop()`. The first parent verify after the later Cloudflare merge passed production/merchant checks and failed only the previous CLI launcher lifecycle; that is not a production-gate failure. Local API proof passed twice; parent full verify rerun is pending.
 
 ## P2 public proof sanitization
 

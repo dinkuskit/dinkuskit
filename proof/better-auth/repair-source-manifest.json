@@ -1,0 +1,90 @@
+{
+  "schema": 1,
+  "purpose": "Current Cloudflare worker repair inputs. Historical capture source remains 089240aee0af0244ce231861a3eeb600bd7f1807; old pixels do not prove this middleware.",
+  "historical_capture_head": "089240aee0af0244ce231861a3eeb600bd7f1807",
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "091ad4e7f554102e0e7afe799405c23cf278068bfe6da13848aab3314218cb19"
+    },
+    {
+      "path": "astro.config.mjs",
+      "sha256": "65b0e31ffb841ba4f262292f17b092fb8d36cf21014322b0128c0209cd31cc18"
+    },
+    {
+      "path": "package.json",
+      "sha256": "7d8512b9017363ed347ee4e2a05c501a2fd5716d651539e2fad9fa4ea097a0de"
+    },
+    {
+      "path": "scripts/dev-cms.mjs",
+      "sha256": "00197c827f8c436b92a25410e1eb974450ef86c2b539cef62641f14ee4bf1fa3"
+    },
+    {
+      "path": "scripts/smoke.mjs",
+      "sha256": "8e82e39b0f359735bab8d788e5337f2b9ba6f48c8608b514676123f6c5147e8b"
+    },
+    {
+      "path": "src/emdash-namespace-guard.ts",
+      "sha256": "1cd0167168320c45bf6d022922d8672515850e3bac25d13e36f2c3ebe8f51d46"
+    },
+    {
+      "path": "src/worker.ts",
+      "sha256": "8f5c0dd4c7c078f88a363e4f3d12c3a33f78c847b1f13fa5fa680f2f23ee5f7b"
+    },
+    {
+      "path": "tests/better-auth-routes.test.mjs",
+      "sha256": "e4acab4ec0633ebc2cd96e22872e7c8cf11389b3ffd422319f2498c6ebfdb69e"
+    },
+    {
+      "path": "tests/cms-merchant-isolation.test.mjs",
+      "sha256": "aed4d42624ecd2b02c3b1e273cb34fe1f4d97c225a9b3a4e071daed1109aa19f"
+    },
+    {
+      "path": "tests/fixtures/built-cms-seed-entry.mjs",
+      "sha256": "bde6abaa9e4e169777808457251c36dc187af11cd5d0099189ff2d93a93866d0"
+    },
+    {
+      "path": "tests/fixtures/built-cms-test-entry.mjs",
+      "sha256": "8d2f0186da183bfbd88e12942310e00bf24970c51706ed8a3953a4453d54e798"
+    },
+    {
+      "path": "tests/fixtures/built-test-entry.mjs",
+      "sha256": "ca4be3157a265350e84cd90ad789f9102a0a9f7aaaa286a8a1422422d98a7c38"
+    },
+    {
+      "path": "tests/fixtures/cms-proof-als.mjs",
+      "sha256": "ef0128e410fec878c3a0d09ebedc0ae9ef28f5fa23f1cb3eee698ebd3c69a26b"
+    },
+    {
+      "path": "tests/helpers/emdash-editor.mjs",
+      "sha256": "52f64e644ca2a80cadff1d6a6b8999c6a19d236289b595ca114aa59f23e201d0"
+    },
+    {
+      "path": "tests/helpers/merchant-harness.mjs",
+      "sha256": "8b55106c8bd39f3350f46b993df76ebb7de79a80587d87449e8c0c5572e4ac1d"
+    },
+    {
+      "path": "proof/better-auth/PROOF.md",
+      "sha256": "af87c890b905d735ec68ee8eb43662932267564e85621d48546c32c6d6732f3d"
+    },
+    {
+      "path": "proof/better-auth/README.md",
+      "sha256": "d39508ded20f3bb2655f3a6ccb022dd603046c477a06dfbe4707e3d52aa222cf"
+    },
+    {
+      "path": "proof/better-auth/REPAIR.md",
+      "sha256": "15436f30a71d99aefd9202be232f557dfe2ab85fb8810d378b581ed79f65f08f"
+    },
+    {
+      "path": "proof/better-auth/implementation-manifest.json",
+      "sha256": "b86c358b70f0b5cea993e2a25504a542452b33f09bf78bf2b36e05d802063053"
+    },
+    {
+      "path": "proof/merchant-auth-proof/stack-repair.md",
+      "sha256": "96f9607b9b53690451aafb78e43fb7e4b5cbaed4846ca0a3a7f7af7c9fa2ca2d"
+    }
+  ],
+  "baseline_head": "04f6ebb2a0b32140b633134591ddc1e261ac104e",
+  "initial_parent_head": "8ea9cb58ce143eecaf7df0bd2d03ade1e9037f90",
+  "final_parent_head": "d1ca3a9fab0087c83161ea202a0ebd3cd26a2da4"
+}

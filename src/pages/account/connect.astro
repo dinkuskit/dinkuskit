@@ -1,0 +1,67 @@
+---
+import Site from '../../layouts/Site.astro';
+import { MerchantUnavailableError, seeOther, unavailableResponse } from '../../account/config.ts';
+import { getMerchantEnv } from '../../account/bindings.ts';
+import { createMerchantRuntime } from '../../account/auth.ts';
+import { claimPendingConnection } from '../../account/store.ts';
+import { connectionPreview, consentStoreConnection } from '../../account/connect.ts';
+import { rejectCrossOriginMutation } from '../../account/origin.ts';
+
+export const prerender = false;
+const merchant = Astro.locals.merchant;
+if (!merchant) return seeOther('/account/sign-in');
+const connectionId = Astro.url.searchParams.get('connection_id') ?? '';
+if (!connectionId || Astro.url.searchParams.getAll('connection_id').length !== 1) {
+  return seeOther('/account/sites');
+}
+let env;
+try {
+  env = await getMerchantEnv();
+} catch (error) {
+  if (error instanceof MerchantUnavailableError) return unavailableResponse();
+  throw error;
+}
+if (Astro.request.method === 'POST') {
+  const blocked = rejectCrossOriginMutation(Astro.request, env.MERCHANT_BASE_URL);
+  if (blocked) return blocked;
+  const form = await Astro.request.formData();
+  const action = form.get('action');
+  if (action !== 'approve' && action !== 'deny') return seeOther(`/account/connect?connection_id=${encodeURIComponent(connectionId)}`);
+  const runtime = createMerchantRuntime(env);
+  const result = await consentStoreConnection({
+    db: env.MERCHANT_DB,
+    merchant,
+    connectionId,
+    action,
+    proofFetch: runtime.proofFetch,
+  });
+  if (result.ok) return seeOther(result.redirect);
+  if (result.reason === 'not_owner' || result.reason === 'unknown_connection') return seeOther('/account/sites');
+  return seeOther(`/account/connect?connection_id=${encodeURIComponent(connectionId)}&error=${encodeURIComponent(result.reason)}`);
+}
+const connection = await claimPendingConnection(env.MERCHANT_DB, connectionId, merchant.subject);
+if (!connection) return seeOther('/account/sites');
+const preview = connectionPreview(connection);
+const error = Astro.url.searchParams.get('error');
+---
+<Site title="Connect a site" description="Approve or deny an Inventory store connection.">
+  <div class="account-panel">
+    <p class="eyebrow">Explicit consent</p>
+    <h1>Connect this store?</h1>
+    <p class="lead">Approve only if you administer this store. This does not grant website editor access.</p>
+    <p>Service: {preview.service}</p>
+    <p>Site origin: {preview.siteOrigin}</p>
+    {error ? <p class="account-error" role="alert">This connection could not be approved.</p> : null}
+    {preview.status === 'pending' ? (
+      <form method="post" class="account-form">
+        <input type="hidden" name="action" value="approve" />
+        <button type="submit">Approve this site</button>
+      </form>
+    ) : <p>This connection is no longer waiting for consent.</p>}
+    <form method="post" class="account-form">
+      <input type="hidden" name="action" value="deny" />
+      <button type="submit">Deny</button>
+    </form>
+    <p><a href="/account/sites">Back to connected sites</a></p>
+  </div>
+</Site>

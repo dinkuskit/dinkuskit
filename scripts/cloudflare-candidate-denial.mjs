@@ -108,8 +108,9 @@ async function main() {
   const candidateConfig = readFileSync(join(root, 'astro.cloudflare.config.mjs'), 'utf8');
   const productionGuard = readFileSync(join(root, 'src/emdash-namespace-guard.ts'), 'utf8');
   const accessGuard = readFileSync(join(root, 'src/access-namespace-guard.ts'), 'utf8');
-  assert.match(productionConfig, /@astrojs\/node/);
-  assert.doesNotMatch(productionConfig, /@astrojs\/cloudflare|@emdash-cms\/cloudflare/);
+  assert.match(productionConfig, /@astrojs\/cloudflare/);
+  assert.match(productionConfig, /emdash-namespace-guard/);
+  assert.doesNotMatch(productionConfig, /access\(|access-namespace-guard/);
   assert.match(productionGuard, /Not Found/);
   assert.match(candidateConfig, /@astrojs\/cloudflare/);
   assert.match(candidateConfig, /@emdash-cms\/cloudflare/);
@@ -119,7 +120,7 @@ async function main() {
   assert.match(accessGuard, /officialAuthenticate/);
   assert.match(accessGuard, /requestPathname/);
   assert.doesNotMatch(productionGuard, /requestPathname|decodeRoutingPathname/);
-  record('Root Node exporter config is unchanged; Cloudflare candidate is a separate Access-exclusive build');
+  record('Production worker uses Cloudflare + deny-all guard; Access-gated CMS candidate stays a separate build');
 
   await mkdir(work, { recursive: true });
   await rm(persist, { recursive: true, force: true });

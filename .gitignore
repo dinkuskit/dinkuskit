@@ -146,6 +146,8 @@ vite.config.ts.timestamp-*
 .local/
 .astro/
 .emdash/
+.wrangler/
+.dev.vars
 emdash-env.d.ts
 .grilltrack/work/
 cloudflare/wrangler.local.jsonc

@@ -1,0 +1,7 @@
+---
+import { submitLogout } from '../../account/actions.ts';
+import { seeOther } from '../../account/config.ts';
+export const prerender = false;
+if (Astro.request.method === 'POST') return submitLogout(Astro);
+return seeOther('/account');
+---

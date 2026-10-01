@@ -1,0 +1,331 @@
+{
+  "purpose": "Final tested implementation inputs after Cloudflare stack repair. Historical browser captures remain bound to 089240aee0af0244ce231861a3eeb600bd7f1807 and do not prove the repaired /_emdash middleware.",
+  "files": [
+    {
+      "path": "astro.config.mjs",
+      "sha256": "65b0e31ffb841ba4f262292f17b092fb8d36cf21014322b0128c0209cd31cc18"
+    },
+    {
+      "path": "migrations/merchant/0001_better_auth.sql",
+      "sha256": "ad5d12ad498b856e9599ead551d805c388e58607a47d710c9e8f4aa74397ef1b"
+    },
+    {
+      "path": "migrations/merchant/0002_dinkuskit.sql",
+      "sha256": "0e2298bba28ea66e6813b10f01990be948f9a2cde6f5c7b363567123b8c7ae08"
+    },
+    {
+      "path": "migrations/merchant/0003_store_connect.sql",
+      "sha256": "b3a13edaf32ea451b432a3fc78cc9b5e49ab644557229c2be56dedd0bb7f685d"
+    },
+    {
+      "path": "package-lock.json",
+      "sha256": "c5ab162175fc764587e9816504a5a5aeea0b77341da1f6fcb6fb9c5d92dbc1ec"
+    },
+    {
+      "path": "package.json",
+      "sha256": "7d8512b9017363ed347ee4e2a05c501a2fd5716d651539e2fad9fa4ea097a0de"
+    },
+    {
+      "path": "scripts/audit-repo.mjs",
+      "sha256": "90e0a48c29c22c25ef283afd8cab50e8b6e8f15948aee074cfa7d779b24a7014"
+    },
+    {
+      "path": "scripts/dev-cms.mjs",
+      "sha256": "00197c827f8c436b92a25410e1eb974450ef86c2b539cef62641f14ee4bf1fa3"
+    },
+    {
+      "path": "scripts/generate-merchant-schema.mjs",
+      "sha256": "dae16deee1043890c071b77bcfd59cd8059f151df5c6462fa896d791f1c69288"
+    },
+    {
+      "path": "scripts/generate-migration-sql.mjs",
+      "sha256": "0b2c28400cfbb3c90362ebd90c913e2b69f390f96d7b9d5df33aea82a5bd4453"
+    },
+    {
+      "path": "scripts/merchant-auth-proof.mjs",
+      "sha256": "334c9a736b92d08f1781e7342242bada09d21a3990e62832c0db8ebdac6ff82c"
+    },
+    {
+      "path": "scripts/prepare-local.mjs",
+      "sha256": "b6ce137932e2e909baa71b60c94f0a1d307d5db6a0a9e9e281a1aa6dfe0d69c8"
+    },
+    {
+      "path": "scripts/smoke.mjs",
+      "sha256": "8e82e39b0f359735bab8d788e5337f2b9ba6f48c8608b514676123f6c5147e8b"
+    },
+    {
+      "path": "seed/seed.json",
+      "sha256": "52e24693b2d3be0ffc224150e9f8d3d95ddba4d100bd1eca020954db5e1c3e8c"
+    },
+    {
+      "path": "src/account/actions.ts",
+      "sha256": "2a34a84511e9e94d7d2eb15f732027158b1692feae9540e0b149b165b565d0e9"
+    },
+    {
+      "path": "src/account/app.ts",
+      "sha256": "8e51b0508d02c4999f380af529936e9ca499fdff592f865e9560ac4494506848"
+    },
+    {
+      "path": "src/account/auth.ts",
+      "sha256": "55954074a444c5728a0ccfb6d3e9a48e49de635f5c17286bcd6d52b8f087461e"
+    },
+    {
+      "path": "src/account/bindings.ts",
+      "sha256": "1518220f7724021d705ba489c4d3423cdfaa9634cd25b2720942deadcb92ba51"
+    },
+    {
+      "path": "src/account/config.ts",
+      "sha256": "9dab1daff8e6a59942bb647e7692bfd3caa86d82366df045ec47de69ea1bb130"
+    },
+    {
+      "path": "src/account/connect.ts",
+      "sha256": "4e369c0da7b7ace79febecf6593e960e3c69ac385628c26b7a9e73bc58682280"
+    },
+    {
+      "path": "src/account/email.ts",
+      "sha256": "b2f90972af9d95cf79a59bcb497ef187374c5192d3ad9de6808d6d5b4c22adc0"
+    },
+    {
+      "path": "src/account/identity.ts",
+      "sha256": "b419397a0e89d417c286c9f5ff3cbab2d24ad1e4b927a403add5ff5993257ece"
+    },
+    {
+      "path": "src/account/index.ts",
+      "sha256": "115bfaccc95b56bd5b7d3d0d5b508e0e0b2c2dd0036a42cfb20dfc143622d61f"
+    },
+    {
+      "path": "src/account/issuer.ts",
+      "sha256": "0d12daca05ab852f2efffba09ed06db8349f102b54ee06585305b64dbca445c0"
+    },
+    {
+      "path": "src/account/jwt.ts",
+      "sha256": "e1d49c017b8d434bc154e09765f4a3c3234d9836ac2e16ded58ff37edb8e379d"
+    },
+    {
+      "path": "src/account/migrate.ts",
+      "sha256": "b9bffee62a95c8d8ea887a1c726854d3611603ec4a1628c62e394f71c025cd20"
+    },
+    {
+      "path": "src/account/migration-sql.ts",
+      "sha256": "a18e3ffe310a7c0f52d30006c9bdabbb539892177c6c4913f2617ff1faabf47a"
+    },
+    {
+      "path": "src/account/origin.ts",
+      "sha256": "614add56b1fd7a77eb2fe9981526a726972e09fec5c30e955c1b2c5aa8095469"
+    },
+    {
+      "path": "src/account/proof-fetch.ts",
+      "sha256": "c29a2b1f51df63b010a3cd171c11df7c0b72a9ed2205d9685a986a1d7efe690a"
+    },
+    {
+      "path": "src/account/session.ts",
+      "sha256": "d3cfb2e5d82e8d7d5900b2ba9b0bf1d876f2c6c75b31d4aea7621f1abc56b568"
+    },
+    {
+      "path": "src/account/site-consent.ts",
+      "sha256": "2af7ea8ac84721fa69074bbbc6fd7c0c29a7df26332e4e8ae8b89907da10ab95"
+    },
+    {
+      "path": "src/account/store.ts",
+      "sha256": "7e34aebb0bdc03365b031a2c8ec9d88b31f7f8e2132d32463af8fab6115debfc"
+    },
+    {
+      "path": "src/account/transports.ts",
+      "sha256": "e9c0dc6e0ee706e75eafab2d5d9c1756d9339650fb038b40e1887264c0d14766"
+    },
+    {
+      "path": "src/account/verifiers.ts",
+      "sha256": "340dc052bba41c271125acbf19351eded64b4ebcff8acf85fa46e4ce8501240d"
+    },
+    {
+      "path": "src/cloudflare-workers.d.ts",
+      "sha256": "6e328f383cfe9f3912ea5af855209209daf90ec84dc1d82649b0419fb52a0384"
+    },
+    {
+      "path": "src/components/ContentPage.astro",
+      "sha256": "c679d245d9c566454411cec43e1e0e4a3e407e62c2df8a6714a97e3774ca5e5f"
+    },
+    {
+      "path": "src/components/TextSection.astro",
+      "sha256": "038bb23007bc7e68a9a8c955e373e57f5fd8727b26ff5a5fb041a4d8870d8fb9"
+    },
+    {
+      "path": "src/emdash-namespace-guard.ts",
+      "sha256": "1cd0167168320c45bf6d022922d8672515850e3bac25d13e36f2c3ebe8f51d46"
+    },
+    {
+      "path": "src/env.d.ts",
+      "sha256": "eef548112b24fcaa01e90925ba45ac91d80cfef9764690c00b9f6519895cd8f4"
+    },
+    {
+      "path": "src/layouts/Site.astro",
+      "sha256": "76b6a5246da83d744843c61a20f417e4e6c8e5af3f365419b4f66154037a029d"
+    },
+    {
+      "path": "src/live.config.ts",
+      "sha256": "3dc6081bf76307af1f5ad1915c00752aec36dd51c5ad696359a45a7a3e8f04c3"
+    },
+    {
+      "path": "src/middleware.ts",
+      "sha256": "9eda540befec67d5ebee0e887c854af0708777970cd1a297b7553862674e4372"
+    },
+    {
+      "path": "src/pages/404.astro",
+      "sha256": "126029adcd7ba265c489cda5c6c7ee151ed06f154847ac408bb2c7b5b481dd45"
+    },
+    {
+      "path": "src/pages/account/.well-known/jwks.json.ts",
+      "sha256": "6f860fc9ed880dff3ffaee4eb9ee3ecd5618525c49c1539e3605699c11f39d8c"
+    },
+    {
+      "path": "src/pages/account/check-email.astro",
+      "sha256": "6ed18bb7806cf3255a98e072d4fb4aa6875f519cd092358f4a6e286086b9bb5f"
+    },
+    {
+      "path": "src/pages/account/connect.astro",
+      "sha256": "3d113c22817d89f423f340fc0407d5c8ba37b184375b2d12db8bcae7ef1c12e0"
+    },
+    {
+      "path": "src/pages/account/index.astro",
+      "sha256": "3d2175a4924aece7b681e74d214bcd8c5f0383e82e9d6051b346e8ac14cfea0f"
+    },
+    {
+      "path": "src/pages/account/logout.astro",
+      "sha256": "644ea173c9005470786df47a5b1c42f358e0d586520a8c31419f4794cd80b511"
+    },
+    {
+      "path": "src/pages/account/recover.astro",
+      "sha256": "e1c34cb08c821af054c8766970eb03d26c3cf398d60f999495d52e97d87f69bf"
+    },
+    {
+      "path": "src/pages/account/sign-in.astro",
+      "sha256": "baf55327666af51e9c901f3e1bcfc40a7e6c31081b582f1940ae2493984b83ce"
+    },
+    {
+      "path": "src/pages/account/signup.astro",
+      "sha256": "3d875dc906e48bdaeff13c6d6fee9cfbd7aa6fd863e275d10372610e9a48a699"
+    },
+    {
+      "path": "src/pages/account/sites.astro",
+      "sha256": "ef4be7bf2ca2b2dd2494b99aeb10b058a6df97eeff60ec450bb6c6892072bcb7"
+    },
+    {
+      "path": "src/pages/account/tokens.ts",
+      "sha256": "3d2758b7bffdc2c62a08b898db526ffd838a94f1a14e63d77ffcae19adc6d942"
+    },
+    {
+      "path": "src/pages/api/auth/[...all].ts",
+      "sha256": "93c9e4787fd06d50ba6efea5de8ceba822fb2c30958eaef089a8f58bc14d2de0"
+    },
+    {
+      "path": "src/pages/api/store-connections/index.ts",
+      "sha256": "dc4c9f2c16561e09446d03d18e3be66fbc43a63852f8af3acaa41758f89eeb8a"
+    },
+    {
+      "path": "src/pages/api/store-connections/token.ts",
+      "sha256": "8158c580e53a496e461eda32a78357643fb1daf1a532cde8ac75e0c8b7464873"
+    },
+    {
+      "path": "src/pages/getting-started.astro",
+      "sha256": "1acd86b57de63ca13b40bff096a908040a251697b9c7c8428aced3e54d430983"
+    },
+    {
+      "path": "src/pages/index.astro",
+      "sha256": "ed247b7735f20d47c563b50287399bd228df9bb244d12565dcae035b26a5b5a0"
+    },
+    {
+      "path": "src/raw-sql.d.ts",
+      "sha256": "12c6cf21a7b8f4914db656a9d26211f9736e040c5e9e58cdf73dcb15e9dbe39b"
+    },
+    {
+      "path": "src/styles/site.css",
+      "sha256": "ec5435b6a0c2c7c7b492de54cf53ef81330984a0a23092191c618b4f4cca7406"
+    },
+    {
+      "path": "src/worker.ts",
+      "sha256": "8f5c0dd4c7c078f88a363e4f3d12c3a33f78c847b1f13fa5fa680f2f23ee5f7b"
+    },
+    {
+      "path": "tests/better-auth-routes.test.mjs",
+      "sha256": "e4acab4ec0633ebc2cd96e22872e7c8cf11389b3ffd422319f2498c6ebfdb69e"
+    },
+    {
+      "path": "tests/cms-merchant-isolation.test.mjs",
+      "sha256": "aed4d42624ecd2b02c3b1e273cb34fe1f4d97c225a9b3a4e071daed1109aa19f"
+    },
+    {
+      "path": "tests/emdash-public-auth-feasibility.test.mjs",
+      "sha256": "14cbf77f0dc933fc9c14bc5bf92b6ee20075b44a4464ea3e9333ad518b266d4c"
+    },
+    {
+      "path": "tests/fixtures/built-cms-seed-entry.mjs",
+      "sha256": "bde6abaa9e4e169777808457251c36dc187af11cd5d0099189ff2d93a93866d0"
+    },
+    {
+      "path": "tests/fixtures/built-cms-test-entry.mjs",
+      "sha256": "8d2f0186da183bfbd88e12942310e00bf24970c51706ed8a3953a4453d54e798"
+    },
+    {
+      "path": "tests/fixtures/built-test-entry.mjs",
+      "sha256": "ca4be3157a265350e84cd90ad789f9102a0a9f7aaaa286a8a1422422d98a7c38"
+    },
+    {
+      "path": "tests/fixtures/cms-proof-als.mjs",
+      "sha256": "ef0128e410fec878c3a0d09ebedc0ae9ef28f5fa23f1cb3eee698ebd3c69a26b"
+    },
+    {
+      "path": "tests/helpers/emdash-editor.mjs",
+      "sha256": "52f64e644ca2a80cadff1d6a6b8999c6a19d236289b595ca114aa59f23e201d0"
+    },
+    {
+      "path": "tests/helpers/general-subscriber-adapter.mjs",
+      "sha256": "97fbeae9854f8b099203bcba91be40df53dfb38faadfc91ef3971fc0ac853c81"
+    },
+    {
+      "path": "tests/helpers/memory-emdash-adapter.mjs",
+      "sha256": "1d85832d956eec32f36c2798eec380ad0fbef942a238afe5e104ba7b3888a9cc"
+    },
+    {
+      "path": "tests/helpers/merchant-auth-harness.mjs",
+      "sha256": "96aee48821a8ee13989017bdab47b8a675953695f70f450659e70f1f2c1bdb25"
+    },
+    {
+      "path": "tests/helpers/merchant-harness.mjs",
+      "sha256": "8b55106c8bd39f3350f46b993df76ebb7de79a80587d87449e8c0c5572e4ac1d"
+    },
+    {
+      "path": "tests/merchant-auth-http.test.mjs",
+      "sha256": "b0cac4b7ba7dd971f9d56c0fdb3c8a58452f73ef239e201fce50a130df03127a"
+    },
+    {
+      "path": "tests/merchant-migrations.test.mjs",
+      "sha256": "a89cbc5bc39256a97563cb309169768f6304f997abef08d88d93a06ea9f02a5e"
+    },
+    {
+      "path": "tests/store-connections.test.mjs",
+      "sha256": "9f3243fd6f71de15e546c237a8dbcce660a78748288da2efba426f90911ec335"
+    },
+    {
+      "path": "tsconfig.json",
+      "sha256": "c21f96d3915506fa844d2ffe52130ebae3b4cc0ffeb3cb3049c9e92435e92af1"
+    },
+    {
+      "path": "worker-configuration.d.ts",
+      "sha256": "7a2fe729dce552bc37fbd0474772cd310d225208cb4de5d4bc5121cf819d0ed6"
+    },
+    {
+      "path": "wrangler.jsonc",
+      "sha256": "8738c977f33c64d2e6c8e5b8b0f6be95bb08be64d5f3a6925760b00e0a0a9e8c"
+    },
+    {
+      "path": "wrangler.test.jsonc",
+      "sha256": "e4858b6937e28906dfe6cdd15664bd5e03aa4af5ce71d1b56b730490300b6da2"
+    }
+  ],
+  "historical_capture_head": "089240aee0af0244ce231861a3eeb600bd7f1807",
+  "repair_working_tree": {
+    "head": "04f6ebb2a0b32140b633134591ddc1e261ac104e",
+    "merge_head": "8ea9cb58ce143eecaf7df0bd2d03ade1e9037f90",
+    "pr1_settled": "ad2c5e23d261b3ec22e79829ba868885a60f5599"
+  }
+}

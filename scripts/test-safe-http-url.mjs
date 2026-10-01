@@ -8,6 +8,8 @@ const record = (check) => {
 };
 
 assert.equal(safeHttpUrl('https://docs.emdashcms.com/getting-started/'), 'https://docs.emdashcms.com/getting-started/');
+assert.equal(safeHttpUrl('https://demo.dinkuskit.com/'), 'https://demo.dinkuskit.com/');
+assert.equal(safeHttpUrl('https://github.com/dinkuskit/template-store/blob/main/docs/v1-setup.md'), 'https://github.com/dinkuskit/template-store/blob/main/docs/v1-setup.md');
 assert.equal(safeHttpUrl('http://example.invalid/path'), 'http://example.invalid/path');
 record('Absolute http(s) URLs are accepted');
 

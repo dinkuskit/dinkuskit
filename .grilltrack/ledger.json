@@ -4,11 +4,11 @@
   "current_focus": {
     "cadence": "sequential",
     "confirmed": true,
-    "confirmed_at": "2026-09-30T22:05:39+00:00",
-    "domain": "Better Auth merchant routes on Cloudflare Workers and D1",
-    "started_at": "2026-09-30T22:05:39+00:00",
+    "confirmed_at": "2026-10-01T08:42:52+00:00",
+    "domain": "Usable EmDash site and coordinated Commerce Template Store launch",
+    "started_at": "2026-10-01T08:42:52+00:00",
     "status": "confirmed",
-    "summary": "Normalize accepted root http(s) configured MERCHANT_BASE_URL to canonical origin at the binding boundary so Better Auth baseURL/trustedOrigins and custom CSRF compare the same origin. Preserve fail-closed secret/base, credentials/query/hash, and unsupported scheme/path. Missing or foreign Origin still 403. Add actual built-worker regressions: configured trailing slash plus valid origin succeeds; foreign/missing origins rejected; malformed configuration fails 503. Prove the regression fails before the fix, then minimal fix and full npm run verify on Node 22.23.2. Leave merchant-better-auth-008 IMPLEMENTED for parent public proof. No pages, copy, migrations, packages, workflows, store protocol, screenshots, public proof, commit, push, merge, deploy, or review-rail actions."
+    "summary": "Prior direct human authorization and coordinator handoff approve preparing Try the demo (https://demo.dinkuskit.com/, browse/cart only) and Template setup (https://github.com/dinkuskit/template-store/blob/main/docs/v1-setup.md) links via native EmDash text_section in Getting started; no released v1 pair claim, no buying promises, no CMS bypass or design change."
   },
   "decisions": [
     {
@@ -775,10 +775,38 @@
           "review_source_identity": null,
           "to": "locked",
           "verification_ref": null
+        },
+        {
+          "at": "2026-10-01T08:45:14+00:00",
+          "choice": "Commerce v1 and Template Store release as an exact verified pair. Consume the coordinator handoff and add verified real Try the demo and Use this template/setup paths for the actual interactive frontend, using synthetic content and explicit safe demo behavior; no unavailable inventory or real charges.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-01T08:46:55+00:00",
+          "choice": "Commerce v1 and Template Store release as an exact verified pair. Consume the coordinator handoff and add verified real Try the demo and Use this template/setup paths for the actual interactive frontend, using synthetic content and explicit safe demo behavior; no unavailable inventory or real charges.",
+          "from": "implemented",
+          "implementation_ref": "file:seed/seed.json;file:README.md;file:docs/getting-started.md;file:docs/CHARTER.md;file:scripts/smoke.mjs;file:scripts/test-safe-http-url.mjs",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": null
         }
       ],
       "id": "website-template-demo-011",
-      "implementation_ref": null,
+      "implementation_ref": "file:seed/seed.json;file:README.md;file:docs/getting-started.md;file:docs/CHARTER.md;file:scripts/smoke.mjs;file:scripts/test-safe-http-url.mjs",
       "question": "What Template Store path must the website provide?",
       "rationale": "Explicit user direction recorded for the bounded website follow-up; no design reconfirmation or current frozen candidate expansion.",
       "repair_required": false,
@@ -787,10 +815,10 @@
       "review_ref": null,
       "review_result": null,
       "review_source_identity": null,
-      "status": "locked",
+      "status": "verified",
       "superseded_by": null,
-      "updated_at": "2026-09-30T16:39:56+00:00",
-      "verification_ref": null
+      "updated_at": "2026-10-01T08:46:55+00:00",
+      "verification_ref": "file:proof/demo-links/PROOF.md;cmd:npm run test:smoke;cmd:npm run test:safe-http-url;file:.grilltrack/work/demo-links-20261001/summary.json"
     },
     {
       "baseline_ref": null,
@@ -1046,5 +1074,5 @@
   "status": "active",
   "title": "DinkusKit website foundation",
   "track_id": "gt-20260930021417-e281b2",
-  "updated_at": "2026-09-30T22:05:40+00:00"
+  "updated_at": "2026-10-01T08:46:55+00:00"
 }

@@ -22,7 +22,14 @@ DinkusKit intends both a hosted onboarding path and documented self-hosting. Pri
 
 ## Commerce and Template Store
 
-Commerce and the Template Store will be released together as a verified pair. Try-the-demo and template setup links will be published here when those destinations exist. There is no demo or setup destination on this site yet.
+Commerce and the Template Store will be released together as a verified pair. You can explore the interactive storefront demo with a synthetic catalog to test browsing and cart behavior; checkout is disabled and no real purchases can be made. Template Store setup guidance is available for the development source pilot, while released installable packages and artifacts remain pending.
+
+- **Try the demo**: [https://demo.dinkuskit.com/](https://demo.dinkuskit.com/) (browse and cart testing on synthetic catalog; checkout disabled)
+- **Template setup**: [https://github.com/dinkuskit/template-store/blob/main/docs/v1-setup.md](https://github.com/dinkuskit/template-store/blob/main/docs/v1-setup.md) (development source pilot documentation; no released installer or package artifact exists)
+
+### Operator note on content persistence
+
+Updating `seed/seed.json` provides starter content for fresh local or newly initialized environments. Changing seed definitions does not overwrite existing pages on initialized live CMS databases. After this change merges, an authorized website editor can update the existing "Getting started" section and both native links directly through the EmDash CMS editor. No database reseed, schema update, data migration, or live mutation is performed in this task.
 
 ## This website
 

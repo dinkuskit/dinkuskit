@@ -2,7 +2,7 @@
 
 The EmDash-powered website for DinkusKit's hosted commerce services, intended for **https://dinkuskit.com**.
 
-Public pages are seeded CMS content on Cloudflare Workers and D1. Merchant signup, sign-in, recovery, and logout are real Better Auth routes. They use a separate merchant D1, cookie namespace, and `Astro.locals.merchant`. They do not sign anyone into the EmDash editor. Production Inventory Connect is unavailable. Local fixtures compare store-proof receipts. Inventory is coming soon and is not required for Commerce. Commerce and the Template Store will be released together as a verified pair; this site does not yet publish Try-the-demo or template setup destinations.
+Public pages are seeded CMS content on Cloudflare Workers and D1. Merchant signup, sign-in, recovery, and logout are real Better Auth routes. They use a separate merchant D1, cookie namespace, and `Astro.locals.merchant`. They do not sign anyone into the EmDash editor. Production Inventory Connect is unavailable. Local fixtures compare store-proof receipts. Inventory is coming soon and is not required for Commerce. Commerce and the Template Store will be released together as a verified pair. Getting started provides 'Try the demo' (browse and cart with disabled checkout on a synthetic catalog) and 'Template setup' (development source pilot guide), while the released installable package pair remains pending.
 
 ## Run locally
 
@@ -24,7 +24,7 @@ npm run start
 
 This is local wrangler/workerd. It does not deploy or use `remote: true`. Production must set `MERCHANT_AUTH_SECRET` and `MERCHANT_BASE_URL`; missing values fail closed. Do not put secrets in `wrangler.jsonc`. Cloudflare Email Sending is a binding only. Do not run account/domain setup or live send commands from this slice.
 
-`npm run setup` applies versioned merchant D1 migrations locally. CMS schema and `seed/seed.json` apply on first trusted local process through EmDash public seed APIs. The Cloudflare production entry denies those setup routes.
+`npm run setup` applies versioned merchant D1 migrations locally. CMS schema and `seed/seed.json` apply on first trusted local process through EmDash public seed APIs. The Cloudflare production entry denies those setup routes. Updating `seed/seed.json` configures fresh seed instances and does not overwrite initialized live CMS pages. In an active CMS deployment, an editor updates the existing Getting started section and both native links (`Try the demo` and `Template setup`) directly through the EmDash editor; no live reseed or database mutation is performed as part of this code change.
 
 Local development (`npm run dev`, bound to 127.0.0.1) still serves the EmDash editor at `/_emdash/admin`. That initial setup is for the person editing this website on a trusted local process, not merchant registration.
 

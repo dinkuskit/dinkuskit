@@ -159,7 +159,11 @@
               "_version": 1,
               "_key": "getting-started-2",
               "heading": "3. Commerce and Template Store",
-              "body": "Commerce and the Template Store will be released together as a verified pair. Try-the-demo and template setup links will be published here when those destinations exist. No demo or setup destination is available on this site yet."
+              "body": "Commerce and the Template Store will be released together as a verified pair. You can explore the interactive storefront demo with a synthetic catalog to test browsing and cart behavior; checkout is disabled and no real purchases can be made. Template Store setup guidance is available for the development source pilot, while released installable packages and artifacts remain pending.",
+              "link_href": "https://demo.dinkuskit.com/",
+              "link_label": "Try the demo",
+              "second_link_href": "https://github.com/dinkuskit/template-store/blob/main/docs/v1-setup.md",
+              "second_link_label": "Template setup"
             },
             {
               "_type": "text_section",

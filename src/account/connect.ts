@@ -56,7 +56,12 @@ export function verificationUri(baseUrl: string, connectionId: string): string {
   return `${baseUrl.replace(/\/$/, '')}/account/connect?connection_id=${encodeURIComponent(connectionId)}`;
 }
 
-export async function startStoreConnection(db: D1Database, body: unknown, baseUrl: string): Promise<Response> {
+export async function startStoreConnection(
+  db: D1Database,
+  body: unknown,
+  baseUrl: string,
+  options: { allowExactOrigin?: string } = {},
+): Promise<Response> {
   if (!body || typeof body !== 'object') return json(400, { error: 'invalid_request' });
   const input = body as Record<string, unknown>;
   if (input.client_id !== INVENTORY_CLIENT_ID || input.service !== INVENTORY_SERVICE) {
@@ -67,8 +72,11 @@ export async function startStoreConnection(db: D1Database, body: unknown, baseUr
   }
   if (typeof input.site_id !== 'string' || !isSiteId(input.site_id)) return json(400, { error: 'invalid_site_id' });
   if (typeof input.site_origin !== 'string' || typeof input.callback_uri !== 'string') return json(400, { error: 'invalid_request' });
-  const origin = parseCanonicalSiteOrigin(input.site_origin);
+  const origin = parseCanonicalSiteOrigin(input.site_origin, options);
   if (!origin.ok) return json(400, { error: origin.reason });
+  if (options.allowExactOrigin && origin.origin !== options.allowExactOrigin) {
+    return json(400, { error: 'test_origin_not_admitted' });
+  }
   const expectedCallback = callbackFor(origin.origin);
   if (input.callback_uri !== expectedCallback) return json(400, { error: 'invalid_callback' });
   const now = Date.now();

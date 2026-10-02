@@ -53,7 +53,7 @@ export function isReservedOrPrivateHostname(hostname: string): boolean {
   return false;
 }
 
-export function parseCanonicalSiteOrigin(input: string): { ok: true; origin: string } | { ok: false; reason: string } {
+export function parseCanonicalSiteOrigin(input: string, options: { allowExactOrigin?: string } = {}): { ok: true; origin: string } | { ok: false; reason: string } {
   let url: URL;
   try {
     url = new URL(input);
@@ -65,6 +65,16 @@ export function parseCanonicalSiteOrigin(input: string): { ok: true; origin: str
   }
   const loopback = isReservedOrPrivateHostname(url.hostname);
   if (url.protocol === 'http:') {
+    // This exception is only for the request-scoped local test entry. It is
+    // deliberately narrower than the general private-host policy.
+    if (
+      options.allowExactOrigin === input &&
+      url.hostname === '127.0.0.1' &&
+      url.port !== '' &&
+      options.allowExactOrigin === `http://127.0.0.1:${url.port}`
+    ) {
+      return { ok: true, origin: url.origin };
+    }
     return { ok: false, reason: loopback ? 'loopback_origin_rejected' : 'site_origin_must_be_https' };
   }
   if (url.protocol !== 'https:') return { ok: false, reason: 'invalid_site_origin' };

@@ -5,6 +5,8 @@ import type { ProofFetchFn } from './proof-fetch.ts';
 export type MerchantTransports = {
   emailDelivery?: MerchantEmailDelivery;
   proofFetch?: ProofFetchFn;
+  /** Exact request-scoped loopback origin admission for a test entry only. */
+  testSiteOrigin?: string;
 };
 
 const ALS = Symbol.for('dinkuskit.merchant.transports.als');

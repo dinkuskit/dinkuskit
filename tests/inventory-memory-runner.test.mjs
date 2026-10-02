@@ -10,6 +10,14 @@ import { parseCanonicalSiteOrigin } from '../src/account/proof-fetch.ts';
 
 const SITE_ID = 'synthetic-inventory-runner-site';
 
+function bounded(promise, milliseconds, reason) {
+  let timer;
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(() => reject(new Error(reason)), milliseconds);
+  });
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
+}
+
 function cookies() {
   return new Map();
 }
@@ -410,6 +418,7 @@ test('failed restart leaves a foreign server alive and dispatch unavailable', as
   let foreign;
   let foreignRequests = 0;
   let releaseBody;
+  let bodyCancelled = false;
   let bodyStarted;
   const bodyReady = new Promise(resolve => {
     bodyStarted = resolve;
@@ -421,8 +430,12 @@ test('failed restart leaves a foreign server alive and dispatch unavailable', as
     async start(stream) {
       bodyStarted();
       await bodyRelease;
+      if (bodyCancelled) return;
       stream.enqueue(new TextEncoder().encode('{"sensitive":"synthetic"}'));
       stream.close();
+    },
+    cancel() {
+      bodyCancelled = true;
     },
   });
   const controller = await startInventoryMemoryController({
@@ -452,13 +465,23 @@ test('failed restart leaves a foreign server alive and dispatch unavailable', as
     body,
     duplex: 'half',
   }));
+  const dispatchOutcome = dispatch.then(
+    () => null,
+    error => error,
+  );
   await bodyReady;
   const restart = controller.restart();
   await assert.rejects(() => restart, /website_port_occupied/);
   assert.equal(foreign.listening, true);
-  releaseBody();
-  await assert.rejects(() => dispatch, /controller_unavailable/);
+  const dispatchError = await bounded(
+    dispatchOutcome,
+    1000,
+    'stalled_dispatch_did_not_abort',
+  );
+  assert(dispatchError instanceof Error);
+  assert.match(dispatchError.message, /controller_unavailable/);
   assert.equal(foreignRequests, 0);
+  releaseBody();
   const response = await fetch('http://127.0.0.1:47640/');
   assert.equal(response.status, 200);
   assert.equal(await response.text(), 'foreign');

@@ -14,6 +14,50 @@ function safeError(reason) {
   return new Error(reason);
 }
 
+async function readRequestBody(input, signal, abortError) {
+  if (!input.body) return new ArrayBuffer(0);
+  const reader = input.body.getReader();
+  const chunks = [];
+  let totalLength = 0;
+  let abortListener;
+  try {
+    while (true) {
+      if (signal.aborted) throw abortError();
+      const read = reader.read();
+      const result = await Promise.race([
+        read,
+        new Promise((_, reject) => {
+          abortListener = () => reject(abortError());
+          signal.addEventListener('abort', abortListener, { once: true });
+        }),
+      ]);
+      signal.removeEventListener('abort', abortListener);
+      abortListener = undefined;
+      if (result.done) break;
+      chunks.push(result.value);
+      totalLength += result.value.byteLength;
+    }
+  } finally {
+    if (abortListener) signal.removeEventListener('abort', abortListener);
+    if (signal.aborted) {
+      try {
+        Promise.resolve(reader.cancel()).catch(() => {});
+      } catch {
+        // Best effort: the dispatch is already aborting.
+      }
+    } else {
+      reader.releaseLock();
+    }
+  }
+  const body = new Uint8Array(totalLength);
+  let offset = 0;
+  for (const chunk of chunks) {
+    body.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return body.buffer;
+}
+
 function assertPort(port, label) {
   if (!Number.isInteger(port) || port < 1024 || port > 65535) throw safeError(`invalid_${label}_port`);
 }
@@ -169,7 +213,11 @@ export async function startInventoryMemoryController(options = {}) {
           throw safeError('dispatch_request_rejected');
         }
         const target = new URL(url.pathname, state.websiteOrigin);
-        const body = await input.arrayBuffer();
+        const body = await readRequestBody(
+          input,
+          dispatchController.signal,
+          () => safeError(stopped ? 'controller_stopped' : 'controller_unavailable'),
+        );
         if (dispatchController.signal.aborted) {
           throw safeError(stopped ? 'controller_stopped' : 'controller_unavailable');
         }

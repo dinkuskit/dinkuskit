@@ -1,0 +1,28 @@
+---
+import Site from '../../../layouts/Site.astro';
+import InventoryOverview from '../../../components/InventoryOverview.astro';
+import { readInventoryOverview, inventoryOrganizationName } from '../../../account/inventory-overview.ts';
+import { getMerchantEnv } from '../../../account/bindings.ts';
+import { MerchantUnavailableError, unavailableResponse, seeOther } from '../../../account/config.ts';
+import { getInjectedTransports } from '../../../account/transports.ts';
+
+export const prerender = false;
+Astro.response.headers.set('cache-control', 'private, no-store');
+if (Astro.request.method !== 'GET') return new Response(null, { status: 405, headers: { allow: 'GET', 'cache-control': 'private, no-store' } });
+const login = Astro.locals.login;
+if (!login) return seeOther('/account/sign-in');
+const ids = Astro.url.searchParams.getAll('organization_id');
+if (ids.length !== 1 || !ids[0] || ids[0].length > 200 || ids[0] !== ids[0].trim() || [...Astro.url.searchParams.keys()].some(key => key !== 'organization_id')) {
+  return new Response('Choose one organization from your separately authorized operator workflow.', { status: 400, headers: { 'cache-control': 'private, no-store' } });
+}
+let env;
+try { env = await getMerchantEnv(); }
+catch (error) { if (error instanceof MerchantUnavailableError) return unavailableResponse(); throw error; }
+const organizationId = ids[0];
+const result = await readInventoryOverview({ db: env.MERCHANT_DB, callerUserId: login.userId, organizationId, mode: 'operator', runtime: getInjectedTransports().inventoryOverview });
+Astro.response.status = result.state === 'forbidden' ? 403 : result.state === 'unavailable' ? 503 : 200;
+const name = result.state === 'forbidden' ? null : await inventoryOrganizationName(env.MERCHANT_DB, organizationId);
+---
+<Site title="Operator Inventory overview" description="Authorized Inventory metadata for one organization.">
+  <InventoryOverview organizationId={organizationId} organizationName={name} mode="operator" result={result} />
+</Site>

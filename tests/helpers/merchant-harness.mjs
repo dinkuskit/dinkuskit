@@ -47,6 +47,14 @@ async function prepareBuiltTestConfig({ persistTo, secret, origin, jwt, cmsProof
     await copyFile('tests/fixtures/built-cms-test-entry.mjs', 'dist/server/cms-test-entry.mjs');
   }
   await emitProofFetch();
+  await copyFile('tests/fixtures/inventory-overview-transport.mjs', 'dist/server/inventory-overview-transport.mjs');
+  await copyFile('tests/fixtures/inventory-overview-payload.mjs', 'dist/server/inventory-overview-payload.mjs');
+  for (const name of ['inventory-overview', 'config', 'identity', 'organizations', 'store']) {
+    const source = await readFile(`src/account/${name}.ts`, 'utf8');
+    const emitted = transpileModule(source, { compilerOptions: { module: ModuleKind.ESNext, target: ScriptTarget.ES2022 } }).outputText
+      .replace(/(['"])(\.\/[^'"]+)\.ts\1/g, '$1$2-proof.mjs$1');
+    await writeFile(`dist/server/${name}-proof.mjs`, emitted);
+  }
   const config = {
     ...built,
     name: cmsProof ? 'dinkuskit-website-cms-test' : 'dinkuskit-website-test',
@@ -56,6 +64,7 @@ async function prepareBuiltTestConfig({ persistTo, secret, origin, jwt, cmsProof
       ...(built.kv_namespaces ?? []),
       { binding: 'MERCHANT_MAIL_CAPTURE', id: '00000000-0000-0000-0000-000000000021' },
       { binding: 'MERCHANT_PROOF_SIMULATION', id: '00000000-0000-0000-0000-000000000022' },
+      { binding: 'MERCHANT_INVENTORY_OVERVIEW', id: '00000000-0000-0000-0000-000000000023' },
     ],
     vars: {
       ...(built.vars ?? {}),
@@ -140,6 +149,7 @@ export async function startProductionWorker(options = {}) {
         { binding: 'MERCHANT_MAIL_CAPTURE', id: '00000000-0000-0000-0000-000000000031' },
         { binding: 'MERCHANT_PROOF_SIMULATION', id: '00000000-0000-0000-0000-000000000032' },
         { binding: 'CMS_PROOF_UNLOCK', id: '00000000-0000-0000-0000-000000000033' },
+        { binding: 'MERCHANT_INVENTORY_OVERVIEW', id: '00000000-0000-0000-0000-000000000023' },
       ] : []),
     ],
     vars: {

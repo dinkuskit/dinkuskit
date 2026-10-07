@@ -3,6 +3,8 @@ import type { MerchantEmailDelivery } from './email.ts';
 import type { ProofFetchFn } from './proof-fetch.ts';
 
 export type MerchantTransports = {
+  /** Controlled source-proof runtime only. No production factory or binding reads it. */
+  inventoryOverview?: import('./inventory-overview.ts').InventoryRuntime;
   emailDelivery?: MerchantEmailDelivery;
   proofFetch?: ProofFetchFn;
   /** Exact request-scoped loopback origin admission for a test entry only. */

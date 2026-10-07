@@ -1,0 +1,13 @@
+# Migration ledger repair
+
+The comprehensive P3 review of initial source `3b7a67d623d7d4f742e360f109fbc48419ff0207` identified one accepted P1: migration 0004 did not record its application in `dinkuskit_schema_migrations`. The original CLI test started the runtime before reading the ledger, so runtime reconciliation masked the omission. The review's claim that that existing test already fails was overstated; the CLI-only omission was real.
+
+The regression now reads the actual local Wrangler D1 ledger immediately after CLI migration application, before starting a worker. Before the fix it failed with versions 1–3 instead of 1–4. Migration 0004 now ends with an idempotent version-4 ledger insert; the generated runtime SQL matches it. The identical regression passes, including subsequent repeat and restart checks.
+
+Exact Node 22.23.2 `npm run verify` exits 0 after the repair: all 41 tests across the account, Inventory runner, merchant and foundation suites, plus build/type, HTTP smoke, release reuse, development CMS, CMS helpers, Access, safe HTTP, persistent CMS operation/restart and Cloudflare candidate-denial checks. Typecheck has zero errors/warnings and one existing unused-import hint.
+
+Current functional source identity: `sha256:13f16731db2a0c51d8fdfc3a2218bd3f5566e51cb67ff2d94727c286fed2432b`, defined in [migration-repair-manifest.json](migration-repair-manifest.json). Only the migration SQL, generated SQL and migration regression changed among the original 30 implementation files. Signup/account pages, styles and the previously inspected Chrome capture closure remain byte-identical; the original selected immutable screenshots remain rendering evidence, with their original source and capture provenance preserved. No new visual, phone-delivery or production claim is introduced.
+
+The first native generation failed before admission with `base_moved`: the default branch changed while it queued. This is stale review identity, not a scanner finding, reviewer verdict or credential/permission prerequisite. The corrected source must be reviewed against the new current default base. Initial exact-commit CI remains historical after the source update; fresh CI, comprehensive OpenClaw and native artifacts/publication are still required. No maintainer merge readiness is claimed here.
+
+The accepted migration finding is repaired and locally reverified. Product locks, migration compatibility, signup/admission/employee boundaries and all previously stated exclusions remain unchanged. The track stays active. No merge, deployment, real account/grant, SMS, credentials or hosted service activation is authorized by this proof.

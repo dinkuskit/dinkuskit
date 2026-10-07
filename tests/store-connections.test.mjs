@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
 import { createLocalJWKSet, jwtVerify } from "jose";
-import { completeProofMail, grantPresent, request, signup, startMerchantTestRuntime, startProductionWorker, stopRuntime } from './helpers/merchant-harness.mjs';
+import { accountForm, completeProofMail, grantPresent, request, signup, startMerchantTestRuntime, startProductionWorker, stopRuntime } from './helpers/merchant-harness.mjs';
 
 const ALICE = 'alice-connect@merchant.example';
 const BOB = 'bob-connect@merchant.example';
@@ -89,7 +89,7 @@ test('store-connections protocol: consent, PKCE, uniqueness, revoke, already_red
     const approve = await request(runtime, alice, `/account/connect?connection_id=${startA.body.connection_id}`, {
       method: 'POST',
       headers: { 'content-type': 'application/x-www-form-urlencoded' },
-      body: 'action=approve',
+      body: await accountForm(runtime, alice, 'action=approve'),
     });
     assert.equal(approve.status, 303);
     assert.equal(approve.headers.get('location'), startA.callback);
@@ -134,7 +134,7 @@ test('store-connections protocol: consent, PKCE, uniqueness, revoke, already_red
     const freshApprove = await request(runtime, alice, `/account/connect?connection_id=${startFresh.body.connection_id}`, {
       method: 'POST',
       headers: { 'content-type': 'application/x-www-form-urlencoded' },
-      body: 'action=approve',
+      body: await accountForm(runtime, alice, 'action=approve'),
     });
     assert.equal(freshApprove.status, 303);
     assert.equal(freshApprove.headers.get('location'), startFresh.callback);
@@ -165,7 +165,7 @@ test('store-connections protocol: consent, PKCE, uniqueness, revoke, already_red
     const bobApprove = await request(runtime, bob, `/account/connect?connection_id=${startB.body.connection_id}`, {
       method: 'POST',
       headers: { 'content-type': 'application/x-www-form-urlencoded' },
-      body: 'action=approve',
+      body: await accountForm(runtime, bob, 'action=approve'),
     });
     assert.equal(bobApprove.status, 303);
 
@@ -177,7 +177,7 @@ test('store-connections protocol: consent, PKCE, uniqueness, revoke, already_red
     const bobConflict = await request(runtime, bob, `/account/connect?connection_id=${conflict.body.connection_id}`, {
       method: 'POST',
       headers: { 'content-type': 'application/x-www-form-urlencoded' },
-      body: 'action=approve',
+      body: await accountForm(runtime, bob, 'action=approve'),
     });
     assert.equal(bobConflict.status, 303);
     assert.match(bobConflict.headers.get('location') ?? '', /error=ownership_conflict|error=/);
@@ -203,7 +203,7 @@ test('store-connections protocol: consent, PKCE, uniqueness, revoke, already_red
     const tamperedApprove = await request(runtime, alice, `/account/connect?connection_id=${tampered.body.connection_id}`, {
       method: 'POST',
       headers: { 'content-type': 'application/x-www-form-urlencoded' },
-      body: 'action=approve',
+      body: await accountForm(runtime, alice, 'action=approve'),
     });
     assert.match(tamperedApprove.headers.get('location') ?? '', /error=/);
 
@@ -213,7 +213,7 @@ test('store-connections protocol: consent, PKCE, uniqueness, revoke, already_red
     const revoke = await request(runtime, alice, '/account/sites', {
       method: 'POST',
       headers: { 'content-type': 'application/x-www-form-urlencoded' },
-      body: 'action=revoke&site_id=site-alpha',
+      body: await accountForm(runtime, alice, 'action=revoke&site_id=site-alpha'),
     });
     assert.equal(revoke.status, 303);
 
@@ -224,7 +224,7 @@ test('store-connections protocol: consent, PKCE, uniqueness, revoke, already_red
     const remint = await request(runtime, alice, `/account/connect?connection_id=${afterRevoke.body.connection_id}`, {
       method: 'POST',
       headers: { 'content-type': 'application/x-www-form-urlencoded' },
-      body: 'action=approve',
+      body: await accountForm(runtime, alice, 'action=approve'),
     });
     const remintLoc = new URL(remint.headers.get('location'), runtime.origin);
     assert.equal(remintLoc.searchParams.get('error'), 'reinstall_requires_manual_migration');
@@ -292,14 +292,14 @@ test('pending claim isolates a second merchant from preview and consent', async 
     const bobApprove = await request(runtime, bob, path, {
       method: 'POST',
       headers: { 'content-type': 'application/x-www-form-urlencoded' },
-      body: 'action=approve',
+      body: await accountForm(runtime, bob, 'action=approve'),
     });
     assert.equal(bobApprove.status, 303);
     assert.equal(bobApprove.headers.get('location'), '/account/sites');
     const bobDeny = await request(runtime, bob, path, {
       method: 'POST',
       headers: { 'content-type': 'application/x-www-form-urlencoded' },
-      body: 'action=deny',
+      body: await accountForm(runtime, bob, 'action=deny'),
     });
     assert.equal(bobDeny.headers.get('location'), '/account/sites');
     assert.equal(await grantPresent(runtime, 'pending-iso'), false);
@@ -322,13 +322,13 @@ test('denied then approve leaves no grant; concurrent deny/approve is consistent
     const deny = await request(runtime, alice, path, {
       method: 'POST',
       headers: { 'content-type': 'application/x-www-form-urlencoded' },
-      body: 'action=deny',
+      body: await accountForm(runtime, alice, 'action=deny'),
     });
     assert.equal(deny.status, 303);
     const lateApprove = await request(runtime, alice, path, {
       method: 'POST',
       headers: { 'content-type': 'application/x-www-form-urlencoded' },
-      body: 'action=approve',
+      body: await accountForm(runtime, alice, 'action=approve'),
     });
     assert.match(lateApprove.headers.get('location') ?? '', /error=|\/account\/sites/);
     assert.equal(await grantPresent(runtime, 'denied-race'), false);
@@ -343,12 +343,12 @@ test('denied then approve leaves no grant; concurrent deny/approve is consistent
       request(runtime, alice, concurrentPath, {
         method: 'POST',
         headers: { 'content-type': 'application/x-www-form-urlencoded' },
-        body: 'action=deny',
+        body: await accountForm(runtime, alice, 'action=deny'),
       }),
       request(runtime, alice, concurrentPath, {
         method: 'POST',
         headers: { 'content-type': 'application/x-www-form-urlencoded' },
-        body: 'action=approve',
+        body: await accountForm(runtime, alice, 'action=approve'),
       }),
     ]);
     assert.equal(denyRace.status, 303);
@@ -396,7 +396,7 @@ test('delayed proof past expiry and missing signing key do not mint', async () =
     const late = await request(keyed, alice, path, {
       method: 'POST',
       headers: { 'content-type': 'application/x-www-form-urlencoded' },
-      body: 'action=approve',
+      body: await accountForm(keyed, alice, 'action=approve'),
     });
     assert.match(late.headers.get('location') ?? '', /error=/);
     assert.equal(await grantPresent(keyed, 'late-proof'), false);
@@ -415,7 +415,7 @@ test('delayed proof past expiry and missing signing key do not mint', async () =
     const approve = await request(unsigned, unsignedJar, `/account/connect?connection_id=${start.body.connection_id}`, {
       method: 'POST',
       headers: { 'content-type': 'application/x-www-form-urlencoded' },
-      body: 'action=approve',
+      body: await accountForm(unsigned, unsignedJar, 'action=approve'),
     });
     assert.equal(approve.status, 303);
     assert.equal(approve.headers.get('location'), start.callback);
@@ -453,7 +453,7 @@ test('delayed proof past expiry and missing signing key do not mint', async () =
     const approve = await request(invalid, invalidJar, `/account/connect?connection_id=${start.body.connection_id}`, {
       method: 'POST',
       headers: { 'content-type': 'application/x-www-form-urlencoded' },
-      body: 'action=approve',
+      body: await accountForm(invalid, invalidJar, 'action=approve'),
     });
     assert.equal(approve.headers.get('location'), start.callback);
     const token = await request(invalid, new Map(), '/api/store-connections/token', {
@@ -500,7 +500,7 @@ test('unusable signing keys do not consume or leak library errors', async () => 
       const approve = await request(runtime, jar, `/account/connect?connection_id=${start.body.connection_id}`, {
         method: 'POST',
         headers: { 'content-type': 'application/x-www-form-urlencoded' },
-        body: 'action=approve',
+        body: await accountForm(runtime, jar, 'action=approve'),
       });
       assert.equal(approve.headers.get('location'), start.callback, fixture.label);
       const first = await request(runtime, new Map(), '/api/store-connections/token', {
@@ -548,7 +548,7 @@ test('production entry cannot mint persisted approved rows even with rogue bindi
     const approve = await request(seeded, alice, `/account/connect?connection_id=${start.body.connection_id}`, {
       method: 'POST',
       headers: { 'content-type': 'application/x-www-form-urlencoded' },
-      body: 'action=approve',
+      body: await accountForm(seeded, alice, 'action=approve'),
     });
     assert.equal(approve.status, 303);
     assert.equal(approve.headers.get('location'), start.callback);
@@ -649,7 +649,7 @@ test("unauthenticated connect preserves safe continuation to sign-in and signup 
     const anonPost = await request(runtime, new Map(), `/account/connect?connection_id=${connId}`, {
       method: "POST",
       headers: { "content-type": "application/x-www-form-urlencoded" },
-      body: "action=approve",
+      body: await accountForm(runtime, anonJar, "action=approve"),
       redirect: "manual",
     });
     assert.equal(anonPost.status, 303);
@@ -703,7 +703,7 @@ test("unauthenticated connect preserves safe continuation to sign-in and signup 
     const signinPost = await request(runtime, existingJar, "/account/sign-in", {
       method: "POST",
       headers: { "content-type": "application/x-www-form-urlencoded" },
-      body: `email=${encodeURIComponent(existingEmail)}&callbackURL=${encodeURIComponent(expectedContinuation)}`,
+      body: `email=${encodeURIComponent(existingEmail)}&phone=%2B15555550123&service_channel=email&agreement=on&callbackURL=${encodeURIComponent(expectedContinuation)}`,
     });
     assert.equal(signinPost.status, 303);
     assert.equal(signinPost.headers.get("location"), "/account/check-email");
@@ -725,7 +725,7 @@ test("unauthenticated connect preserves safe continuation to sign-in and signup 
     const approve = await request(runtime, existingJar, expectedContinuation, {
       method: "POST",
       headers: { "content-type": "application/x-www-form-urlencoded" },
-      body: "action=approve",
+      body: await accountForm(runtime, existingJar, "action=approve"),
     });
     assert.equal(approve.status, 303);
     assert.equal(approve.headers.get("location"), start.callback);
@@ -765,7 +765,7 @@ test("unauthenticated connect preserves safe continuation to sign-in and signup 
     const revoke = await request(runtime, existingJar, "/account/sites", {
       method: "POST",
       headers: { "content-type": "application/x-www-form-urlencoded" },
-      body: "action=revoke&site_id=site-cont",
+      body: await accountForm(runtime, existingJar, "action=revoke&site_id=site-cont"),
     });
     assert.equal(revoke.status, 303);
 
@@ -777,7 +777,7 @@ test("unauthenticated connect preserves safe continuation to sign-in and signup 
     const reApprove = await request(runtime, existingJar, `/account/connect?connection_id=${nextStart.body.connection_id}`, {
       method: "POST",
       headers: { "content-type": "application/x-www-form-urlencoded" },
-      body: "action=approve",
+      body: await accountForm(runtime, existingJar, "action=approve"),
     });
     const reApproveLoc = new URL(reApprove.headers.get("location"), runtime.origin);
     assert.equal(reApproveLoc.searchParams.get("error"), "reinstall_requires_manual_migration");
@@ -819,7 +819,7 @@ test("unauthenticated connect preserves safe continuation to sign-in and signup 
     const signupPost = await request(runtime, newJar, "/account/signup", {
       method: "POST",
       headers: { "content-type": "application/x-www-form-urlencoded" },
-      body: `email=${encodeURIComponent(newEmail)}&callbackURL=${encodeURIComponent(newExpected)}`,
+      body: `email=${encodeURIComponent(newEmail)}&phone=%2B15555550123&service_channel=email&agreement=on&callbackURL=${encodeURIComponent(newExpected)}`,
     });
     assert.equal(signupPost.status, 303);
     assert.equal(signupPost.headers.get("location"), "/account/check-email");

@@ -1,9 +1,10 @@
 import { betterAuth } from 'better-auth';
 import { magicLink } from 'better-auth/plugins';
-import { ACCOUNT_BASE_PATH, ACCOUNT_COOKIE_PREFIX, type MerchantEnv, type MerchantMailIntent } from './config.ts';
+import { ACCOUNT_BASE_PATH, ACCOUNT_COOKIE_PREFIX, SIGNUP_ATTEMPT_COOKIE, type MerchantEnv, type MerchantMailIntent } from './config.ts';
 import { createMerchantEmailDelivery, type MerchantEmailDelivery } from './email.ts';
 import { getInjectedTransports } from './transports.ts';
 import { ensureMerchantSubject, isMerchantDisabled } from './store.ts';
+import { consumeSignupAttempt } from './organizations.ts';
 
 export type MerchantAuth = ReturnType<typeof createMerchantAuth>;
 
@@ -57,10 +58,28 @@ export function createMerchantAuth(env: MerchantEnv, email: MerchantEmailDeliver
             if (await isMerchantDisabled(env.MERCHANT_DB, session.userId)) return false;
             return { data: session };
           },
+          after: async (session, ctx) => {
+            const headers = ctx?.headers ?? ctx?.request?.headers;
+            const attemptId = readCookie(headers?.get('cookie') ?? '', SIGNUP_ATTEMPT_COOKIE);
+            const user = await env.MERCHANT_DB.prepare('SELECT email FROM "user" WHERE id = ?')
+              .bind(session.userId).first<{ email: string }>();
+            if (!user) return;
+            await consumeSignupAttempt(env.MERCHANT_DB, session.userId, user.email, attemptId ?? '');
+          },
         },
       },
     },
   });
+}
+
+function readCookie(header: string, name: string): string | null {
+  for (const part of header.split(';')) {
+    const [key, ...value] = part.trim().split('=');
+    if (key === name) {
+      try { return decodeURIComponent(value.join('=')); } catch { return null; }
+    }
+  }
+  return null;
 }
 
 export function createMerchantRuntime(env: MerchantEnv, email?: MerchantEmailDelivery) {

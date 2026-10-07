@@ -33,6 +33,7 @@ export type StoreConnection = {
   consentedAt: number | null;
   redeemedAt: number | null;
   createdAt: number;
+  organizationId?: string | null;
 };
 
 function nowSeconds(): number {
@@ -65,7 +66,11 @@ export async function loadMerchantAccountByUserId(db: D1Database, userId: string
 
 export async function loadMerchantAccountBySubject(db: D1Database, subject: string): Promise<MerchantAccountRow | null> {
   const row = await db.prepare(
-    'SELECT user_id, subject, disabled FROM dinkuskit_account WHERE subject = ?',
+    `SELECT o.owner_user_id AS user_id, o.authority_subject AS subject, a.disabled
+     FROM dinkuskit_organization o JOIN dinkuskit_account a ON a.user_id = o.owner_user_id
+     JOIN dinkuskit_membership m ON m.organization_id = o.organization_id AND m.user_id = o.owner_user_id
+     WHERE o.authority_subject = ? AND o.status = 'active' AND o.admission_status <> 'pending_operator'
+       AND m.role = 'owner' AND m.status = 'active'`,
   ).bind(subject).first<{ user_id: string; subject: string; disabled: number }>();
   if (!row) return null;
   return {
@@ -119,11 +124,16 @@ export async function loadActiveBinding(db: D1Database, siteId: string): Promise
   };
 }
 
-export async function revokeBinding(db: D1Database, subject: string, siteId: string): Promise<boolean> {
+export async function revokeBinding(db: D1Database, subject: string, siteId: string, actorUserId: string, organizationId: string): Promise<boolean> {
   const now = nowSeconds();
   const result = await db.prepare(
-    'UPDATE dinkuskit_site_binding SET revoked = 1, revoked_at = ? WHERE account_subject = ? AND site_id = ? AND revoked = 0',
-  ).bind(now, subject, siteId).run() as { success?: boolean; meta?: { changes?: number } };
+    `UPDATE dinkuskit_site_binding SET revoked = 1, revoked_at = ? WHERE account_subject = ? AND site_id = ? AND revoked = 0
+      AND EXISTS (SELECT 1 FROM dinkuskit_membership m JOIN dinkuskit_account a ON a.user_id = m.user_id
+        JOIN dinkuskit_organization o ON o.organization_id = m.organization_id
+        JOIN dinkuskit_user_selection s ON s.user_id = m.user_id AND s.organization_id = m.organization_id
+        WHERE m.organization_id = ? AND m.user_id = ? AND m.role = 'owner' AND m.status = 'active'
+          AND a.disabled = 0 AND o.status IN ('active', 'pending_operator') AND o.authority_subject = ?)`,
+  ).bind(now, subject, siteId, organizationId, actorUserId, subject).run() as { success?: boolean; meta?: { changes?: number } };
   return (result.meta?.changes ?? 0) > 0;
 }
 
@@ -131,19 +141,19 @@ export async function insertStoreConnection(db: D1Database, row: StoreConnection
   await db.prepare(`
     INSERT INTO dinkuskit_store_connection (
       connection_id, client_id, service, site_id, site_origin, callback_uri, code_challenge, challenge,
-      expires_at, interval_seconds, status, account_subject, consented_at, redeemed_at, created_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      expires_at, interval_seconds, status, account_subject, consented_at, redeemed_at, created_at, organization_id
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).bind(
     row.connectionId, row.clientId, row.service, row.siteId, row.siteOrigin, row.callbackUri,
     row.codeChallenge, row.challenge, row.expiresAt, row.intervalSeconds, row.status,
-    row.accountSubject, row.consentedAt, row.redeemedAt, row.createdAt,
+    row.accountSubject, row.consentedAt, row.redeemedAt, row.createdAt, row.organizationId ?? null,
   ).run();
 }
 
 function mapConnection(row: {
   connection_id: string; client_id: string; service: string; site_id: string; site_origin: string;
   callback_uri: string; code_challenge: string; challenge: string; expires_at: number; interval_seconds: number;
-  status: string; account_subject: string | null; consented_at: number | null; redeemed_at: number | null; created_at: number;
+  status: string; account_subject: string | null; consented_at: number | null; redeemed_at: number | null; created_at: number; organization_id?: string | null;
 }): StoreConnection {
   return {
     connectionId: row.connection_id,
@@ -161,13 +171,14 @@ function mapConnection(row: {
     consentedAt: row.consented_at,
     redeemedAt: row.redeemed_at,
     createdAt: row.created_at,
+    organizationId: row.organization_id ?? null,
   };
 }
 
 export async function loadStoreConnection(db: D1Database, connectionId: string): Promise<StoreConnection | null> {
   const row = await db.prepare(
     `SELECT connection_id, client_id, service, site_id, site_origin, callback_uri, code_challenge, challenge,
-            expires_at, interval_seconds, status, account_subject, consented_at, redeemed_at, created_at
+            expires_at, interval_seconds, status, account_subject, consented_at, redeemed_at, created_at, organization_id
      FROM dinkuskit_store_connection WHERE connection_id = ?`,
   ).bind(connectionId).first<Parameters<typeof mapConnection>[0]>();
   return row ? mapConnection(row) : null;
@@ -205,6 +216,8 @@ export async function denyOwnedStoreConnection(db: D1Database, connectionId: str
 export async function approveConnectionAndBind(db: D1Database, input: {
   connectionId: string;
   subject: string;
+  organizationId: string;
+  actorUserId: string;
   siteId: string;
   siteOrigin: string;
   service: string;
@@ -224,22 +237,29 @@ export async function approveConnectionAndBind(db: D1Database, input: {
     await db.batch([
       db.prepare(`
         UPDATE dinkuskit_store_connection
-        SET status = 'approved', account_subject = ?, consented_at = ?
+    SET status = 'approved', account_subject = ?, organization_id = ?, consented_at = ?
         WHERE connection_id = ?
           AND status = 'pending'
           AND expires_at > ?
           AND (account_subject IS NULL OR account_subject = ?)
           AND site_id = ?
           AND site_origin = ?
-          AND EXISTS (SELECT 1 FROM dinkuskit_account WHERE subject = ? AND disabled = 0)
+          AND EXISTS (
+            SELECT 1 FROM dinkuskit_organization o JOIN dinkuskit_membership m ON m.organization_id = o.organization_id
+            JOIN dinkuskit_account a ON a.user_id = m.user_id
+            JOIN dinkuskit_user_selection s ON s.user_id = m.user_id AND s.organization_id = o.organization_id
+            WHERE o.authority_subject = ? AND o.organization_id = ? AND o.owner_user_id = ?
+              AND m.user_id = o.owner_user_id AND m.role = 'owner' AND m.status = 'active'
+              AND o.status = 'active' AND o.admission_status <> 'pending_operator' AND a.disabled = 0
+          )
           AND NOT EXISTS (
             SELECT 1 FROM dinkuskit_site_binding
             WHERE (site_id = ? OR site_origin = ?)
               AND NOT (account_subject = ? AND site_id = ? AND site_origin = ? AND revoked = 0)
           )
       `).bind(
-        input.subject, now, input.connectionId, expiresAt, input.subject,
-        input.siteId, input.siteOrigin, input.subject,
+        input.subject, input.organizationId, now, input.connectionId, expiresAt, input.subject,
+        input.siteId, input.siteOrigin, input.subject, input.organizationId, input.actorUserId,
         input.siteId, input.siteOrigin, input.subject, input.siteId, input.siteOrigin,
       ),
       db.prepare(`
@@ -272,14 +292,21 @@ export async function approveConnectionAndBind(db: D1Database, input: {
           AND expires_at > ?
           AND site_id = ?
           AND site_origin = ?
-          AND EXISTS (SELECT 1 FROM dinkuskit_account WHERE subject = ? AND disabled = 0)
+          AND EXISTS (
+            SELECT 1 FROM dinkuskit_organization o JOIN dinkuskit_membership m ON m.organization_id = o.organization_id
+            JOIN dinkuskit_account a ON a.user_id = m.user_id
+            JOIN dinkuskit_user_selection s ON s.user_id = m.user_id AND s.organization_id = o.organization_id
+            WHERE o.authority_subject = ? AND o.organization_id = ? AND o.owner_user_id = ?
+              AND m.user_id = o.owner_user_id AND m.role = 'owner' AND m.status = 'active'
+              AND o.status = 'active' AND o.admission_status <> 'pending_operator' AND a.disabled = 0
+          )
           AND NOT EXISTS (
             SELECT 1 FROM dinkuskit_site_binding
             WHERE site_id = ? OR site_origin = ?
           )
       `).bind(
         now, input.connectionId, input.subject, expiresAt, input.siteId, input.siteOrigin,
-        input.subject, input.siteId, input.siteOrigin,
+        input.subject, input.organizationId, input.actorUserId, input.siteId, input.siteOrigin,
       ),
       db.prepare(`
         UPDATE dinkuskit_store_connection
@@ -322,7 +349,12 @@ export async function redeemStoreConnection(db: D1Database, input: {
       AND status = 'approved'
       AND account_subject = ?
       AND expires_at > ?
-      AND EXISTS (SELECT 1 FROM dinkuskit_account WHERE subject = ? AND disabled = 0)
+      AND EXISTS (
+        SELECT 1 FROM dinkuskit_organization o JOIN dinkuskit_account a ON a.user_id = o.owner_user_id
+        JOIN dinkuskit_membership m ON m.organization_id = o.organization_id AND m.user_id = o.owner_user_id
+        WHERE o.authority_subject = ? AND o.status = 'active' AND o.admission_status <> 'pending_operator'
+          AND a.disabled = 0 AND m.role = 'owner' AND m.status = 'active'
+      )
       AND EXISTS (
         SELECT 1 FROM dinkuskit_site_binding
         WHERE site_id = ? AND site_origin = ? AND account_subject = ? AND revoked = 0

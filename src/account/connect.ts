@@ -21,6 +21,7 @@ import {
 import { compareProofReceipt, parseCanonicalSiteOrigin, type ProofFetchFn, type StoreProofReceipt } from './proof-fetch.ts';
 import { prepareInventoryAccess } from './jwt.ts';
 import type { ResolvedMerchant } from './session.ts';
+import { authorizeOrganization } from './organizations.ts';
 
 const S256 = 'S256';
 
@@ -134,6 +135,13 @@ export async function exchangeStoreConnectionToken(input: {
   if (connection.status !== 'approved' || !connection.accountSubject) return json(400, { error: 'invalid_grant' });
   const account = await loadMerchantAccountBySubject(input.db, connection.accountSubject);
   if (!account || account.disabled) return json(400, { error: 'account_disabled' });
+  if (connection.organizationId) {
+    const membership = await authorizeOrganization(input.db, account.userId, connection.organizationId);
+    if (!membership || membership.role !== 'owner' || membership.admissionStatus === 'pending_operator'
+      || membership.authoritySubject !== connection.accountSubject) {
+      return json(403, { error: 'organization_forbidden' });
+    }
+  }
   const binding = await loadActiveBinding(input.db, connection.siteId);
   if (!binding || binding.revoked || binding.accountSubject !== connection.accountSubject || binding.siteOrigin !== connection.siteOrigin) {
     return json(400, { error: 'grant_revoked' });
@@ -167,13 +175,18 @@ export async function exchangeStoreConnectionToken(input: {
 export async function consentStoreConnection(input: {
   db: D1Database;
   merchant: ResolvedMerchant;
+  organizationId: string;
   connectionId: string;
   action: 'approve' | 'deny';
   proofFetch?: ProofFetchFn;
 }): Promise<{ ok: true; redirect: string } | { ok: false; reason: string; status: number }> {
+  const membership = await authorizeOrganization(input.db, input.merchant.userId, input.organizationId);
+  if (!membership || membership.role !== 'owner' || membership.admissionStatus === 'pending_operator') {
+    return { ok: false, reason: 'organization_forbidden', status: 403 };
+  }
   const connection = await loadStoreConnection(input.db, input.connectionId);
   if (!connection) return { ok: false, reason: 'unknown_connection', status: 404 };
-  if (connection.accountSubject && connection.accountSubject !== input.merchant.subject) {
+  if (connection.accountSubject && connection.accountSubject !== membership.authoritySubject) {
     return { ok: false, reason: 'not_owner', status: 403 };
   }
   if (Date.now() > connection.expiresAt) return { ok: false, reason: 'expired_token', status: 400 };
@@ -209,7 +222,9 @@ export async function consentStoreConnection(input: {
   if (Date.now() > connection.expiresAt) return { ok: false, reason: 'expired_token', status: 400 };
   const approved = await approveConnectionAndBind(input.db, {
     connectionId: connection.connectionId,
-    subject: input.merchant.subject,
+    subject: membership.authoritySubject,
+    organizationId: input.organizationId,
+    actorUserId: input.merchant.userId,
     siteId: connection.siteId,
     siteOrigin: connection.siteOrigin,
     service: connection.service,

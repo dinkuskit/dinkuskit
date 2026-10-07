@@ -1,7 +1,15 @@
 {
   "closeout": null,
   "created_at": "2026-10-01T08:46:55+00:00",
-  "current_focus": null,
+  "current_focus": {
+    "cadence": "sequential",
+    "confirmed": true,
+    "confirmed_at": "2026-10-07T02:08:15+00:00",
+    "domain": "merchant account membership, signup contact eligibility, and migration preparation",
+    "started_at": "2026-10-07T02:08:04+00:00",
+    "status": "confirmed",
+    "summary": "Implement the confirmed additive account-foundation slice: preserve Better Auth issuer/subjects, legacy grants and signing history; add D1 organizations, memberships, selected-organization authority, secure complete contact intake, first-50 admission, bounded Owner/Administrator membership delegation, real organization switch/create/membership surfaces, CSRF and stale-form checks, and honest close-organization/login-deletion guards. Keep broad Inventory grants Owner-only, SMS unavailable pending qualification, additional organizations operator-pending, no unsafe deletion or Inventory teardown, and no product-roadmap changes. Verify migrations/restart, auth/Connect/CMS isolation, typecheck/build, route behavior, and repo audit locally."
+  },
   "decisions": [
     {
       "baseline_ref": "git:dda0260636aa7723e28fefd10e1f3424ff24d1cf",
@@ -1511,15 +1519,2375 @@
       "superseded_by": null,
       "updated_at": "2026-10-01T08:46:55+00:00",
       "verification_ref": null
+    },
+    {
+      "baseline_ref": "git:2bfb7627b52598d45c2026a3d43e852c812a8256",
+      "candidate_refs": [],
+      "choice": "A person may belong to multiple organizations with an explicit organization switcher. Each organization owns its sites and service authority; preserve legacy issuer/subject/site bindings and backfill each legacy account to one initial organization with exactly one Owner.",
+      "context_ref": "file:docs/merchant-account-model.md",
+      "created_at": "2026-10-07T01:15:29+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [
+        "merchant-better-auth-008"
+      ],
+      "domain": "merchant account membership and roadmap preparation",
+      "history": [
+        {
+          "at": "2026-10-07T01:15:29+00:00",
+          "choice": "Lock merchant/business accounts as the canonical owners of sites and Inventory pools, with multiple individually authenticated Better Auth users represented by memberships. Preserve every existing issuer/subject, verified site grant, site ID, Inventory account ID, and pool ID; backfill one legacy account to one merchant with its current user as initial owner. Keep editor identity separate. Propose additive dual-read migration and fail-closed authorization checks, with no account merges, rekeys, cross-tenant shifts, automatic account switcher, or silent staff inventory:admin.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-07T02:08:04+00:00",
+          "choice": "Lock merchant/business accounts as the canonical owners of sites and Inventory pools, with multiple individually authenticated Better Auth users represented by memberships. Preserve every existing issuer/subject, verified site grant, site ID, Inventory account ID, and pool ID; backfill one legacy account to one merchant with its current user as initial owner. Keep editor identity separate. Propose additive dual-read migration and fail-closed authorization checks, with no account merges, rekeys, cross-tenant shifts, automatic account switcher, or silent staff inventory:admin.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "Later human-confirmed runtime policy in account-foundation-20261006/CONFIRMED-SCOPE.md authorizes this bounded source slice; preserve prior value/history and reverify dependents.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "reopened",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-07T02:08:15+00:00",
+          "choice": "Lock merchant/business accounts as the canonical owners of sites and Inventory pools, with multiple individually authenticated Better Auth users represented by memberships. Preserve every existing issuer/subject, verified site grant, site ID, Inventory account ID, and pool ID; backfill one legacy account to one merchant with its current user as initial owner. Keep editor identity separate. Propose additive dual-read migration and fail-closed authorization checks, with no account merges, rekeys, cross-tenant shifts, automatic account switcher, or silent staff inventory:admin.",
+          "from": "reopened",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-07T02:12:03+00:00",
+          "choice": "A person may belong to multiple organizations with an explicit organization switcher. Each organization owns its sites and service authority; preserve legacy issuer/subject/site bindings and backfill each legacy account to one initial organization with exactly one Owner.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-07T02:28:39+00:00",
+          "choice": "A person may belong to multiple organizations with an explicit organization switcher. Each organization owns its sites and service authority; preserve legacy issuer/subject/site bindings and backfill each legacy account to one initial organization with exactly one Owner.",
+          "from": "implemented",
+          "implementation_ref": "file:migrations/merchant/0004_account_foundation.sql;file:src/account/organizations.ts;file:src/account/auth.ts;file:src/account/actions.ts;file:src/account/connect.ts;file:src/account/store.ts;file:src/pages/account/;file:src/pages/api/account/;file:tests/helpers/merchant-harness.mjs;file:.grilltrack/work/account-foundation-20261006/PROOF.md",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-07T02:40:14+00:00",
+          "choice": "A person may belong to multiple organizations with an explicit organization switcher. Each organization owns its sites and service authority; preserve legacy issuer/subject/site bindings and backfill each legacy account to one initial organization with exactly one Owner.",
+          "from": "verified",
+          "implementation_ref": "file:migrations/merchant/0004_account_foundation.sql;file:src/account/organizations.ts;file:src/account/auth.ts;file:src/account/actions.ts;file:src/account/connect.ts;file:src/account/store.ts;file:src/pages/account/;file:src/pages/api/account/;file:tests/helpers/merchant-harness.mjs;file:.grilltrack/work/account-foundation-20261006/PROOF.md",
+          "note": "adjudicated review requires a fix",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "needs_reverification",
+          "verification_ref": ".grilltrack/work/account-foundation-20261006/FINAL-VERIFICATION.md"
+        },
+        {
+          "at": "2026-10-07T03:16:38+00:00",
+          "choice": "A person may belong to multiple organizations with an explicit organization switcher. Each organization owns its sites and service authority; preserve legacy issuer/subject/site bindings and backfill each legacy account to one initial organization with exactly one Owner.",
+          "from": "needs_reverification",
+          "implementation_ref": "file:migrations/merchant/0004_account_foundation.sql;file:src/account/organizations.ts;file:src/account/auth.ts;file:src/account/actions.ts;file:src/account/connect.ts;file:src/account/store.ts;file:src/pages/account/;file:src/pages/api/account/;file:tests/helpers/merchant-harness.mjs;file:.grilltrack/work/account-foundation-20261006/PROOF.md",
+          "note": "bounded implementation recorded",
+          "repair_required": true,
+          "review_classifications": [
+            "required_fix"
+          ],
+          "review_ref": "file:.grilltrack/work/account-foundation-20261006/PARENT-REVIEW-02.md",
+          "review_result": "findings",
+          "review_source_identity": "sha256:1bc523ee8ead8c6d29041838a466fe224731f4a8b1e10b16e89e2e71d8ad2a40",
+          "to": "implemented",
+          "verification_ref": ".grilltrack/work/account-foundation-20261006/FINAL-VERIFICATION.md"
+        },
+        {
+          "at": "2026-10-07T03:16:38+00:00",
+          "choice": "A person may belong to multiple organizations with an explicit organization switcher. Each organization owns its sites and service authority; preserve legacy issuer/subject/site bindings and backfill each legacy account to one initial organization with exactly one Owner.",
+          "from": "implemented",
+          "implementation_ref": ".grilltrack/work/account-foundation-20261006/PROOF.md",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": ".grilltrack/work/account-foundation-20261006/FINAL-VERIFICATION.md"
+        },
+        {
+          "at": "2026-10-07T06:07:52+00:00",
+          "choice": "A person may belong to multiple organizations with an explicit organization switcher. Each organization owns its sites and service authority; preserve legacy issuer/subject/site bindings and backfill each legacy account to one initial organization with exactly one Owner.",
+          "from": "verified",
+          "implementation_ref": ".grilltrack/work/account-foundation-20261006/PROOF.md",
+          "note": "adjudicated review requires a fix",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": ".grilltrack/work/account-foundation-20261006/PARENT-REVIEW-03-FINAL.md",
+          "review_result": "clean",
+          "review_source_identity": "sha256:fea64fd4092534767156ec8294f356aa6aef3f7fdcdef98b8cec578b634cb747",
+          "to": "needs_reverification",
+          "verification_ref": ".grilltrack/work/account-foundation-20261006/PROOF.md"
+        },
+        {
+          "at": "2026-10-07T06:07:53+00:00",
+          "choice": "A person may belong to multiple organizations with an explicit organization switcher. Each organization owns its sites and service authority; preserve legacy issuer/subject/site bindings and backfill each legacy account to one initial organization with exactly one Owner.",
+          "from": "needs_reverification",
+          "implementation_ref": ".grilltrack/work/account-foundation-20261006/PROOF.md",
+          "note": "bounded implementation recorded",
+          "repair_required": true,
+          "review_classifications": [
+            "required_fix"
+          ],
+          "review_ref": ".grilltrack/work/account-foundation-20261006/MIGRATION-REVIEW-ADJUDICATION.md",
+          "review_result": "findings",
+          "review_source_identity": "sha256:fea64fd4092534767156ec8294f356aa6aef3f7fdcdef98b8cec578b634cb747",
+          "to": "implemented",
+          "verification_ref": ".grilltrack/work/account-foundation-20261006/PROOF.md"
+        },
+        {
+          "at": "2026-10-07T06:09:15+00:00",
+          "choice": "A person may belong to multiple organizations with an explicit organization switcher. Each organization owns its sites and service authority; preserve legacy issuer/subject/site bindings and backfill each legacy account to one initial organization with exactly one Owner.",
+          "from": "implemented",
+          "implementation_ref": "file:migrations/merchant/0004_account_foundation.sql;file:src/account/migration-sql.ts;file:tests/merchant-migrations.test.mjs;file:.grilltrack/work/account-foundation-20261006/MIGRATION-REVIEW-ADJUDICATION.md",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": ".grilltrack/work/account-foundation-20261006/PROOF.md"
+        }
+      ],
+      "id": "merchant-membership-013",
+      "implementation_ref": "file:migrations/merchant/0004_account_foundation.sql;file:src/account/migration-sql.ts;file:tests/merchant-migrations.test.mjs;file:.grilltrack/work/account-foundation-20261006/MIGRATION-REVIEW-ADJUDICATION.md",
+      "question": "How should merchant ownership and authenticated members be represented?",
+      "rationale": "Later human confirmation settles multi-organization membership and selected-organization authority without rekeying legacy identities.",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [
+        {
+          "classifications": [
+            "required_fix"
+          ],
+          "ref": "file:.grilltrack/work/account-foundation-20261006/PARENT-REVIEW-02.md",
+          "result": "findings",
+          "reviewed_at": "2026-10-07T02:40:14+00:00",
+          "source_identity": "sha256:1bc523ee8ead8c6d29041838a466fe224731f4a8b1e10b16e89e2e71d8ad2a40"
+        },
+        {
+          "classifications": [],
+          "ref": ".grilltrack/work/account-foundation-20261006/PARENT-REVIEW-03-FINAL.md",
+          "result": "clean",
+          "reviewed_at": "2026-10-07T03:16:38+00:00",
+          "source_identity": "sha256:fea64fd4092534767156ec8294f356aa6aef3f7fdcdef98b8cec578b634cb747"
+        },
+        {
+          "classifications": [
+            "required_fix"
+          ],
+          "ref": ".grilltrack/work/account-foundation-20261006/MIGRATION-REVIEW-ADJUDICATION.md",
+          "result": "findings",
+          "reviewed_at": "2026-10-07T06:07:52+00:00",
+          "source_identity": "sha256:fea64fd4092534767156ec8294f356aa6aef3f7fdcdef98b8cec578b634cb747"
+        },
+        {
+          "classifications": [],
+          "ref": ".grilltrack/work/account-foundation-20261006/MIGRATION-REPAIR-LOCAL-REVIEW.md",
+          "result": "clean",
+          "reviewed_at": "2026-10-07T06:09:15+00:00",
+          "source_identity": "sha256:13f16731db2a0c51d8fdfc3a2218bd3f5566e51cb67ff2d94727c286fed2432b"
+        }
+      ],
+      "review_ref": ".grilltrack/work/account-foundation-20261006/MIGRATION-REPAIR-LOCAL-REVIEW.md",
+      "review_result": "clean",
+      "review_source_identity": "sha256:13f16731db2a0c51d8fdfc3a2218bd3f5566e51cb67ff2d94727c286fed2432b",
+      "status": "verified",
+      "superseded_by": null,
+      "updated_at": "2026-10-07T06:09:15+00:00",
+      "verification_ref": "proof/account-foundation/REPAIR.md"
+    },
+    {
+      "baseline_ref": "git:2bfb7627b52598d45c2026a3d43e852c812a8256",
+      "candidate_refs": [],
+      "choice": "Record long-term intent for three possible subscription tiers differentiated by included sites and/or Inventory pools as an incentive. Leave prices, counts, eligibility, enforcement, billing, trial treatment, and whether user seats are quota dimensions undecided; add no billing framework or runtime.",
+      "context_ref": "file:docs/product-roadmap.md",
+      "created_at": "2026-10-07T01:15:29+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [
+        "merchant-membership-013"
+      ],
+      "domain": "merchant account membership and roadmap preparation",
+      "history": [
+        {
+          "at": "2026-10-07T01:15:29+00:00",
+          "choice": "Record long-term intent for three possible subscription tiers differentiated by included sites and/or Inventory pools as an incentive. Leave prices, counts, eligibility, enforcement, billing, trial treatment, and whether user seats are quota dimensions undecided; add no billing framework or runtime.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-07T02:08:04+00:00",
+          "choice": "Record long-term intent for three possible subscription tiers differentiated by included sites and/or Inventory pools as an incentive. Leave prices, counts, eligibility, enforcement, billing, trial treatment, and whether user seats are quota dimensions undecided; add no billing framework or runtime.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "dependency merchant-membership-013 changed: Later human-confirmed runtime policy in account-foundation-20261006/CONFIRMED-SCOPE.md authorizes this bounded source slice; preserve prior value/history and reverify dependents.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "needs_reverification",
+          "verification_ref": null
+        }
+      ],
+      "id": "merchant-tier-intent-014",
+      "implementation_ref": null,
+      "question": "What durable subscription direction should guide future planning?",
+      "rationale": "The owner supplied this as future intent only. It must not be turned into pricing, quota, billing, or eligibility claims.",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [],
+      "review_ref": null,
+      "review_result": null,
+      "review_source_identity": null,
+      "status": "needs_reverification",
+      "superseded_by": null,
+      "updated_at": "2026-10-07T02:08:04+00:00",
+      "verification_ref": null
+    },
+    {
+      "baseline_ref": null,
+      "candidate_refs": [],
+      "choice": "Each organization has exactly one Owner. The Owner may explicitly delegate bounded organization Administrator membership-management authority; Administrator cannot grant Owner/Administrator, transfer ownership, close the organization, exceed delegated scope, or reach another organization. Broad inventory:admin remains Owner-only.",
+      "context_ref": "file:docs/merchant-account-model.md",
+      "created_at": "2026-10-07T01:17:42+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [
+        "merchant-membership-013"
+      ],
+      "domain": "merchant account membership, signup contact eligibility, and migration preparation",
+      "history": [
+        {
+          "at": "2026-10-07T01:17:42+00:00",
+          "choice": "Exactly one merchant-scoped Owner/root governs each merchant, with employee users represented as explicitly granted memberships. Propose a small fail-closed capability model inspired by Katana's separation of location scope, visibility, workflow actions, and administration: view assigned site/pool metadata, perform specified inventory work, authorize site connections, and manage memberships. Staff defaults have no permissions until selected. Exact masks, grant authority, invites/delegation, recovery, transfer, operator customer-read authorization, and Inventory enforcement remain unresolved. The Owner is not a platform-wide operator; no live owner transfer or runtime implementation is claimed.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-07T01:19:00+00:00",
+          "choice": "Exactly one merchant-scoped Owner/root governs each merchant, with employee users represented as explicitly granted memberships. Propose a small fail-closed capability model inspired by Katana's separation of location scope, visibility, workflow actions, and administration: view assigned site/pool metadata, perform specified inventory work, authorize site connections, and manage memberships. Staff defaults have no permissions until selected. Exact masks, grant authority, invites/delegation, recovery, transfer, operator customer-read authorization, and Inventory enforcement remain unresolved. The Owner is not a platform-wide operator; no live owner transfer or runtime implementation is claimed.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-07T01:19:00+00:00",
+          "choice": "Exactly one merchant-scoped Owner/root governs each merchant, with employee users represented as explicitly granted memberships. Propose a small fail-closed capability model inspired by Katana's separation of location scope, visibility, workflow actions, and administration: view assigned site/pool metadata, perform specified inventory work, authorize site connections, and manage memberships. Staff defaults have no permissions until selected. Exact masks, grant authority, invites/delegation, recovery, transfer, operator customer-read authorization, and Inventory enforcement remain unresolved. The Owner is not a platform-wide operator; no live owner transfer or runtime implementation is claimed.",
+          "from": "implemented",
+          "implementation_ref": "file:docs/merchant-account-model.md;file:docs/CHARTER.md;file:docs/product-roadmap.md;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/WORKER-HANDOFF.md",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-07T02:08:04+00:00",
+          "choice": "Exactly one merchant-scoped Owner/root governs each merchant, with employee users represented as explicitly granted memberships. Propose a small fail-closed capability model inspired by Katana's separation of location scope, visibility, workflow actions, and administration: view assigned site/pool metadata, perform specified inventory work, authorize site connections, and manage memberships. Staff defaults have no permissions until selected. Exact masks, grant authority, invites/delegation, recovery, transfer, operator customer-read authorization, and Inventory enforcement remain unresolved. The Owner is not a platform-wide operator; no live owner transfer or runtime implementation is claimed.",
+          "from": "verified",
+          "implementation_ref": "file:docs/merchant-account-model.md;file:docs/CHARTER.md;file:docs/product-roadmap.md;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/WORKER-HANDOFF.md",
+          "note": "dependency merchant-membership-013 changed: Later human-confirmed runtime policy in account-foundation-20261006/CONFIRMED-SCOPE.md authorizes this bounded source slice; preserve prior value/history and reverify dependents.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": "file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/PARENT-REVIEW.md",
+          "review_result": "clean",
+          "review_source_identity": "sha256:dbde0a2565d24366c308f3cc1c0356570535676f09bca2285f96884e6ae47b47",
+          "to": "needs_reverification",
+          "verification_ref": "cmd:grilltrack validate;cmd:git diff --check;cmd:npm run audit:repo;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/verification-transcript.txt"
+        },
+        {
+          "at": "2026-10-07T02:08:04+00:00",
+          "choice": "Exactly one merchant-scoped Owner/root governs each merchant, with employee users represented as explicitly granted memberships. Propose a small fail-closed capability model inspired by Katana's separation of location scope, visibility, workflow actions, and administration: view assigned site/pool metadata, perform specified inventory work, authorize site connections, and manage memberships. Staff defaults have no permissions until selected. Exact masks, grant authority, invites/delegation, recovery, transfer, operator customer-read authorization, and Inventory enforcement remain unresolved. The Owner is not a platform-wide operator; no live owner transfer or runtime implementation is claimed.",
+          "from": "needs_reverification",
+          "implementation_ref": "file:docs/merchant-account-model.md;file:docs/CHARTER.md;file:docs/product-roadmap.md;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/WORKER-HANDOFF.md",
+          "note": "Later human-confirmed runtime policy in account-foundation-20261006/CONFIRMED-SCOPE.md authorizes this bounded source slice; preserve prior value/history and reverify dependents.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "reopened",
+          "verification_ref": "cmd:grilltrack validate;cmd:git diff --check;cmd:npm run audit:repo;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/verification-transcript.txt"
+        },
+        {
+          "at": "2026-10-07T02:08:15+00:00",
+          "choice": "Exactly one merchant-scoped Owner/root governs each merchant, with employee users represented as explicitly granted memberships. Propose a small fail-closed capability model inspired by Katana's separation of location scope, visibility, workflow actions, and administration: view assigned site/pool metadata, perform specified inventory work, authorize site connections, and manage memberships. Staff defaults have no permissions until selected. Exact masks, grant authority, invites/delegation, recovery, transfer, operator customer-read authorization, and Inventory enforcement remain unresolved. The Owner is not a platform-wide operator; no live owner transfer or runtime implementation is claimed.",
+          "from": "reopened",
+          "implementation_ref": "file:docs/merchant-account-model.md;file:docs/CHARTER.md;file:docs/product-roadmap.md;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/WORKER-HANDOFF.md",
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": "cmd:grilltrack validate;cmd:git diff --check;cmd:npm run audit:repo;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/verification-transcript.txt"
+        },
+        {
+          "at": "2026-10-07T02:12:03+00:00",
+          "choice": "Each organization has exactly one Owner. The Owner may explicitly delegate bounded organization Administrator membership-management authority; Administrator cannot grant Owner/Administrator, transfer ownership, close the organization, exceed delegated scope, or reach another organization. Broad inventory:admin remains Owner-only.",
+          "from": "locked",
+          "implementation_ref": "file:docs/merchant-account-model.md;file:docs/CHARTER.md;file:docs/product-roadmap.md;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/WORKER-HANDOFF.md",
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": "cmd:grilltrack validate;cmd:git diff --check;cmd:npm run audit:repo;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/verification-transcript.txt"
+        },
+        {
+          "at": "2026-10-07T03:17:14+00:00",
+          "choice": "Each organization has exactly one Owner. The Owner may explicitly delegate bounded organization Administrator membership-management authority; Administrator cannot grant Owner/Administrator, transfer ownership, close the organization, exceed delegated scope, or reach another organization. Broad inventory:admin remains Owner-only.",
+          "from": "implemented",
+          "implementation_ref": "file:migrations/merchant/0004_account_foundation.sql;file:src/account/organizations.ts;file:src/account/auth.ts;file:src/account/actions.ts;file:src/account/connect.ts;file:src/account/store.ts;file:src/pages/account/;file:src/pages/api/account/;file:tests/helpers/merchant-harness.mjs;file:.grilltrack/work/account-foundation-20261006/PROOF.md",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": "cmd:grilltrack validate;cmd:git diff --check;cmd:npm run audit:repo;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/verification-transcript.txt"
+        },
+        {
+          "at": "2026-10-07T06:07:53+00:00",
+          "choice": "Each organization has exactly one Owner. The Owner may explicitly delegate bounded organization Administrator membership-management authority; Administrator cannot grant Owner/Administrator, transfer ownership, close the organization, exceed delegated scope, or reach another organization. Broad inventory:admin remains Owner-only.",
+          "from": "verified",
+          "implementation_ref": "file:migrations/merchant/0004_account_foundation.sql;file:src/account/organizations.ts;file:src/account/auth.ts;file:src/account/actions.ts;file:src/account/connect.ts;file:src/account/store.ts;file:src/pages/account/;file:src/pages/api/account/;file:tests/helpers/merchant-harness.mjs;file:.grilltrack/work/account-foundation-20261006/PROOF.md",
+          "note": "adjudicated review requires a fix",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": ".grilltrack/work/account-foundation-20261006/PARENT-REVIEW-03-FINAL.md",
+          "review_result": "clean",
+          "review_source_identity": "sha256:fea64fd4092534767156ec8294f356aa6aef3f7fdcdef98b8cec578b634cb747",
+          "to": "needs_reverification",
+          "verification_ref": ".grilltrack/work/account-foundation-20261006/PROOF.md"
+        },
+        {
+          "at": "2026-10-07T06:07:53+00:00",
+          "choice": "Each organization has exactly one Owner. The Owner may explicitly delegate bounded organization Administrator membership-management authority; Administrator cannot grant Owner/Administrator, transfer ownership, close the organization, exceed delegated scope, or reach another organization. Broad inventory:admin remains Owner-only.",
+          "from": "needs_reverification",
+          "implementation_ref": "file:migrations/merchant/0004_account_foundation.sql;file:src/account/organizations.ts;file:src/account/auth.ts;file:src/account/actions.ts;file:src/account/connect.ts;file:src/account/store.ts;file:src/pages/account/;file:src/pages/api/account/;file:tests/helpers/merchant-harness.mjs;file:.grilltrack/work/account-foundation-20261006/PROOF.md",
+          "note": "bounded implementation recorded",
+          "repair_required": true,
+          "review_classifications": [
+            "required_fix"
+          ],
+          "review_ref": ".grilltrack/work/account-foundation-20261006/MIGRATION-REVIEW-ADJUDICATION.md",
+          "review_result": "findings",
+          "review_source_identity": "sha256:fea64fd4092534767156ec8294f356aa6aef3f7fdcdef98b8cec578b634cb747",
+          "to": "implemented",
+          "verification_ref": ".grilltrack/work/account-foundation-20261006/PROOF.md"
+        },
+        {
+          "at": "2026-10-07T06:09:15+00:00",
+          "choice": "Each organization has exactly one Owner. The Owner may explicitly delegate bounded organization Administrator membership-management authority; Administrator cannot grant Owner/Administrator, transfer ownership, close the organization, exceed delegated scope, or reach another organization. Broad inventory:admin remains Owner-only.",
+          "from": "implemented",
+          "implementation_ref": "file:migrations/merchant/0004_account_foundation.sql;file:src/account/migration-sql.ts;file:tests/merchant-migrations.test.mjs;file:.grilltrack/work/account-foundation-20261006/MIGRATION-REVIEW-ADJUDICATION.md",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": ".grilltrack/work/account-foundation-20261006/PROOF.md"
+        }
+      ],
+      "id": "merchant-owner-privileges-015",
+      "implementation_ref": "file:migrations/merchant/0004_account_foundation.sql;file:src/account/migration-sql.ts;file:tests/merchant-migrations.test.mjs;file:.grilltrack/work/account-foundation-20261006/MIGRATION-REVIEW-ADJUDICATION.md",
+      "question": "How should merchant ownership and employee privileges be bounded?",
+      "rationale": "Explicit delegation is bounded to organization membership management and never escalates service or organization authority.",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [
+        {
+          "classifications": [],
+          "ref": "file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/PARENT-REVIEW.md",
+          "result": "clean",
+          "reviewed_at": "2026-10-07T01:29:02+00:00",
+          "source_identity": "sha256:dbde0a2565d24366c308f3cc1c0356570535676f09bca2285f96884e6ae47b47"
+        },
+        {
+          "classifications": [],
+          "ref": ".grilltrack/work/account-foundation-20261006/PARENT-REVIEW-03-FINAL.md",
+          "result": "clean",
+          "reviewed_at": "2026-10-07T03:17:14+00:00",
+          "source_identity": "sha256:fea64fd4092534767156ec8294f356aa6aef3f7fdcdef98b8cec578b634cb747"
+        },
+        {
+          "classifications": [
+            "required_fix"
+          ],
+          "ref": ".grilltrack/work/account-foundation-20261006/MIGRATION-REVIEW-ADJUDICATION.md",
+          "result": "findings",
+          "reviewed_at": "2026-10-07T06:07:53+00:00",
+          "source_identity": "sha256:fea64fd4092534767156ec8294f356aa6aef3f7fdcdef98b8cec578b634cb747"
+        },
+        {
+          "classifications": [],
+          "ref": ".grilltrack/work/account-foundation-20261006/MIGRATION-REPAIR-LOCAL-REVIEW.md",
+          "result": "clean",
+          "reviewed_at": "2026-10-07T06:09:15+00:00",
+          "source_identity": "sha256:13f16731db2a0c51d8fdfc3a2218bd3f5566e51cb67ff2d94727c286fed2432b"
+        }
+      ],
+      "review_ref": ".grilltrack/work/account-foundation-20261006/MIGRATION-REPAIR-LOCAL-REVIEW.md",
+      "review_result": "clean",
+      "review_source_identity": "sha256:13f16731db2a0c51d8fdfc3a2218bd3f5566e51cb67ff2d94727c286fed2432b",
+      "status": "verified",
+      "superseded_by": null,
+      "updated_at": "2026-10-07T06:09:15+00:00",
+      "verification_ref": "proof/account-foundation/REPAIR.md"
+    },
+    {
+      "baseline_ref": null,
+      "candidate_refs": [],
+      "choice": "Signup collects both email and phone, requires either contact verified plus the required service/contact choice and separate agreement, and keeps contact statuses independent. Unavailable optional SMS does not block verified-email eligibility; never infer phone verification or promotional consent.",
+      "context_ref": "file:docs/merchant-account-model.md",
+      "created_at": "2026-10-07T01:17:42+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [
+        "merchant-better-auth-008"
+      ],
+      "domain": "merchant account membership, signup contact eligibility, and migration preparation",
+      "history": [
+        {
+          "at": "2026-10-07T01:17:42+00:00",
+          "choice": "At new signup, collect both a real email address and a phone number as independent fields. Initial activation eligibility requires both present and at least one verified; the other may be verified concurrently or later. Marketing consent remains independent. Current email-only Better Auth magic-link signup and absent phone OTP/provider support require reverification; no placeholder email, fake verification flag, duplicate-account takeover, or automatic marketing subscription. A separate additive compatibility path for legacy users without phone is proposed but its transition choice remains unapproved.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-07T01:19:00+00:00",
+          "choice": "At new signup, collect both a real email address and a phone number as independent fields. Initial activation eligibility requires both present and at least one verified; the other may be verified concurrently or later. Marketing consent remains independent. Current email-only Better Auth magic-link signup and absent phone OTP/provider support require reverification; no placeholder email, fake verification flag, duplicate-account takeover, or automatic marketing subscription. A separate additive compatibility path for legacy users without phone is proposed but its transition choice remains unapproved.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-07T01:19:00+00:00",
+          "choice": "At new signup, collect both a real email address and a phone number as independent fields. Initial activation eligibility requires both present and at least one verified; the other may be verified concurrently or later. Marketing consent remains independent. Current email-only Better Auth magic-link signup and absent phone OTP/provider support require reverification; no placeholder email, fake verification flag, duplicate-account takeover, or automatic marketing subscription. A separate additive compatibility path for legacy users without phone is proposed but its transition choice remains unapproved.",
+          "from": "implemented",
+          "implementation_ref": "file:docs/merchant-account-model.md;file:docs/CHARTER.md;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/WORKER-HANDOFF.md",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-07T02:08:04+00:00",
+          "choice": "At new signup, collect both a real email address and a phone number as independent fields. Initial activation eligibility requires both present and at least one verified; the other may be verified concurrently or later. Marketing consent remains independent. Current email-only Better Auth magic-link signup and absent phone OTP/provider support require reverification; no placeholder email, fake verification flag, duplicate-account takeover, or automatic marketing subscription. A separate additive compatibility path for legacy users without phone is proposed but its transition choice remains unapproved.",
+          "from": "verified",
+          "implementation_ref": "file:docs/merchant-account-model.md;file:docs/CHARTER.md;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/WORKER-HANDOFF.md",
+          "note": "Later human-confirmed runtime policy in account-foundation-20261006/CONFIRMED-SCOPE.md authorizes this bounded source slice; preserve prior value/history and reverify dependents.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": "file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/PARENT-REVIEW.md",
+          "review_result": "clean",
+          "review_source_identity": "sha256:dbde0a2565d24366c308f3cc1c0356570535676f09bca2285f96884e6ae47b47",
+          "to": "reopened",
+          "verification_ref": "cmd:grilltrack validate;cmd:git diff --check;cmd:npm run audit:repo;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/verification-transcript.txt"
+        },
+        {
+          "at": "2026-10-07T02:08:15+00:00",
+          "choice": "At new signup, collect both a real email address and a phone number as independent fields. Initial activation eligibility requires both present and at least one verified; the other may be verified concurrently or later. Marketing consent remains independent. Current email-only Better Auth magic-link signup and absent phone OTP/provider support require reverification; no placeholder email, fake verification flag, duplicate-account takeover, or automatic marketing subscription. A separate additive compatibility path for legacy users without phone is proposed but its transition choice remains unapproved.",
+          "from": "reopened",
+          "implementation_ref": "file:docs/merchant-account-model.md;file:docs/CHARTER.md;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/WORKER-HANDOFF.md",
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": "file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/PARENT-REVIEW.md",
+          "review_result": "clean",
+          "review_source_identity": "sha256:dbde0a2565d24366c308f3cc1c0356570535676f09bca2285f96884e6ae47b47",
+          "to": "locked",
+          "verification_ref": "cmd:grilltrack validate;cmd:git diff --check;cmd:npm run audit:repo;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/verification-transcript.txt"
+        },
+        {
+          "at": "2026-10-07T02:12:03+00:00",
+          "choice": "Signup collects both email and phone, requires either contact verified plus the required service/contact choice and separate agreement, and keeps contact statuses independent. Unavailable optional SMS does not block verified-email eligibility; never infer phone verification or promotional consent.",
+          "from": "locked",
+          "implementation_ref": "file:docs/merchant-account-model.md;file:docs/CHARTER.md;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/WORKER-HANDOFF.md",
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": "file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/PARENT-REVIEW.md",
+          "review_result": "clean",
+          "review_source_identity": "sha256:dbde0a2565d24366c308f3cc1c0356570535676f09bca2285f96884e6ae47b47",
+          "to": "implemented",
+          "verification_ref": "cmd:grilltrack validate;cmd:git diff --check;cmd:npm run audit:repo;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/verification-transcript.txt"
+        },
+        {
+          "at": "2026-10-07T03:17:14+00:00",
+          "choice": "Signup collects both email and phone, requires either contact verified plus the required service/contact choice and separate agreement, and keeps contact statuses independent. Unavailable optional SMS does not block verified-email eligibility; never infer phone verification or promotional consent.",
+          "from": "implemented",
+          "implementation_ref": "file:migrations/merchant/0004_account_foundation.sql;file:src/account/organizations.ts;file:src/account/auth.ts;file:src/account/actions.ts;file:src/account/connect.ts;file:src/account/store.ts;file:src/pages/account/;file:src/pages/api/account/;file:tests/helpers/merchant-harness.mjs;file:.grilltrack/work/account-foundation-20261006/PROOF.md",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": "cmd:grilltrack validate;cmd:git diff --check;cmd:npm run audit:repo;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/verification-transcript.txt"
+        },
+        {
+          "at": "2026-10-07T06:07:53+00:00",
+          "choice": "Signup collects both email and phone, requires either contact verified plus the required service/contact choice and separate agreement, and keeps contact statuses independent. Unavailable optional SMS does not block verified-email eligibility; never infer phone verification or promotional consent.",
+          "from": "verified",
+          "implementation_ref": "file:migrations/merchant/0004_account_foundation.sql;file:src/account/organizations.ts;file:src/account/auth.ts;file:src/account/actions.ts;file:src/account/connect.ts;file:src/account/store.ts;file:src/pages/account/;file:src/pages/api/account/;file:tests/helpers/merchant-harness.mjs;file:.grilltrack/work/account-foundation-20261006/PROOF.md",
+          "note": "adjudicated review requires a fix",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": ".grilltrack/work/account-foundation-20261006/PARENT-REVIEW-03-FINAL.md",
+          "review_result": "clean",
+          "review_source_identity": "sha256:fea64fd4092534767156ec8294f356aa6aef3f7fdcdef98b8cec578b634cb747",
+          "to": "needs_reverification",
+          "verification_ref": ".grilltrack/work/account-foundation-20261006/PROOF.md"
+        },
+        {
+          "at": "2026-10-07T06:07:53+00:00",
+          "choice": "Signup collects both email and phone, requires either contact verified plus the required service/contact choice and separate agreement, and keeps contact statuses independent. Unavailable optional SMS does not block verified-email eligibility; never infer phone verification or promotional consent.",
+          "from": "needs_reverification",
+          "implementation_ref": "file:migrations/merchant/0004_account_foundation.sql;file:src/account/organizations.ts;file:src/account/auth.ts;file:src/account/actions.ts;file:src/account/connect.ts;file:src/account/store.ts;file:src/pages/account/;file:src/pages/api/account/;file:tests/helpers/merchant-harness.mjs;file:.grilltrack/work/account-foundation-20261006/PROOF.md",
+          "note": "bounded implementation recorded",
+          "repair_required": true,
+          "review_classifications": [
+            "required_fix"
+          ],
+          "review_ref": ".grilltrack/work/account-foundation-20261006/MIGRATION-REVIEW-ADJUDICATION.md",
+          "review_result": "findings",
+          "review_source_identity": "sha256:fea64fd4092534767156ec8294f356aa6aef3f7fdcdef98b8cec578b634cb747",
+          "to": "implemented",
+          "verification_ref": ".grilltrack/work/account-foundation-20261006/PROOF.md"
+        },
+        {
+          "at": "2026-10-07T06:09:15+00:00",
+          "choice": "Signup collects both email and phone, requires either contact verified plus the required service/contact choice and separate agreement, and keeps contact statuses independent. Unavailable optional SMS does not block verified-email eligibility; never infer phone verification or promotional consent.",
+          "from": "implemented",
+          "implementation_ref": "file:migrations/merchant/0004_account_foundation.sql;file:src/account/migration-sql.ts;file:tests/merchant-migrations.test.mjs;file:.grilltrack/work/account-foundation-20261006/MIGRATION-REVIEW-ADJUDICATION.md",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": ".grilltrack/work/account-foundation-20261006/PROOF.md"
+        }
+      ],
+      "id": "merchant-signup-contact-016",
+      "implementation_ref": "file:migrations/merchant/0004_account_foundation.sql;file:src/account/migration-sql.ts;file:tests/merchant-migrations.test.mjs;file:.grilltrack/work/account-foundation-20261006/MIGRATION-REVIEW-ADJUDICATION.md",
+      "question": "What contact evidence is required for new merchant activation?",
+      "rationale": "The server validates required intake evidence without inventing a phone provider or bypassing Better Auth.",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [
+        {
+          "classifications": [],
+          "ref": "file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/PARENT-REVIEW.md",
+          "result": "clean",
+          "reviewed_at": "2026-10-07T01:29:02+00:00",
+          "source_identity": "sha256:dbde0a2565d24366c308f3cc1c0356570535676f09bca2285f96884e6ae47b47"
+        },
+        {
+          "classifications": [],
+          "ref": ".grilltrack/work/account-foundation-20261006/PARENT-REVIEW-03-FINAL.md",
+          "result": "clean",
+          "reviewed_at": "2026-10-07T03:17:14+00:00",
+          "source_identity": "sha256:fea64fd4092534767156ec8294f356aa6aef3f7fdcdef98b8cec578b634cb747"
+        },
+        {
+          "classifications": [
+            "required_fix"
+          ],
+          "ref": ".grilltrack/work/account-foundation-20261006/MIGRATION-REVIEW-ADJUDICATION.md",
+          "result": "findings",
+          "reviewed_at": "2026-10-07T06:07:53+00:00",
+          "source_identity": "sha256:fea64fd4092534767156ec8294f356aa6aef3f7fdcdef98b8cec578b634cb747"
+        },
+        {
+          "classifications": [],
+          "ref": ".grilltrack/work/account-foundation-20261006/MIGRATION-REPAIR-LOCAL-REVIEW.md",
+          "result": "clean",
+          "reviewed_at": "2026-10-07T06:09:15+00:00",
+          "source_identity": "sha256:13f16731db2a0c51d8fdfc3a2218bd3f5566e51cb67ff2d94727c286fed2432b"
+        }
+      ],
+      "review_ref": ".grilltrack/work/account-foundation-20261006/MIGRATION-REPAIR-LOCAL-REVIEW.md",
+      "review_result": "clean",
+      "review_source_identity": "sha256:13f16731db2a0c51d8fdfc3a2218bd3f5566e51cb67ff2d94727c286fed2432b",
+      "status": "verified",
+      "superseded_by": null,
+      "updated_at": "2026-10-07T06:09:15+00:00",
+      "verification_ref": "proof/account-foundation/REPAIR.md"
+    },
+    {
+      "baseline_ref": "git:2bfb7627b52598d45c2026a3d43e852c812a8256",
+      "candidate_refs": [],
+      "choice": "Accept DESIGN direction that a platform operator may view customer accounts, suspend merchant-member access, and assist authorized access recovery. Keep principals, permissions, routes, and procedure unapproved and unimplemented. Customer-read must not impersonate or take over an Owner; suspension blocks future sessions, tokens, and grants while already-issued JWTs remain valid until exp; recovery restores authorized access, not deleted data, and requires a minimum verified-Owner process. No live operator grant or action is authorized.",
+      "context_ref": "file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/ROUTER-UPDATE-03.md",
+      "created_at": "2026-10-07T01:22:42+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [
+        "merchant-membership-013"
+      ],
+      "domain": "merchant account membership, signup contact eligibility, and migration preparation",
+      "history": [
+        {
+          "at": "2026-10-07T01:22:42+00:00",
+          "choice": "Accept DESIGN direction that a platform operator may view customer accounts, suspend merchant-member access, and assist authorized access recovery. Keep principals, permissions, routes, and procedure unapproved and unimplemented. Customer-read must not impersonate or take over an Owner; suspension blocks future sessions, tokens, and grants while already-issued JWTs remain valid until exp; recovery restores authorized access, not deleted data, and requires a minimum verified-Owner process. No live operator grant or action is authorized.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-07T01:23:10+00:00",
+          "choice": "Accept DESIGN direction that a platform operator may view customer accounts, suspend merchant-member access, and assist authorized access recovery. Keep principals, permissions, routes, and procedure unapproved and unimplemented. Customer-read must not impersonate or take over an Owner; suspension blocks future sessions, tokens, and grants while already-issued JWTs remain valid until exp; recovery restores authorized access, not deleted data, and requires a minimum verified-Owner process. No live operator grant or action is authorized.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-07T01:23:10+00:00",
+          "choice": "Accept DESIGN direction that a platform operator may view customer accounts, suspend merchant-member access, and assist authorized access recovery. Keep principals, permissions, routes, and procedure unapproved and unimplemented. Customer-read must not impersonate or take over an Owner; suspension blocks future sessions, tokens, and grants while already-issued JWTs remain valid until exp; recovery restores authorized access, not deleted data, and requires a minimum verified-Owner process. No live operator grant or action is authorized.",
+          "from": "implemented",
+          "implementation_ref": "file:docs/merchant-account-model.md;file:docs/CHARTER.md;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/WORKER-HANDOFF.md",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-07T01:23:32+00:00",
+          "choice": "Accept DESIGN direction that a platform operator may view customer accounts, suspend merchant-member access, and assist authorized access recovery. Keep principals, permissions, routes, and procedure unapproved and unimplemented. Customer-read must not impersonate or take over an Owner; suspension blocks future sessions, tokens, and grants while already-issued JWTs remain valid until exp; recovery restores authorized access, not deleted data, and requires a minimum verified-Owner process. No live operator grant or action is authorized.",
+          "from": "verified",
+          "implementation_ref": "file:docs/merchant-account-model.md;file:docs/CHARTER.md;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/WORKER-HANDOFF.md",
+          "note": "Reverify after final wording correction to the compact documentation artifact.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "reopened",
+          "verification_ref": "cmd:grilltrack validate;cmd:git diff --check;cmd:npm run audit:repo;cmd:wc -w docs/merchant-account-model.md;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/verification-transcript.txt"
+        },
+        {
+          "at": "2026-10-07T01:23:46+00:00",
+          "choice": "Accept DESIGN direction that a platform operator may view customer accounts, suspend merchant-member access, and assist authorized access recovery. Keep principals, permissions, routes, and procedure unapproved and unimplemented. Customer-read must not impersonate or take over an Owner; suspension blocks future sessions, tokens, and grants while already-issued JWTs remain valid until exp; recovery restores authorized access, not deleted data, and requires a minimum verified-Owner process. No live operator grant or action is authorized.",
+          "from": "reopened",
+          "implementation_ref": "file:docs/merchant-account-model.md;file:docs/CHARTER.md;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/WORKER-HANDOFF.md",
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": "cmd:grilltrack validate;cmd:git diff --check;cmd:npm run audit:repo;cmd:wc -w docs/merchant-account-model.md;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/verification-transcript.txt"
+        },
+        {
+          "at": "2026-10-07T01:23:46+00:00",
+          "choice": "Accept DESIGN direction that a platform operator may view customer accounts, suspend merchant-member access, and assist authorized access recovery. Keep principals, permissions, routes, and procedure unapproved and unimplemented. Customer-read must not impersonate or take over an Owner; suspension blocks future sessions, tokens, and grants while already-issued JWTs remain valid until exp; recovery restores authorized access, not deleted data, and requires a minimum verified-Owner process. No live operator grant or action is authorized.",
+          "from": "locked",
+          "implementation_ref": "file:docs/merchant-account-model.md;file:docs/CHARTER.md;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/WORKER-HANDOFF.md",
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": "cmd:grilltrack validate;cmd:git diff --check;cmd:npm run audit:repo;cmd:wc -w docs/merchant-account-model.md;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/verification-transcript.txt"
+        },
+        {
+          "at": "2026-10-07T01:23:56+00:00",
+          "choice": "Accept DESIGN direction that a platform operator may view customer accounts, suspend merchant-member access, and assist authorized access recovery. Keep principals, permissions, routes, and procedure unapproved and unimplemented. Customer-read must not impersonate or take over an Owner; suspension blocks future sessions, tokens, and grants while already-issued JWTs remain valid until exp; recovery restores authorized access, not deleted data, and requires a minimum verified-Owner process. No live operator grant or action is authorized.",
+          "from": "implemented",
+          "implementation_ref": "file:docs/merchant-account-model.md;file:docs/CHARTER.md;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/WORKER-HANDOFF.md",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": "cmd:grilltrack validate;cmd:git diff --check;cmd:npm run audit:repo;cmd:wc -w docs/merchant-account-model.md;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/verification-transcript.txt"
+        },
+        {
+          "at": "2026-10-07T02:08:04+00:00",
+          "choice": "Accept DESIGN direction that a platform operator may view customer accounts, suspend merchant-member access, and assist authorized access recovery. Keep principals, permissions, routes, and procedure unapproved and unimplemented. Customer-read must not impersonate or take over an Owner; suspension blocks future sessions, tokens, and grants while already-issued JWTs remain valid until exp; recovery restores authorized access, not deleted data, and requires a minimum verified-Owner process. No live operator grant or action is authorized.",
+          "from": "verified",
+          "implementation_ref": "file:docs/merchant-account-model.md;file:docs/CHARTER.md;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/WORKER-HANDOFF.md",
+          "note": "dependency merchant-membership-013 changed: Later human-confirmed runtime policy in account-foundation-20261006/CONFIRMED-SCOPE.md authorizes this bounded source slice; preserve prior value/history and reverify dependents.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": "file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/PARENT-REVIEW.md",
+          "review_result": "clean",
+          "review_source_identity": "sha256:dbde0a2565d24366c308f3cc1c0356570535676f09bca2285f96884e6ae47b47",
+          "to": "needs_reverification",
+          "verification_ref": "cmd:grilltrack validate;cmd:git diff --check;cmd:npm run audit:repo;cmd:wc -w docs/merchant-account-model.md;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/verification-transcript.txt"
+        }
+      ],
+      "id": "merchant-operator-017",
+      "implementation_ref": "file:docs/merchant-account-model.md;file:docs/CHARTER.md;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/WORKER-HANDOFF.md",
+      "question": "What platform-operator customer-management actions belong in the public design?",
+      "rationale": "Separate platform operator from merchant Owner/root and EmDash editor; preserve runtime and recovery boundaries.",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [
+        {
+          "classifications": [],
+          "ref": "file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/PARENT-REVIEW.md",
+          "result": "clean",
+          "reviewed_at": "2026-10-07T01:29:02+00:00",
+          "source_identity": "sha256:dbde0a2565d24366c308f3cc1c0356570535676f09bca2285f96884e6ae47b47"
+        }
+      ],
+      "review_ref": null,
+      "review_result": null,
+      "review_source_identity": null,
+      "status": "needs_reverification",
+      "superseded_by": null,
+      "updated_at": "2026-10-07T02:08:04+00:00",
+      "verification_ref": "cmd:grilltrack validate;cmd:git diff --check;cmd:npm run audit:repo;cmd:wc -w docs/merchant-account-model.md;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/verification-transcript.txt"
+    },
+    {
+      "baseline_ref": "git:2bfb7627b52598d45c2026a3d43e852c812a8256",
+      "candidate_refs": [],
+      "choice": "New merchant signup requires both real email and phone fields. A required service/contact channel must be selected for starting service; promotional email and promotional SMS are separate optional preferences, unchecked by default, independently persisted, and never required for signup, verification, admission, or service. Agreement/terms are separate from promotional consent; verification implies neither preference; no bundled agreement or inferred marketing.",
+      "context_ref": "file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/ROUTER-UPDATE-03.md",
+      "created_at": "2026-10-07T01:22:42+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [
+        "merchant-signup-contact-016"
+      ],
+      "domain": "merchant account membership, signup contact eligibility, and migration preparation",
+      "history": [
+        {
+          "at": "2026-10-07T01:22:42+00:00",
+          "choice": "Preserve verbatim: they must opt in to one form of communication to start and both should be required fields in the signup form. Keep both real contacts plus either verification as the settled contact eligibility condition, but treat complete signup as also requiring this mandatory communication choice. Do not choose service/contact versus promotional meaning, infer marketing consent, force a newsletter checkbox, enroll campaigns, or state a legal conclusion. No final operational signup rule until clarified.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-07T01:23:10+00:00",
+          "choice": "Preserve verbatim: they must opt in to one form of communication to start and both should be required fields in the signup form. Keep both real contacts plus either verification as the settled contact eligibility condition, but treat complete signup as also requiring this mandatory communication choice. Do not choose service/contact versus promotional meaning, infer marketing consent, force a newsletter checkbox, enroll campaigns, or state a legal conclusion. No final operational signup rule until clarified.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-07T01:23:10+00:00",
+          "choice": "Preserve verbatim: they must opt in to one form of communication to start and both should be required fields in the signup form. Keep both real contacts plus either verification as the settled contact eligibility condition, but treat complete signup as also requiring this mandatory communication choice. Do not choose service/contact versus promotional meaning, infer marketing consent, force a newsletter checkbox, enroll campaigns, or state a legal conclusion. No final operational signup rule until clarified.",
+          "from": "implemented",
+          "implementation_ref": "file:docs/merchant-account-model.md;file:docs/CHARTER.md;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/WORKER-HANDOFF.md",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-07T01:23:46+00:00",
+          "choice": "Preserve verbatim: they must opt in to one form of communication to start and both should be required fields in the signup form. Keep both real contacts plus either verification as the settled contact eligibility condition, but treat complete signup as also requiring this mandatory communication choice. Do not choose service/contact versus promotional meaning, infer marketing consent, force a newsletter checkbox, enroll campaigns, or state a legal conclusion. No final operational signup rule until clarified.",
+          "from": "verified",
+          "implementation_ref": "file:docs/merchant-account-model.md;file:docs/CHARTER.md;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/WORKER-HANDOFF.md",
+          "note": "Reverify after final wording correction to the compact documentation artifact.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "reopened",
+          "verification_ref": "cmd:grilltrack validate;cmd:git diff --check;cmd:npm run audit:repo;cmd:wc -w docs/merchant-account-model.md;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/verification-transcript.txt"
+        },
+        {
+          "at": "2026-10-07T01:23:46+00:00",
+          "choice": "Preserve verbatim: they must opt in to one form of communication to start and both should be required fields in the signup form. Keep both real contacts plus either verification as the settled contact eligibility condition, but treat complete signup as also requiring this mandatory communication choice. Do not choose service/contact versus promotional meaning, infer marketing consent, force a newsletter checkbox, enroll campaigns, or state a legal conclusion. No final operational signup rule until clarified.",
+          "from": "reopened",
+          "implementation_ref": "file:docs/merchant-account-model.md;file:docs/CHARTER.md;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/WORKER-HANDOFF.md",
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": "cmd:grilltrack validate;cmd:git diff --check;cmd:npm run audit:repo;cmd:wc -w docs/merchant-account-model.md;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/verification-transcript.txt"
+        },
+        {
+          "at": "2026-10-07T01:23:56+00:00",
+          "choice": "Preserve verbatim: they must opt in to one form of communication to start and both should be required fields in the signup form. Keep both real contacts plus either verification as the settled contact eligibility condition, but treat complete signup as also requiring this mandatory communication choice. Do not choose service/contact versus promotional meaning, infer marketing consent, force a newsletter checkbox, enroll campaigns, or state a legal conclusion. No final operational signup rule until clarified.",
+          "from": "locked",
+          "implementation_ref": "file:docs/merchant-account-model.md;file:docs/CHARTER.md;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/WORKER-HANDOFF.md",
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": "cmd:grilltrack validate;cmd:git diff --check;cmd:npm run audit:repo;cmd:wc -w docs/merchant-account-model.md;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/verification-transcript.txt"
+        },
+        {
+          "at": "2026-10-07T01:23:57+00:00",
+          "choice": "Preserve verbatim: they must opt in to one form of communication to start and both should be required fields in the signup form. Keep both real contacts plus either verification as the settled contact eligibility condition, but treat complete signup as also requiring this mandatory communication choice. Do not choose service/contact versus promotional meaning, infer marketing consent, force a newsletter checkbox, enroll campaigns, or state a legal conclusion. No final operational signup rule until clarified.",
+          "from": "implemented",
+          "implementation_ref": "file:docs/merchant-account-model.md;file:docs/CHARTER.md;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/WORKER-HANDOFF.md",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": "cmd:grilltrack validate;cmd:git diff --check;cmd:npm run audit:repo;cmd:wc -w docs/merchant-account-model.md;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/verification-transcript.txt"
+        },
+        {
+          "at": "2026-10-07T01:42:28+00:00",
+          "choice": "Preserve verbatim: they must opt in to one form of communication to start and both should be required fields in the signup form. Keep both real contacts plus either verification as the settled contact eligibility condition, but treat complete signup as also requiring this mandatory communication choice. Do not choose service/contact versus promotional meaning, infer marketing consent, force a newsletter checkbox, enroll campaigns, or state a legal conclusion. No final operational signup rule until clarified.",
+          "from": "verified",
+          "implementation_ref": "file:docs/merchant-account-model.md;file:docs/CHARTER.md;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/WORKER-HANDOFF.md",
+          "note": "Reopen to record the confirmed service-contact requirement and independent optional promotional email/SMS choices while preserving the prior choice and history.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": "file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/PARENT-REVIEW.md",
+          "review_result": "clean",
+          "review_source_identity": "sha256:dbde0a2565d24366c308f3cc1c0356570535676f09bca2285f96884e6ae47b47",
+          "to": "reopened",
+          "verification_ref": "cmd:grilltrack validate;cmd:git diff --check;cmd:npm run audit:repo;cmd:wc -w docs/merchant-account-model.md;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/verification-transcript.txt"
+        },
+        {
+          "at": "2026-10-07T01:42:28+00:00",
+          "choice": "Preserve verbatim: they must opt in to one form of communication to start and both should be required fields in the signup form. Keep both real contacts plus either verification as the settled contact eligibility condition, but treat complete signup as also requiring this mandatory communication choice. Do not choose service/contact versus promotional meaning, infer marketing consent, force a newsletter checkbox, enroll campaigns, or state a legal conclusion. No final operational signup rule until clarified.",
+          "from": "reopened",
+          "implementation_ref": "file:docs/merchant-account-model.md;file:docs/CHARTER.md;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/WORKER-HANDOFF.md",
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": "file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/PARENT-REVIEW.md",
+          "review_result": "clean",
+          "review_source_identity": "sha256:dbde0a2565d24366c308f3cc1c0356570535676f09bca2285f96884e6ae47b47",
+          "to": "locked",
+          "verification_ref": "cmd:grilltrack validate;cmd:git diff --check;cmd:npm run audit:repo;cmd:wc -w docs/merchant-account-model.md;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/verification-transcript.txt"
+        },
+        {
+          "at": "2026-10-07T01:42:28+00:00",
+          "choice": "New merchant signup requires both real email and phone fields. A required service/contact channel must be selected for starting service; promotional email and promotional SMS are separate optional preferences, unchecked by default, independently persisted, and never required for signup, verification, admission, or service. Agreement/terms are separate from promotional consent; verification implies neither preference; no bundled agreement or inferred marketing.",
+          "from": "locked",
+          "implementation_ref": "file:docs/merchant-account-model.md;file:docs/CHARTER.md;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/WORKER-HANDOFF.md",
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": "file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/PARENT-REVIEW.md",
+          "review_result": "clean",
+          "review_source_identity": "sha256:dbde0a2565d24366c308f3cc1c0356570535676f09bca2285f96884e6ae47b47",
+          "to": "implemented",
+          "verification_ref": "cmd:grilltrack validate;cmd:git diff --check;cmd:npm run audit:repo;cmd:wc -w docs/merchant-account-model.md;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/verification-transcript.txt"
+        },
+        {
+          "at": "2026-10-07T01:42:59+00:00",
+          "choice": "New merchant signup requires both real email and phone fields. A required service/contact channel must be selected for starting service; promotional email and promotional SMS are separate optional preferences, unchecked by default, independently persisted, and never required for signup, verification, admission, or service. Agreement/terms are separate from promotional consent; verification implies neither preference; no bundled agreement or inferred marketing.",
+          "from": "implemented",
+          "implementation_ref": "file:docs/merchant-account-model.md;file:docs/CHARTER.md;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/WORKER-HANDOFF.md",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": "cmd:grilltrack validate;cmd:git diff --check;cmd:npm run audit:repo;cmd:wc -w docs/merchant-account-model.md;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/verification-transcript.txt"
+        },
+        {
+          "at": "2026-10-07T01:43:59+00:00",
+          "choice": "New merchant signup requires both real email and phone fields. A required service/contact channel must be selected for starting service; promotional email and promotional SMS are separate optional preferences, unchecked by default, independently persisted, and never required for signup, verification, admission, or service. Agreement/terms are separate from promotional consent; verification implies neither preference; no bundled agreement or inferred marketing.",
+          "from": "verified",
+          "implementation_ref": "file:docs/merchant-account-model.md;file:docs/CHARTER.md;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/WORKER-HANDOFF.md",
+          "note": "adjudicated review requires a fix",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "needs_reverification",
+          "verification_ref": "cmd:grilltrack validate;cmd:git diff --check;cmd:npm run audit:repo;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/communication-refinement/verification-transcript.txt"
+        },
+        {
+          "at": "2026-10-07T01:45:20+00:00",
+          "choice": "New merchant signup requires both real email and phone fields. A required service/contact channel must be selected for starting service; promotional email and promotional SMS are separate optional preferences, unchecked by default, independently persisted, and never required for signup, verification, admission, or service. Agreement/terms are separate from promotional consent; verification implies neither preference; no bundled agreement or inferred marketing.",
+          "from": "needs_reverification",
+          "implementation_ref": "file:docs/merchant-account-model.md;file:docs/CHARTER.md;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/WORKER-HANDOFF.md",
+          "note": "Required-fix repair successor preserves the original communication lock and history while correcting service/contact, optional promotion, and non-blocking second-verification wording.",
+          "repair_required": true,
+          "review_classifications": [
+            "required_fix"
+          ],
+          "review_ref": "file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/communication-refinement/FIRST-REVIEW.md",
+          "review_result": "findings",
+          "review_source_identity": "sha256:af0c734113d7aef9e1101ec22be4863f68161de212e4998c23bc767b9c648a1f",
+          "to": "superseded",
+          "verification_ref": "cmd:grilltrack validate;cmd:git diff --check;cmd:npm run audit:repo;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/communication-refinement/verification-transcript.txt"
+        }
+      ],
+      "id": "merchant-communication-018",
+      "implementation_ref": "file:docs/merchant-account-model.md;file:docs/CHARTER.md;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/WORKER-HANDOFF.md",
+      "question": "What signup communication requirement is durable before the router clarifies its meaning?",
+      "rationale": "Confirmed human clarification in the sanitized requirement; preserves independent contact verification and rejects inferred marketing or bundled consent.",
+      "repair_required": true,
+      "review_classifications": [
+        "required_fix"
+      ],
+      "review_history": [
+        {
+          "classifications": [],
+          "ref": "file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/PARENT-REVIEW.md",
+          "result": "clean",
+          "reviewed_at": "2026-10-07T01:29:02+00:00",
+          "source_identity": "sha256:dbde0a2565d24366c308f3cc1c0356570535676f09bca2285f96884e6ae47b47"
+        },
+        {
+          "classifications": [
+            "required_fix"
+          ],
+          "ref": "file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/communication-refinement/FIRST-REVIEW.md",
+          "result": "findings",
+          "reviewed_at": "2026-10-07T01:43:59+00:00",
+          "source_identity": "sha256:af0c734113d7aef9e1101ec22be4863f68161de212e4998c23bc767b9c648a1f"
+        }
+      ],
+      "review_ref": "file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/communication-refinement/FIRST-REVIEW.md",
+      "review_result": "findings",
+      "review_source_identity": "sha256:af0c734113d7aef9e1101ec22be4863f68161de212e4998c23bc767b9c648a1f",
+      "status": "superseded",
+      "superseded_by": "merchant-communication-018-repair",
+      "updated_at": "2026-10-07T01:45:20+00:00",
+      "verification_ref": "cmd:grilltrack validate;cmd:git diff --check;cmd:npm run audit:repo;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/communication-refinement/verification-transcript.txt"
+    },
+    {
+      "baseline_ref": "git:c565c984d4635bdb6a20194d58a39bd74b3f50fe",
+      "candidate_refs": [],
+      "choice": "Keep Close organization distinct from Delete my login. Only Owner may transfer ownership or close; deletion is blocked while the person owns organizations unless genuine local transfer or individually confirmed closure resolves them. Never cascade into employer organizations or claim Inventory teardown without its authoritative contract.",
+      "context_ref": "file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/ROUTER-UPDATE-03.md",
+      "created_at": "2026-10-07T01:22:42+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [
+        "merchant-membership-013"
+      ],
+      "domain": "merchant account membership, signup contact eligibility, and migration preparation",
+      "history": [
+        {
+          "at": "2026-10-07T01:22:42+00:00",
+          "choice": "Propose distinct Close merchant account action initiated by Owner/root with typed confirmation and explicit irreversible owned-Inventory-pool warning. Scope is that merchant members, site grants, and owned pools only; ordinary login deletion does not cascade. Do not silently equate personal Owner-login deletion with business closure; do not delete shared Better Auth users or unrelated merchants. Inventory handoff must carry exact ownership, complete pool manifest, idempotent closure state/order, visible retries/failures, and block grants/issuance; reviewed Inventory source has no teardown API and website must not direct-delete Durable Object SQL. Restoration is deferred; no deletion, cascade, grant, suspension, recovery, backup, or undelete action is authorized.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-07T01:23:10+00:00",
+          "choice": "Propose distinct Close merchant account action initiated by Owner/root with typed confirmation and explicit irreversible owned-Inventory-pool warning. Scope is that merchant members, site grants, and owned pools only; ordinary login deletion does not cascade. Do not silently equate personal Owner-login deletion with business closure; do not delete shared Better Auth users or unrelated merchants. Inventory handoff must carry exact ownership, complete pool manifest, idempotent closure state/order, visible retries/failures, and block grants/issuance; reviewed Inventory source has no teardown API and website must not direct-delete Durable Object SQL. Restoration is deferred; no deletion, cascade, grant, suspension, recovery, backup, or undelete action is authorized.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-07T01:23:10+00:00",
+          "choice": "Propose distinct Close merchant account action initiated by Owner/root with typed confirmation and explicit irreversible owned-Inventory-pool warning. Scope is that merchant members, site grants, and owned pools only; ordinary login deletion does not cascade. Do not silently equate personal Owner-login deletion with business closure; do not delete shared Better Auth users or unrelated merchants. Inventory handoff must carry exact ownership, complete pool manifest, idempotent closure state/order, visible retries/failures, and block grants/issuance; reviewed Inventory source has no teardown API and website must not direct-delete Durable Object SQL. Restoration is deferred; no deletion, cascade, grant, suspension, recovery, backup, or undelete action is authorized.",
+          "from": "implemented",
+          "implementation_ref": "file:docs/merchant-account-model.md;file:docs/CHARTER.md;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/WORKER-HANDOFF.md",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-07T02:08:04+00:00",
+          "choice": "Propose distinct Close merchant account action initiated by Owner/root with typed confirmation and explicit irreversible owned-Inventory-pool warning. Scope is that merchant members, site grants, and owned pools only; ordinary login deletion does not cascade. Do not silently equate personal Owner-login deletion with business closure; do not delete shared Better Auth users or unrelated merchants. Inventory handoff must carry exact ownership, complete pool manifest, idempotent closure state/order, visible retries/failures, and block grants/issuance; reviewed Inventory source has no teardown API and website must not direct-delete Durable Object SQL. Restoration is deferred; no deletion, cascade, grant, suspension, recovery, backup, or undelete action is authorized.",
+          "from": "verified",
+          "implementation_ref": "file:docs/merchant-account-model.md;file:docs/CHARTER.md;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/WORKER-HANDOFF.md",
+          "note": "dependency merchant-membership-013 changed: Later human-confirmed runtime policy in account-foundation-20261006/CONFIRMED-SCOPE.md authorizes this bounded source slice; preserve prior value/history and reverify dependents.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": "file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/PARENT-REVIEW.md",
+          "review_result": "clean",
+          "review_source_identity": "sha256:dbde0a2565d24366c308f3cc1c0356570535676f09bca2285f96884e6ae47b47",
+          "to": "needs_reverification",
+          "verification_ref": "cmd:grilltrack validate;cmd:git diff --check;cmd:npm run audit:repo;cmd:wc -w docs/merchant-account-model.md;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/verification-transcript.txt"
+        },
+        {
+          "at": "2026-10-07T02:08:04+00:00",
+          "choice": "Propose distinct Close merchant account action initiated by Owner/root with typed confirmation and explicit irreversible owned-Inventory-pool warning. Scope is that merchant members, site grants, and owned pools only; ordinary login deletion does not cascade. Do not silently equate personal Owner-login deletion with business closure; do not delete shared Better Auth users or unrelated merchants. Inventory handoff must carry exact ownership, complete pool manifest, idempotent closure state/order, visible retries/failures, and block grants/issuance; reviewed Inventory source has no teardown API and website must not direct-delete Durable Object SQL. Restoration is deferred; no deletion, cascade, grant, suspension, recovery, backup, or undelete action is authorized.",
+          "from": "needs_reverification",
+          "implementation_ref": "file:docs/merchant-account-model.md;file:docs/CHARTER.md;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/WORKER-HANDOFF.md",
+          "note": "Later human-confirmed runtime policy in account-foundation-20261006/CONFIRMED-SCOPE.md authorizes this bounded source slice; preserve prior value/history and reverify dependents.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "reopened",
+          "verification_ref": "cmd:grilltrack validate;cmd:git diff --check;cmd:npm run audit:repo;cmd:wc -w docs/merchant-account-model.md;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/verification-transcript.txt"
+        },
+        {
+          "at": "2026-10-07T02:08:15+00:00",
+          "choice": "Propose distinct Close merchant account action initiated by Owner/root with typed confirmation and explicit irreversible owned-Inventory-pool warning. Scope is that merchant members, site grants, and owned pools only; ordinary login deletion does not cascade. Do not silently equate personal Owner-login deletion with business closure; do not delete shared Better Auth users or unrelated merchants. Inventory handoff must carry exact ownership, complete pool manifest, idempotent closure state/order, visible retries/failures, and block grants/issuance; reviewed Inventory source has no teardown API and website must not direct-delete Durable Object SQL. Restoration is deferred; no deletion, cascade, grant, suspension, recovery, backup, or undelete action is authorized.",
+          "from": "reopened",
+          "implementation_ref": "file:docs/merchant-account-model.md;file:docs/CHARTER.md;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/WORKER-HANDOFF.md",
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": "cmd:grilltrack validate;cmd:git diff --check;cmd:npm run audit:repo;cmd:wc -w docs/merchant-account-model.md;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/verification-transcript.txt"
+        },
+        {
+          "at": "2026-10-07T02:12:03+00:00",
+          "choice": "Keep Close organization distinct from Delete my login. Only Owner may transfer ownership or close; deletion is blocked while the person owns organizations unless genuine local transfer or individually confirmed closure resolves them. Never cascade into employer organizations or claim Inventory teardown without its authoritative contract.",
+          "from": "locked",
+          "implementation_ref": "file:docs/merchant-account-model.md;file:docs/CHARTER.md;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/WORKER-HANDOFF.md",
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": "cmd:grilltrack validate;cmd:git diff --check;cmd:npm run audit:repo;cmd:wc -w docs/merchant-account-model.md;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/verification-transcript.txt"
+        },
+        {
+          "at": "2026-10-07T03:17:14+00:00",
+          "choice": "Keep Close organization distinct from Delete my login. Only Owner may transfer ownership or close; deletion is blocked while the person owns organizations unless genuine local transfer or individually confirmed closure resolves them. Never cascade into employer organizations or claim Inventory teardown without its authoritative contract.",
+          "from": "implemented",
+          "implementation_ref": "file:migrations/merchant/0004_account_foundation.sql;file:src/account/organizations.ts;file:src/account/auth.ts;file:src/account/actions.ts;file:src/account/connect.ts;file:src/account/store.ts;file:src/pages/account/;file:src/pages/api/account/;file:tests/helpers/merchant-harness.mjs;file:.grilltrack/work/account-foundation-20261006/PROOF.md",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": "cmd:grilltrack validate;cmd:git diff --check;cmd:npm run audit:repo;cmd:wc -w docs/merchant-account-model.md;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/verification-transcript.txt"
+        },
+        {
+          "at": "2026-10-07T06:07:53+00:00",
+          "choice": "Keep Close organization distinct from Delete my login. Only Owner may transfer ownership or close; deletion is blocked while the person owns organizations unless genuine local transfer or individually confirmed closure resolves them. Never cascade into employer organizations or claim Inventory teardown without its authoritative contract.",
+          "from": "verified",
+          "implementation_ref": "file:migrations/merchant/0004_account_foundation.sql;file:src/account/organizations.ts;file:src/account/auth.ts;file:src/account/actions.ts;file:src/account/connect.ts;file:src/account/store.ts;file:src/pages/account/;file:src/pages/api/account/;file:tests/helpers/merchant-harness.mjs;file:.grilltrack/work/account-foundation-20261006/PROOF.md",
+          "note": "adjudicated review requires a fix",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": ".grilltrack/work/account-foundation-20261006/PARENT-REVIEW-03-FINAL.md",
+          "review_result": "clean",
+          "review_source_identity": "sha256:fea64fd4092534767156ec8294f356aa6aef3f7fdcdef98b8cec578b634cb747",
+          "to": "needs_reverification",
+          "verification_ref": ".grilltrack/work/account-foundation-20261006/PROOF.md"
+        },
+        {
+          "at": "2026-10-07T06:07:53+00:00",
+          "choice": "Keep Close organization distinct from Delete my login. Only Owner may transfer ownership or close; deletion is blocked while the person owns organizations unless genuine local transfer or individually confirmed closure resolves them. Never cascade into employer organizations or claim Inventory teardown without its authoritative contract.",
+          "from": "needs_reverification",
+          "implementation_ref": "file:migrations/merchant/0004_account_foundation.sql;file:src/account/organizations.ts;file:src/account/auth.ts;file:src/account/actions.ts;file:src/account/connect.ts;file:src/account/store.ts;file:src/pages/account/;file:src/pages/api/account/;file:tests/helpers/merchant-harness.mjs;file:.grilltrack/work/account-foundation-20261006/PROOF.md",
+          "note": "bounded implementation recorded",
+          "repair_required": true,
+          "review_classifications": [
+            "required_fix"
+          ],
+          "review_ref": ".grilltrack/work/account-foundation-20261006/MIGRATION-REVIEW-ADJUDICATION.md",
+          "review_result": "findings",
+          "review_source_identity": "sha256:fea64fd4092534767156ec8294f356aa6aef3f7fdcdef98b8cec578b634cb747",
+          "to": "implemented",
+          "verification_ref": ".grilltrack/work/account-foundation-20261006/PROOF.md"
+        },
+        {
+          "at": "2026-10-07T06:09:15+00:00",
+          "choice": "Keep Close organization distinct from Delete my login. Only Owner may transfer ownership or close; deletion is blocked while the person owns organizations unless genuine local transfer or individually confirmed closure resolves them. Never cascade into employer organizations or claim Inventory teardown without its authoritative contract.",
+          "from": "implemented",
+          "implementation_ref": "file:migrations/merchant/0004_account_foundation.sql;file:src/account/migration-sql.ts;file:tests/merchant-migrations.test.mjs;file:.grilltrack/work/account-foundation-20261006/MIGRATION-REVIEW-ADJUDICATION.md",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": ".grilltrack/work/account-foundation-20261006/PROOF.md"
+        }
+      ],
+      "id": "merchant-closure-019",
+      "implementation_ref": "file:migrations/merchant/0004_account_foundation.sql;file:src/account/migration-sql.ts;file:tests/merchant-migrations.test.mjs;file:.grilltrack/work/account-foundation-20261006/MIGRATION-REVIEW-ADJUDICATION.md",
+      "question": "What bounded merchant account closure design should be captured?",
+      "rationale": "The foundation exposes honest guards and UI, not unsafe auth deletion or stubbed service teardown.",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [
+        {
+          "classifications": [],
+          "ref": "file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/PARENT-REVIEW.md",
+          "result": "clean",
+          "reviewed_at": "2026-10-07T01:29:02+00:00",
+          "source_identity": "sha256:dbde0a2565d24366c308f3cc1c0356570535676f09bca2285f96884e6ae47b47"
+        },
+        {
+          "classifications": [],
+          "ref": ".grilltrack/work/account-foundation-20261006/PARENT-REVIEW-03-FINAL.md",
+          "result": "clean",
+          "reviewed_at": "2026-10-07T03:17:14+00:00",
+          "source_identity": "sha256:fea64fd4092534767156ec8294f356aa6aef3f7fdcdef98b8cec578b634cb747"
+        },
+        {
+          "classifications": [
+            "required_fix"
+          ],
+          "ref": ".grilltrack/work/account-foundation-20261006/MIGRATION-REVIEW-ADJUDICATION.md",
+          "result": "findings",
+          "reviewed_at": "2026-10-07T06:07:53+00:00",
+          "source_identity": "sha256:fea64fd4092534767156ec8294f356aa6aef3f7fdcdef98b8cec578b634cb747"
+        },
+        {
+          "classifications": [],
+          "ref": ".grilltrack/work/account-foundation-20261006/MIGRATION-REPAIR-LOCAL-REVIEW.md",
+          "result": "clean",
+          "reviewed_at": "2026-10-07T06:09:15+00:00",
+          "source_identity": "sha256:13f16731db2a0c51d8fdfc3a2218bd3f5566e51cb67ff2d94727c286fed2432b"
+        }
+      ],
+      "review_ref": ".grilltrack/work/account-foundation-20261006/MIGRATION-REPAIR-LOCAL-REVIEW.md",
+      "review_result": "clean",
+      "review_source_identity": "sha256:13f16731db2a0c51d8fdfc3a2218bd3f5566e51cb67ff2d94727c286fed2432b",
+      "status": "verified",
+      "superseded_by": null,
+      "updated_at": "2026-10-07T06:09:15+00:00",
+      "verification_ref": "proof/account-foundation/REPAIR.md"
+    },
+    {
+      "baseline_ref": null,
+      "candidate_refs": [],
+      "choice": "Allocate the first 50 qualifying organizations atomically, idempotently, and only for each person\u2019s first organization. Additional organizations remain operator-pending; employee joins do not consume slots; slots are never silently recycled.",
+      "context_ref": "file:docs/merchant-account-model.md",
+      "created_at": "2026-10-07T01:25:43+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [
+        "merchant-signup-contact-016"
+      ],
+      "domain": "merchant account membership, signup contact eligibility, and migration preparation",
+      "history": [
+        {
+          "at": "2026-10-07T01:25:43+00:00",
+          "choice": "For this one-time pilot, the first 50 qualifying verified merchant-account signups are auto-approved; later merchant accounts wait for platform-operator manual approval. Invited employees never consume allocation. Qualification requires both email and phone fields present and either contact verified; the other contact may verify later. Use a unique canonical merchant-scoped allocation record with an atomic durable counter allocated once on the first qualifying verification event: retries for the same account are idempotent, concurrent final-slot attempts cannot exceed 50, and allocation is by ordered qualifying merchant-verification event, not users, sites, pools, subscriptions, pricing, or a production quota. Approval does not create an Inventory pool or prove hosted availability; merchant admission and actual Inventory provisioning remain separate states. No slot recycling, rollout start point, existing-account treatment, or production grant is authorized; manual approval after exhaustion is a designated future operator capability only.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-07T02:08:04+00:00",
+          "choice": "For this one-time pilot, the first 50 qualifying verified merchant-account signups are auto-approved; later merchant accounts wait for platform-operator manual approval. Invited employees never consume allocation. Qualification requires both email and phone fields present and either contact verified; the other contact may verify later. Use a unique canonical merchant-scoped allocation record with an atomic durable counter allocated once on the first qualifying verification event: retries for the same account are idempotent, concurrent final-slot attempts cannot exceed 50, and allocation is by ordered qualifying merchant-verification event, not users, sites, pools, subscriptions, pricing, or a production quota. Approval does not create an Inventory pool or prove hosted availability; merchant admission and actual Inventory provisioning remain separate states. No slot recycling, rollout start point, existing-account treatment, or production grant is authorized; manual approval after exhaustion is a designated future operator capability only.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "dependency merchant-signup-contact-016 changed: Later human-confirmed runtime policy in account-foundation-20261006/CONFIRMED-SCOPE.md authorizes this bounded source slice; preserve prior value/history and reverify dependents.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "needs_reverification",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-07T02:08:04+00:00",
+          "choice": "For this one-time pilot, the first 50 qualifying verified merchant-account signups are auto-approved; later merchant accounts wait for platform-operator manual approval. Invited employees never consume allocation. Qualification requires both email and phone fields present and either contact verified; the other contact may verify later. Use a unique canonical merchant-scoped allocation record with an atomic durable counter allocated once on the first qualifying verification event: retries for the same account are idempotent, concurrent final-slot attempts cannot exceed 50, and allocation is by ordered qualifying merchant-verification event, not users, sites, pools, subscriptions, pricing, or a production quota. Approval does not create an Inventory pool or prove hosted availability; merchant admission and actual Inventory provisioning remain separate states. No slot recycling, rollout start point, existing-account treatment, or production grant is authorized; manual approval after exhaustion is a designated future operator capability only.",
+          "from": "needs_reverification",
+          "implementation_ref": null,
+          "note": "Later human-confirmed runtime policy in account-foundation-20261006/CONFIRMED-SCOPE.md authorizes this bounded source slice; preserve prior value/history and reverify dependents.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "reopened",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-07T02:08:15+00:00",
+          "choice": "For this one-time pilot, the first 50 qualifying verified merchant-account signups are auto-approved; later merchant accounts wait for platform-operator manual approval. Invited employees never consume allocation. Qualification requires both email and phone fields present and either contact verified; the other contact may verify later. Use a unique canonical merchant-scoped allocation record with an atomic durable counter allocated once on the first qualifying verification event: retries for the same account are idempotent, concurrent final-slot attempts cannot exceed 50, and allocation is by ordered qualifying merchant-verification event, not users, sites, pools, subscriptions, pricing, or a production quota. Approval does not create an Inventory pool or prove hosted availability; merchant admission and actual Inventory provisioning remain separate states. No slot recycling, rollout start point, existing-account treatment, or production grant is authorized; manual approval after exhaustion is a designated future operator capability only.",
+          "from": "reopened",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-07T02:12:03+00:00",
+          "choice": "Allocate the first 50 qualifying organizations atomically, idempotently, and only for each person\u2019s first organization. Additional organizations remain operator-pending; employee joins do not consume slots; slots are never silently recycled.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-07T03:17:14+00:00",
+          "choice": "Allocate the first 50 qualifying organizations atomically, idempotently, and only for each person\u2019s first organization. Additional organizations remain operator-pending; employee joins do not consume slots; slots are never silently recycled.",
+          "from": "implemented",
+          "implementation_ref": "file:migrations/merchant/0004_account_foundation.sql;file:src/account/organizations.ts;file:src/account/auth.ts;file:src/account/actions.ts;file:src/account/connect.ts;file:src/account/store.ts;file:src/pages/account/;file:src/pages/api/account/;file:tests/helpers/merchant-harness.mjs;file:.grilltrack/work/account-foundation-20261006/PROOF.md",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-07T06:07:53+00:00",
+          "choice": "Allocate the first 50 qualifying organizations atomically, idempotently, and only for each person\u2019s first organization. Additional organizations remain operator-pending; employee joins do not consume slots; slots are never silently recycled.",
+          "from": "verified",
+          "implementation_ref": "file:migrations/merchant/0004_account_foundation.sql;file:src/account/organizations.ts;file:src/account/auth.ts;file:src/account/actions.ts;file:src/account/connect.ts;file:src/account/store.ts;file:src/pages/account/;file:src/pages/api/account/;file:tests/helpers/merchant-harness.mjs;file:.grilltrack/work/account-foundation-20261006/PROOF.md",
+          "note": "adjudicated review requires a fix",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": ".grilltrack/work/account-foundation-20261006/PARENT-REVIEW-03-FINAL.md",
+          "review_result": "clean",
+          "review_source_identity": "sha256:fea64fd4092534767156ec8294f356aa6aef3f7fdcdef98b8cec578b634cb747",
+          "to": "needs_reverification",
+          "verification_ref": ".grilltrack/work/account-foundation-20261006/PROOF.md"
+        },
+        {
+          "at": "2026-10-07T06:07:53+00:00",
+          "choice": "Allocate the first 50 qualifying organizations atomically, idempotently, and only for each person\u2019s first organization. Additional organizations remain operator-pending; employee joins do not consume slots; slots are never silently recycled.",
+          "from": "needs_reverification",
+          "implementation_ref": "file:migrations/merchant/0004_account_foundation.sql;file:src/account/organizations.ts;file:src/account/auth.ts;file:src/account/actions.ts;file:src/account/connect.ts;file:src/account/store.ts;file:src/pages/account/;file:src/pages/api/account/;file:tests/helpers/merchant-harness.mjs;file:.grilltrack/work/account-foundation-20261006/PROOF.md",
+          "note": "bounded implementation recorded",
+          "repair_required": true,
+          "review_classifications": [
+            "required_fix"
+          ],
+          "review_ref": ".grilltrack/work/account-foundation-20261006/MIGRATION-REVIEW-ADJUDICATION.md",
+          "review_result": "findings",
+          "review_source_identity": "sha256:fea64fd4092534767156ec8294f356aa6aef3f7fdcdef98b8cec578b634cb747",
+          "to": "implemented",
+          "verification_ref": ".grilltrack/work/account-foundation-20261006/PROOF.md"
+        },
+        {
+          "at": "2026-10-07T06:09:15+00:00",
+          "choice": "Allocate the first 50 qualifying organizations atomically, idempotently, and only for each person\u2019s first organization. Additional organizations remain operator-pending; employee joins do not consume slots; slots are never silently recycled.",
+          "from": "implemented",
+          "implementation_ref": "file:migrations/merchant/0004_account_foundation.sql;file:src/account/migration-sql.ts;file:tests/merchant-migrations.test.mjs;file:.grilltrack/work/account-foundation-20261006/MIGRATION-REVIEW-ADJUDICATION.md",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": ".grilltrack/work/account-foundation-20261006/PROOF.md"
+        }
+      ],
+      "id": "merchant-pilot-admission-020",
+      "implementation_ref": "file:migrations/merchant/0004_account_foundation.sql;file:src/account/migration-sql.ts;file:tests/merchant-migrations.test.mjs;file:.grilltrack/work/account-foundation-20261006/MIGRATION-REVIEW-ADJUDICATION.md",
+      "question": "How is one-time pilot merchant admission allocated?",
+      "rationale": "Admission is organization-level policy, independent from provisioning and employee membership.",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [
+        {
+          "classifications": [],
+          "ref": ".grilltrack/work/account-foundation-20261006/PARENT-REVIEW-03-FINAL.md",
+          "result": "clean",
+          "reviewed_at": "2026-10-07T03:17:14+00:00",
+          "source_identity": "sha256:fea64fd4092534767156ec8294f356aa6aef3f7fdcdef98b8cec578b634cb747"
+        },
+        {
+          "classifications": [
+            "required_fix"
+          ],
+          "ref": ".grilltrack/work/account-foundation-20261006/MIGRATION-REVIEW-ADJUDICATION.md",
+          "result": "findings",
+          "reviewed_at": "2026-10-07T06:07:53+00:00",
+          "source_identity": "sha256:fea64fd4092534767156ec8294f356aa6aef3f7fdcdef98b8cec578b634cb747"
+        },
+        {
+          "classifications": [],
+          "ref": ".grilltrack/work/account-foundation-20261006/MIGRATION-REPAIR-LOCAL-REVIEW.md",
+          "result": "clean",
+          "reviewed_at": "2026-10-07T06:09:15+00:00",
+          "source_identity": "sha256:13f16731db2a0c51d8fdfc3a2218bd3f5566e51cb67ff2d94727c286fed2432b"
+        }
+      ],
+      "review_ref": ".grilltrack/work/account-foundation-20261006/MIGRATION-REPAIR-LOCAL-REVIEW.md",
+      "review_result": "clean",
+      "review_source_identity": "sha256:13f16731db2a0c51d8fdfc3a2218bd3f5566e51cb67ff2d94727c286fed2432b",
+      "status": "verified",
+      "superseded_by": null,
+      "updated_at": "2026-10-07T06:09:15+00:00",
+      "verification_ref": "proof/account-foundation/REPAIR.md"
+    },
+    {
+      "baseline_ref": null,
+      "candidate_refs": [],
+      "choice": "Owner and explicitly delegated Administrator manage memberships only within the selected organization. Employee membership never allocates first-50 capacity and never receives implicit service rights; current service grants fail closed outside Owner authority.",
+      "context_ref": "file:docs/merchant-account-model.md",
+      "created_at": "2026-10-07T01:25:43+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [
+        "merchant-owner-privileges-015"
+      ],
+      "domain": "merchant account membership, signup contact eligibility, and migration preparation",
+      "history": [
+        {
+          "at": "2026-10-07T01:25:44+00:00",
+          "choice": "The merchant Owner/admin defines employee access. This settles ownership of the decision only; exact capability masks, site/pool scope, invitations, and delegated employee administration remain unapproved, fail closed by default, and require separate service and runtime authorization. Membership or CMS editor access does not confer separate platform-operator capability, and the same human may separately hold merchant, CMS-editor, and operator roles.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-07T02:08:04+00:00",
+          "choice": "The merchant Owner/admin defines employee access. This settles ownership of the decision only; exact capability masks, site/pool scope, invitations, and delegated employee administration remain unapproved, fail closed by default, and require separate service and runtime authorization. Membership or CMS editor access does not confer separate platform-operator capability, and the same human may separately hold merchant, CMS-editor, and operator roles.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "dependency merchant-membership-013 changed: Later human-confirmed runtime policy in account-foundation-20261006/CONFIRMED-SCOPE.md authorizes this bounded source slice; preserve prior value/history and reverify dependents.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "needs_reverification",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-07T02:08:04+00:00",
+          "choice": "The merchant Owner/admin defines employee access. This settles ownership of the decision only; exact capability masks, site/pool scope, invitations, and delegated employee administration remain unapproved, fail closed by default, and require separate service and runtime authorization. Membership or CMS editor access does not confer separate platform-operator capability, and the same human may separately hold merchant, CMS-editor, and operator roles.",
+          "from": "needs_reverification",
+          "implementation_ref": null,
+          "note": "Later human-confirmed runtime policy in account-foundation-20261006/CONFIRMED-SCOPE.md authorizes this bounded source slice; preserve prior value/history and reverify dependents.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "reopened",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-07T02:08:15+00:00",
+          "choice": "The merchant Owner/admin defines employee access. This settles ownership of the decision only; exact capability masks, site/pool scope, invitations, and delegated employee administration remain unapproved, fail closed by default, and require separate service and runtime authorization. Membership or CMS editor access does not confer separate platform-operator capability, and the same human may separately hold merchant, CMS-editor, and operator roles.",
+          "from": "reopened",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-07T02:12:03+00:00",
+          "choice": "Owner and explicitly delegated Administrator manage memberships only within the selected organization. Employee membership never allocates first-50 capacity and never receives implicit service rights; current service grants fail closed outside Owner authority.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-07T03:17:14+00:00",
+          "choice": "Owner and explicitly delegated Administrator manage memberships only within the selected organization. Employee membership never allocates first-50 capacity and never receives implicit service rights; current service grants fail closed outside Owner authority.",
+          "from": "implemented",
+          "implementation_ref": "file:migrations/merchant/0004_account_foundation.sql;file:src/account/organizations.ts;file:src/account/auth.ts;file:src/account/actions.ts;file:src/account/connect.ts;file:src/account/store.ts;file:src/pages/account/;file:src/pages/api/account/;file:tests/helpers/merchant-harness.mjs;file:.grilltrack/work/account-foundation-20261006/PROOF.md",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-07T06:07:53+00:00",
+          "choice": "Owner and explicitly delegated Administrator manage memberships only within the selected organization. Employee membership never allocates first-50 capacity and never receives implicit service rights; current service grants fail closed outside Owner authority.",
+          "from": "verified",
+          "implementation_ref": "file:migrations/merchant/0004_account_foundation.sql;file:src/account/organizations.ts;file:src/account/auth.ts;file:src/account/actions.ts;file:src/account/connect.ts;file:src/account/store.ts;file:src/pages/account/;file:src/pages/api/account/;file:tests/helpers/merchant-harness.mjs;file:.grilltrack/work/account-foundation-20261006/PROOF.md",
+          "note": "adjudicated review requires a fix",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": ".grilltrack/work/account-foundation-20261006/PARENT-REVIEW-03-FINAL.md",
+          "review_result": "clean",
+          "review_source_identity": "sha256:fea64fd4092534767156ec8294f356aa6aef3f7fdcdef98b8cec578b634cb747",
+          "to": "needs_reverification",
+          "verification_ref": ".grilltrack/work/account-foundation-20261006/PROOF.md"
+        },
+        {
+          "at": "2026-10-07T06:07:53+00:00",
+          "choice": "Owner and explicitly delegated Administrator manage memberships only within the selected organization. Employee membership never allocates first-50 capacity and never receives implicit service rights; current service grants fail closed outside Owner authority.",
+          "from": "needs_reverification",
+          "implementation_ref": "file:migrations/merchant/0004_account_foundation.sql;file:src/account/organizations.ts;file:src/account/auth.ts;file:src/account/actions.ts;file:src/account/connect.ts;file:src/account/store.ts;file:src/pages/account/;file:src/pages/api/account/;file:tests/helpers/merchant-harness.mjs;file:.grilltrack/work/account-foundation-20261006/PROOF.md",
+          "note": "bounded implementation recorded",
+          "repair_required": true,
+          "review_classifications": [
+            "required_fix"
+          ],
+          "review_ref": ".grilltrack/work/account-foundation-20261006/MIGRATION-REVIEW-ADJUDICATION.md",
+          "review_result": "findings",
+          "review_source_identity": "sha256:fea64fd4092534767156ec8294f356aa6aef3f7fdcdef98b8cec578b634cb747",
+          "to": "implemented",
+          "verification_ref": ".grilltrack/work/account-foundation-20261006/PROOF.md"
+        },
+        {
+          "at": "2026-10-07T06:09:15+00:00",
+          "choice": "Owner and explicitly delegated Administrator manage memberships only within the selected organization. Employee membership never allocates first-50 capacity and never receives implicit service rights; current service grants fail closed outside Owner authority.",
+          "from": "implemented",
+          "implementation_ref": "file:migrations/merchant/0004_account_foundation.sql;file:src/account/migration-sql.ts;file:tests/merchant-migrations.test.mjs;file:.grilltrack/work/account-foundation-20261006/MIGRATION-REVIEW-ADJUDICATION.md",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": ".grilltrack/work/account-foundation-20261006/PROOF.md"
+        }
+      ],
+      "id": "merchant-employee-authority-021",
+      "implementation_ref": "file:migrations/merchant/0004_account_foundation.sql;file:src/account/migration-sql.ts;file:tests/merchant-migrations.test.mjs;file:.grilltrack/work/account-foundation-20261006/MIGRATION-REVIEW-ADJUDICATION.md",
+      "question": "Who defines employee access within a merchant?",
+      "rationale": "Membership administration and service authorization remain separate capabilities.",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [
+        {
+          "classifications": [],
+          "ref": ".grilltrack/work/account-foundation-20261006/PARENT-REVIEW-03-FINAL.md",
+          "result": "clean",
+          "reviewed_at": "2026-10-07T03:17:14+00:00",
+          "source_identity": "sha256:fea64fd4092534767156ec8294f356aa6aef3f7fdcdef98b8cec578b634cb747"
+        },
+        {
+          "classifications": [
+            "required_fix"
+          ],
+          "ref": ".grilltrack/work/account-foundation-20261006/MIGRATION-REVIEW-ADJUDICATION.md",
+          "result": "findings",
+          "reviewed_at": "2026-10-07T06:07:53+00:00",
+          "source_identity": "sha256:fea64fd4092534767156ec8294f356aa6aef3f7fdcdef98b8cec578b634cb747"
+        },
+        {
+          "classifications": [],
+          "ref": ".grilltrack/work/account-foundation-20261006/MIGRATION-REPAIR-LOCAL-REVIEW.md",
+          "result": "clean",
+          "reviewed_at": "2026-10-07T06:09:15+00:00",
+          "source_identity": "sha256:13f16731db2a0c51d8fdfc3a2218bd3f5566e51cb67ff2d94727c286fed2432b"
+        }
+      ],
+      "review_ref": ".grilltrack/work/account-foundation-20261006/MIGRATION-REPAIR-LOCAL-REVIEW.md",
+      "review_result": "clean",
+      "review_source_identity": "sha256:13f16731db2a0c51d8fdfc3a2218bd3f5566e51cb67ff2d94727c286fed2432b",
+      "status": "verified",
+      "superseded_by": null,
+      "updated_at": "2026-10-07T06:09:15+00:00",
+      "verification_ref": "proof/account-foundation/REPAIR.md"
+    },
+    {
+      "baseline_ref": "file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/BASELINE.json",
+      "candidate_refs": [],
+      "choice": "Use one essential signup page with real email and phone fields, independent verification status for each contact, one required service/contact choice, unchecked optional promotional email and SMS choices, a separate labeled agreement checkbox, and one clear final action. Gate completion server-side on both contacts present, either contact verified, required service-contact selection, and agreement acceptance; allow the other contact verification later. Persist each verification and preference independently. On missing, unverified, or unavailable prerequisites, retain entered state without granting membership activation, service admission, grants, or tokens, and show a specific retry/continue state rather than inferring consent or verification.",
+      "context_ref": "file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/CONFIRMED-REQUIREMENT.md",
+      "created_at": "2026-10-07T01:42:28+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [
+        "merchant-signup-contact-016",
+        "merchant-communication-018"
+      ],
+      "domain": "merchant account membership, signup contact eligibility, and migration preparation",
+      "history": [
+        {
+          "at": "2026-10-07T01:42:28+00:00",
+          "choice": "Use one essential signup page with real email and phone fields, independent verification status for each contact, one required service/contact choice, unchecked optional promotional email and SMS choices, a separate labeled agreement checkbox, and one clear final action. Gate completion server-side on both contacts present, either contact verified, required service-contact selection, and agreement acceptance; allow the other contact verification later. Persist each verification and preference independently. On missing, unverified, or unavailable prerequisites, retain entered state without granting membership activation, service admission, grants, or tokens, and show a specific retry/continue state rather than inferring consent or verification.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-07T01:42:28+00:00",
+          "choice": "Use one essential signup page with real email and phone fields, independent verification status for each contact, one required service/contact choice, unchecked optional promotional email and SMS choices, a separate labeled agreement checkbox, and one clear final action. Gate completion server-side on both contacts present, either contact verified, required service-contact selection, and agreement acceptance; allow the other contact verification later. Persist each verification and preference independently. On missing, unverified, or unavailable prerequisites, retain entered state without granting membership activation, service admission, grants, or tokens, and show a specific retry/continue state rather than inferring consent or verification.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-07T01:42:59+00:00",
+          "choice": "Use one essential signup page with real email and phone fields, independent verification status for each contact, one required service/contact choice, unchecked optional promotional email and SMS choices, a separate labeled agreement checkbox, and one clear final action. Gate completion server-side on both contacts present, either contact verified, required service-contact selection, and agreement acceptance; allow the other contact verification later. Persist each verification and preference independently. On missing, unverified, or unavailable prerequisites, retain entered state without granting membership activation, service admission, grants, or tokens, and show a specific retry/continue state rather than inferring consent or verification.",
+          "from": "implemented",
+          "implementation_ref": "file:docs/merchant-account-model.md;file:docs/CHARTER.md;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/WORKER-HANDOFF.md",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-07T01:43:59+00:00",
+          "choice": "Use one essential signup page with real email and phone fields, independent verification status for each contact, one required service/contact choice, unchecked optional promotional email and SMS choices, a separate labeled agreement checkbox, and one clear final action. Gate completion server-side on both contacts present, either contact verified, required service-contact selection, and agreement acceptance; allow the other contact verification later. Persist each verification and preference independently. On missing, unverified, or unavailable prerequisites, retain entered state without granting membership activation, service admission, grants, or tokens, and show a specific retry/continue state rather than inferring consent or verification.",
+          "from": "verified",
+          "implementation_ref": "file:docs/merchant-account-model.md;file:docs/CHARTER.md;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/WORKER-HANDOFF.md",
+          "note": "adjudicated review requires a fix",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "needs_reverification",
+          "verification_ref": "cmd:grilltrack validate;cmd:git diff --check;cmd:npm run audit:repo;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/communication-refinement/verification-transcript.txt"
+        },
+        {
+          "at": "2026-10-07T01:45:20+00:00",
+          "choice": "Use one essential signup page with real email and phone fields, independent verification status for each contact, one required service/contact choice, unchecked optional promotional email and SMS choices, a separate labeled agreement checkbox, and one clear final action. Gate completion server-side on both contacts present, either contact verified, required service-contact selection, and agreement acceptance; allow the other contact verification later. Persist each verification and preference independently. On missing, unverified, or unavailable prerequisites, retain entered state without granting membership activation, service admission, grants, or tokens, and show a specific retry/continue state rather than inferring consent or verification.",
+          "from": "needs_reverification",
+          "implementation_ref": "file:docs/merchant-account-model.md;file:docs/CHARTER.md;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/WORKER-HANDOFF.md",
+          "note": "Required-fix repair successor preserves the original signup-flow lock and history while correcting the public documentation context and full Git baseline references.",
+          "repair_required": true,
+          "review_classifications": [
+            "required_fix"
+          ],
+          "review_ref": "file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/communication-refinement/FIRST-REVIEW.md",
+          "review_result": "findings",
+          "review_source_identity": "sha256:af0c734113d7aef9e1101ec22be4863f68161de212e4998c23bc767b9c648a1f",
+          "to": "superseded",
+          "verification_ref": "cmd:grilltrack validate;cmd:git diff --check;cmd:npm run audit:repo;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/communication-refinement/verification-transcript.txt"
+        }
+      ],
+      "id": "merchant-signup-flow-022",
+      "implementation_ref": "file:docs/merchant-account-model.md;file:docs/CHARTER.md;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/WORKER-HANDOFF.md",
+      "question": "What compact signup flow and gating contract should document the clarified contact choices?",
+      "rationale": "Bounded document-only rendering of the confirmed human requirement; provider, legal copy, implementation mechanics, and runtime behavior remain unresolved.",
+      "repair_required": true,
+      "review_classifications": [
+        "required_fix"
+      ],
+      "review_history": [
+        {
+          "classifications": [
+            "required_fix"
+          ],
+          "ref": "file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/communication-refinement/FIRST-REVIEW.md",
+          "result": "findings",
+          "reviewed_at": "2026-10-07T01:43:59+00:00",
+          "source_identity": "sha256:af0c734113d7aef9e1101ec22be4863f68161de212e4998c23bc767b9c648a1f"
+        }
+      ],
+      "review_ref": "file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/communication-refinement/FIRST-REVIEW.md",
+      "review_result": "findings",
+      "review_source_identity": "sha256:af0c734113d7aef9e1101ec22be4863f68161de212e4998c23bc767b9c648a1f",
+      "status": "superseded",
+      "superseded_by": "merchant-signup-flow-022-repair",
+      "updated_at": "2026-10-07T01:45:20+00:00",
+      "verification_ref": "cmd:grilltrack validate;cmd:git diff --check;cmd:npm run audit:repo;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/communication-refinement/verification-transcript.txt"
+    },
+    {
+      "baseline_ref": "git:2bfb7627b52598d45c2026a3d43e852c812a8256",
+      "candidate_refs": [],
+      "choice": "Use a required service/contact channel choice, separate unchecked optional email and SMS promotions, and a separate agreement. Phone SMS remains unavailable pending qualification of the selected dedicated transport; email qualification must continue without it.",
+      "context_ref": "file:docs/merchant-account-model.md",
+      "created_at": "2026-10-07T01:45:12+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [
+        "merchant-signup-contact-016"
+      ],
+      "domain": "merchant account membership, signup contact eligibility, and migration preparation",
+      "history": [
+        {
+          "at": "2026-10-07T01:45:16+00:00",
+          "choice": "Preserve the human requirement that signup collects both real email and phone fields and requires opting into one service/contact communication channel to start. Interpret that channel as a required service/contact choice, not promotional consent. Promotional email and promotional SMS remain separate optional preferences, unchecked by default, independently persisted, and never required for signup, verification, admission, or service. Agreement/terms remain separate; verification implies neither preference. An unavailable or unverified optional second verification route does not block signup after either contact is verified and the required fields, service/contact choice, and agreement are complete. Fail closed only on actually missing required prerequisites; do not invent a selected-service-channel additional-verification rule.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-07T01:45:16+00:00",
+          "choice": "Preserve the human requirement that signup collects both real email and phone fields and requires opting into one service/contact communication channel to start. Interpret that channel as a required service/contact choice, not promotional consent. Promotional email and promotional SMS remain separate optional preferences, unchecked by default, independently persisted, and never required for signup, verification, admission, or service. Agreement/terms remain separate; verification implies neither preference. An unavailable or unverified optional second verification route does not block signup after either contact is verified and the required fields, service/contact choice, and agreement are complete. Fail closed only on actually missing required prerequisites; do not invent a selected-service-channel additional-verification rule.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-07T01:45:41+00:00",
+          "choice": "Preserve the human requirement that signup collects both real email and phone fields and requires opting into one service/contact communication channel to start. Interpret that channel as a required service/contact choice, not promotional consent. Promotional email and promotional SMS remain separate optional preferences, unchecked by default, independently persisted, and never required for signup, verification, admission, or service. Agreement/terms remain separate; verification implies neither preference. An unavailable or unverified optional second verification route does not block signup after either contact is verified and the required fields, service/contact choice, and agreement are complete. Fail closed only on actually missing required prerequisites; do not invent a selected-service-channel additional-verification rule.",
+          "from": "implemented",
+          "implementation_ref": "file:docs/merchant-account-model.md;file:docs/CHARTER.md;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/communication-refinement/CLARIFICATION-HANDOFF.md",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-07T02:08:04+00:00",
+          "choice": "Preserve the human requirement that signup collects both real email and phone fields and requires opting into one service/contact communication channel to start. Interpret that channel as a required service/contact choice, not promotional consent. Promotional email and promotional SMS remain separate optional preferences, unchecked by default, independently persisted, and never required for signup, verification, admission, or service. Agreement/terms remain separate; verification implies neither preference. An unavailable or unverified optional second verification route does not block signup after either contact is verified and the required fields, service/contact choice, and agreement are complete. Fail closed only on actually missing required prerequisites; do not invent a selected-service-channel additional-verification rule.",
+          "from": "verified",
+          "implementation_ref": "file:docs/merchant-account-model.md;file:docs/CHARTER.md;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/communication-refinement/CLARIFICATION-HANDOFF.md",
+          "note": "dependency merchant-signup-contact-016 changed: Later human-confirmed runtime policy in account-foundation-20261006/CONFIRMED-SCOPE.md authorizes this bounded source slice; preserve prior value/history and reverify dependents.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": "file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/phone-transport-option/PARENT-REVIEW.md",
+          "review_result": "clean",
+          "review_source_identity": "sha256:64d5da71ca7ef3dbdbc6993de93d0c19cf0545830d42ab858c4abd22402fcb9f",
+          "to": "needs_reverification",
+          "verification_ref": "file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/communication-refinement/REPAIR-PROOF.md"
+        },
+        {
+          "at": "2026-10-07T02:08:04+00:00",
+          "choice": "Preserve the human requirement that signup collects both real email and phone fields and requires opting into one service/contact communication channel to start. Interpret that channel as a required service/contact choice, not promotional consent. Promotional email and promotional SMS remain separate optional preferences, unchecked by default, independently persisted, and never required for signup, verification, admission, or service. Agreement/terms remain separate; verification implies neither preference. An unavailable or unverified optional second verification route does not block signup after either contact is verified and the required fields, service/contact choice, and agreement are complete. Fail closed only on actually missing required prerequisites; do not invent a selected-service-channel additional-verification rule.",
+          "from": "needs_reverification",
+          "implementation_ref": "file:docs/merchant-account-model.md;file:docs/CHARTER.md;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/communication-refinement/CLARIFICATION-HANDOFF.md",
+          "note": "Later human-confirmed runtime policy in account-foundation-20261006/CONFIRMED-SCOPE.md authorizes this bounded source slice; preserve prior value/history and reverify dependents.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "reopened",
+          "verification_ref": "file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/communication-refinement/REPAIR-PROOF.md"
+        },
+        {
+          "at": "2026-10-07T02:08:15+00:00",
+          "choice": "Preserve the human requirement that signup collects both real email and phone fields and requires opting into one service/contact communication channel to start. Interpret that channel as a required service/contact choice, not promotional consent. Promotional email and promotional SMS remain separate optional preferences, unchecked by default, independently persisted, and never required for signup, verification, admission, or service. Agreement/terms remain separate; verification implies neither preference. An unavailable or unverified optional second verification route does not block signup after either contact is verified and the required fields, service/contact choice, and agreement are complete. Fail closed only on actually missing required prerequisites; do not invent a selected-service-channel additional-verification rule.",
+          "from": "reopened",
+          "implementation_ref": "file:docs/merchant-account-model.md;file:docs/CHARTER.md;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/communication-refinement/CLARIFICATION-HANDOFF.md",
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": "file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/communication-refinement/REPAIR-PROOF.md"
+        },
+        {
+          "at": "2026-10-07T02:12:03+00:00",
+          "choice": "Use a required service/contact channel choice, separate unchecked optional email and SMS promotions, and a separate agreement. Phone SMS remains unavailable pending qualification of the selected dedicated transport; email qualification must continue without it.",
+          "from": "locked",
+          "implementation_ref": "file:docs/merchant-account-model.md;file:docs/CHARTER.md;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/communication-refinement/CLARIFICATION-HANDOFF.md",
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": "file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/communication-refinement/REPAIR-PROOF.md"
+        },
+        {
+          "at": "2026-10-07T03:17:14+00:00",
+          "choice": "Use a required service/contact channel choice, separate unchecked optional email and SMS promotions, and a separate agreement. Phone SMS remains unavailable pending qualification of the selected dedicated transport; email qualification must continue without it.",
+          "from": "implemented",
+          "implementation_ref": "file:migrations/merchant/0004_account_foundation.sql;file:src/account/organizations.ts;file:src/account/auth.ts;file:src/account/actions.ts;file:src/account/connect.ts;file:src/account/store.ts;file:src/pages/account/;file:src/pages/api/account/;file:tests/helpers/merchant-harness.mjs;file:.grilltrack/work/account-foundation-20261006/PROOF.md",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": "file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/communication-refinement/REPAIR-PROOF.md"
+        },
+        {
+          "at": "2026-10-07T06:07:53+00:00",
+          "choice": "Use a required service/contact channel choice, separate unchecked optional email and SMS promotions, and a separate agreement. Phone SMS remains unavailable pending qualification of the selected dedicated transport; email qualification must continue without it.",
+          "from": "verified",
+          "implementation_ref": "file:migrations/merchant/0004_account_foundation.sql;file:src/account/organizations.ts;file:src/account/auth.ts;file:src/account/actions.ts;file:src/account/connect.ts;file:src/account/store.ts;file:src/pages/account/;file:src/pages/api/account/;file:tests/helpers/merchant-harness.mjs;file:.grilltrack/work/account-foundation-20261006/PROOF.md",
+          "note": "adjudicated review requires a fix",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": ".grilltrack/work/account-foundation-20261006/PARENT-REVIEW-03-FINAL.md",
+          "review_result": "clean",
+          "review_source_identity": "sha256:fea64fd4092534767156ec8294f356aa6aef3f7fdcdef98b8cec578b634cb747",
+          "to": "needs_reverification",
+          "verification_ref": ".grilltrack/work/account-foundation-20261006/PROOF.md"
+        },
+        {
+          "at": "2026-10-07T06:07:53+00:00",
+          "choice": "Use a required service/contact channel choice, separate unchecked optional email and SMS promotions, and a separate agreement. Phone SMS remains unavailable pending qualification of the selected dedicated transport; email qualification must continue without it.",
+          "from": "needs_reverification",
+          "implementation_ref": "file:migrations/merchant/0004_account_foundation.sql;file:src/account/organizations.ts;file:src/account/auth.ts;file:src/account/actions.ts;file:src/account/connect.ts;file:src/account/store.ts;file:src/pages/account/;file:src/pages/api/account/;file:tests/helpers/merchant-harness.mjs;file:.grilltrack/work/account-foundation-20261006/PROOF.md",
+          "note": "bounded implementation recorded",
+          "repair_required": true,
+          "review_classifications": [
+            "required_fix"
+          ],
+          "review_ref": ".grilltrack/work/account-foundation-20261006/MIGRATION-REVIEW-ADJUDICATION.md",
+          "review_result": "findings",
+          "review_source_identity": "sha256:fea64fd4092534767156ec8294f356aa6aef3f7fdcdef98b8cec578b634cb747",
+          "to": "implemented",
+          "verification_ref": ".grilltrack/work/account-foundation-20261006/PROOF.md"
+        },
+        {
+          "at": "2026-10-07T06:09:16+00:00",
+          "choice": "Use a required service/contact channel choice, separate unchecked optional email and SMS promotions, and a separate agreement. Phone SMS remains unavailable pending qualification of the selected dedicated transport; email qualification must continue without it.",
+          "from": "implemented",
+          "implementation_ref": "file:migrations/merchant/0004_account_foundation.sql;file:src/account/migration-sql.ts;file:tests/merchant-migrations.test.mjs;file:.grilltrack/work/account-foundation-20261006/MIGRATION-REVIEW-ADJUDICATION.md",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": ".grilltrack/work/account-foundation-20261006/PROOF.md"
+        }
+      ],
+      "id": "merchant-communication-018-repair",
+      "implementation_ref": "file:migrations/merchant/0004_account_foundation.sql;file:src/account/migration-sql.ts;file:tests/merchant-migrations.test.mjs;file:.grilltrack/work/account-foundation-20261006/MIGRATION-REVIEW-ADJUDICATION.md",
+      "question": "What communication choice and verification wording completes merchant signup?",
+      "rationale": "Promotional preferences are independent and the selected SMS route is not a live delivery claim.",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [
+        {
+          "classifications": [],
+          "ref": "file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/communication-refinement/PARENT-REVIEW.md",
+          "result": "clean",
+          "reviewed_at": "2026-10-07T01:46:57+00:00",
+          "source_identity": "sha256:8103b1c40dc73701a86cdb6762cae8b02391fcdfcc27c9f619153dc608224fac"
+        },
+        {
+          "classifications": [],
+          "ref": "file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/phone-transport-option/PARENT-REVIEW.md",
+          "result": "clean",
+          "reviewed_at": "2026-10-07T01:56:55+00:00",
+          "source_identity": "sha256:64d5da71ca7ef3dbdbc6993de93d0c19cf0545830d42ab858c4abd22402fcb9f"
+        },
+        {
+          "classifications": [],
+          "ref": ".grilltrack/work/account-foundation-20261006/PARENT-REVIEW-03-FINAL.md",
+          "result": "clean",
+          "reviewed_at": "2026-10-07T03:17:15+00:00",
+          "source_identity": "sha256:fea64fd4092534767156ec8294f356aa6aef3f7fdcdef98b8cec578b634cb747"
+        },
+        {
+          "classifications": [
+            "required_fix"
+          ],
+          "ref": ".grilltrack/work/account-foundation-20261006/MIGRATION-REVIEW-ADJUDICATION.md",
+          "result": "findings",
+          "reviewed_at": "2026-10-07T06:07:53+00:00",
+          "source_identity": "sha256:fea64fd4092534767156ec8294f356aa6aef3f7fdcdef98b8cec578b634cb747"
+        },
+        {
+          "classifications": [],
+          "ref": ".grilltrack/work/account-foundation-20261006/MIGRATION-REPAIR-LOCAL-REVIEW.md",
+          "result": "clean",
+          "reviewed_at": "2026-10-07T06:09:16+00:00",
+          "source_identity": "sha256:13f16731db2a0c51d8fdfc3a2218bd3f5566e51cb67ff2d94727c286fed2432b"
+        }
+      ],
+      "review_ref": ".grilltrack/work/account-foundation-20261006/MIGRATION-REPAIR-LOCAL-REVIEW.md",
+      "review_result": "clean",
+      "review_source_identity": "sha256:13f16731db2a0c51d8fdfc3a2218bd3f5566e51cb67ff2d94727c286fed2432b",
+      "status": "verified",
+      "superseded_by": null,
+      "updated_at": "2026-10-07T06:09:16+00:00",
+      "verification_ref": "proof/account-foundation/REPAIR.md"
+    },
+    {
+      "baseline_ref": "git:2bfb7627b52598d45c2026a3d43e852c812a8256",
+      "candidate_refs": [],
+      "choice": "Implement one compact signup intake page with required email, required phone, independent verification status, required service/contact choice, unchecked optional promotions, and separate agreement; secure email-backed eligibility may proceed when either required contact is verified and all other prerequisites pass.",
+      "context_ref": "file:docs/merchant-account-model.md",
+      "created_at": "2026-10-07T01:45:12+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [
+        "merchant-signup-contact-016",
+        "merchant-communication-018-repair"
+      ],
+      "domain": "merchant account membership, signup contact eligibility, and migration preparation",
+      "history": [
+        {
+          "at": "2026-10-07T01:45:16+00:00",
+          "choice": "Use one essential signup page with a few paragraphs at most and this labeled sequence: email required; phone required; verify either inline where feasible; required service/contact channel; promotional email unchecked; promotional SMS unchecked; separate agreement checkbox; clear final action. Gate completion conceptually on both contacts present, either contact verified, the required service/contact selection, and agreement acceptance. An unavailable or unverified optional second verification route is only pending for that route and does not block signup when the other required conditions are complete. Persist each verification and preference independently. On an actually missing required prerequisite, retain entered state and expose a specific retry/continue state without activating membership, admitting service, issuing grants or tokens, or inferring consent. Staff permissions, pools, and billing remain in later owned surfaces; provider, legal, and runtime mechanics remain unresolved.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-07T01:45:16+00:00",
+          "choice": "Use one essential signup page with a few paragraphs at most and this labeled sequence: email required; phone required; verify either inline where feasible; required service/contact channel; promotional email unchecked; promotional SMS unchecked; separate agreement checkbox; clear final action. Gate completion conceptually on both contacts present, either contact verified, the required service/contact selection, and agreement acceptance. An unavailable or unverified optional second verification route is only pending for that route and does not block signup when the other required conditions are complete. Persist each verification and preference independently. On an actually missing required prerequisite, retain entered state and expose a specific retry/continue state without activating membership, admitting service, issuing grants or tokens, or inferring consent. Staff permissions, pools, and billing remain in later owned surfaces; provider, legal, and runtime mechanics remain unresolved.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-07T01:45:41+00:00",
+          "choice": "Use one essential signup page with a few paragraphs at most and this labeled sequence: email required; phone required; verify either inline where feasible; required service/contact channel; promotional email unchecked; promotional SMS unchecked; separate agreement checkbox; clear final action. Gate completion conceptually on both contacts present, either contact verified, the required service/contact selection, and agreement acceptance. An unavailable or unverified optional second verification route is only pending for that route and does not block signup when the other required conditions are complete. Persist each verification and preference independently. On an actually missing required prerequisite, retain entered state and expose a specific retry/continue state without activating membership, admitting service, issuing grants or tokens, or inferring consent. Staff permissions, pools, and billing remain in later owned surfaces; provider, legal, and runtime mechanics remain unresolved.",
+          "from": "implemented",
+          "implementation_ref": "file:docs/merchant-account-model.md;file:docs/CHARTER.md;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/communication-refinement/CLARIFICATION-HANDOFF.md",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-07T02:08:04+00:00",
+          "choice": "Use one essential signup page with a few paragraphs at most and this labeled sequence: email required; phone required; verify either inline where feasible; required service/contact channel; promotional email unchecked; promotional SMS unchecked; separate agreement checkbox; clear final action. Gate completion conceptually on both contacts present, either contact verified, the required service/contact selection, and agreement acceptance. An unavailable or unverified optional second verification route is only pending for that route and does not block signup when the other required conditions are complete. Persist each verification and preference independently. On an actually missing required prerequisite, retain entered state and expose a specific retry/continue state without activating membership, admitting service, issuing grants or tokens, or inferring consent. Staff permissions, pools, and billing remain in later owned surfaces; provider, legal, and runtime mechanics remain unresolved.",
+          "from": "verified",
+          "implementation_ref": "file:docs/merchant-account-model.md;file:docs/CHARTER.md;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/communication-refinement/CLARIFICATION-HANDOFF.md",
+          "note": "dependency merchant-signup-contact-016 changed: Later human-confirmed runtime policy in account-foundation-20261006/CONFIRMED-SCOPE.md authorizes this bounded source slice; preserve prior value/history and reverify dependents.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": "file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/phone-transport-option/PARENT-REVIEW.md",
+          "review_result": "clean",
+          "review_source_identity": "sha256:64d5da71ca7ef3dbdbc6993de93d0c19cf0545830d42ab858c4abd22402fcb9f",
+          "to": "needs_reverification",
+          "verification_ref": "file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/communication-refinement/REPAIR-PROOF.md"
+        },
+        {
+          "at": "2026-10-07T02:08:04+00:00",
+          "choice": "Use one essential signup page with a few paragraphs at most and this labeled sequence: email required; phone required; verify either inline where feasible; required service/contact channel; promotional email unchecked; promotional SMS unchecked; separate agreement checkbox; clear final action. Gate completion conceptually on both contacts present, either contact verified, the required service/contact selection, and agreement acceptance. An unavailable or unverified optional second verification route is only pending for that route and does not block signup when the other required conditions are complete. Persist each verification and preference independently. On an actually missing required prerequisite, retain entered state and expose a specific retry/continue state without activating membership, admitting service, issuing grants or tokens, or inferring consent. Staff permissions, pools, and billing remain in later owned surfaces; provider, legal, and runtime mechanics remain unresolved.",
+          "from": "needs_reverification",
+          "implementation_ref": "file:docs/merchant-account-model.md;file:docs/CHARTER.md;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/communication-refinement/CLARIFICATION-HANDOFF.md",
+          "note": "Later human-confirmed runtime policy in account-foundation-20261006/CONFIRMED-SCOPE.md authorizes this bounded source slice; preserve prior value/history and reverify dependents.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "reopened",
+          "verification_ref": "file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/communication-refinement/REPAIR-PROOF.md"
+        },
+        {
+          "at": "2026-10-07T02:08:15+00:00",
+          "choice": "Use one essential signup page with a few paragraphs at most and this labeled sequence: email required; phone required; verify either inline where feasible; required service/contact channel; promotional email unchecked; promotional SMS unchecked; separate agreement checkbox; clear final action. Gate completion conceptually on both contacts present, either contact verified, the required service/contact selection, and agreement acceptance. An unavailable or unverified optional second verification route is only pending for that route and does not block signup when the other required conditions are complete. Persist each verification and preference independently. On an actually missing required prerequisite, retain entered state and expose a specific retry/continue state without activating membership, admitting service, issuing grants or tokens, or inferring consent. Staff permissions, pools, and billing remain in later owned surfaces; provider, legal, and runtime mechanics remain unresolved.",
+          "from": "reopened",
+          "implementation_ref": "file:docs/merchant-account-model.md;file:docs/CHARTER.md;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/communication-refinement/CLARIFICATION-HANDOFF.md",
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": "file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/communication-refinement/REPAIR-PROOF.md"
+        },
+        {
+          "at": "2026-10-07T02:12:03+00:00",
+          "choice": "Implement one compact signup intake page with required email, required phone, independent verification status, required service/contact choice, unchecked optional promotions, and separate agreement; secure email-backed eligibility may proceed when either required contact is verified and all other prerequisites pass.",
+          "from": "locked",
+          "implementation_ref": "file:docs/merchant-account-model.md;file:docs/CHARTER.md;file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/communication-refinement/CLARIFICATION-HANDOFF.md",
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": "file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/communication-refinement/REPAIR-PROOF.md"
+        },
+        {
+          "at": "2026-10-07T03:17:15+00:00",
+          "choice": "Implement one compact signup intake page with required email, required phone, independent verification status, required service/contact choice, unchecked optional promotions, and separate agreement; secure email-backed eligibility may proceed when either required contact is verified and all other prerequisites pass.",
+          "from": "implemented",
+          "implementation_ref": "file:migrations/merchant/0004_account_foundation.sql;file:src/account/organizations.ts;file:src/account/auth.ts;file:src/account/actions.ts;file:src/account/connect.ts;file:src/account/store.ts;file:src/pages/account/;file:src/pages/api/account/;file:tests/helpers/merchant-harness.mjs;file:.grilltrack/work/account-foundation-20261006/PROOF.md",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": "file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/communication-refinement/REPAIR-PROOF.md"
+        },
+        {
+          "at": "2026-10-07T06:07:53+00:00",
+          "choice": "Implement one compact signup intake page with required email, required phone, independent verification status, required service/contact choice, unchecked optional promotions, and separate agreement; secure email-backed eligibility may proceed when either required contact is verified and all other prerequisites pass.",
+          "from": "verified",
+          "implementation_ref": "file:migrations/merchant/0004_account_foundation.sql;file:src/account/organizations.ts;file:src/account/auth.ts;file:src/account/actions.ts;file:src/account/connect.ts;file:src/account/store.ts;file:src/pages/account/;file:src/pages/api/account/;file:tests/helpers/merchant-harness.mjs;file:.grilltrack/work/account-foundation-20261006/PROOF.md",
+          "note": "adjudicated review requires a fix",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": ".grilltrack/work/account-foundation-20261006/PARENT-REVIEW-03-FINAL.md",
+          "review_result": "clean",
+          "review_source_identity": "sha256:fea64fd4092534767156ec8294f356aa6aef3f7fdcdef98b8cec578b634cb747",
+          "to": "needs_reverification",
+          "verification_ref": ".grilltrack/work/account-foundation-20261006/PROOF.md"
+        },
+        {
+          "at": "2026-10-07T06:07:53+00:00",
+          "choice": "Implement one compact signup intake page with required email, required phone, independent verification status, required service/contact choice, unchecked optional promotions, and separate agreement; secure email-backed eligibility may proceed when either required contact is verified and all other prerequisites pass.",
+          "from": "needs_reverification",
+          "implementation_ref": "file:migrations/merchant/0004_account_foundation.sql;file:src/account/organizations.ts;file:src/account/auth.ts;file:src/account/actions.ts;file:src/account/connect.ts;file:src/account/store.ts;file:src/pages/account/;file:src/pages/api/account/;file:tests/helpers/merchant-harness.mjs;file:.grilltrack/work/account-foundation-20261006/PROOF.md",
+          "note": "bounded implementation recorded",
+          "repair_required": true,
+          "review_classifications": [
+            "required_fix"
+          ],
+          "review_ref": ".grilltrack/work/account-foundation-20261006/MIGRATION-REVIEW-ADJUDICATION.md",
+          "review_result": "findings",
+          "review_source_identity": "sha256:fea64fd4092534767156ec8294f356aa6aef3f7fdcdef98b8cec578b634cb747",
+          "to": "implemented",
+          "verification_ref": ".grilltrack/work/account-foundation-20261006/PROOF.md"
+        },
+        {
+          "at": "2026-10-07T06:09:16+00:00",
+          "choice": "Implement one compact signup intake page with required email, required phone, independent verification status, required service/contact choice, unchecked optional promotions, and separate agreement; secure email-backed eligibility may proceed when either required contact is verified and all other prerequisites pass.",
+          "from": "implemented",
+          "implementation_ref": "file:migrations/merchant/0004_account_foundation.sql;file:src/account/migration-sql.ts;file:tests/merchant-migrations.test.mjs;file:.grilltrack/work/account-foundation-20261006/MIGRATION-REVIEW-ADJUDICATION.md",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": ".grilltrack/work/account-foundation-20261006/PROOF.md"
+        }
+      ],
+      "id": "merchant-signup-flow-022-repair",
+      "implementation_ref": "file:migrations/merchant/0004_account_foundation.sql;file:src/account/migration-sql.ts;file:tests/merchant-migrations.test.mjs;file:.grilltrack/work/account-foundation-20261006/MIGRATION-REVIEW-ADJUDICATION.md",
+      "question": "What compact signup flow and gating contract should document the clarified contact choices?",
+      "rationale": "The UI and server gate mirror the clarified human acceptance.",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [
+        {
+          "classifications": [],
+          "ref": "file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/communication-refinement/PARENT-REVIEW.md",
+          "result": "clean",
+          "reviewed_at": "2026-10-07T01:46:57+00:00",
+          "source_identity": "sha256:8103b1c40dc73701a86cdb6762cae8b02391fcdfcc27c9f619153dc608224fac"
+        },
+        {
+          "classifications": [],
+          "ref": "file:.grilltrack/work/operator-account-assessment-20261006/customer-management-preparation/phone-transport-option/PARENT-REVIEW.md",
+          "result": "clean",
+          "reviewed_at": "2026-10-07T01:56:55+00:00",
+          "source_identity": "sha256:64d5da71ca7ef3dbdbc6993de93d0c19cf0545830d42ab858c4abd22402fcb9f"
+        },
+        {
+          "classifications": [],
+          "ref": ".grilltrack/work/account-foundation-20261006/PARENT-REVIEW-03-FINAL.md",
+          "result": "clean",
+          "reviewed_at": "2026-10-07T03:17:15+00:00",
+          "source_identity": "sha256:fea64fd4092534767156ec8294f356aa6aef3f7fdcdef98b8cec578b634cb747"
+        },
+        {
+          "classifications": [
+            "required_fix"
+          ],
+          "ref": ".grilltrack/work/account-foundation-20261006/MIGRATION-REVIEW-ADJUDICATION.md",
+          "result": "findings",
+          "reviewed_at": "2026-10-07T06:07:53+00:00",
+          "source_identity": "sha256:fea64fd4092534767156ec8294f356aa6aef3f7fdcdef98b8cec578b634cb747"
+        },
+        {
+          "classifications": [],
+          "ref": ".grilltrack/work/account-foundation-20261006/MIGRATION-REPAIR-LOCAL-REVIEW.md",
+          "result": "clean",
+          "reviewed_at": "2026-10-07T06:09:16+00:00",
+          "source_identity": "sha256:13f16731db2a0c51d8fdfc3a2218bd3f5566e51cb67ff2d94727c286fed2432b"
+        }
+      ],
+      "review_ref": ".grilltrack/work/account-foundation-20261006/MIGRATION-REPAIR-LOCAL-REVIEW.md",
+      "review_result": "clean",
+      "review_source_identity": "sha256:13f16731db2a0c51d8fdfc3a2218bd3f5566e51cb67ff2d94727c286fed2432b",
+      "status": "verified",
+      "superseded_by": null,
+      "updated_at": "2026-10-07T06:09:16+00:00",
+      "verification_ref": "proof/account-foundation/REPAIR.md"
+    },
+    {
+      "baseline_ref": "git:2bfb7627b52598d45c2026a3d43e852c812a8256",
+      "candidate_refs": [],
+      "choice": "Select the dedicated-phone SMS route for later qualification only. Website owns OTP expiry, attempt, rate, and one-use rules; no live SMS, provider, device assignment, or fake supported transport is implemented in this slice.",
+      "context_ref": "file:docs/merchant-account-model.md",
+      "created_at": "2026-10-07T01:56:19+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [
+        "merchant-signup-contact-016",
+        "merchant-signup-flow-022-repair"
+      ],
+      "domain": "merchant account membership, signup contact eligibility, and migration preparation",
+      "history": [
+        {
+          "at": "2026-10-07T02:08:15+00:00",
+          "choice": "Investigated option only, not selected or qualified: Website/Better Auth owns challenge expiry, attempts, rate limits and independent phone verification; a server-only scoped adapter uses a dedicated phone delivery transport, and user enters the code on website. API acceptance is not delivery or verification proof. Require owned device/SIM/carrier allowance, fixed consumer, offline/restart/unknown-send/idempotence and log/device privacy qualification by existing phone owner before any approved source or live work. Email remains alternative verification and unavailable SMS does not block an otherwise qualifying signup. No inbound ingestion, general browser phone control, provider/device selection or operations authorized.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-07T02:12:03+00:00",
+          "choice": "Select the dedicated-phone SMS route for later qualification only. Website owns OTP expiry, attempt, rate, and one-use rules; no live SMS, provider, device assignment, or fake supported transport is implemented in this slice.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-07T03:17:15+00:00",
+          "choice": "Select the dedicated-phone SMS route for later qualification only. Website owns OTP expiry, attempt, rate, and one-use rules; no live SMS, provider, device assignment, or fake supported transport is implemented in this slice.",
+          "from": "implemented",
+          "implementation_ref": "file:migrations/merchant/0004_account_foundation.sql;file:src/account/organizations.ts;file:src/account/auth.ts;file:src/account/actions.ts;file:src/account/connect.ts;file:src/account/store.ts;file:src/pages/account/;file:src/pages/api/account/;file:tests/helpers/merchant-harness.mjs;file:.grilltrack/work/account-foundation-20261006/PROOF.md",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-07T06:07:53+00:00",
+          "choice": "Select the dedicated-phone SMS route for later qualification only. Website owns OTP expiry, attempt, rate, and one-use rules; no live SMS, provider, device assignment, or fake supported transport is implemented in this slice.",
+          "from": "verified",
+          "implementation_ref": "file:migrations/merchant/0004_account_foundation.sql;file:src/account/organizations.ts;file:src/account/auth.ts;file:src/account/actions.ts;file:src/account/connect.ts;file:src/account/store.ts;file:src/pages/account/;file:src/pages/api/account/;file:tests/helpers/merchant-harness.mjs;file:.grilltrack/work/account-foundation-20261006/PROOF.md",
+          "note": "adjudicated review requires a fix",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": ".grilltrack/work/account-foundation-20261006/PARENT-REVIEW-03-FINAL.md",
+          "review_result": "clean",
+          "review_source_identity": "sha256:fea64fd4092534767156ec8294f356aa6aef3f7fdcdef98b8cec578b634cb747",
+          "to": "needs_reverification",
+          "verification_ref": ".grilltrack/work/account-foundation-20261006/PROOF.md"
+        },
+        {
+          "at": "2026-10-07T06:07:53+00:00",
+          "choice": "Select the dedicated-phone SMS route for later qualification only. Website owns OTP expiry, attempt, rate, and one-use rules; no live SMS, provider, device assignment, or fake supported transport is implemented in this slice.",
+          "from": "needs_reverification",
+          "implementation_ref": "file:migrations/merchant/0004_account_foundation.sql;file:src/account/organizations.ts;file:src/account/auth.ts;file:src/account/actions.ts;file:src/account/connect.ts;file:src/account/store.ts;file:src/pages/account/;file:src/pages/api/account/;file:tests/helpers/merchant-harness.mjs;file:.grilltrack/work/account-foundation-20261006/PROOF.md",
+          "note": "bounded implementation recorded",
+          "repair_required": true,
+          "review_classifications": [
+            "required_fix"
+          ],
+          "review_ref": ".grilltrack/work/account-foundation-20261006/MIGRATION-REVIEW-ADJUDICATION.md",
+          "review_result": "findings",
+          "review_source_identity": "sha256:fea64fd4092534767156ec8294f356aa6aef3f7fdcdef98b8cec578b634cb747",
+          "to": "implemented",
+          "verification_ref": ".grilltrack/work/account-foundation-20261006/PROOF.md"
+        },
+        {
+          "at": "2026-10-07T06:09:16+00:00",
+          "choice": "Select the dedicated-phone SMS route for later qualification only. Website owns OTP expiry, attempt, rate, and one-use rules; no live SMS, provider, device assignment, or fake supported transport is implemented in this slice.",
+          "from": "implemented",
+          "implementation_ref": "file:migrations/merchant/0004_account_foundation.sql;file:src/account/migration-sql.ts;file:tests/merchant-migrations.test.mjs;file:.grilltrack/work/account-foundation-20261006/MIGRATION-REVIEW-ADJUDICATION.md",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": ".grilltrack/work/account-foundation-20261006/PROOF.md"
+        }
+      ],
+      "id": "merchant-phone-transport-option-023",
+      "implementation_ref": "file:migrations/merchant/0004_account_foundation.sql;file:src/account/migration-sql.ts;file:tests/merchant-migrations.test.mjs;file:.grilltrack/work/account-foundation-20261006/MIGRATION-REVIEW-ADJUDICATION.md",
+      "question": "Could a dedicated phone qualify as an optional signup OTP delivery transport?",
+      "rationale": "The route is selected as a qualification direction, not as runtime availability.",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [
+        {
+          "classifications": [],
+          "ref": ".grilltrack/work/account-foundation-20261006/PARENT-REVIEW-03-FINAL.md",
+          "result": "clean",
+          "reviewed_at": "2026-10-07T03:17:15+00:00",
+          "source_identity": "sha256:fea64fd4092534767156ec8294f356aa6aef3f7fdcdef98b8cec578b634cb747"
+        },
+        {
+          "classifications": [
+            "required_fix"
+          ],
+          "ref": ".grilltrack/work/account-foundation-20261006/MIGRATION-REVIEW-ADJUDICATION.md",
+          "result": "findings",
+          "reviewed_at": "2026-10-07T06:07:53+00:00",
+          "source_identity": "sha256:fea64fd4092534767156ec8294f356aa6aef3f7fdcdef98b8cec578b634cb747"
+        },
+        {
+          "classifications": [],
+          "ref": ".grilltrack/work/account-foundation-20261006/MIGRATION-REPAIR-LOCAL-REVIEW.md",
+          "result": "clean",
+          "reviewed_at": "2026-10-07T06:09:16+00:00",
+          "source_identity": "sha256:13f16731db2a0c51d8fdfc3a2218bd3f5566e51cb67ff2d94727c286fed2432b"
+        }
+      ],
+      "review_ref": ".grilltrack/work/account-foundation-20261006/MIGRATION-REPAIR-LOCAL-REVIEW.md",
+      "review_result": "clean",
+      "review_source_identity": "sha256:13f16731db2a0c51d8fdfc3a2218bd3f5566e51cb67ff2d94727c286fed2432b",
+      "status": "verified",
+      "superseded_by": null,
+      "updated_at": "2026-10-07T06:09:16+00:00",
+      "verification_ref": "proof/account-foundation/REPAIR.md"
     }
   ],
   "last_activation": {
-    "at": "2026-10-01T08:46:55+00:00",
-    "mechanism": "implicit"
+    "at": "2026-10-07T02:08:04+00:00",
+    "mechanism": "$grilltrack"
   },
   "last_pause": null,
   "pause": null,
-  "recommendation": null,
+  "recommendation": {
+    "alternatives": [],
+    "reason": "Smallest next router-owned migration choice after this documentation-only lock; no runtime implementation or permission enablement is authorized by this worker.",
+    "recommended": "Approve preserving every existing account issuer/subject and verified site binding while making the current user the initial merchant owner, without merging accounts; keep operator customer-read permission confirmation separate.",
+    "recorded_at": "2026-10-07T01:15:53+00:00"
+  },
   "reconciliation": {
     "plan_id": "10135ef494ed0371d06a888ceb41e4caff31cd32c5faaa2e20cba3212b84960c",
     "refs": {
@@ -1533,5 +3901,5 @@
   "status": "active",
   "title": "Website PR9 current-main reconciliation",
   "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca",
-  "updated_at": "2026-10-01T08:46:55+00:00"
+  "updated_at": "2026-10-07T06:09:16+00:00"
 }

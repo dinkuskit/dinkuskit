@@ -1,6 +1,7 @@
 /** Production issuer is config, never the request Host. */
 export const ACCOUNT_ISSUER = 'https://dinkuskit.com/account';
 export const ACCOUNT_COOKIE_PREFIX = 'dk-merchant';
+export const SIGNUP_ATTEMPT_COOKIE = 'dk-signup-attempt';
 export const ACCOUNT_BASE_PATH = '/api/auth';
 export const MERCHANT_DB_BINDING = 'MERCHANT_DB';
 
@@ -14,7 +15,7 @@ export const TOKEN_TTL_SECONDS = 300;
 export const TOKEN_TTL_MAX_SECONDS = 600;
 export const PROOF_FETCH_TIMEOUT_MS = 3_000;
 export const PROOF_FETCH_MAX_BYTES = 8_192;
-export const CURRENT_MERCHANT_SCHEMA_VERSION = 3;
+export const CURRENT_MERCHANT_SCHEMA_VERSION = 4;
 
 export const PUBLIC_ACCOUNT_PATHS = [
   '/account/signup',

@@ -92,6 +92,7 @@ test('merchant D1 migrations: wrangler apply all 4 records 1-4 and survives repe
   const persistTo = await mkdtemp(join(tmpdir(), 'dk-cli-all3-'));
   try {
     applyAllMigrations(persistTo);
+    assert.deepEqual(ledgerRows(persistTo), expectedLedger, 'CLI migrations must record their ledger before runtime reconciliation');
     await assertRepeatAndRestart(persistTo, 'cli-all3', testSecret());
   } finally {
     await rm(persistTo, { recursive: true, force: true });

@@ -1,5 +1,7 @@
 # Organization account foundation proof
 
+This is the initial source/capture record at `3b7a67d623d7d4f742e360f109fbc48419ff0207`. The accepted migration finding, corrected source identity and current verification are in [REPAIR.md](REPAIR.md). Historical evidence below remains preserved.
+
 Implementation identity: `sha256:fea64fd4092534767156ec8294f356aa6aef3f7fdcdef98b8cec578b634cb747`. The [source manifest](source-manifest.json) binds 30 source, documentation and test files to baseline `2bfb7627b52598d45c2026a3d43e852c812a8256`. Decision-ledger metadata and this proof are outside that implementation digest.
 
 ## Verified behavior

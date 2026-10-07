@@ -93,3 +93,6 @@ INSERT OR IGNORE INTO dinkuskit_admission
 SELECT a.user_id, 'legacy_' || a.user_id, NULL, a.created_at FROM dinkuskit_account a;
 INSERT OR IGNORE INTO dinkuskit_user_selection (user_id, organization_id, updated_at)
 SELECT a.user_id, 'legacy_' || a.user_id, a.updated_at FROM dinkuskit_account a;
+
+INSERT OR IGNORE INTO dinkuskit_schema_migrations (version, name, applied_at)
+VALUES (4, '0004_account_foundation.sql', unixepoch());

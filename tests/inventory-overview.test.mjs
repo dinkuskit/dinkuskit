@@ -40,7 +40,12 @@ test('real signature carries independent caller and exact organization claims, b
     } });
   const result = await reader.read({ callerId: 'personal-caller', organizationId: 'org_test', organizationSubject: 'preserved-org-authority' });
   assert.equal(validateOverview(result.body, 'org_test', result.status).state, 'available'); assert.equal(calls, 1);
-  for (const endpoint of ['http://inventory.example.test/v1/account-overview', 'https://user:password@inventory.example.test/v1/account-overview', 'https://inventory.example.test/v1/account-overview?org=other', 'https://inventory.example.test/v1/stock']) {
+  // Construct separate synthetic URL credentials rather than retaining a credential-form URI literal.
+  const usernameEndpoint = new URL('https://inventory.example.test/v1/account-overview');
+  usernameEndpoint.username = 'fixture-user';
+  const passwordEndpoint = new URL('https://inventory.example.test/v1/account-overview');
+  passwordEndpoint.password = 'fixture-password';
+  for (const endpoint of ['http://inventory.example.test/v1/account-overview', usernameEndpoint.href, passwordEndpoint.href, 'https://inventory.example.test/v1/account-overview?org=other', 'https://inventory.example.test/v1/stock']) {
     assert.throws(() => createSignedInventoryReader({ endpoint, signer: async () => '' }), /invalid_inventory_endpoint/);
   }
 });

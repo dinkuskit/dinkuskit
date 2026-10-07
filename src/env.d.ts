@@ -17,6 +17,7 @@ declare global {
   namespace App {
     interface Locals {
       merchant: import('./account/session').ResolvedMerchant | null;
+      login: import('./account/session').AuthenticatedLogin | null;
     }
   }
 }

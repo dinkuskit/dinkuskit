@@ -34,7 +34,12 @@ function simulationFetch(kv, db) {
     if (stored.expire_after_delay && db) {
       await db.prepare('UPDATE dinkuskit_store_connection SET expires_at = 1 WHERE connection_id = ?').bind(connectionId).run();
     }
-    const { delay_ms: _delay, expire_after_delay: _expire, ...receipt } = stored;
+    if (stored.revoke_owner_after_delay && db) {
+      await db.prepare(`UPDATE dinkuskit_membership SET status = 'removed' WHERE role = 'owner' AND organization_id = (
+        SELECT o.organization_id FROM dinkuskit_organization o JOIN dinkuskit_store_connection c ON c.account_subject = o.authority_subject WHERE c.connection_id = ?
+      )`).bind(connectionId).run();
+    }
+    const { delay_ms: _delay, expire_after_delay: _expire, revoke_owner_after_delay: _revoke, ...receipt } = stored;
     if (receipt.site_origin !== siteOrigin) return { ok: false, reason: 'simulation_origin_mismatch', transport: 'simulation' };
     return { ok: true, receipt, transport: 'simulation' };
   };
@@ -115,6 +120,38 @@ async function proofRoutes(request, env, ctx) {
     const captured = await takeCapturedMail(env, body.email);
     if (!captured) return json(404, { error: 'not_found' });
     return json(200, { intent: captured.intent, hasToken: Boolean(tokenFromCaptured(captured)) });
+  }
+
+  if (url.pathname === '/__proof/foundation') {
+    const email = url.searchParams.get('email') ?? '';
+    if (request.method === 'GET') {
+      const profile = await env.MERCHANT_DB.prepare('SELECT p.* FROM dinkuskit_signup_profile p WHERE email = ?').bind(email).first();
+      const user = await env.MERCHANT_DB.prepare('SELECT id FROM "user" WHERE email = ?').bind(email).first();
+      const stats = await env.MERCHANT_DB.prepare(`SELECT
+        (SELECT COUNT(*) FROM dinkuskit_admission WHERE slot_number IS NOT NULL) AS slots,
+        (SELECT COUNT(*) FROM dinkuskit_organization WHERE admission_status = 'admitted') AS admitted,
+        (SELECT COUNT(*) FROM dinkuskit_organization o WHERE admission_status = 'admitted' AND NOT EXISTS (
+          SELECT 1 FROM dinkuskit_admission a WHERE a.first_organization_id = o.organization_id AND a.slot_number IS NOT NULL)) AS unallocated`).first();
+      return json(200, { profile, userId: user?.id ?? null, stats });
+    }
+    const body = await request.json();
+    if (body.action === 'expire_signup') await env.MERCHANT_DB.prepare('UPDATE dinkuskit_signup_attempt SET expires_at = 1').run();
+    else if (body.action === 'remove_member') await env.MERCHANT_DB.prepare(`UPDATE dinkuskit_membership SET status = 'removed'
+      WHERE organization_id = ? AND user_id = (SELECT id FROM "user" WHERE email = ?) AND role <> 'owner'`).bind(body.organizationId, body.email).run();
+    else if (body.action === 'seed_last_slot') {
+      const t = Math.floor(Date.now() / 1000);
+      for (let i = 1; i < 50; i++) {
+        const userId = 'synthetic-seed-' + i;
+        const orgId = 'synthetic-org-' + i;
+        await env.MERCHANT_DB.batch([
+          env.MERCHANT_DB.prepare(`INSERT INTO "user" (id, name, email, emailVerified, createdAt, updatedAt) VALUES (?, 'Synthetic fixture', ?, 1, ?, ?)`).bind(userId, userId + '@example.com', t, t),
+          env.MERCHANT_DB.prepare(`INSERT INTO dinkuskit_organization (organization_id, name, status, owner_user_id, authority_subject, admission_status, created_by_user_id, created_at, updated_at)
+            VALUES (?, 'Synthetic fixture', 'active', ?, ?, 'admitted', ?, ?, ?)`).bind(orgId, userId, orgId, userId, t, t),
+          env.MERCHANT_DB.prepare('INSERT INTO dinkuskit_admission (user_id, first_organization_id, slot_number, created_at) VALUES (?, ?, ?, ?)').bind(userId, orgId, i, t),
+        ]);
+      }
+    } else return json(400, { error: 'unknown_fixture_action' });
+    return json(200, { syntheticOnly: true });
   }
 
   if (request.method === 'POST' && url.pathname === '/__proof/expire-verification') {

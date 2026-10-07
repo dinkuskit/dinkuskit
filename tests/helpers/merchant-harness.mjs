@@ -220,7 +220,12 @@ export async function completeProofMail(runtime, jar, email) {
   return request(runtime, jar, '/__proof/browser/complete', {
     method: 'POST',
     headers: { 'content-type': 'application/x-www-form-urlencoded' },
-    body: `email=${encodeURIComponent(email)}`,
+    body: [
+      `email=${encodeURIComponent(email)}`,
+      'phone=%2B15555550123',
+      'service_channel=email',
+      'agreement=on',
+    ].join('&'),
   });
 }
 
@@ -235,7 +240,12 @@ export async function signup(runtime, email, jar = new Map()) {
   const posted = await request(runtime, jar, '/account/signup', {
     method: 'POST',
     headers: { 'content-type': 'application/x-www-form-urlencoded' },
-    body: `email=${encodeURIComponent(email)}`,
+    body: [
+      `email=${encodeURIComponent(email)}`,
+      'phone=%2B15555550123',
+      'service_channel=email',
+      'agreement=on',
+    ].join('&'),
   });
   const completed = await completeProofMail(runtime, jar, email);
   return { posted, mail: { intent: 'signup', hasToken: completed.status === 303 }, jar, completed };
@@ -253,4 +263,13 @@ export async function stopRuntime(runtime) {
   if (runtime.config && /wrangler\.(test|prodprobe)\./.test(String(runtime.config))) {
     await rm(runtime.config, { force: true });
   }
+}
+
+/** Synthetic form body includes the selected organization, as the rendered form does. */
+export async function accountForm(runtime, jar, body) {
+  const current = await request(runtime, jar, '/api/account/organizations');
+  const selected = current.status === 200 ? (await current.json()).selectedOrganizationId : null;
+  const values = new URLSearchParams(body);
+  if (selected) values.set('organization_id', selected);
+  return values.toString();
 }

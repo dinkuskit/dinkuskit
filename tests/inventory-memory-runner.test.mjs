@@ -66,7 +66,7 @@ async function signUp(controller, jar, email, callbackURL) {
   const response = await request(controller, jar, '/account/signup', {
     method: 'POST',
     headers: { 'content-type': 'application/x-www-form-urlencoded' },
-    body: `email=${encodeURIComponent(email)}&callbackURL=${encodeURIComponent(callbackURL)}`,
+    body: `email=${encodeURIComponent(email)}&phone=%2B15555550123&service_channel=email&agreement=on&callbackURL=${encodeURIComponent(callbackURL)}`,
   });
   assert.equal(response.status, 303);
   await completeCapturedMail(controller, jar, email);
@@ -106,11 +106,14 @@ async function initiate(controller, siteId = SITE_ID, siteOrigin = controller.ex
 async function approve(controller, jar, connection) {
   const page = await request(controller, jar, `/account/connect?connection_id=${encodeURIComponent(connection.connection_id)}`);
   assert.equal(page.status, 200);
-  assert.match(await page.text(), /Approve this site/);
+  const html = await page.text();
+  assert.match(html, /Approve this site/);
+  const organizationId = html.match(/name="organization_id" value="([^"]+)"/)?.[1];
+  assert.ok(organizationId);
   return request(controller, jar, `/account/connect?connection_id=${encodeURIComponent(connection.connection_id)}`, {
     method: 'POST',
     headers: { 'content-type': 'application/x-www-form-urlencoded' },
-    body: 'action=approve',
+    body: new URLSearchParams({ action: 'approve', organization_id: organizationId }).toString(),
   });
 }
 

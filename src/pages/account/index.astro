@@ -2,22 +2,100 @@
 import Site from '../../layouts/Site.astro';
 import { submitAccountPost } from '../../account/actions.ts';
 import { seeOther } from '../../account/config.ts';
+import { MerchantUnavailableError, unavailableResponse } from '../../account/config.ts';
+import { getMerchantEnv } from '../../account/bindings.ts';
+import { listMemberships, authorizeOrganization, deletionGuard } from '../../account/organizations.ts';
 
 export const prerender = false;
 if (Astro.request.method === 'POST') return submitAccountPost(Astro);
 const merchant = Astro.locals.merchant;
-if (!merchant) return seeOther('/account/sign-in');
+const login = Astro.locals.login;
+if (!login) return seeOther('/account/sign-in');
+const error = Astro.url.searchParams.get('error');
+let env;
+try {
+  env = await getMerchantEnv();
+} catch (error) {
+  if (error instanceof MerchantUnavailableError) return unavailableResponse();
+  throw error;
+}
+const organizations = await listMemberships(env.MERCHANT_DB, login.userId);
+const selectedOrganization = organizations.find(org => org.organizationId === merchant?.organizationId) ?? null;
+const canManage = selectedOrganization?.role === 'owner' || (selectedOrganization?.role === 'administrator' && selectedOrganization.permissions.includes('membership:manage'));
+const loginDeletion = await deletionGuard(env.MERCHANT_DB, login.userId);
 ---
 <Site title="Account" description="Your DinkusKit merchant account.">
   <div class="account-panel">
     <p class="eyebrow">Signed in</p>
     <h1>Your DinkusKit account</h1>
-    <p>Email: {merchant.email}</p>
+    <p>Email: {login.email}</p>
+    {error === 'owned_organizations' ? <p class="account-error" role="alert">Your login cannot be deleted while you own an organization. Transfer ownership or individually confirm closure first.</p> : null}
     <p class="lead">This identity is separate from anyone who edits this website. Connect an Inventory site only after explicit consent.</p>
+    <section aria-labelledby="org-heading">
+      <h2 id="org-heading">Organizations</h2>
+      {organizations.length === 0 ? <p><a href="/account/signup">Complete signup to create your first organization</a>.</p> : (
+        <>
+          <form id="organization-switcher-form" method="post" action="/api/account/organizations" class="account-form">
+          <input type="hidden" name="action" value="select" />
+          <label for="organization-switcher">Current organization</label>
+          <select id="organization-switcher" name="organization_id">
+            {!selectedOrganization ? <option value="">Choose an organization</option> : null}
+            {organizations.map(org => <option value={org.organizationId} selected={selectedOrganization?.organizationId === org.organizationId}>{org.name} ({org.role}){org.admissionStatus === 'pending_operator' ? ' — operator approval pending' : ''}</option>)}
+          </select>
+          </form>
+          {selectedOrganization?.admissionStatus === 'pending_operator' ? <p role="status">This organization is waiting for operator approval. Service connections are unavailable until approval.</p> : null}
+          <button type="submit" form="organization-switcher-form">Switch organization</button>
+          {canManage && selectedOrganization ? (
+            <section aria-labelledby="members-heading">
+              <h3 id="members-heading">Employee access</h3>
+              <p>Use an employee’s existing DinkusKit login email. New members start with no permissions.</p>
+              <form method="post" action="/api/account/memberships" class="account-form">
+                <input type="hidden" name="action" value="add_member" />
+                <input type="hidden" name="organization_id" value={selectedOrganization.organizationId} />
+                <label for="add-email">Employee email</label>
+                <input id="add-email" name="email" type="email" required />
+                <button type="submit">Add employee</button>
+              </form>
+              <form method="post" action="/api/account/memberships" class="account-form">
+                <input type="hidden" name="action" value="set_permissions" />
+                <input type="hidden" name="organization_id" value={selectedOrganization.organizationId} />
+                <label for="permissions-email">Employee email</label>
+                <input id="permissions-email" name="email" type="email" required />
+                {selectedOrganization.role === 'owner' || selectedOrganization.permissions.includes('membership:view') ? <label><input name="permission" value="membership:view" type="checkbox" /> View this organization’s members</label> : null}
+                {selectedOrganization.role === 'owner' || selectedOrganization.permissions.includes('site:view') ? <label><input name="permission" value="site:view" type="checkbox" /> View connected sites</label> : null}
+                <button type="submit">Set employee permissions</button>
+              </form>
+              {selectedOrganization.role === 'owner' ? (
+                <form method="post" action="/api/account/memberships" class="account-form">
+                  <input type="hidden" name="action" value="grant_admin" />
+                  <input type="hidden" name="organization_id" value={selectedOrganization.organizationId} />
+                  <label for="admin-email">Existing member email</label>
+                  <input id="admin-email" name="email" type="email" required />
+                  <label><input name="permission" value="membership:manage" type="checkbox" required /> Allow managing employees</label>
+                  <label><input name="permission" value="membership:view" type="checkbox" /> Allow viewing and granting member visibility</label>
+                  <label><input name="permission" value="site:view" type="checkbox" /> Allow viewing and granting site visibility</label>
+                  <button type="submit">Grant Administrator permissions</button>
+                </form>
+              ) : null}
+            </section>
+          ) : null}
+        </>
+      )}
+      <form method="post" action="/api/account/organizations" class="account-form">
+        <label for="organization-name">Create organization</label>
+        <input id="organization-name" name="name" required maxlength="120" />
+        <button type="submit">Create organization</button>
+      </form>
+    </section>
+    <section aria-labelledby="account-safety-heading">
+      <h2 id="account-safety-heading">Account safety</h2>
+      <p>Closing an organization and disabling your login are separate actions. Organization closure and ownership transfer are not available yet.</p>
+      {loginDeletion.allowed ? <p>Disabling this login ends its sessions; it does not delete organizations or employer data.</p> : <p role="status">Login disabling is blocked while you own an organization. Transfer or individually confirmed closure is required; employer organizations are never deleted.</p>}
+    </section>
     <form method="post" action="/account/logout"><button type="submit">Log out</button></form>
     <form method="post" action="/account" class="account-form">
       <input type="hidden" name="action" value="disable" />
-      <button type="submit">Disable this account</button>
+      <button type="submit">Disable my login</button>
     </form>
     <p><a href="/account/sites">Connected sites</a></p>
   </div>

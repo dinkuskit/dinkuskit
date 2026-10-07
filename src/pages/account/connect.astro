@@ -6,10 +6,12 @@ import { createMerchantRuntime } from '../../account/auth.ts';
 import { claimPendingConnection } from '../../account/store.ts';
 import { connectionPreview, consentStoreConnection } from '../../account/connect.ts';
 import { rejectCrossOriginMutation } from '../../account/origin.ts';
+import { authorizeOrganization } from '../../account/organizations.ts';
 
 export const prerender = false;
 const merchant = Astro.locals.merchant;
 if (!merchant) return seeOther('/account/sign-in');
+let organizationId = Astro.url.searchParams.get('organization_id') ?? '';
 const connectionId = Astro.url.searchParams.get('connection_id') ?? '';
 if (!connectionId || Astro.url.searchParams.getAll('connection_id').length !== 1) {
   return seeOther('/account/sites');
@@ -25,12 +27,15 @@ if (Astro.request.method === 'POST') {
   const blocked = rejectCrossOriginMutation(Astro.request, env.MERCHANT_BASE_URL);
   if (blocked) return blocked;
   const form = await Astro.request.formData();
+  organizationId = String(form.get('organization_id') ?? '');
+  if (organizationId !== merchant.organizationId) return seeOther(`/account/connect?connection_id=${encodeURIComponent(connectionId)}&error=stale_organization`);
   const action = form.get('action');
   if (action !== 'approve' && action !== 'deny') return seeOther(`/account/connect?connection_id=${encodeURIComponent(connectionId)}`);
   const runtime = createMerchantRuntime(env);
   const result = await consentStoreConnection({
     db: env.MERCHANT_DB,
     merchant,
+    organizationId,
     connectionId,
     action,
     proofFetch: runtime.proofFetch,
@@ -39,8 +44,14 @@ if (Astro.request.method === 'POST') {
   if (result.reason === 'not_owner' || result.reason === 'unknown_connection') return seeOther('/account/sites');
   return seeOther(`/account/connect?connection_id=${encodeURIComponent(connectionId)}&error=${encodeURIComponent(result.reason)}`);
 }
+organizationId ||= merchant.organizationId;
+if (organizationId !== merchant.organizationId) return seeOther('/account/sites');
+const membership = await authorizeOrganization(env.MERCHANT_DB, merchant.userId, organizationId);
+if (!membership || membership.role !== 'owner' || membership.status !== 'active' || membership.admissionStatus === 'pending_operator') return new Response(null, { status: 403 });
 const connection = await claimPendingConnection(env.MERCHANT_DB, connectionId, merchant.subject);
 if (!connection) return seeOther('/account/sites');
+if (organizationId !== merchant.organizationId) return seeOther('/account/sites');
+if (!await authorizeOrganization(env.MERCHANT_DB, merchant.userId, organizationId)) return seeOther('/account/sites');
 const preview = connectionPreview(connection);
 const error = Astro.url.searchParams.get('error');
 ---
@@ -55,11 +66,13 @@ const error = Astro.url.searchParams.get('error');
     {preview.status === 'pending' ? (
       <form method="post" class="account-form">
         <input type="hidden" name="action" value="approve" />
+        <input type="hidden" name="organization_id" value={organizationId} />
         <button type="submit">Approve this site</button>
       </form>
     ) : <p>This connection is no longer waiting for consent.</p>}
     <form method="post" class="account-form">
       <input type="hidden" name="action" value="deny" />
+      <input type="hidden" name="organization_id" value={organizationId} />
       <button type="submit">Deny</button>
     </form>
     <p><a href="/account/sites">Back to connected sites</a></p>

@@ -1,0 +1,23 @@
+{
+  "source_identity": "sha256:6e1c5971f035302516f29954e59f1ff56a894e73634430713729bcdc7b729f93",
+  "baseline": "1edbf2e3863e5b9925bedafc560e365ab338bd83",
+  "digest_definition": "SHA-256 of compact sorted JSON file-to-SHA256 map, UTF-8; ledger and proof metadata excluded",
+  "files": {
+    "docs/inventory-overview.md": "0991a9bdb910a8504d7984a7090a11ad1adebbc3332308bf3cb150b6dc78e7bf",
+    "package.json": "2a723c8c3cd9f64461e378c685a3c392491116102ba3c9a42d8d80f366fc33a0",
+    "src/account/inventory-overview.ts": "5392a86ff7bcdd33f23245022c094562b7ec30dd0b9902a284515f98d4830c2f",
+    "src/account/transports.ts": "bce4c1fb39a95cfb287699995f6b52ac129ed9a637033832cee2518ea25a4a82",
+    "src/components/InventoryOverview.astro": "9ee536d5a44ea3eabfdf9c9aaca8ac61ecefc52e0a6b5733fdf4121ddd8724ea",
+    "src/middleware.ts": "a93b06b423c73fb1a13edff087b0e515f6f89310de2a3f6f6ee71f686623730a",
+    "src/pages/account/index.astro": "603f66edfcd138b8acb07b83a6e80fbfb762b55af34adf9e669d9dc889ea7bde",
+    "src/pages/account/inventory.astro": "4fd051fe4fde1243dee28bc1504b8e671ae16054bff389db1e917bd244839b93",
+    "src/pages/account/operator/inventory.astro": "284725b714702105bb0c10dce3fa6fcff202429a61f8186ca6cc04b54bae8a95",
+    "tests/fixtures/built-test-entry.mjs": "fc44fb544f32874fbe27f519336c6cd7a7fff53d4f14de109a8da4125202fbcd",
+    "tests/fixtures/inventory-overview-payload.mjs": "b1d449c78bb75d75d65c374566fd845ffedba5344a606470c60b44a47c97f7f9",
+    "tests/fixtures/inventory-overview-transport.mjs": "a947bdd9afedb5634a644eb8f070061cca0d94fab9554e7ac67e411cca1f93b1",
+    "tests/helpers/merchant-harness.mjs": "fee2f520c21454b04bb7d6e3310d534f8eb1e09e5843ccb6474b005f18dbe486",
+    "tests/inventory-overview-routes.test.mjs": "e9ad3498e571b89e0f23a2ebd1e564f08bf786b66d67d70ce25ce2b6098f8336",
+    "tests/inventory-overview.test.mjs": "8de661390856a0b8ec65324f3afad67ee2418503b33eebc2bc70215a1eed339c"
+  },
+  "verification": "Exact Node22.23.2 full npm run verify exit0:48 tests plus type/build/route/CMS/persistence/Access/candidate checks. Source captured after that successful run."
+}

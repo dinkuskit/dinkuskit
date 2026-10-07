@@ -1,0 +1,71 @@
+---
+import type { InventoryResult } from '../account/inventory-overview.ts';
+interface Props { organizationId: string; organizationName: string | null; mode: 'merchant' | 'operator'; result: InventoryResult }
+const { organizationId, organizationName, mode, result } = Astro.props;
+const reasons = {
+  service_unconfigured: 'Inventory overview access is being prepared. No hosted service is connected yet.',
+  read_unavailable: 'Inventory could not be read. Refresh to try again.',
+  invalid_metadata: 'Inventory returned an incomplete snapshot. Refresh to try again.',
+};
+---
+<section class="account-panel inventory-overview" aria-labelledby="inventory-heading">
+  <p class="eyebrow">{mode === 'merchant' ? 'Selected organization' : 'Operator access'}</p>
+  <h1 id="inventory-heading">Inventory overview</h1>
+  <p class="lead">Pools and connected sites</p>
+  {result.state === 'forbidden' ? <p class="account-error" role="status">You do not have Inventory overview access to this organization.</p> : (
+    <>
+      <h2>{organizationName ?? 'Organization'}</h2>
+      <p class="organization-reference">{organizationId}</p>
+      {result.state === 'unavailable' ? (
+        <>
+          <p class="account-error" role="status">{reasons[result.reason]}</p>
+          <p>Pool and site counts are unavailable.</p>
+          {result.observation ? <p>Service observed at <time datetime={result.observation.asOf}>{result.observation.asOf}</time>.</p> : null}
+        </>
+      ) : (
+        <>
+          {result.state === 'stale' ? <p class="account-error" role="status">This snapshot is more than 15 minutes old. Refresh before relying on its relationships.</p> : <p role="status">{result.state === 'empty' ? 'No Inventory pools or sites were recorded in this snapshot.' : 'Inventory relationships were recorded in this snapshot.'}</p>}
+          <p>Observed at <time datetime={result.overview.asOf}>{result.overview.asOf}</time><br />Sampled at <time datetime={result.overview.sampledAt}>{result.overview.sampledAt}</time></p>
+          <dl class="inventory-counts">
+            <div><dt>Allocated pools</dt><dd>{result.overview.allocatedPoolCount}</dd></div>
+            <div><dt>Retained sites</dt><dd>{result.overview.retainedSiteCount}</dd></div>
+          </dl>
+          {result.overview.pools.length > 0 ? (
+            <ul class="inventory-pools">
+              {result.overview.pools.map(pool => (
+                <li>
+                  <h3>Pool <span>{pool.poolId}</span></h3>
+                  <p>{pool.siteCount} retained {pool.siteCount === 1 ? 'site' : 'sites'} · Provisioning: {pool.provisioning}</p>
+                  <ul>
+                    {result.overview.rows.filter(row => row.poolId === pool.poolId).map(row => <li>
+                      <p><strong>{row.origin ?? 'Verified website address unavailable'}</strong><br /><span>{row.siteId}</span></p>
+                      <p>{row.access === 'retained' ? 'Website access: granted' : row.access === 'revoked' ? 'Website access: revoked' : 'Website access: unknown'}</p>
+                    </li>)}
+                  </ul>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </>
+      )}
+      <p>Live pool health is unavailable in this overview. Provisioning readiness does not confirm live health.</p>
+    </>
+  )}
+  <p><a href={mode === 'operator' ? `/account/operator/inventory?organization_id=${encodeURIComponent(organizationId)}` : '/account/inventory'} data-inventory-refresh>Refresh overview</a> · <a href="/account">Back to account</a></p>
+  <p role="status" data-inventory-loading hidden>Reading Inventory overview…</p>
+</section>
+<script>
+  document.querySelectorAll('[data-inventory-refresh]').forEach(link => link.addEventListener('click', () => {
+    const status = document.querySelector('[data-inventory-loading]');
+    if (status instanceof HTMLElement) status.hidden = false;
+  }));
+</script>
+<style>
+  .inventory-overview { overflow-wrap: anywhere; }
+  .organization-reference { color: var(--muted); font-size: .9rem; }
+  .inventory-counts { display: flex; flex-wrap: wrap; gap: 1.5rem; }
+  .inventory-counts dd { margin: .2rem 0; font-size: 1.7rem; font-weight: 700; }
+  .inventory-pools { padding-left: 1.2rem; }
+  .inventory-pools > li { margin-block: 1.6rem; }
+  .inventory-pools h3 { font-size: 1rem; }
+</style>

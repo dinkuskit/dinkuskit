@@ -4,11 +4,11 @@
   "current_focus": {
     "cadence": "sequential",
     "confirmed": true,
-    "confirmed_at": "2026-10-07T02:08:15+00:00",
-    "domain": "merchant account membership, signup contact eligibility, and migration preparation",
-    "started_at": "2026-10-07T02:08:04+00:00",
+    "confirmed_at": "2026-10-07T12:36:49+00:00",
+    "domain": "Inventory metadata-only account and operator source integration",
+    "started_at": "2026-10-07T12:36:49+00:00",
     "status": "confirmed",
-    "summary": "Implement the confirmed additive account-foundation slice: preserve Better Auth issuer/subjects, legacy grants and signing history; add D1 organizations, memberships, selected-organization authority, secure complete contact intake, first-50 admission, bounded Owner/Administrator membership delegation, real organization switch/create/membership surfaces, CSRF and stale-form checks, and honest close-organization/login-deletion guards. Keep broad Inventory grants Owner-only, SMS unavailable pending qualification, additional organizations operator-pending, no unsafe deletion or Inventory teardown, and no product-roadmap changes. Verify migrations/restart, auth/Connect/CMS isolation, typecheck/build, route behavior, and repo audit locally."
+    "summary": "Continue required current-source reviewer repair within the approved metadata integration; future timestamp validation restores truthful freshness. No upgrade, production access, merge or deployment is inferred."
   },
   "decisions": [
     {
@@ -3874,11 +3874,217 @@
       "superseded_by": null,
       "updated_at": "2026-10-07T06:09:16+00:00",
       "verification_ref": "proof/account-foundation/REPAIR.md"
+    },
+    {
+      "baseline_ref": "git:1edbf2e3863e5b9925bedafc560e365ab338bd83",
+      "candidate_refs": [],
+      "choice": "Build selected-organization and independently authorized single-organization operator metadata screens using a dedicated read-token/transport seam. Require current server-owned organization mapping and purpose-specific grants; merchant membership, CMS access and broad inventory:admin alone never confer overview read authority. Prove signed synthetic local reads, isolation, timestamps, available empty and unavailable states. Keep real principals/grant provider, signing trust, fixed hosted endpoint and activation unavailable pending a separate concrete activation approval. No products, SKUs, stock, bulk directory, billing, suspension, recovery or deletion execution.",
+      "context_ref": "https://github.com/dinkuskit/inventory/blob/b9ae464692eb0cc5d113e9db9285429af73dc736/docs/implementation/account-overview.md",
+      "created_at": "2026-10-07T11:43:36+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [
+        "merchant-membership-013",
+        "merchant-operator-017"
+      ],
+      "domain": "Inventory metadata-only account and operator source integration",
+      "history": [
+        {
+          "at": "2026-10-07T11:43:36+00:00",
+          "choice": "Build selected-organization and independently authorized single-organization operator metadata screens using a dedicated read-token/transport seam. Require current server-owned organization mapping and purpose-specific grants; merchant membership, CMS access and broad inventory:admin alone never confer overview read authority. Prove signed synthetic local reads, isolation, timestamps, available empty and unavailable states. Keep real principals/grant provider, signing trust, fixed hosted endpoint and activation unavailable pending a separate concrete activation approval. No products, SKUs, stock, bulk directory, billing, suspension, recovery or deletion execution.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-07T12:14:18+00:00",
+          "choice": "Build selected-organization and independently authorized single-organization operator metadata screens using a dedicated read-token/transport seam. Require current server-owned organization mapping and purpose-specific grants; merchant membership, CMS access and broad inventory:admin alone never confer overview read authority. Prove signed synthetic local reads, isolation, timestamps, available empty and unavailable states. Keep real principals/grant provider, signing trust, fixed hosted endpoint and activation unavailable pending a separate concrete activation approval. No products, SKUs, stock, bulk directory, billing, suspension, recovery or deletion execution.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-07T12:14:18+00:00",
+          "choice": "Build selected-organization and independently authorized single-organization operator metadata screens using a dedicated read-token/transport seam. Require current server-owned organization mapping and purpose-specific grants; merchant membership, CMS access and broad inventory:admin alone never confer overview read authority. Prove signed synthetic local reads, isolation, timestamps, available empty and unavailable states. Keep real principals/grant provider, signing trust, fixed hosted endpoint and activation unavailable pending a separate concrete activation approval. No products, SKUs, stock, bulk directory, billing, suspension, recovery or deletion execution.",
+          "from": "implemented",
+          "implementation_ref": "src/account/inventory-overview.ts; src/pages/account/inventory.astro; src/pages/account/operator/inventory.astro; docs/inventory-overview.md",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-07T12:32:33+00:00",
+          "choice": "Build selected-organization and independently authorized single-organization operator metadata screens using a dedicated read-token/transport seam. Require current server-owned organization mapping and purpose-specific grants; merchant membership, CMS access and broad inventory:admin alone never confer overview read authority. Prove signed synthetic local reads, isolation, timestamps, available empty and unavailable states. Keep real principals/grant provider, signing trust, fixed hosted endpoint and activation unavailable pending a separate concrete activation approval. No products, SKUs, stock, bulk directory, billing, suspension, recovery or deletion execution.",
+          "from": "verified",
+          "implementation_ref": "src/account/inventory-overview.ts; src/pages/account/inventory.astro; src/pages/account/operator/inventory.astro; docs/inventory-overview.md",
+          "note": "Native input scanner refused the static synthetic credential-form URL in a negative test. Preserve endpoint rejection coverage using separately constructed synthetic username/password cases; no production code or reviewer policy change.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": "proof/inventory-overview/PROOF.md",
+          "review_result": "clean",
+          "review_source_identity": "sha256:c05de27ef1b847bb84f256e13f02bc7cff1c9a7ac8583251f4d7d1cb013bc530",
+          "to": "reopened",
+          "verification_ref": "proof/inventory-overview/PROOF.md"
+        },
+        {
+          "at": "2026-10-07T12:32:33+00:00",
+          "choice": "Build selected-organization and independently authorized single-organization operator metadata screens using a dedicated read-token/transport seam. Require current server-owned organization mapping and purpose-specific grants; merchant membership, CMS access and broad inventory:admin alone never confer overview read authority. Prove signed synthetic local reads, isolation, timestamps, available empty and unavailable states. Keep real principals/grant provider, signing trust, fixed hosted endpoint and activation unavailable pending a separate concrete activation approval. No products, SKUs, stock, bulk directory, billing, suspension, recovery or deletion execution.",
+          "from": "reopened",
+          "implementation_ref": "src/account/inventory-overview.ts; src/pages/account/inventory.astro; src/pages/account/operator/inventory.astro; docs/inventory-overview.md",
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": "proof/inventory-overview/PROOF.md",
+          "review_result": "clean",
+          "review_source_identity": "sha256:c05de27ef1b847bb84f256e13f02bc7cff1c9a7ac8583251f4d7d1cb013bc530",
+          "to": "locked",
+          "verification_ref": "proof/inventory-overview/PROOF.md"
+        },
+        {
+          "at": "2026-10-07T12:33:33+00:00",
+          "choice": "Build selected-organization and independently authorized single-organization operator metadata screens using a dedicated read-token/transport seam. Require current server-owned organization mapping and purpose-specific grants; merchant membership, CMS access and broad inventory:admin alone never confer overview read authority. Prove signed synthetic local reads, isolation, timestamps, available empty and unavailable states. Keep real principals/grant provider, signing trust, fixed hosted endpoint and activation unavailable pending a separate concrete activation approval. No products, SKUs, stock, bulk directory, billing, suspension, recovery or deletion execution.",
+          "from": "locked",
+          "implementation_ref": "src/account/inventory-overview.ts; src/pages/account/inventory.astro; src/pages/account/operator/inventory.astro; docs/inventory-overview.md",
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": "proof/inventory-overview/PROOF.md",
+          "review_result": "clean",
+          "review_source_identity": "sha256:c05de27ef1b847bb84f256e13f02bc7cff1c9a7ac8583251f4d7d1cb013bc530",
+          "to": "implemented",
+          "verification_ref": "proof/inventory-overview/PROOF.md"
+        },
+        {
+          "at": "2026-10-07T12:33:33+00:00",
+          "choice": "Build selected-organization and independently authorized single-organization operator metadata screens using a dedicated read-token/transport seam. Require current server-owned organization mapping and purpose-specific grants; merchant membership, CMS access and broad inventory:admin alone never confer overview read authority. Prove signed synthetic local reads, isolation, timestamps, available empty and unavailable states. Keep real principals/grant provider, signing trust, fixed hosted endpoint and activation unavailable pending a separate concrete activation approval. No products, SKUs, stock, bulk directory, billing, suspension, recovery or deletion execution.",
+          "from": "implemented",
+          "implementation_ref": "proof/inventory-overview/REPAIR.md; tests/inventory-overview.test.mjs",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": "proof/inventory-overview/PROOF.md"
+        },
+        {
+          "at": "2026-10-07T12:36:49+00:00",
+          "choice": "Build selected-organization and independently authorized single-organization operator metadata screens using a dedicated read-token/transport seam. Require current server-owned organization mapping and purpose-specific grants; merchant membership, CMS access and broad inventory:admin alone never confer overview read authority. Prove signed synthetic local reads, isolation, timestamps, available empty and unavailable states. Keep real principals/grant provider, signing trust, fixed hosted endpoint and activation unavailable pending a separate concrete activation approval. No products, SKUs, stock, bulk directory, billing, suspension, recovery or deletion execution.",
+          "from": "verified",
+          "implementation_ref": "proof/inventory-overview/REPAIR.md; tests/inventory-overview.test.mjs",
+          "note": "Accept comprehensive OpenClaw P3 future-timestamp finding: reject implausibly future observation/sample times with a60-second skew allowance; add failing pure DTO and built-route regressions. Product boundary, grants and UI unchanged.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": "proof/inventory-overview/REPAIR.md",
+          "review_result": "clean",
+          "review_source_identity": "sha256:778e345c1ee680149b5c99aa12ee7d1eca9b4ba922a397a0677bf24162062d9b",
+          "to": "reopened",
+          "verification_ref": "proof/inventory-overview/REPAIR.md"
+        },
+        {
+          "at": "2026-10-07T12:36:49+00:00",
+          "choice": "Build selected-organization and independently authorized single-organization operator metadata screens using a dedicated read-token/transport seam. Require current server-owned organization mapping and purpose-specific grants; merchant membership, CMS access and broad inventory:admin alone never confer overview read authority. Prove signed synthetic local reads, isolation, timestamps, available empty and unavailable states. Keep real principals/grant provider, signing trust, fixed hosted endpoint and activation unavailable pending a separate concrete activation approval. No products, SKUs, stock, bulk directory, billing, suspension, recovery or deletion execution.",
+          "from": "reopened",
+          "implementation_ref": "proof/inventory-overview/REPAIR.md; tests/inventory-overview.test.mjs",
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": "proof/inventory-overview/REPAIR.md",
+          "review_result": "clean",
+          "review_source_identity": "sha256:778e345c1ee680149b5c99aa12ee7d1eca9b4ba922a397a0677bf24162062d9b",
+          "to": "locked",
+          "verification_ref": "proof/inventory-overview/REPAIR.md"
+        },
+        {
+          "at": "2026-10-07T12:41:52+00:00",
+          "choice": "Build selected-organization and independently authorized single-organization operator metadata screens using a dedicated read-token/transport seam. Require current server-owned organization mapping and purpose-specific grants; merchant membership, CMS access and broad inventory:admin alone never confer overview read authority. Prove signed synthetic local reads, isolation, timestamps, available empty and unavailable states. Keep real principals/grant provider, signing trust, fixed hosted endpoint and activation unavailable pending a separate concrete activation approval. No products, SKUs, stock, bulk directory, billing, suspension, recovery or deletion execution.",
+          "from": "locked",
+          "implementation_ref": "proof/inventory-overview/REPAIR.md; tests/inventory-overview.test.mjs",
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": "proof/inventory-overview/REPAIR.md",
+          "review_result": "clean",
+          "review_source_identity": "sha256:778e345c1ee680149b5c99aa12ee7d1eca9b4ba922a397a0677bf24162062d9b",
+          "to": "implemented",
+          "verification_ref": "proof/inventory-overview/REPAIR.md"
+        },
+        {
+          "at": "2026-10-07T12:41:52+00:00",
+          "choice": "Build selected-organization and independently authorized single-organization operator metadata screens using a dedicated read-token/transport seam. Require current server-owned organization mapping and purpose-specific grants; merchant membership, CMS access and broad inventory:admin alone never confer overview read authority. Prove signed synthetic local reads, isolation, timestamps, available empty and unavailable states. Keep real principals/grant provider, signing trust, fixed hosted endpoint and activation unavailable pending a separate concrete activation approval. No products, SKUs, stock, bulk directory, billing, suspension, recovery or deletion execution.",
+          "from": "implemented",
+          "implementation_ref": "proof/inventory-overview/FRESHNESS-REPAIR.md; src/account/inventory-overview.ts",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": "proof/inventory-overview/REPAIR.md"
+        }
+      ],
+      "id": "website-inventory-overview-024",
+      "implementation_ref": "proof/inventory-overview/FRESHNESS-REPAIR.md; src/account/inventory-overview.ts",
+      "question": "How should the approved account/operator metadata direction consume the merged Inventory overview without inventing live authority?",
+      "rationale": "Continue the confirmed metadata-only organization/operator direction after the account foundation and Inventory overview source merges, preserving their separate live-authority gates.",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [
+        {
+          "classifications": [],
+          "ref": "proof/inventory-overview/PROOF.md",
+          "result": "clean",
+          "reviewed_at": "2026-10-07T12:14:18+00:00",
+          "source_identity": "sha256:c05de27ef1b847bb84f256e13f02bc7cff1c9a7ac8583251f4d7d1cb013bc530"
+        },
+        {
+          "classifications": [],
+          "ref": "proof/inventory-overview/REPAIR.md",
+          "result": "clean",
+          "reviewed_at": "2026-10-07T12:33:33+00:00",
+          "source_identity": "sha256:778e345c1ee680149b5c99aa12ee7d1eca9b4ba922a397a0677bf24162062d9b"
+        },
+        {
+          "classifications": [],
+          "ref": "proof/inventory-overview/FRESHNESS-REPAIR.md",
+          "result": "clean",
+          "reviewed_at": "2026-10-07T12:41:52+00:00",
+          "source_identity": "sha256:6e1c5971f035302516f29954e59f1ff56a894e73634430713729bcdc7b729f93"
+        }
+      ],
+      "review_ref": "proof/inventory-overview/FRESHNESS-REPAIR.md",
+      "review_result": "clean",
+      "review_source_identity": "sha256:6e1c5971f035302516f29954e59f1ff56a894e73634430713729bcdc7b729f93",
+      "status": "verified",
+      "superseded_by": null,
+      "updated_at": "2026-10-07T12:41:52+00:00",
+      "verification_ref": "proof/inventory-overview/FRESHNESS-REPAIR.md"
     }
   ],
   "last_activation": {
-    "at": "2026-10-07T02:08:04+00:00",
-    "mechanism": "$grilltrack"
+    "at": "2026-10-07T12:36:49+00:00",
+    "mechanism": "implicit"
   },
   "last_pause": null,
   "pause": null,
@@ -3901,5 +4107,5 @@
   "status": "active",
   "title": "Website PR9 current-main reconciliation",
   "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca",
-  "updated_at": "2026-10-07T06:09:16+00:00"
+  "updated_at": "2026-10-07T12:41:52+00:00"
 }

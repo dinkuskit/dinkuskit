@@ -1,0 +1,27 @@
+---
+import Site from '../../layouts/Site.astro';
+import InventoryOverview from '../../components/InventoryOverview.astro';
+import { readInventoryOverview, inventoryOrganizationName } from '../../account/inventory-overview.ts';
+import { getMerchantEnv } from '../../account/bindings.ts';
+import { MerchantUnavailableError, unavailableResponse, seeOther } from '../../account/config.ts';
+import { getInjectedTransports } from '../../account/transports.ts';
+
+export const prerender = false;
+Astro.response.headers.set('cache-control', 'private, no-store');
+if (Astro.request.method !== 'GET') return new Response(null, { status: 405, headers: { allow: 'GET', 'cache-control': 'private, no-store' } });
+const login = Astro.locals.login, merchant = Astro.locals.merchant;
+if (!login || !merchant) return seeOther('/account/sign-in');
+const selectors = Astro.url.searchParams.getAll('organization_id');
+if (selectors.length > 1 || (selectors.length === 1 && selectors[0] !== merchant.organizationId) || [...Astro.url.searchParams.keys()].some(key => key !== 'organization_id')) {
+  return new Response('Switch organization in your account before opening its Inventory overview.', { status: 409, headers: { 'cache-control': 'private, no-store' } });
+}
+let env;
+try { env = await getMerchantEnv(); }
+catch (error) { if (error instanceof MerchantUnavailableError) return unavailableResponse(); throw error; }
+const result = await readInventoryOverview({ db: env.MERCHANT_DB, callerUserId: login.userId, organizationId: merchant.organizationId, mode: 'merchant', runtime: getInjectedTransports().inventoryOverview });
+Astro.response.status = result.state === 'forbidden' ? 403 : result.state === 'unavailable' ? 503 : 200;
+const name = result.state === 'forbidden' ? null : await inventoryOrganizationName(env.MERCHANT_DB, merchant.organizationId);
+---
+<Site title="Inventory overview" description="Inventory pools and connected sites for your selected organization.">
+  <InventoryOverview organizationId={merchant.organizationId} organizationName={name} mode="merchant" result={result} />
+</Site>

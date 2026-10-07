@@ -15,7 +15,9 @@ stock quantities, contacts, location details and operation data are excluded.
 Available empty metadata means the service observed zero. Unavailable means
 counts and rows are unknown. Both service observation times are retained;
 snapshots older than 15 minutes carry an explicit age warning. This is a UI age
-threshold, not a health guarantee. Live pool health remains unavailable, and
+threshold, not a health guarantee. Observation/sample times more than one minute
+ahead of the Website clock are rejected as invalid metadata; the allowance is
+only for small service clock skew. Live pool health remains unavailable, and
 provisioning readiness is not presented as a health check. Refresh is read-only.
 
 ## Authorization and source seam

@@ -26,6 +26,18 @@ test('rejects wrong organization, duplicate/dangling relationships, count mismat
   assert.throws(() => validateOverview(synthetic, 'org_test', 503), /invalid_metadata/);
   assert.throws(() => validateOverview(overviewPayload('org_test', { unavailable: 'read_unavailable' }), 'org_test', 200), /invalid_metadata/);
 });
+test('rejects future observation/sample timestamps beyond a small clock-skew allowance', () => {
+  for (const both of [false, true]) {
+    const raw = structuredClone(synthetic);
+    raw.overview.snapshot.sampledAt = new Date(Date.now() + 120_000).toISOString();
+    if (both) raw.overview.snapshot.asOf = raw.overview.snapshot.sampledAt;
+    assert.throws(() => validateOverview(raw, 'org_test'), /invalid_metadata/);
+  }
+  const withinSkew = structuredClone(synthetic);
+  withinSkew.overview.snapshot.sampledAt = new Date(Date.now() + 30_000).toISOString();
+  withinSkew.overview.snapshot.asOf = withinSkew.overview.snapshot.sampledAt;
+  assert.equal(validateOverview(withinSkew, 'org_test').state, 'available');
+});
 test('real signature carries independent caller and exact organization claims, bounded scope and fixed endpoint', async () => {
   const { privateKey, publicKey } = await generateKeyPair('ES256');
   const iat = Math.floor(Date.now() / 1000);

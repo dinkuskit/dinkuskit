@@ -59,6 +59,12 @@ test('built routes require current selected-organization authority and independe
     const invalid = overviewPayload('wrong-org'); invalid.overview.sites[0].products = ['NEVER_RENDER'];
     await fixture(runtime, { grants: [grant(owner)], body: invalid });
     response = await request(runtime, owner.jar, '/account/inventory'); assert.equal(response.status, 503); assert.doesNotMatch(await response.text(), /NEVER_RENDER|pool-main/);
+    const future = overviewPayload(owner.organizationId);
+    future.overview.snapshot.sampledAt = new Date(Date.now() + 120_000).toISOString();
+    future.overview.snapshot.asOf = future.overview.snapshot.sampledAt;
+    await fixture(runtime, { grants: [grant(owner)], body: future });
+    response = await request(runtime, owner.jar, '/account/inventory');
+    assert.equal(response.status, 503); assert.match(await response.text(), /incomplete snapshot/);
 
     // The production entry ignores test bindings even with a valid persisted test login.
     const production = await startProductionWorker({ persistTo: runtime.persistTo, secret: runtime.secret, origin: runtime.origin, jwt: runtime.jwt, rogueTestBindings: true });

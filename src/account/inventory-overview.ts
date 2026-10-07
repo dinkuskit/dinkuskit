@@ -7,6 +7,7 @@ export const INVENTORY_OVERVIEW_AUDIENCE = 'inventory-account-overview';
 export const INVENTORY_OVERVIEW_SCOPE = 'inventory:account-overview:read';
 const MAX_BYTES = 65_536;
 const TIMEOUT_MS = 3_000;
+const MAX_CLOCK_SKEW_MS = 60_000;
 export const STALE_AFTER_MS = 15 * 60_000;
 type Provisioning = 'pending' | 'ready' | 'failed';
 type UnavailableReason = 'service_unconfigured' | 'read_unavailable' | 'invalid_metadata';
@@ -103,7 +104,7 @@ function provisioning(value: unknown): Provisioning {
 /** Rewritten against the merged Inventory contract; only allowlisted fields leave this boundary. */
 export function validateOverview(raw: unknown, organizationId: string, status = 200): InventoryResult {
   const body = record(raw), overview = record(body.overview), snapshot = record(overview.snapshot), health = record(snapshot.health), metadata = record(overview.metadata);
-  if (overview.schema !== 'dinkuskit.inventory.account-overview/v1' || !date(snapshot.sampledAt) || !date(snapshot.asOf) || Date.parse(snapshot.asOf) > Date.parse(snapshot.sampledAt) || health.availability !== 'unavailable' || health.reason !== 'live_pool_health_not_read') throw new Error('invalid_metadata');
+  if (overview.schema !== 'dinkuskit.inventory.account-overview/v1' || !date(snapshot.sampledAt) || !date(snapshot.asOf) || Date.parse(snapshot.asOf) > Date.parse(snapshot.sampledAt) || Date.parse(snapshot.sampledAt) > Date.now() + MAX_CLOCK_SKEW_MS || health.availability !== 'unavailable' || health.reason !== 'live_pool_health_not_read') throw new Error('invalid_metadata');
   const observation = { sampledAt: snapshot.sampledAt, asOf: snapshot.asOf };
   if (metadata.availability === 'unavailable') {
     if (status !== 503 || !['service_unconfigured', 'read_unavailable', 'invalid_metadata'].includes(String(metadata.reason)) || overview.counts !== null || overview.pools !== null || overview.sites !== null ||

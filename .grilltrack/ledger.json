@@ -4227,13 +4227,21 @@
       "rationale": "",
       "repair_required": false,
       "review_classifications": [],
-      "review_history": [],
-      "review_ref": null,
-      "review_result": null,
-      "review_source_identity": null,
+      "review_history": [
+        {
+          "classifications": [],
+          "ref": "proof/operator-directory/REVIEW.md",
+          "result": "clean",
+          "reviewed_at": "2026-10-08T21:50:23+00:00",
+          "source_identity": "git:d07ff8a670581db1edceb98f7df12fbbcdad56be"
+        }
+      ],
+      "review_ref": "proof/operator-directory/REVIEW.md",
+      "review_result": "clean",
+      "review_source_identity": "git:d07ff8a670581db1edceb98f7df12fbbcdad56be",
       "status": "verified",
       "superseded_by": null,
-      "updated_at": "2026-10-08T21:50:17+00:00",
+      "updated_at": "2026-10-08T21:50:23+00:00",
       "verification_ref": "proof/operator-directory/PROOF.md"
     }
   ],
@@ -4262,5 +4270,5 @@
   "status": "active",
   "title": "Website PR9 current-main reconciliation",
   "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca",
-  "updated_at": "2026-10-08T21:50:17+00:00"
+  "updated_at": "2026-10-08T21:50:23+00:00"
 }

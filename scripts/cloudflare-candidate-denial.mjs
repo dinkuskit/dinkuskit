@@ -102,7 +102,7 @@ async function main() {
     astro: pkgVersion('astro'),
   };
   assert.equal(versions['@astrojs/cloudflare'], '14.3.3');
-  assert.equal(versions['@emdash-cms/cloudflare'], '1.0.1');
+  assert.equal(versions['@emdash-cms/cloudflare'], '1.2.0');
 
   const productionConfig = readFileSync(join(root, 'astro.config.mjs'), 'utf8');
   const candidateConfig = readFileSync(join(root, 'astro.cloudflare.config.mjs'), 'utf8');

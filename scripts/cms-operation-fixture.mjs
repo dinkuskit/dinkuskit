@@ -27,9 +27,11 @@ import {
   stopOwned,
 } from './lib/owned-process.mjs';
 import { createSoftwarePasskey } from './lib/cms-operation-software-passkey.mjs';
+import { LEGACY_SOURCE, prepareLegacyRuntime, prepareUpgradeConfig } from './lib/emdash-upgrade-fixture.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const work = join(root, '.grilltrack/work/cms-operation-20260930');
+const upgrade = process.argv.includes('--upgrade');
+const work = join(root, upgrade ? '.grilltrack/work/emdash-upgrade-20261007' : '.grilltrack/work/cms-operation-20260930');
 const persist = join(work, 'persist');
 const owned = [];
 const checks = [];
@@ -75,7 +77,7 @@ function startLogged(label, command, args, options = {}) {
     label,
     command,
     args,
-    options: { cwd: root, env: options.env ?? process.env },
+    options: { cwd: options.cwd ?? root, env: options.env ?? process.env },
   });
 }
 
@@ -157,13 +159,15 @@ async function main() {
   const versions = {
     node: process.version,
     emdash: pkgVersion('emdash'),
+    '@emdash-cms/auth': pkgVersion('@emdash-cms/auth'),
     '@emdash-cms/cloudflare': pkgVersion('@emdash-cms/cloudflare'),
     '@astrojs/cloudflare': pkgVersion('@astrojs/cloudflare'),
     wrangler: pkgVersion('wrangler'),
     astro: pkgVersion('astro'),
   };
-  assert.equal(versions.emdash, '1.0.1');
-  assert.equal(versions['@emdash-cms/cloudflare'], '1.0.1');
+  assert.equal(versions.emdash, '1.2.0');
+  assert.equal(versions['@emdash-cms/auth'], '1.2.0');
+  assert.equal(versions['@emdash-cms/cloudflare'], '1.2.0');
   assert.equal(versions['@astrojs/cloudflare'], '14.3.3');
   assert.equal(versions.wrangler, '4.144.0');
 
@@ -186,6 +190,20 @@ async function main() {
   await rm(join(work, '.astro'), { recursive: true, force: true });
   await mkdir(persist, { recursive: true });
 
+  const fixtureEnv = {
+    ...process.env, PATH: `${dirname(NODE)}:${process.env.PATH}`,
+    WRANGLER_SEND_METRICS: 'false', CI: '1',
+    ...(upgrade ? { DK_CMS_FIXTURE_UPGRADE: '1' } : {}),
+  };
+  const run = async (label, command, args, cwd, required = true) => {
+    const proc = startLogged(label, command, args, { cwd, env: fixtureEnv });
+    const completed = await proc.exit;
+    await writeSanitizedLog(`${label}.log`, proc.output());
+    if (required) assert.equal(completed.code, 0, `${label} failed: ${sanitizeText(proc.output(), 1800)}`);
+    return completed.code;
+  };
+  const legacy = upgrade ? await prepareLegacyRuntime(root, work, run) : null;
+
   const generatedWrangler = join(work, 'dist/server/wrangler.json');
   const build = startLogged('astro-build', NODE, [
     join(root, 'node_modules/astro/bin/astro.mjs'),
@@ -194,10 +212,7 @@ async function main() {
     'fixtures/cms-operation/astro.config.mjs',
   ], {
     env: {
-      ...process.env,
-      PATH: `${dirname(NODE)}:${process.env.PATH}`,
-      WRANGLER_SEND_METRICS: 'false',
-      CI: '1',
+      ...fixtureEnv,
     },
   });
   const built = await build.exit;
@@ -228,6 +243,16 @@ async function main() {
 
   const port = await reservePort();
   const origin = `http://127.0.0.1:${port}`;
+  const currentConfig = upgrade ? await prepareUpgradeConfig(root, generatedWrangler, origin, false) : generatedWrangler;
+  const legacyConfig = legacy ? await prepareUpgradeConfig(root, join(legacy.work, 'dist/server/wrangler.json'), origin, true) : null;
+  if (legacy) {
+    for (const name of ['0001_better_auth.sql', '0002_dinkuskit.sql', '0003_store_connect.sql', '0004_account_foundation.sql']) {
+      await run(`legacy-merchant-${name}`, NODE, [join(root, 'node_modules/wrangler/bin/wrangler.js'),
+        'd1', 'execute', 'dinkuskit-upgrade-merchant', '--local', '--config', legacyConfig,
+        '--persist-to', persist, '--file', join(legacy.root, 'migrations/merchant', name), '--yes'], root);
+    }
+    record('Pinned public 1.0.1 source and lock built the baseline worker; merchant schema initialized only in owned local D1');
+  }
   const env = {
     ...process.env,
     PATH: `${dirname(NODE)}:${join(root, 'node_modules/.bin')}:${process.env.PATH}`,
@@ -236,11 +261,11 @@ async function main() {
     EMDASH_SITE_URL: origin,
   };
 
-  const startWorker = (label) => startLogged(label, NODE, [
+  const startWorker = (label, config = currentConfig) => startLogged(label, NODE, [
     join(root, 'node_modules/wrangler/bin/wrangler.js'),
     'dev',
     '--config',
-    generatedWrangler,
+    config,
     '--persist-to',
     persist,
     '--ip',
@@ -251,7 +276,7 @@ async function main() {
     `EMDASH_SITE_URL:${origin}`,
   ], { env });
 
-  const worker1 = startWorker('worker-1');
+  const worker1 = startWorker(upgrade ? 'worker-1-emdash-1.0.1' : 'worker-1', legacyConfig ?? currentConfig);
   const ready = await waitReady(origin, worker1);
   rememberOwnedTree(worker1);
   const runtimeLog = worker1.output().replace(/\x1B\[[0-9;]*m/g, '');
@@ -382,10 +407,15 @@ async function main() {
   const { item, rev } = unwrapContentEnvelope(current.json, 'GET /_emdash/api/content/pages/home');
   const previousTitle = contentFieldData(item).title ?? 'home';
   const nextTitle = `${MARKER} ${previousTitle}`;
+  const nextData = contentFieldData(item);
+  if (upgrade) {
+    assert.ok(Array.isArray(nextData.layout) && nextData.layout.length > 0);
+    nextData.layout[0] = { ...nextData.layout[0], body: `${nextData.layout[0].body} emdash-media:cms-upgrade-media` };
+  }
   const updated = await jsonOf(await request('/_emdash/api/content/pages/home', {
     method: 'PUT',
     body: JSON.stringify({
-      data: { ...contentFieldData(item), title: nextTitle },
+      data: { ...nextData, title: nextTitle },
       _rev: rev,
     }),
   }));
@@ -412,6 +442,21 @@ async function main() {
   assert.ok(publicHtml.includes(MARKER), 'Public home did not render the authenticated published edit');
   record('Authenticated official content API edit is visible on an anonymous public home read after publish');
 
+  let baseline;
+  if (upgrade) {
+    const prepared = await jsonOf(await request('/__upgrade/prepare', { method: 'POST', body: '{}' }));
+    assert.equal(prepared.status, 200, `legacy state preparation failed: ${sanitizeText(prepared.text, 500)}`);
+    baseline = prepared.json;
+    assert.ok(baseline.migrations.includes('089_auto_seed_completion'));
+    assert.ok(!baseline.migrations.includes('090_redirect_enable_loop_guard') && !baseline.migrations.includes('091_redirect_artifacts'));
+    assert.equal(baseline.preserved.seed_complete, 'true');
+    assert.equal(baseline.preserved.organizations[0].organization_id, 'upgrade-org');
+    assert.equal(baseline.preserved.grants[0].site_id, 'upgrade-site');
+    assert.deepEqual(baseline.artifacts, []);
+    await writeFile(join(work, 'UPGRADE-BASELINE.json'), `${JSON.stringify({ source: LEGACY_SOURCE, versions: '1.0.1', ...baseline }, null, 2)}\n`);
+    record('Actual 1.0.1 runtime created content/media references, settings, plugin records and completed seed; 090/091 are pending');
+  }
+
   await stopOwned(worker1);
   await writeSanitizedLog('wrangler-1.log', worker1.output());
   const persistBeforeRestart = persistFingerprint();
@@ -436,6 +481,18 @@ async function main() {
   assert.equal(publicAfter.status, 200);
   assert.ok(publicAfterHtml.includes(MARKER), 'Edited public content did not persist across worker restart');
   record('Anonymous public read after restart still shows the authenticated D1-backed edit');
+  if (upgrade) {
+    const after = await (await request('/__upgrade/state')).json();
+    assert.deepEqual(after.migrations.filter(name => !baseline.migrations.includes(name)), ['090_redirect_enable_loop_guard', '091_redirect_artifacts']);
+    assert.ok(baseline.migrations.every(name => after.migrations.includes(name)));
+    assert.deepEqual(after.preserved, baseline.preserved, 'CMS and merchant state must be preserved byte-for-byte');
+    assert.deepEqual(after.artifacts, ['_emdash_redirect_artifacts', '_emdash_redirect_generation_artifacts', '_emdash_redirect_state']);
+    const authenticatedAfter = await jsonOf(await request('/_emdash/api/content/pages/home'));
+    assert.equal(authenticatedAfter.status, 200, 'original CMS session survives the actual version upgrade');
+    assert.match(JSON.stringify(contentFieldData(unwrapContentEnvelope(authenticatedAfter.json, 'upgraded home').item)), /emdash-media:cms-upgrade-media/);
+    await writeFile(join(work, 'UPGRADE-AFTER.json'), `${JSON.stringify({ versions: '1.2.0', ...after }, null, 2)}\n`);
+    record('Actual 1.0.1 -> 1.2 upgrade applied only 090/091, preserving CMS state, media reference, original session and merchant authority rows without reseeding');
+  }
 
   const spoofedAfter = await spoofedMutation();
   assert.ok([401, 403, 404].includes(spoofedAfter.status), `spoofed PUT after restart expected deny, got ${spoofedAfter.status}`);
@@ -463,6 +520,22 @@ async function main() {
 
   await stopOwned(worker2);
   await writeSanitizedLog('wrangler-2.log', worker2.output());
+  if (upgrade) {
+    const worker3 = startWorker('worker-3-emdash-1.2.0');
+    await waitReady(origin, worker3);
+    rememberOwnedTree(worker3);
+    const restarted = await (await request('/__upgrade/state')).json();
+    const before = JSON.parse(readFileSync(join(work, 'UPGRADE-AFTER.json'), 'utf8'));
+    assert.deepEqual(restarted.preserved, baseline.preserved);
+    assert.deepEqual(restarted.migrations, before.migrations);
+    const restartedHome = await publicFetch('/');
+    assert.equal(restartedHome.status, 200);
+    assert.ok((await restartedHome.text()).includes(MARKER));
+    assert.equal((await request('/_emdash/api/content/pages/home')).status, 200);
+    await stopOwned(worker3);
+    await writeSanitizedLog('wrangler-3.log', worker3.output());
+    record('Upgraded 1.2 runtime restarted again with unchanged CMS/merchant state and migration ledger');
+  }
   const persistAfter = persistFingerprint();
   assert.ok(d1PersistPaths(persistAfter.files.map((path) => join(persist, path))).length > 0, 'D1 persist files missing after worker-2 stop');
 
@@ -509,6 +582,7 @@ const receipt = {
   versions: result?.versions ?? {
     node: process.version,
     emdash: pkgVersion('emdash'),
+    '@emdash-cms/auth': pkgVersion('@emdash-cms/auth'),
     '@emdash-cms/cloudflare': pkgVersion('@emdash-cms/cloudflare'),
     '@astrojs/cloudflare': pkgVersion('@astrojs/cloudflare'),
     wrangler: pkgVersion('wrangler'),
@@ -516,7 +590,10 @@ const receipt = {
   },
   origin: result?.origin ?? null,
   persist,
-  generatedWrangler: 'file:.grilltrack/work/cms-operation-20260930/dist/server/wrangler.json',
+  generatedWrangler: upgrade
+    ? 'file:.grilltrack/work/emdash-upgrade-20261007/dist/server/wrangler.json'
+    : 'file:.grilltrack/work/cms-operation-20260930/dist/server/wrangler.json',
+  upgradeBaseline: upgrade ? { source: LEGACY_SOURCE, emdash: '1.0.1', reseeded: false } : null,
   bindings: {
     database: 'd1({ binding: "DB" })',
     storage: 'r2({ binding: "MEDIA" })',

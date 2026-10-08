@@ -5,7 +5,9 @@ import { d1, r2 } from '@emdash-cms/cloudflare';
 import { defineConfig } from 'astro/config';
 import emdash from 'emdash/astro';
 
-const workRoot = new URL('../../.grilltrack/work/cms-operation-20260930/', import.meta.url);
+const workRoot = new URL(process.env.DK_CMS_FIXTURE_UPGRADE === '1'
+  ? '../../.grilltrack/work/emdash-upgrade-20261007/'
+  : '../../.grilltrack/work/cms-operation-20260930/', import.meta.url);
 
 export default defineConfig({
   site: 'https://dinkuskit.com',

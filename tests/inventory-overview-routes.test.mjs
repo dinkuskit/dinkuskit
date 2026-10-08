@@ -89,3 +89,47 @@ test('built reads refuse revocation, disabled login, subject drift, removed memb
     }
   } finally { await stopRuntime(runtime); }
 });
+
+test('EmDash 1.2 keeps repeated Inventory URLs private across anonymous reads and organization switches', async () => {
+  const runtime = await startMerchantTestRuntime();
+  try {
+    const actor = await identity(runtime, 'cache-actor@example.com');
+    const secondOwner = await identity(runtime, 'cache-second-owner@example.com');
+    assert.equal((await form(runtime, secondOwner.jar, '/api/account/memberships', {
+      organization_id: secondOwner.organizationId, email: 'cache-actor@example.com', action: 'add_member',
+    })).status, 303);
+    const grants = [grant(actor), { ...grant(actor), organizationId: secondOwner.organizationId }];
+    const payload = (organizationId, marker) => {
+      const body = overviewPayload(organizationId);
+      body.overview.pools[0].poolId = marker;
+      for (const site of body.overview.sites) if (site.poolId === 'pool-main') site.poolId = marker;
+      return body;
+    };
+    const read = async (expected, excluded) => {
+      const response = await request(runtime, actor.jar, '/account/inventory');
+      assert.equal(response.status, 200);
+      assert.match(response.headers.get('cache-control'), /private/);
+      assert.match(response.headers.get('cache-control'), /no-store/);
+      const html = await response.text();
+      assert.ok(html.includes(expected));
+      assert.ok(!html.includes(excluded));
+    };
+    await fixture(runtime, { grants, body: payload(actor.organizationId, 'pool-cache-alpha') });
+    await read('pool-cache-alpha', 'pool-cache-beta');
+    const anonymous = await request(runtime, new Map(), '/account/inventory');
+    assert.equal(anonymous.status, 303);
+    assert.doesNotMatch(await anonymous.text(), /pool-cache-alpha|pool-cache-beta/);
+    assert.equal((await form(runtime, actor.jar, '/api/account/organizations', {
+      action: 'select', organization_id: secondOwner.organizationId,
+    })).status, 303);
+    await fixture(runtime, { grants, body: payload(secondOwner.organizationId, 'pool-cache-beta') });
+    await read('pool-cache-beta', 'pool-cache-alpha');
+    assert.equal((await request(runtime, secondOwner.jar, '/account/inventory')).status, 403,
+      'another login does not inherit the selected actor purpose grants');
+    assert.equal((await form(runtime, actor.jar, '/api/account/organizations', {
+      action: 'select', organization_id: actor.organizationId,
+    })).status, 303);
+    await fixture(runtime, { grants, body: payload(actor.organizationId, 'pool-cache-alpha') });
+    await read('pool-cache-alpha', 'pool-cache-beta');
+  } finally { await stopRuntime(runtime); }
+});

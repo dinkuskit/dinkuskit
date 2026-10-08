@@ -19,3 +19,7 @@ The selected `@codemirror/language` 6.12.4 override is preserved. Prior qualific
 The updater dry run finds no remaining direct package bump. EmDash source references: [1.2 release](https://github.com/emdash-cms/emdash/releases/tag/emdash%401.2.0), [core migration guidance](https://docs.emdashcms.com/deployment/core-migrations/).
 
 Fixtures prove local behavior only. Hosted database status, restorable database/media recovery, matching deployment artifact and authorized forward migration remain separate rollout gates. This change does not deploy or activate live services, providers, accounts or grants. Automated review is evidence; Bobby retains merge authority.
+
+## Review adjudication
+
+Comprehensive P0–P3 OpenClaw review of `2edebfa33bcfcf631bf6270af2beac01a8a3cf28` against `eb5016be2192b9c3a4de3d3e7ade1d1234ecc3de` returned one P1 claiming the fixture's organization `status` column does not exist. Disposition: `reject_false_positive`. The pinned public baseline and current `migrations/merchant/0004_account_foundation.sql` define both lifecycle `status` (line 8, default `active`) and distinct `admission_status` (line 11). Inserting `admission_status = admitted` correctly leaves lifecycle `status = active`. Both successful actual-version snapshots contain that value, and full verification plus GitHub CI passed. No source repair was required. Final-revision review and native completion are delivery evidence attached to PR16; this record does not grant merge authority.

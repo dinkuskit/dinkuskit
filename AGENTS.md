@@ -2,6 +2,14 @@
 
 This public repository owns the DinkusKit website and account experience. Assume every committed byte is public.
 
+## Running GrillTrack
+
+Run `./scripts/agent-skills` first; it installs the pinned SaariusSkills
+skills into ignored `.cursor/skills/`. Use
+`./scripts/grilltrack --project . validate` or `show` for ledger reads.
+The CLI-only ledger rule remains in force. SmokySkills is enabled only after
+maintainer access and an immutable commit pin are supplied.
+
 ## Source priority
 
 1. This file.

@@ -1,0 +1,50 @@
+---
+import type { DirectoryOrganization, DirectoryPerson } from '../account/operator-directory.ts';
+interface Props {
+  people: { rows: DirectoryPerson[]; page: { page: number; pageSize: number; hasNext: boolean } };
+  organizations: { rows: DirectoryOrganization[]; page: { page: number; pageSize: number; hasNext: boolean } };
+  search: string;
+  pageSize: number;
+}
+const { people, organizations, search, pageSize } = Astro.props;
+const link = (kind: string, page: number) => `/account/operator?q=${encodeURIComponent(search)}&page=${page}&page_size=${pageSize}#${kind}`;
+---
+<section class="operator-dashboard">
+  <p class="eyebrow">Independent operator access</p>
+  <h1>Directory</h1>
+  <p class="lead">Read-only account and organization records. Website grants are shown separately from service observations.</p>
+  <form class="account-form directory-search" method="get">
+    <label for="directory-search">Search people and organizations</label>
+    <input id="directory-search" name="q" value={search} maxlength="100" autocomplete="off" />
+    <label for="directory-page-size">Rows per list</label>
+    <select id="directory-page-size" name="page_size">
+      {[...new Set([pageSize, 10, 20, 50])].sort((a, b) => a - b).map(size => <option value={size} selected={size === pageSize}>{size}</option>)}
+    </select>
+    <button type="submit">Search</button>
+  </form>
+  <div class="operator-grid">
+    <section id="people" class="directory-card" aria-labelledby="people-heading">
+      <h2 id="people-heading">People</h2>
+      {people.rows.length === 0 ? <p>No people match this search.</p> : <ul class="directory-list">
+        {people.rows.map(person => <li><a href={`/account/operator/people/${encodeURIComponent(person.userId)}`}>{person.name || person.email}</a><span>{person.email} · {person.status}</span></li>)}
+      </ul>}
+      <nav class="pagination" aria-label="People pages">
+        {people.page.page > 1 ? <a href={link('people', people.page.page - 1)}>Previous</a> : null}
+        <span>Page {people.page.page}</span>
+        {people.page.hasNext ? <a href={link('people', people.page.page + 1)}>Next</a> : null}
+      </nav>
+    </section>
+    <section id="organizations" class="directory-card" aria-labelledby="organizations-heading">
+      <h2 id="organizations-heading">Organizations</h2>
+      {organizations.rows.length === 0 ? <p>No organizations match this search.</p> : <ul class="directory-list">
+        {organizations.rows.map(org => <li><a href={`/account/operator/organizations/${encodeURIComponent(org.organizationId)}`}>{org.name}</a><span>{org.status} · {org.admissionStatus}</span></li>)}
+      </ul>}
+      <nav class="pagination" aria-label="Organization pages">
+        {organizations.page.page > 1 ? <a href={link('organizations', organizations.page.page - 1)}>Previous</a> : null}
+        <span>Page {organizations.page.page}</span>
+        {organizations.page.hasNext ? <a href={link('organizations', organizations.page.page + 1)}>Next</a> : null}
+      </nav>
+    </section>
+  </div>
+  <p class="operator-note">Read-only records. Service provisioning and live health are shown only by separately authorized service views.</p>
+</section>

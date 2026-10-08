@@ -1,0 +1,11 @@
+---
+import type { DirectoryPage } from '../account/operator-directory.ts';
+interface Props { page: DirectoryPage; label: string }
+const { page, label } = Astro.props;
+const link = (value: number) => { const url = new URL(Astro.url); url.searchParams.set('page', String(value)); url.searchParams.set('page_size', String(page.pageSize)); return url.pathname + url.search; };
+---
+<nav class="pagination" aria-label={label}>
+  {page.page > 1 ? <a href={link(page.page - 1)}>Previous</a> : null}
+  <span>Page {page.page}</span>
+  {page.hasNext ? <a href={link(page.page + 1)}>Next</a> : null}
+</nav>

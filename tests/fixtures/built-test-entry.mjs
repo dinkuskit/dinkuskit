@@ -51,8 +51,32 @@ function testTransports(env) {
   const proof = env.MERCHANT_PROOF_SIMULATION;
   return {
     inventoryOverview: inventoryOverviewRuntime(env),
+    operatorDirectory: operatorDirectoryRuntime(env),
     emailDelivery: mail ? emailDeliveryFromCapture(mail) : undefined,
     proofFetch: proof ? simulationFetch(proof, env.MERCHANT_DB) : undefined,
+  };
+}
+
+function operatorDirectoryRuntime(env) {
+  let calls = 0;
+  return {
+    async authorize({ userId, resource }) {
+      const fixture = JSON.parse(await env.MERCHANT_INVENTORY_OVERVIEW.get('operator-directory') ?? '{}');
+      const grant = (fixture.grants ?? []).find(item => item.userId === userId
+        && item.resourceType === resource.type
+        && item.resourceId === resource.id);
+      if (!grant) return false;
+      if (++calls === (fixture.change_at_call ?? 1) && fixture.change_during_read) {
+        await new Promise(resolve => setTimeout(resolve, Number(fixture.delay_ms ?? 10)));
+        const change = fixture.change_during_read;
+        if (change === 'disable_login') await env.MERCHANT_DB.prepare('UPDATE dinkuskit_account SET disabled = 1 WHERE user_id = ?').bind(userId).run();
+        if (change === 'revoke_grant') await env.MERCHANT_INVENTORY_OVERVIEW.put('operator-directory', JSON.stringify({ ...fixture, grants: [] }));
+        if (change === 'change_subject') await env.MERCHANT_DB.prepare('UPDATE dinkuskit_account SET subject = ? WHERE user_id = ?').bind('synthetic-changed-subject', userId).run();
+        if (change === 'remove_member') await env.MERCHANT_DB.prepare(`UPDATE dinkuskit_membership SET status = 'removed' WHERE user_id = ?`).bind(userId).run();
+      }
+      const current = JSON.parse(await env.MERCHANT_INVENTORY_OVERVIEW.get('operator-directory') ?? '{}');
+      return (current.grants ?? []).some(item => item.userId === userId && item.resourceType === resource.type && item.resourceId === resource.id);
+    },
   };
 }
 
@@ -135,6 +159,19 @@ async function proofRoutes(request, env, ctx) {
         await env.MERCHANT_DB.prepare(`INSERT OR REPLACE INTO dinkuskit_site_binding (site_id,site_origin,account_subject,service,revoked,granted_at) VALUES (?, ?, ?, 'inventory', ?, 1)`).bind(siteId, origin, org.authority_subject, revoked).run();
       }
     }
+    return json(200, { syntheticOnly: true });
+  }
+
+  if (url.pathname === '/__proof/operator-directory' && request.method === 'POST') {
+    const fixture = await request.json();
+    if (fixture.detach_user) {
+      await env.MERCHANT_DB.prepare('DELETE FROM dinkuskit_user_selection WHERE user_id = ?').bind(fixture.detach_user).run();
+      await env.MERCHANT_DB.prepare('DELETE FROM dinkuskit_membership WHERE user_id = ?').bind(fixture.detach_user).run();
+    }
+    for (const item of fixture.organization_names ?? []) {
+      await env.MERCHANT_DB.prepare('UPDATE dinkuskit_organization SET name = ? WHERE organization_id = ?').bind(item.name, item.organizationId).run();
+    }
+    await env.MERCHANT_INVENTORY_OVERVIEW.put('operator-directory', JSON.stringify(fixture));
     return json(200, { syntheticOnly: true });
   }
 

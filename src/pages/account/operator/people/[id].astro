@@ -1,0 +1,33 @@
+---
+import DirectoryPagination from '../../../../components/DirectoryPagination.astro';
+import Site from '../../../../layouts/Site.astro';
+import { getMerchantEnv } from '../../../../account/bindings.ts';
+import { MerchantUnavailableError, seeOther, unavailableResponse } from '../../../../account/config.ts';
+import { getInjectedTransports } from '../../../../account/transports.ts';
+import { getPerson, parseDirectoryPage } from '../../../../account/operator-directory.ts';
+
+export const prerender = false;
+Astro.response.headers.set('cache-control', 'private, no-store');
+if (Astro.request.method !== 'GET') return new Response(null, { status: 405, headers: { allow: 'GET', 'cache-control': 'private, no-store' } });
+if (!Astro.locals.login) return seeOther('/account/sign-in');
+if (!Astro.params.id || Astro.params.id.length > 200 || Astro.params.id.trim() !== Astro.params.id) return new Response('Invalid person.', { status: 400, headers: { 'cache-control': 'private, no-store' } });
+const params = parseDirectoryPage(Astro.url, false);
+if (!params) return new Response('Invalid detail query.', { status: 400, headers: { 'cache-control': 'private, no-store' } });
+let env;
+try { env = await getMerchantEnv(); } catch (error) { if (error instanceof MerchantUnavailableError) return unavailableResponse(); throw error; }
+const result = await getPerson({ db: env.MERCHANT_DB, userId: Astro.locals.login.userId, personId: Astro.params.id, ...params, runtime: getInjectedTransports().operatorDirectory });
+Astro.response.status = result.state === 'forbidden' ? 403 : result.state === 'unavailable' ? 503 : result.state === 'not_found' ? 404 : 200;
+---
+<Site title="Operator person detail" description="Read-only person detail.">
+  {result.state === 'forbidden' ? <section class="account-panel"><h1>Person unavailable</h1><p>This caller is not authorized for this person or its complete membership record.</p></section> : null}
+  {result.state === 'unavailable' ? <section class="account-panel"><h1>Person unavailable</h1><p>The person could not be read without exposing partial detail.</p></section> : null}
+  {result.state === 'not_found' ? <section class="account-panel"><h1>Person not found</h1><p>No matching record.</p></section> : null}
+  {result.state === 'ok' ? <section class="operator-detail">
+    <p class="eyebrow">Person</p><h1>{result.value.person.name || result.value.person.email}</h1>
+    <dl class="detail-grid"><dt>Email</dt><dd>{result.value.person.email}</dd><dt>Status</dt><dd>{result.value.person.status}</dd></dl>
+    <h2>Organization memberships</h2>
+    {result.value.memberships.length === 0 ? <p>No memberships recorded.</p> : <ul class="directory-list">{result.value.memberships.map(member => <li><a href={`/account/operator/organizations/${encodeURIComponent(member.organizationId)}`}>{member.organizationName}</a><span>{member.role} · {member.status} · {member.permissions.join(', ') || 'no delegated permissions'}</span></li>)}</ul>}
+    <DirectoryPagination page={result.value.page} label="Membership pages" />
+    <p><a href="/account/operator">Back to directory</a></p>
+  </section> : null}
+</Site>

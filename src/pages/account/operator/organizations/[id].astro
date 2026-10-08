@@ -1,0 +1,36 @@
+---
+import DirectoryPagination from '../../../../components/DirectoryPagination.astro';
+import Site from '../../../../layouts/Site.astro';
+import { getMerchantEnv } from '../../../../account/bindings.ts';
+import { MerchantUnavailableError, seeOther, unavailableResponse } from '../../../../account/config.ts';
+import { getInjectedTransports } from '../../../../account/transports.ts';
+import { getOrganization, parseDirectoryPage } from '../../../../account/operator-directory.ts';
+
+export const prerender = false;
+Astro.response.headers.set('cache-control', 'private, no-store');
+if (Astro.request.method !== 'GET') return new Response(null, { status: 405, headers: { allow: 'GET', 'cache-control': 'private, no-store' } });
+if (!Astro.locals.login) return seeOther('/account/sign-in');
+if (!Astro.params.id || Astro.params.id.length > 200 || Astro.params.id.trim() !== Astro.params.id) return new Response('Invalid organization.', { status: 400, headers: { 'cache-control': 'private, no-store' } });
+const params = parseDirectoryPage(Astro.url, false);
+if (!params) return new Response('Invalid detail query.', { status: 400, headers: { 'cache-control': 'private, no-store' } });
+let env;
+try { env = await getMerchantEnv(); } catch (error) { if (error instanceof MerchantUnavailableError) return unavailableResponse(); throw error; }
+const result = await getOrganization({ db: env.MERCHANT_DB, userId: Astro.locals.login.userId, organizationId: Astro.params.id, ...params, runtime: getInjectedTransports().operatorDirectory });
+Astro.response.status = result.state === 'forbidden' ? 403 : result.state === 'unavailable' ? 503 : result.state === 'not_found' ? 404 : 200;
+---
+<Site title="Operator organization detail" description="Read-only organization detail.">
+  {result.state === 'forbidden' ? <section class="account-panel"><h1>Organization unavailable</h1><p>This caller is not authorized for this organization or its complete related records.</p></section> : null}
+  {result.state === 'unavailable' ? <section class="account-panel"><h1>Organization unavailable</h1><p>The organization could not be read without exposing partial detail.</p></section> : null}
+  {result.state === 'not_found' ? <section class="account-panel"><h1>Organization not found</h1><p>No matching record.</p></section> : null}
+  {result.state === 'ok' ? <section class="operator-detail">
+    <p class="eyebrow">Organization</p><h1>{result.value.organization.name}</h1>
+    <dl class="detail-grid"><dt>Status</dt><dd>{result.value.organization.status}</dd><dt>Admission</dt><dd>{result.value.organization.admissionStatus}</dd><dt>Owner user</dt><dd>{result.value.organization.ownerUserId}</dd></dl>
+    <h2>Memberships</h2><ul class="directory-list">{result.value.memberships.map(member => <li><a href={`/account/operator/people/${encodeURIComponent(member.userId)}`}>{member.userId}</a><span>{member.role} · {member.status} · {member.permissions.join(', ') || 'no delegated permissions'}</span></li>)}</ul>
+    <DirectoryPagination page={result.value.membershipPage} label="Membership pages" />
+    <h2>Linked stores</h2>
+    {result.value.stores.length === 0 ? <p>No recorded store bindings.</p> : <ul class="directory-list">{result.value.stores.map(store => <li><a href={`/account/operator/stores/${encodeURIComponent(store.siteId)}`}>{store.siteOrigin}</a><span>{store.service} · {store.revoked ? 'revoked' : 'granted'} · granted {new Date(store.grantedAt * 1000).toISOString()}</span></li>)}</ul>}
+    <DirectoryPagination page={result.value.storePage} label="Store pages" />
+    <p><a href={`/account/operator/inventory?organization_id=${encodeURIComponent(result.value.organization.organizationId)}`}>Open Inventory overview (separately authorized)</a> · <a href="/account/operator">Back to directory</a></p>
+    <p class="operator-note">Website grants record permission to connect. Open the separately authorized Inventory overview for observed provisioning status and observation time. Payments and Ship service observations are unavailable.</p>
+  </section> : null}
+</Site>

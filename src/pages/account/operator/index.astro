@@ -1,0 +1,31 @@
+---
+import Site from '../../../layouts/Site.astro';
+import OperatorDirectory from '../../../components/OperatorDirectory.astro';
+import { getMerchantEnv } from '../../../account/bindings.ts';
+import { MerchantUnavailableError, seeOther, unavailableResponse } from '../../../account/config.ts';
+import { getInjectedTransports } from '../../../account/transports.ts';
+import { readDirectory, parseDirectoryPage } from '../../../account/operator-directory.ts';
+
+export const prerender = false;
+Astro.response.headers.set('cache-control', 'private, no-store');
+if (Astro.request.method !== 'GET') return new Response(null, { status: 405, headers: { allow: 'GET', 'cache-control': 'private, no-store' } });
+if (!Astro.locals.login) return seeOther('/account/sign-in');
+const params = parseDirectoryPage(Astro.url);
+if (!params) return new Response('Invalid directory query.', { status: 400, headers: { 'cache-control': 'private, no-store' } });
+let env;
+try { env = await getMerchantEnv(); } catch (error) {
+  if (error instanceof MerchantUnavailableError) return unavailableResponse();
+  throw error;
+}
+const runtime = getInjectedTransports().operatorDirectory;
+const directory = await readDirectory({ db: env.MERCHANT_DB, userId: Astro.locals.login.userId, ...params, runtime });
+const result = directory.state;
+const people = directory.state === 'ok' ? directory.value.people : null;
+const organizations = directory.state === 'ok' ? directory.value.organizations : null;
+Astro.response.status = result === 'forbidden' ? 403 : result === 'unavailable' ? 503 : result === 'not_found' ? 404 : 200;
+---
+<Site title="Operator directory" description="Read-only operator directory.">
+  {result === 'forbidden' ? <section class="account-panel"><h1>Directory unavailable</h1><p>This caller is not authorized for the independent operator directory.</p></section> : null}
+  {result === 'unavailable' ? <section class="account-panel"><h1>Directory unavailable</h1><p>The directory could not be read without exposing partial results. Try again later.</p></section> : null}
+  {result === 'ok' && people && organizations ? <OperatorDirectory people={people} organizations={organizations} search={params.search} pageSize={params.pageSize} /> : null}
+</Site>

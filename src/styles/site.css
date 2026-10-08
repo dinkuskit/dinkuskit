@@ -33,4 +33,23 @@ footer { margin-top: 2.5rem; font-size: .85rem; color: #42594b; }
 .account-form button, .account-panel button { background: #215d43; color: white; border: 0; padding: .7rem 1rem; font: inherit; cursor: pointer; }
 .account-form button:focus-visible, .account-panel button:focus-visible { outline: 3px solid #30764f; outline-offset: 3px; }
 .account-error { color: #8a1f1f; }
+.operator-dashboard, .operator-detail { padding: 3rem 0 2.5rem; }
+.operator-dashboard { max-width: 1000px; }
+.operator-detail { max-width: 760px; }
+.operator-detail h1, .directory-list a { overflow-wrap: anywhere; }
+.operator-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem; }
+.directory-search { max-width: 32rem; }
+.directory-search select { padding: .65rem .7rem; border: 1px solid #d4ddd3; background: white; }
+.directory-card { border: 1px solid #d4ddd3; background: white; padding: 1.25rem; }
+.directory-card h2 { margin-top: 0; }
+.count { color: #42594b; font-size: .85rem; font-weight: 400; }
+.directory-list { list-style: none; margin: 0; padding: 0; }
+.directory-list li { display: flex; flex-direction: column; gap: .15rem; padding: .75rem 0; border-top: 1px solid #e6ece4; }
+.directory-list li > span { color: #42594b; font-size: .9rem; overflow-wrap: anywhere; }
+.pagination { display: flex; gap: 1rem; margin-top: 1rem; align-items: center; font-size: .9rem; }
+.detail-grid { display: grid; grid-template-columns: minmax(9rem, 1fr) 2fr; gap: .55rem 1rem; border-top: 1px solid #d4ddd3; padding-top: 1rem; }
+.detail-grid dt { color: #42594b; font-weight: 700; }
+.detail-grid dd { margin: 0; overflow-wrap: anywhere; }
+.operator-note { color: #42594b; font-size: .9rem; max-width: 75ch; }
 @media (max-width: 600px) { .text-section { grid-template-columns: 1fr; gap: 0; } .intro { padding-top: 2rem; } nav { gap: 1rem; } }
+@media (max-width: 700px) { .operator-grid { grid-template-columns: 1fr; } .detail-grid { grid-template-columns: 1fr; gap: .15rem; } .detail-grid dd { margin-bottom: .55rem; } }

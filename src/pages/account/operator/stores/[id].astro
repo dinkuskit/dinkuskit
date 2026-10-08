@@ -1,0 +1,32 @@
+---
+import Site from '../../../../layouts/Site.astro';
+import { getMerchantEnv } from '../../../../account/bindings.ts';
+import { MerchantUnavailableError, seeOther, unavailableResponse } from '../../../../account/config.ts';
+import { getInjectedTransports } from '../../../../account/transports.ts';
+import { getStore, parseDirectoryPage } from '../../../../account/operator-directory.ts';
+
+export const prerender = false;
+Astro.response.headers.set('cache-control', 'private, no-store');
+if (Astro.request.method !== 'GET') return new Response(null, { status: 405, headers: { allow: 'GET', 'cache-control': 'private, no-store' } });
+if (!Astro.locals.login) return seeOther('/account/sign-in');
+if (!Astro.params.id || Astro.params.id.length > 200 || Astro.params.id.trim() !== Astro.params.id) return new Response('Invalid store.', { status: 400, headers: { 'cache-control': 'private, no-store' } });
+const params = parseDirectoryPage(Astro.url, false);
+if (!params || Astro.url.search) return new Response('Invalid detail query.', { status: 400, headers: { 'cache-control': 'private, no-store' } });
+let env;
+try { env = await getMerchantEnv(); } catch (error) { if (error instanceof MerchantUnavailableError) return unavailableResponse(); throw error; }
+const result = await getStore({ db: env.MERCHANT_DB, userId: Astro.locals.login.userId, siteId: Astro.params.id, runtime: getInjectedTransports().operatorDirectory });
+Astro.response.status = result.state === 'forbidden' ? 403 : result.state === 'unavailable' ? 503 : result.state === 'not_found' ? 404 : 200;
+---
+<Site title="Operator store detail" description="Read-only store detail.">
+  {result.state === 'forbidden' ? <section class="account-panel"><h1>Store unavailable</h1><p>This caller is not authorized for this store.</p></section> : null}
+  {result.state === 'unavailable' ? <section class="account-panel"><h1>Store unavailable</h1><p>The store could not be read without exposing partial detail.</p></section> : null}
+  {result.state === 'not_found' ? <section class="account-panel"><h1>Store not found</h1><p>No matching record.</p></section> : null}
+  {result.state === 'ok' ? <section class="operator-detail">
+    <p class="eyebrow">Recorded store grant</p><h1>{result.value.siteOrigin}</h1>
+    <dl class="detail-grid"><dt>Site ID</dt><dd>{result.value.siteId}</dd><dt>Organization</dt><dd>{result.value.organizationId ?? 'Unknown'}</dd><dt>Service grant</dt><dd>{result.value.service}</dd><dt>Website authorization</dt><dd>{result.value.revoked ? 'revoked' : 'granted'}</dd><dt>Granted at</dt><dd>{new Date(result.value.grantedAt * 1000).toISOString()}</dd><dt>Revoked at</dt><dd>{result.value.revokedAt === null ? 'Not recorded' : new Date(result.value.revokedAt * 1000).toISOString()}</dd></dl>
+    <h2>Latest matching website connection</h2>
+    {result.value.connection ? <dl class="detail-grid"><dt>Service</dt><dd>{result.value.connection.service}</dd><dt>Connection status</dt><dd>{result.value.connection.status}</dd><dt>Created</dt><dd>{new Date(result.value.connection.createdAt * 1000).toISOString()}</dd><dt>Consented</dt><dd>{result.value.connection.consentedAt ? new Date(result.value.connection.consentedAt * 1000).toISOString() : 'Not recorded'}</dd><dt>Redeemed</dt><dd>{result.value.connection.redeemedAt ? new Date(result.value.connection.redeemedAt * 1000).toISOString() : 'Not recorded'}</dd></dl> : <p>No matching website connection record. Service observation is unavailable.</p>}
+    <p class="operator-note">These timestamps describe website records, not service observations. Inventory provisioning and observation age require the separately authorized Inventory overview. Payments and Ship observations are unavailable.</p>
+    <p><a href="/account/operator">Back to directory</a></p>
+  </section> : null}
+</Site>

@@ -154,5 +154,6 @@ emdash-env.d.ts
 cloudflare/wrangler.local.jsonc
 cloudflare/.dev.vars
 .DS_Store
+.cursor/skills/
 *.db
 *.db-*

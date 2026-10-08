@@ -4142,14 +4142,26 @@
       "question": "How should the website adopt the approved release-aligned 1.2 stack while preserving the qualified account and Inventory boundary?",
       "rationale": "The operator approved the queued source migration using the supplied official release matrix and ACP-first flow.",
       "repair_required": false,
-      "review_classifications": [],
-      "review_history": [],
-      "review_ref": null,
-      "review_result": null,
-      "review_source_identity": null,
+      "review_classifications": [
+        "reject_false_positive"
+      ],
+      "review_history": [
+        {
+          "classifications": [
+            "reject_false_positive"
+          ],
+          "ref": "proof/emdash12-upgrade.md",
+          "result": "findings",
+          "reviewed_at": "2026-10-08T14:47:07+00:00",
+          "source_identity": "git:2edebfa33bcfcf631bf6270af2beac01a8a3cf28"
+        }
+      ],
+      "review_ref": "proof/emdash12-upgrade.md",
+      "review_result": "findings",
+      "review_source_identity": "git:2edebfa33bcfcf631bf6270af2beac01a8a3cf28",
       "status": "verified",
       "superseded_by": null,
-      "updated_at": "2026-10-08T14:34:33+00:00",
+      "updated_at": "2026-10-08T14:47:07+00:00",
       "verification_ref": "proof/emdash12-upgrade.md"
     }
   ],
@@ -4178,5 +4190,5 @@
   "status": "active",
   "title": "Website PR9 current-main reconciliation",
   "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca",
-  "updated_at": "2026-10-08T14:34:33+00:00"
+  "updated_at": "2026-10-08T14:47:07+00:00"
 }

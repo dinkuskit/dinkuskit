@@ -13,7 +13,15 @@ test('CMS admin and merchant sessions stay isolated on workerd', async () => {
 
     const home = await request(runtime, cmsJar, '/');
     assert.equal(home.status, 200);
-    assert.match(await home.text(), /DinkusKit|Commerce|Getting started/i);
+    const editorHome = await home.text();
+    assert.match(editorHome, /DinkusKit|Commerce|Getting started/i);
+    assert.match(home.headers.get('cache-control'), /private/);
+    assert.match(home.headers.get('cache-control'), /no-store/);
+    assert.match(editorHome, /id="emdash-toolbar"/);
+    const anonymousHome = await request(runtime, new Map(), '/');
+    assert.equal(anonymousHome.status, 200);
+    assert.doesNotMatch(await anonymousHome.text(), /id="emdash-toolbar"/,
+      'anonymous reads after an editor read must not inherit its toolbar');
 
     const settings = await request(runtime, cmsJar, '/_emdash/api/settings', {
       headers: { 'x-emdash-request': '1' },

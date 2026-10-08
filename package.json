@@ -36,8 +36,9 @@
     "test:cloudflare-candidate": "node scripts/cloudflare-candidate-denial.mjs",
     "test:safe-http-url": "node scripts/test-safe-http-url.mjs",
     "build:cloudflare": "astro build --config astro.cloudflare.config.mjs",
-    "verify": "npm run audit:repo && npm run setup && npm run types:wrangler && npm run typecheck && npm run test:account && npm run build && npm run test:inventory-runner && npm run test:merchant && npm run test:foundation && npm run test:inventory-overview && npm run test:smoke && npm run test:dev-cms && npm run test:public-release-reuse && npm run test:cms-operation-helpers && npm run test:access-gate && npm run test:safe-http-url && npm run test:cms-operation && npm run test:cloudflare-candidate",
-    "prepare:public-release": "npm run setup && npm run build && node scripts/prepare-public-release.mjs"
+    "verify": "npm run audit:repo && npm run setup && npm run types:wrangler && npm run typecheck && npm run test:account && npm run build && npm run test:inventory-runner && npm run test:merchant && npm run test:foundation && npm run test:inventory-overview && npm run test:smoke && npm run test:dev-cms && npm run test:public-release-reuse && npm run test:cms-operation-helpers && npm run test:access-gate && npm run test:safe-http-url && npm run test:cms-operation && npm run test:emdash-upgrade && npm run test:cloudflare-candidate",
+    "prepare:public-release": "npm run setup && npm run build && node scripts/prepare-public-release.mjs",
+    "test:emdash-upgrade": "node scripts/cms-operation-fixture.mjs --upgrade"
   },
   "dependencies": {
     "@astrojs/node": "11.1.5",
@@ -45,7 +46,7 @@
     "astro": "7.3.2",
     "better-auth": "1.7.6",
     "better-sqlite3": "12.11.1",
-    "emdash": "1.0.1",
+    "emdash": "1.2.0",
     "jose": "6.2.12",
     "react": "19.2.4",
     "react-dom": "19.2.4"
@@ -54,12 +55,15 @@
     "@astrojs/check": "0.9.10",
     "@astrojs/cloudflare": "14.3.3",
     "@cloudflare/workers-types": "5.20260926.1",
-    "@emdash-cms/auth": "1.0.1",
-    "@emdash-cms/cloudflare": "1.0.1",
+    "@emdash-cms/auth": "1.2.0",
+    "@emdash-cms/cloudflare": "1.2.0",
     "@types/node": "26.1.1",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
     "typescript": "6.0.3",
     "wrangler": "4.144.0"
+  },
+  "overrides": {
+    "@codemirror/language": "6.12.4"
   }
 }

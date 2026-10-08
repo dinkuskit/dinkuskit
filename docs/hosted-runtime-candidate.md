@@ -6,7 +6,7 @@ The live public site stays the already-deployed static introduction. There is no
 
 ## What is prepared
 
-- Separate `astro.cloudflare.config.mjs` using pinned `@astrojs/cloudflare` 14.3.3 and `@emdash-cms/cloudflare` 1.0.1 `d1` / `r2`.
+- Separate `astro.cloudflare.config.mjs` using pinned `@astrojs/cloudflare` 14.3.3 and `@emdash-cms/cloudflare` 1.2.0 `d1` / `r2`.
 - Official worker entry `@emdash-cms/cloudflare/worker` in `cloudflare/worker.ts`.
 - Official Access exclusive auth via `access({ teamDomain, audienceEnvVar: "CF_ACCESS_AUDIENCE", defaultRole: 40 })`. Installed EmDash `Role.EDITOR` is 40.
 - Outer fail-closed gate on the complete `/_emdash` namespace, including setup and login, using public `@emdash-cms/cloudflare/auth` `authenticate`. The gate canonicalizes pathnames the same way Astro routing decodes them (`validateAndDecodePathname` / iterative `decodeURI`), so percent-encoded unreserved namespace characters, case escapes, encoded slashes, and malformed encodings relevant to `/_emdash` are denied. Missing team/audience/allowlist, missing JWT, invalid JWT, or an identity not on the runtime allowlist returns 404 before EmDash runtime. Public routes are not rewritten.

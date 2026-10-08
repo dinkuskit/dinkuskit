@@ -4,11 +4,11 @@
   "current_focus": {
     "cadence": "sequential",
     "confirmed": true,
-    "confirmed_at": "2026-10-07T12:36:49+00:00",
-    "domain": "Inventory metadata-only account and operator source integration",
-    "started_at": "2026-10-07T12:36:49+00:00",
+    "confirmed_at": "2026-10-07T13:01:29+00:00",
+    "domain": "Website EmDash 1.2 source upgrade",
+    "started_at": "2026-10-07T13:01:29+00:00",
     "status": "confirmed",
-    "summary": "Continue required current-source reviewer repair within the approved metadata integration; future timestamp validation restores truthful freshness. No upgrade, production access, merge or deployment is inferred."
+    "summary": "Approved queued EmDash 1.2 source migration, same source owner, ACP default first, local synthetic migration and isolation proof, normal review gates; deployment and runtime changes remain separate."
   },
   "decisions": [
     {
@@ -4080,6 +4080,89 @@
       "superseded_by": null,
       "updated_at": "2026-10-07T12:41:52+00:00",
       "verification_ref": "proof/inventory-overview/FRESHNESS-REPAIR.md"
+    },
+    {
+      "baseline_ref": "git:4629df637b2eb58393f60b74eef2b9c2b1badba5",
+      "candidate_refs": [],
+      "choice": "Upgrade direct core, Cloudflare and auth packages to exact 1.2.0 with public transitive dependencies. Preserve existing CMS content, media references, settings and plugin state without reseeding; preserve merchant organization, membership and site grants. Prove local pending core migrations, restart preservation, signed-in versus anonymous responses and selected organization isolation. Keep metadata-only Inventory behavior and absent live purpose runtime. Retain historical 1.0.1 evidence and require current checks and reviews. No new signer, authorization, grant, live endpoint, deployment or cross-repository feature.",
+      "context_ref": "https://github.com/emdash-cms/emdash/releases/tag/emdash%401.2.0",
+      "created_at": "2026-10-07T13:01:29+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [
+        "website-inventory-overview-024"
+      ],
+      "domain": "Website EmDash 1.2 source upgrade",
+      "history": [
+        {
+          "at": "2026-10-07T13:01:29+00:00",
+          "choice": "Upgrade direct core, Cloudflare and auth packages to exact 1.2.0 with public transitive dependencies. Preserve existing CMS content, media references, settings and plugin state without reseeding; preserve merchant organization, membership and site grants. Prove local pending core migrations, restart preservation, signed-in versus anonymous responses and selected organization isolation. Keep metadata-only Inventory behavior and absent live purpose runtime. Retain historical 1.0.1 evidence and require current checks and reviews. No new signer, authorization, grant, live endpoint, deployment or cross-repository feature.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-08T14:34:32+00:00",
+          "choice": "Upgrade direct core, Cloudflare and auth packages to exact 1.2.0 with public transitive dependencies. Preserve existing CMS content, media references, settings and plugin state without reseeding; preserve merchant organization, membership and site grants. Prove local pending core migrations, restart preservation, signed-in versus anonymous responses and selected organization isolation. Keep metadata-only Inventory behavior and absent live purpose runtime. Retain historical 1.0.1 evidence and require current checks and reviews. No new signer, authorization, grant, live endpoint, deployment or cross-repository feature.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-08T14:34:33+00:00",
+          "choice": "Upgrade direct core, Cloudflare and auth packages to exact 1.2.0 with public transitive dependencies. Preserve existing CMS content, media references, settings and plugin state without reseeding; preserve merchant organization, membership and site grants. Prove local pending core migrations, restart preservation, signed-in versus anonymous responses and selected organization isolation. Keep metadata-only Inventory behavior and absent live purpose runtime. Retain historical 1.0.1 evidence and require current checks and reviews. No new signer, authorization, grant, live endpoint, deployment or cross-repository feature.",
+          "from": "implemented",
+          "implementation_ref": "file:package.json; scripts/lib/emdash-upgrade-fixture.mjs; scripts/cms-operation-fixture.mjs",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": null
+        }
+      ],
+      "id": "website-emdash12-025",
+      "implementation_ref": "file:package.json; scripts/lib/emdash-upgrade-fixture.mjs; scripts/cms-operation-fixture.mjs",
+      "question": "How should the website adopt the approved release-aligned 1.2 stack while preserving the qualified account and Inventory boundary?",
+      "rationale": "The operator approved the queued source migration using the supplied official release matrix and ACP-first flow.",
+      "repair_required": false,
+      "review_classifications": [
+        "reject_false_positive"
+      ],
+      "review_history": [
+        {
+          "classifications": [
+            "reject_false_positive"
+          ],
+          "ref": "proof/emdash12-upgrade.md",
+          "result": "findings",
+          "reviewed_at": "2026-10-08T14:47:07+00:00",
+          "source_identity": "git:2edebfa33bcfcf631bf6270af2beac01a8a3cf28"
+        }
+      ],
+      "review_ref": "proof/emdash12-upgrade.md",
+      "review_result": "findings",
+      "review_source_identity": "git:2edebfa33bcfcf631bf6270af2beac01a8a3cf28",
+      "status": "verified",
+      "superseded_by": null,
+      "updated_at": "2026-10-08T14:47:07+00:00",
+      "verification_ref": "proof/emdash12-upgrade.md"
     }
   ],
   "last_activation": {
@@ -4107,5 +4190,5 @@
   "status": "active",
   "title": "Website PR9 current-main reconciliation",
   "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca",
-  "updated_at": "2026-10-07T12:41:52+00:00"
+  "updated_at": "2026-10-08T14:47:07+00:00"
 }

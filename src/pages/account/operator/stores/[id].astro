@@ -3,7 +3,7 @@ import Site from '../../../../layouts/Site.astro';
 import { getMerchantEnv } from '../../../../account/bindings.ts';
 import { MerchantUnavailableError, seeOther, unavailableResponse } from '../../../../account/config.ts';
 import { getInjectedTransports } from '../../../../account/transports.ts';
-import { getStore, parseDirectoryPage } from '../../../../account/operator-directory.ts';
+import { getStore, operatorDirectoryRuntime, parseDirectoryPage } from '../../../../account/operator-directory.ts';
 
 export const prerender = false;
 Astro.response.headers.set('cache-control', 'private, no-store');
@@ -14,7 +14,7 @@ const params = parseDirectoryPage(Astro.url, false);
 if (!params || Astro.url.search) return new Response('Invalid detail query.', { status: 400, headers: { 'cache-control': 'private, no-store' } });
 let env;
 try { env = await getMerchantEnv(); } catch (error) { if (error instanceof MerchantUnavailableError) return unavailableResponse(); throw error; }
-const result = await getStore({ db: env.MERCHANT_DB, userId: Astro.locals.login.userId, siteId: Astro.params.id, runtime: getInjectedTransports().operatorDirectory });
+const result = await getStore({ db: env.MERCHANT_DB, userId: Astro.locals.login.userId, siteId: Astro.params.id, runtime: getInjectedTransports().operatorDirectory ?? operatorDirectoryRuntime(env.MERCHANT_DB) });
 Astro.response.status = result.state === 'forbidden' ? 403 : result.state === 'unavailable' ? 503 : result.state === 'not_found' ? 404 : 200;
 ---
 <Site title="Operator store detail" description="Read-only store detail.">

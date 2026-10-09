@@ -10,6 +10,16 @@ export type OperatorResource =
 export type OperatorDirectoryRuntime = {
   authorize(input: { userId: string; callerId: string; resource: OperatorResource; scope: typeof OPERATOR_DIRECTORY_SCOPE }): Promise<boolean>;
 };
+type OperatorGrantRow = {
+  account_id: string;
+  scope: string;
+  granted_by: string;
+  granted_at: number;
+  grant_reference: string;
+  revoked_by: string | null;
+  revoked_at: number | null;
+  revoke_reference: string | null;
+};
 export type DirectoryPage = { page: number; pageSize: number; hasNext: boolean };
 export type DirectoryPerson = { userId: string; name: string; email: string; status: 'enabled' | 'disabled' };
 export type DirectoryOrganization = { organizationId: string; name: string; status: string; admissionStatus: string; ownerUserId: string };
@@ -25,6 +35,37 @@ type Search = Paging & { search: string };
 type Context = { callerId: string; subject: string };
 class Denied extends Error {}
 class NotFound extends Error {}
+
+function validProvenance(value: unknown): value is string {
+  return typeof value === 'string' && value.trim() === value && value.length > 0 && value.length <= 200 && !/[\u0000-\u001f]/.test(value);
+}
+
+function validGrant(row: OperatorGrantRow, callerId: string): boolean {
+  return row.account_id === callerId
+    && row.scope === OPERATOR_DIRECTORY_SCOPE
+    && validProvenance(row.granted_by)
+    && Number.isSafeInteger(row.granted_at) && row.granted_at > 0
+    && validProvenance(row.grant_reference)
+    && (row.revoked_by === null || validProvenance(row.revoked_by))
+    && (row.revoked_at === null || (Number.isSafeInteger(row.revoked_at) && row.revoked_at > 0))
+    && (row.revoke_reference === null || validProvenance(row.revoke_reference))
+    && row.revoked_at === null
+    && row.revoked_by === null
+    && row.revoke_reference === null;
+}
+
+/** Production provider: fresh primary D1 reads, no implicit identity or membership authority. */
+export function operatorDirectoryRuntime(db: D1Database): OperatorDirectoryRuntime {
+  return {
+    async authorize({ userId, callerId, resource, scope }) {
+      if (scope !== OPERATOR_DIRECTORY_SCOPE || !resource.id || !['directory', 'person', 'organization', 'store'].includes(resource.type)) return false;
+      const account = await db.prepare('SELECT subject, disabled FROM dinkuskit_account WHERE user_id = ?').bind(userId).first<{ subject: string; disabled: number }>();
+      if (!account || account.disabled !== 0 || canonicalAccountId(ACCOUNT_ISSUER, account.subject) !== callerId) return false;
+      const grant = await db.prepare('SELECT account_id, scope, granted_by, granted_at, grant_reference, revoked_by, revoked_at, revoke_reference FROM dinkuskit_operator_grant WHERE account_id = ? AND scope = ?').bind(callerId, scope).first<OperatorGrantRow>();
+      return Boolean(grant && validGrant(grant, callerId));
+    },
+  };
+}
 
 export function parseDirectoryPage(url: URL, searchAllowed = true): Search | null {
   const allowed = new Set(searchAllowed ? ['q', 'page', 'page_size'] : ['page', 'page_size']);

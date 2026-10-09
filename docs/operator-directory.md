@@ -15,7 +15,9 @@ before a complete response is returned. Test providers can restrict individual
 resources; production grants cover the complete directory.
 
 Neither CMS editor access, merchant ownership, email address nor membership
-confers operator authority. Better Auth authenticates the person; the existing
+confers directory authority. The separate organization approval surface uses
+current local CMS Admin authority only for pending admission decisions; see
+[organization approvals](organization-approvals.md). Better Auth authenticates the person; the existing
 DinkusKit-owned stable subject supplies the canonical identity. Caller enabled
 state and identity bracket asynchronous authorization. Grants and store binding
 ownership are rechecked after reads. Exceptions deny or return unavailable

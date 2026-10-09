@@ -4,11 +4,11 @@
   "current_focus": {
     "cadence": "sequential",
     "confirmed": true,
-    "confirmed_at": "2026-10-09T01:22:35+00:00",
-    "domain": "Explicit read-only operator authorization provider",
-    "started_at": "2026-10-09T01:22:34+00:00",
+    "confirmed_at": "2026-10-09T12:41:19+00:00",
+    "domain": "CMS Admin organization admission decisions and service notifications",
+    "started_at": "2026-10-09T12:41:18+00:00",
     "status": "confirmed",
-    "summary": "Implement a scope-limited persisted D1 stable-subject operator authorization provider and minimal grant/revoke provenance. Prove all-organization reads and denied ordinary merchant/CMS, missing/malformed runtime, revoked grants and disabled callers using synthetic local fixtures and browser/workerd. Preserve service isolation and fences. Deliver source PR with required review evidence; no actual principal binding, live grants, deployment or merge."
+    "summary": "Implement the approved narrow CMS Admin pending-organization queue and approve/deny workflow with atomic audit/outbox, separate truthful selected-contact notification status and retries. Verify current local CMS identity/demotion/disabled checks, CSRF/site provenance, first50 invariants, concurrency and synthetic failure paths with unit, real route/workerd and browser proof. Coordinate a focused PR with required exact-source review; no merge, deploy or live sends."
   },
   "decisions": [
     {
@@ -4328,6 +4328,87 @@
       "superseded_by": null,
       "updated_at": "2026-10-09T01:39:06+00:00",
       "verification_ref": "proof/operator-authorization/PROOF.md"
+    },
+    {
+      "baseline_ref": "git:f3ba14bb19ffcf582de49443f1cf4b386211f039",
+      "candidate_refs": [],
+      "choice": "Current EmDash CMS Admins on dinkuskit.com alone inherit organization approve/deny authority; initially the sole maintainer, future local Admins inherit it. This replaces the proposed separate organization-approval role, without abolishing or expanding the separate read-only directory grant. Use supported current local CMS session/user/permission interfaces with disabled-user, demotion, CSRF and host/site provenance checks, independent of merchant identity or selected organization. Compose only narrow approval queue/detail access. Approval grants admission only; denial moves Pending to Denied. Preserve first-50 lifetime allocation history and all organization/account/service ownership boundaries. Atomically persist actor/decision audit and durable notification intent; decision survives delivery failure, with separately tracked safely retried notification status and duplicate/concurrency protection. Both decisions use only selected verified service contact regardless of promotional consent. Never fallback to an unchosen channel. SMS remains unavailable; unverified selected contact remains explicitly unavailable/pending with reason. Use supported email boundary and local synthetic sink/failure proof only. No live sends, grants, provisioning, activation, appeals, reversals, suspensions, deletion, new quotas, required rejection reasons or bulk decisions.",
+      "context_ref": "docs/organization-approvals.md",
+      "created_at": "2026-10-09T12:41:19+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [
+        "merchant-pilot-admission-020",
+        "merchant-communication-018-repair",
+        "website-operator-authorization-027"
+      ],
+      "domain": "CMS Admin organization admission decisions and service notifications",
+      "history": [
+        {
+          "at": "2026-10-09T12:41:19+00:00",
+          "choice": "Current EmDash CMS Admins on dinkuskit.com alone inherit organization approve/deny authority; initially the sole maintainer, future local Admins inherit it. This replaces the proposed separate organization-approval role, without abolishing or expanding the separate read-only directory grant. Use supported current local CMS session/user/permission interfaces with disabled-user, demotion, CSRF and host/site provenance checks, independent of merchant identity or selected organization. Compose only narrow approval queue/detail access. Approval grants admission only; denial moves Pending to Denied. Preserve first-50 lifetime allocation history and all organization/account/service ownership boundaries. Atomically persist actor/decision audit and durable notification intent; decision survives delivery failure, with separately tracked safely retried notification status and duplicate/concurrency protection. Both decisions use only selected verified service contact regardless of promotional consent. Never fallback to an unchosen channel. SMS remains unavailable; unverified selected contact remains explicitly unavailable/pending with reason. Use supported email boundary and local synthetic sink/failure proof only. No live sends, grants, provisioning, activation, appeals, reversals, suspensions, deletion, new quotas, required rejection reasons or bulk decisions.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-09T13:08:23+00:00",
+          "choice": "Current EmDash CMS Admins on dinkuskit.com alone inherit organization approve/deny authority; initially the sole maintainer, future local Admins inherit it. This replaces the proposed separate organization-approval role, without abolishing or expanding the separate read-only directory grant. Use supported current local CMS session/user/permission interfaces with disabled-user, demotion, CSRF and host/site provenance checks, independent of merchant identity or selected organization. Compose only narrow approval queue/detail access. Approval grants admission only; denial moves Pending to Denied. Preserve first-50 lifetime allocation history and all organization/account/service ownership boundaries. Atomically persist actor/decision audit and durable notification intent; decision survives delivery failure, with separately tracked safely retried notification status and duplicate/concurrency protection. Both decisions use only selected verified service contact regardless of promotional consent. Never fallback to an unchosen channel. SMS remains unavailable; unverified selected contact remains explicitly unavailable/pending with reason. Use supported email boundary and local synthetic sink/failure proof only. No live sends, grants, provisioning, activation, appeals, reversals, suspensions, deletion, new quotas, required rejection reasons or bulk decisions.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-09T13:20:54+00:00",
+          "choice": "Current EmDash CMS Admins on dinkuskit.com alone inherit organization approve/deny authority; initially the sole maintainer, future local Admins inherit it. This replaces the proposed separate organization-approval role, without abolishing or expanding the separate read-only directory grant. Use supported current local CMS session/user/permission interfaces with disabled-user, demotion, CSRF and host/site provenance checks, independent of merchant identity or selected organization. Compose only narrow approval queue/detail access. Approval grants admission only; denial moves Pending to Denied. Preserve first-50 lifetime allocation history and all organization/account/service ownership boundaries. Atomically persist actor/decision audit and durable notification intent; decision survives delivery failure, with separately tracked safely retried notification status and duplicate/concurrency protection. Both decisions use only selected verified service contact regardless of promotional consent. Never fallback to an unchosen channel. SMS remains unavailable; unverified selected contact remains explicitly unavailable/pending with reason. Use supported email boundary and local synthetic sink/failure proof only. No live sends, grants, provisioning, activation, appeals, reversals, suspensions, deletion, new quotas, required rejection reasons or bulk decisions.",
+          "from": "implemented",
+          "implementation_ref": "src/account/organization-approvals.ts;src/account/cms-approval-authorization.ts;migrations/merchant/0006_organization_approvals.sql;docs/organization-approvals.md",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": null
+        }
+      ],
+      "id": "website-organization-approvals-028",
+      "implementation_ref": "src/account/organization-approvals.ts;src/account/cms-approval-authorization.ts;migrations/merchant/0006_organization_approvals.sql;docs/organization-approvals.md",
+      "question": "Who may approve or deny pending organizations and how are decisions communicated?",
+      "rationale": "User confirmed the brief grill and requested recording and coordinated implementation PR delivery.",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [
+        {
+          "classifications": [],
+          "ref": "proof/organization-approvals/REVIEW.md",
+          "result": "clean",
+          "reviewed_at": "2026-10-09T13:20:54+00:00",
+          "source_identity": "sha256:2078efda95f08c6b0ab0a226ec982d08223e85d14430119e26b2fdacbf1e2eff"
+        }
+      ],
+      "review_ref": "proof/organization-approvals/REVIEW.md",
+      "review_result": "clean",
+      "review_source_identity": "sha256:2078efda95f08c6b0ab0a226ec982d08223e85d14430119e26b2fdacbf1e2eff",
+      "status": "verified",
+      "superseded_by": null,
+      "updated_at": "2026-10-09T13:20:54+00:00",
+      "verification_ref": "proof/organization-approvals/PROOF.md"
     }
   ],
   "last_activation": {
@@ -4355,5 +4436,5 @@
   "status": "active",
   "title": "Website PR9 current-main reconciliation",
   "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca",
-  "updated_at": "2026-10-09T01:39:06+00:00"
+  "updated_at": "2026-10-09T13:20:54+00:00"
 }

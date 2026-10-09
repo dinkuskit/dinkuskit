@@ -3,6 +3,10 @@ import production from './entry.mjs';
 import { fetchStoreProofReceipt } from './proof-fetch.mjs';
 import { runWithCmsProof } from './cms-proof-als.mjs';
 
+let admissionMode = 'success';
+const admissionMessages = [];
+let browserCmsCookies = [];
+
 const ALS = Symbol.for('dinkuskit.merchant.transports.als');
 
 function transportStorage() {
@@ -45,6 +49,13 @@ function testTransports(env) {
   const mail = env.MERCHANT_MAIL_CAPTURE;
   const proof = env.MERCHANT_PROOF_SIMULATION;
   return {
+    testSiteOrigin: env.MERCHANT_BASE_URL,
+    admissionEmail: { async send(message) {
+      if (admissionMode === 'failure') throw new Error('synthetic failure');
+      if (admissionMode === 'slow') await new Promise(resolve => setTimeout(resolve, 100));
+      admissionMessages.push(message);
+      return { messageId: 'synthetic-admission' };
+    } },
     emailDelivery: mail ? emailDeliveryFromCapture(mail) : undefined,
     proofFetch: proof ? simulationFetch(proof, env.MERCHANT_DB) : undefined,
   };
@@ -68,6 +79,45 @@ function tokenFromCaptured(captured) {
 async function proofRoutes(request, env, ctx) {
   const url = new URL(request.url);
   if (!url.pathname.startsWith('/__proof/')) return null;
+
+  // This entry is never imported by production. All records belong to an isolated local fixture.
+  if (url.pathname === '/__proof/cms-browser' && request.method === 'POST') {
+    browserCmsCookies = (await request.json()).cookies;
+    return json(200, { ready: true });
+  }
+  if (url.pathname === '/__proof/cms-browser' && request.method === 'GET') {
+    const headers = new Headers({ location: '/account/organization-approvals', 'cache-control': 'no-store' });
+    for (const cookie of browserCmsCookies) headers.append('set-cookie', cookie + '; Path=/; HttpOnly; SameSite=Lax');
+    return new Response(null, { status: 303, headers });
+  }
+  if (url.pathname === '/__proof/approvals') {
+    const db = env.MERCHANT_DB;
+    if (request.method === 'POST') {
+      const b = await request.json();
+      if (b.mode) admissionMode = b.mode;
+      if (b.cms) await env.DB.prepare('UPDATE users SET role=?,disabled=? WHERE email=?')
+        .bind(b.cms.role, b.cms.disabled, 'editor@cms.example').run();
+      if (b.profile) {
+        const owner = await db.prepare('SELECT owner_user_id FROM dinkuskit_organization WHERE organization_id=?').bind(b.organizationId).first();
+        if (b.profile === 'missing') await db.prepare('DELETE FROM dinkuskit_signup_profile WHERE user_id=?').bind(owner.owner_user_id).run();
+        else await db.prepare('UPDATE dinkuskit_signup_profile SET service_channel=?,email_verified=?,phone_verified=? WHERE user_id=?')
+          .bind(b.profile.channel, b.profile.emailVerified, b.profile.phoneVerified, owner.owner_user_id).run();
+      }
+      return json(200, { configured: true });
+    }
+    const id = url.searchParams.get('id');
+    const org = await db.prepare('SELECT organization_id,status,admission_status,authority_subject FROM dinkuskit_organization WHERE organization_id=?').bind(id).first();
+    const audit = await db.prepare('SELECT * FROM dinkuskit_organization_approval_audit WHERE organization_id=?').bind(id).first();
+    const notices = await db.prepare('SELECT * FROM dinkuskit_organization_notification WHERE organization_id=?').bind(id).all();
+    const allocations = await db.prepare('SELECT * FROM dinkuskit_admission ORDER BY user_id').all();
+    return json(200, { org, audit, notices: notices.results, allocations: allocations.results,
+      messages: admissionMessages, grants: await db.prepare('SELECT count(*) n FROM dinkuskit_site_binding').first() });
+  }
+  if (url.pathname === '/__proof/foreign-approval') {
+    return production.fetch(new Request('https://foreign.example/account/organization-approvals', {
+      headers: { cookie: request.headers.get('cookie') ?? '' },
+    }), env, ctx);
+  }
 
   if (request.method === 'GET' && url.pathname === '/__proof/browser') {
     return new Response(`<!doctype html><html><body>

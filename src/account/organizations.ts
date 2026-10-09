@@ -2,8 +2,8 @@ export type OrganizationRole = 'owner' | 'administrator' | 'member';
 export type Organization = {
   organizationId: string;
   name: string;
-  status: 'active' | 'pending_operator' | 'suspended' | 'closed';
-  admissionStatus: 'legacy' | 'admitted' | 'pending_operator';
+  status: 'active' | 'pending_operator' | 'suspended' | 'closed' | 'denied';
+  admissionStatus: 'legacy' | 'admitted' | 'pending_operator' | 'denied';
   ownerUserId: string;
   authoritySubject: string;
 };
@@ -38,7 +38,7 @@ export async function listMemberships(db: D1Database, userId: string): Promise<M
     `SELECT o.*, m.role, m.status AS membership_status, m.permissions
      FROM dinkuskit_organization o JOIN dinkuskit_membership m
      ON m.organization_id = o.organization_id
-     WHERE m.user_id = ? AND m.status = 'active' AND o.status IN ('active', 'pending_operator')
+     WHERE m.user_id = ? AND m.status = 'active' AND o.status IN ('active', 'pending_operator', 'denied')
      ORDER BY o.created_at`,
   ).bind(userId).all<Record<string, unknown>>();
   return (result.results ?? []).map(row => ({
@@ -59,7 +59,7 @@ export async function authorizeOrganization(
      WHERE m.organization_id = ? AND m.user_id = ? AND m.status = 'active'
        AND EXISTS (SELECT 1 FROM dinkuskit_account a WHERE a.user_id = m.user_id AND a.disabled = 0)`,
   ).bind(organizationId, userId).first<Record<string, unknown>>();
-  if (!row || row.status === 'closed' || row.status === 'suspended') return null;
+  if (!row || row.status === 'closed' || row.status === 'suspended' || row.status === 'denied') return null;
   return {
     ...map(row),
     role: String(row.role) as OrganizationRole,
@@ -74,7 +74,7 @@ export async function selectedOrganizationId(db: D1Database, userId: string): Pr
      FROM dinkuskit_user_selection s
      JOIN dinkuskit_membership m ON m.organization_id = s.organization_id AND m.user_id = s.user_id
      JOIN dinkuskit_organization o ON o.organization_id = s.organization_id
-     WHERE s.user_id = ? AND m.status = 'active' AND o.status NOT IN ('closed', 'suspended')`,
+     WHERE s.user_id = ? AND m.status = 'active' AND o.status IN ('active', 'pending_operator')`,
   ).bind(userId).first<{ organization_id: string }>();
   return row?.organization_id ?? null;
 }

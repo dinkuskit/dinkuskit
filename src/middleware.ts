@@ -7,6 +7,8 @@ import { resolveLogin, resolveMerchant } from './account/session.ts';
 export const onRequest = defineMiddleware(async (context, next) => {
   context.locals.merchant = null;
   context.locals.login = null;
+  // This narrow surface authenticates the site's CMS user in its own handlers.
+  if (context.url.pathname === '/account/organization-approvals' || context.url.pathname.startsWith('/account/organization-approvals/')) return next();
   if (!context.url.pathname.startsWith('/account') && !context.url.pathname.startsWith('/api/auth')) {
     return next();
   }

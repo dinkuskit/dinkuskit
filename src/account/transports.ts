@@ -8,6 +8,8 @@ export type MerchantTransports = {
   /** Controlled local proof override only. Production uses the persisted D1 provider. */
   operatorDirectory?: import('./operator-directory.ts').OperatorDirectoryRuntime;
   emailDelivery?: MerchantEmailDelivery;
+  /** Isolated local admission notification sink; production uses the EMAIL binding. */
+  admissionEmail?: import('./config.ts').MerchantEmailBinding;
   proofFetch?: ProofFetchFn;
   /** Exact request-scoped loopback origin admission for a test entry only. */
   testSiteOrigin?: string;

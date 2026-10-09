@@ -1,0 +1,44 @@
+---
+import Site from '../../../layouts/Site.astro';
+import { getMerchantEnv } from '../../../account/bindings.ts';
+import { currentCmsAdmin, approvalOrigin } from '../../../account/cms-approval-authorization.ts';
+import { getApprovalDetail, type ApprovalDetail } from '../../../account/organization-approvals.ts';
+
+export const prerender = false;
+Astro.response.headers.set('cache-control', 'private, no-store');
+let detail: ApprovalDetail | null = null;
+try {
+  if (!approvalOrigin(Astro.request, import.meta.env.DEV)) Astro.response.status = 403;
+  else if (!Astro.locals.user) Astro.response.status = 401;
+  else if (!Astro.locals.emdash?.db) Astro.response.status = 503;
+  else {
+    const actor = await currentCmsAdmin(Astro.locals.user, Astro.locals.emdash.db);
+    if (!actor) Astro.response.status = 403;
+    else {
+      detail = await getApprovalDetail((await getMerchantEnv()).MERCHANT_DB, Astro.params.id ?? '');
+      const current = await currentCmsAdmin(Astro.locals.user, Astro.locals.emdash.db);
+      if (current?.id !== actor.id) { detail = null; Astro.response.status = 403; }
+      else if (!detail) Astro.response.status = 404;
+    }
+  }
+} catch { detail = null; Astro.response.status = 503; }
+---
+<Site title="Organization approval detail" description="Review one pending organization admission.">
+  <section class="account-panel">
+    {Astro.response.status === 401 ? <><h1>CMS sign-in required</h1><p>Sign in through the dinkuskit.com EmDash Admin.</p></> : null}
+    {Astro.response.status === 403 ? <><h1>CMS Admin required</h1><p>This decision surface is not a merchant-admin or operator-directory capability.</p></> : null}
+    {Astro.response.status === 503 ? <><h1>Approvals unavailable</h1><p>Please try again.</p></> : null}
+    {Astro.response.status === 404 ? <><h1>Organization not found</h1><p>This organization is no longer available for review.</p></> : null}
+    {detail ? <><p class="eyebrow">Organization admission</p><h1>{detail.name}</h1>
+      <dl class="detail-grid"><dt>Owner email</dt><dd>{detail.ownerEmail}</dd><dt>Submitted</dt><dd>{new Date(detail.createdAt * 1000).toISOString()}</dd><dt>Selected service contact</dt><dd>{detail.serviceChannel}</dd><dt>Selected contact verification</dt><dd>{detail.serviceChannel === 'email' ? (detail.emailVerified ? 'verified' : 'unverified') : (detail.phoneVerified ? 'verified' : 'unverified')}</dd><dt>Current state</dt><dd>{detail.status} / {detail.admissionStatus}</dd></dl>
+      {detail.status === 'pending_operator' && detail.admissionStatus === 'pending_operator' ? <div class="account-actions">
+        <form method="post" action="/api/account/organization-approvals"><input type="hidden" name="organization_id" value={detail.organizationId} /><button type="submit" name="decision" value="approved">Approve admission</button></form>
+        <form method="post" action="/api/account/organization-approvals"><input type="hidden" name="organization_id" value={detail.organizationId} /><button type="submit" name="decision" value="denied">Deny admission</button></form>
+      </div> : <p>This organization already has a final admission decision.</p>}
+      {detail.audit ? <p>Decision: {detail.audit.decision} by {detail.audit.actorEmail} ({detail.audit.actorUserId}) at {new Date(detail.audit.decidedAt * 1000).toISOString()}.</p> : null}
+      {detail.notification ? <p>Notification: {detail.notification.status}{detail.notification.unavailableReason ? ` (${detail.notification.unavailableReason})` : ''}{detail.notification.lastError ? ` (${detail.notification.lastError})` : ''}</p> : null}
+      {detail.notification && ['pending', 'processing'].includes(detail.notification.status) ? <form method="post" action="/api/account/organization-approvals"><input type="hidden" name="notification_id" value={detail.notification.notificationId} /><input type="hidden" name="retry" value="1" /><button type="submit">Retry notification</button></form> : null}
+      <p><a href="/account/organization-approvals">Back to pending approvals</a></p>
+    </> : null}
+  </section>
+</Site>

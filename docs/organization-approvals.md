@@ -78,6 +78,21 @@ Appeals, reversals, suspension, deletion, new quotas, mandatory rejection reason
 and bulk decisions are outside this slice. Deployment and merge remain separate
 gates.
 
+## Merchant account status
+
+`/account` reads the current active memberships on every GET and shows each
+organization as Pending, Admitted, or Denied. Automatic admission is shown as
+Admitted without inventing an operator decision or audit. Admission does not
+connect a site or activate a service. The page is private and `no-store`.
+
+Only an organization's owner sees its sanitized notification summary. Email
+delivery state is described as pending, processing, unavailable, or “Email
+accepted for sending”; accepted means the binding send resolved and does not
+confirm recipient delivery. SMS unavailability is shown without exposing a
+recipient, actor, claim identifier, or provider error. Members see admission
+status only, and the read is limited to organizations in their current active
+membership list. Notification availability never changes the admission decision, and merchants cannot retry notifications or make admission decisions.
+
 ## Local verification
 
 Use the repository's Node 22 runtime (`.nvmrc`):

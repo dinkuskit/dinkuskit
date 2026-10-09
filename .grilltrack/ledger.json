@@ -4,11 +4,11 @@
   "current_focus": {
     "cadence": "sequential",
     "confirmed": true,
-    "confirmed_at": "2026-10-07T13:01:29+00:00",
-    "domain": "Website EmDash 1.2 source upgrade",
-    "started_at": "2026-10-07T13:01:29+00:00",
+    "confirmed_at": "2026-10-08T21:34:53+00:00",
+    "domain": "Read-only operator directory",
+    "started_at": "2026-10-08T21:34:53+00:00",
     "status": "confirmed",
-    "summary": "Approved queued EmDash 1.2 source migration, same source owner, ACP default first, local synthetic migration and isolation proof, normal review gates; deployment and runtime changes remain separate."
+    "summary": "Approved read-only operator directory implementation: existing identity/tables, bounded search and pagination, independent deny-by-default authorization with synthetic grants only, current-state checks around async reads, explicit unavailable service observations and unchanged one-service SiteBinding. Verify authorization/isolation/pagination/failures, preserved account/Inventory behavior and actual desktop/mobile routes. Source PR for human review; no merge, deployment, or live grants."
   },
   "decisions": [
     {
@@ -4163,6 +4163,86 @@
       "superseded_by": null,
       "updated_at": "2026-10-08T14:47:07+00:00",
       "verification_ref": "proof/emdash12-upgrade.md"
+    },
+    {
+      "baseline_ref": "git:1bab0fe54588585d56831245d086eb9996850155",
+      "candidate_refs": [],
+      "choice": "Read-only bounded people and organization directory, membership roles/status/admission, linked stores and recorded service grants/timestamps. Independent operator-read authorization denies by default, uses current caller state before and after asynchronous reads, and never derives grants from CMS or merchant membership. Exact organization Inventory observations retain their separate purpose authorization; Payments and Ship remain unavailable. No live principal, management mutation, shared-binding migration, deployment or merge.",
+      "context_ref": "docs/merchant-account-model.md",
+      "created_at": "2026-10-08T21:34:53+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [
+        "merchant-operator-017",
+        "website-inventory-overview-024"
+      ],
+      "domain": "Read-only operator directory",
+      "history": [
+        {
+          "at": "2026-10-08T21:34:53+00:00",
+          "choice": "Read-only bounded people and organization directory, membership roles/status/admission, linked stores and recorded service grants/timestamps. Independent operator-read authorization denies by default, uses current caller state before and after asynchronous reads, and never derives grants from CMS or merchant membership. Exact organization Inventory observations retain their separate purpose authorization; Payments and Ship remain unavailable. No live principal, management mutation, shared-binding migration, deployment or merge.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-08T21:49:25+00:00",
+          "choice": "Read-only bounded people and organization directory, membership roles/status/admission, linked stores and recorded service grants/timestamps. Independent operator-read authorization denies by default, uses current caller state before and after asynchronous reads, and never derives grants from CMS or merchant membership. Exact organization Inventory observations retain their separate purpose authorization; Payments and Ship remain unavailable. No live principal, management mutation, shared-binding migration, deployment or merge.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-08T21:50:17+00:00",
+          "choice": "Read-only bounded people and organization directory, membership roles/status/admission, linked stores and recorded service grants/timestamps. Independent operator-read authorization denies by default, uses current caller state before and after asynchronous reads, and never derives grants from CMS or merchant membership. Exact organization Inventory observations retain their separate purpose authorization; Payments and Ship remain unavailable. No live principal, management mutation, shared-binding migration, deployment or merge.",
+          "from": "implemented",
+          "implementation_ref": "src/account/operator-directory.ts;docs/operator-directory.md",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": null
+        }
+      ],
+      "id": "website-operator-directory-026",
+      "implementation_ref": "src/account/operator-directory.ts;docs/operator-directory.md",
+      "question": "What can the first management dashboard read?",
+      "rationale": "",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [
+        {
+          "classifications": [],
+          "ref": "proof/operator-directory/REVIEW.md",
+          "result": "clean",
+          "reviewed_at": "2026-10-08T21:50:23+00:00",
+          "source_identity": "git:d07ff8a670581db1edceb98f7df12fbbcdad56be"
+        }
+      ],
+      "review_ref": "proof/operator-directory/REVIEW.md",
+      "review_result": "clean",
+      "review_source_identity": "git:d07ff8a670581db1edceb98f7df12fbbcdad56be",
+      "status": "verified",
+      "superseded_by": null,
+      "updated_at": "2026-10-08T21:50:23+00:00",
+      "verification_ref": "proof/operator-directory/PROOF.md"
     }
   ],
   "last_activation": {
@@ -4190,5 +4270,5 @@
   "status": "active",
   "title": "Website PR9 current-main reconciliation",
   "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca",
-  "updated_at": "2026-10-08T14:47:07+00:00"
+  "updated_at": "2026-10-08T21:50:23+00:00"
 }

@@ -5,6 +5,11 @@ import { createAuthenticatedEditor } from './helpers/emdash-editor.mjs';
 
 const queue = '/account/organization-approvals';
 const api = '/api/account/organization-approvals';
+const accountSection = (html, id) => {
+  const section = html.match(new RegExp(`<section aria-labelledby="admission-${id}"[\\s\\S]*?</section>`));
+  assert.ok(section, `Missing admission section ${id}`);
+  return section[0];
+};
 const form = body => ({ method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams(body).toString() });
 
 test('workerd: current local CMS Admin decisions, audit, outbox and retry with real sessions', async () => {
@@ -36,6 +41,10 @@ test('workerd: current local CMS Admin decisions, audit, outbox and retry with r
     const unverified = await pending('Unverified example');
     const concurrent = await pending('Concurrent example');
     const before = await state(approved);
+    const pendingAccount = await request(runtime, merchant.jar, '/account');
+    assert.equal(pendingAccount.status, 200);
+    assert.match(accountSection(await pendingAccount.text(), approved), /Admission: Pending/);
+    assert.match(pendingAccount.headers.get('cache-control'), /private, no-store/);
     const q = await request(runtime, editor.jar, queue, { omitOrigin: true });
     assert.equal(q.status, 200, 'browser GET needs no Origin header');
     assert.match(q.headers.get('cache-control'), /no-store/);
@@ -62,6 +71,11 @@ test('workerd: current local CMS Admin decisions, audit, outbox and retry with r
     assert.equal(saved.notices[0].status, 'pending');
     assert.equal(saved.notices[0].last_error, 'delivery_failed');
     assert.equal(saved.messages.length, 0);
+    const approvedAfterDecision = await request(runtime, merchant.jar, '/account');
+    const approvedAfterDecisionHtml = await approvedAfterDecision.text();
+    assert.match(accountSection(approvedAfterDecisionHtml, approved), /Admission: Admitted/);
+    assert.match(accountSection(approvedAfterDecisionHtml, approved), /Email notification is pending/);
+    assert.doesNotMatch(approvedAfterDecisionHtml, /delivery_failed|claimToken|actor_user_id/);
     assert.deepEqual(saved.allocations, before.allocations);
     assert.equal(saved.grants.n, 0);
     const originalAudit = saved.audit;
@@ -76,12 +90,20 @@ test('workerd: current local CMS Admin decisions, audit, outbox and retry with r
     assert.equal(saved.notices[0].status, 'delivered');
     assert.equal(saved.messages.length, 1, 'concurrent retries share one delivery claim');
     assert.match(saved.messages[0].subject, /approved/);
+    const acceptedAccount = await request(runtime, merchant.jar, '/account');
+    const acceptedAccountHtml = await acceptedAccount.text();
+    assert.match(acceptedAccountHtml, /Email accepted for sending/);
+    assert.match(acceptedAccountHtml, /does not confirm delivery to the recipient/);
     assert.deepEqual(saved.audit, originalAudit);
     await configure({ mode: 'failure' });
     assert.equal((await decide(denied, 'denied')).status, 303);
     const d = await state(denied);
     assert.equal(d.org.status, 'denied');
     assert.equal(d.notices[0].status, 'pending');
+    const deniedAccount = await request(runtime, merchant.jar, '/account');
+    const deniedAccountHtml = await deniedAccount.text();
+    assert.match(accountSection(deniedAccountHtml, denied), /Admission: Denied/);
+    assert.match(deniedAccountHtml, /Email notification is pending/);
     assert.equal((await request(runtime, merchant.jar, '/api/account/organizations', form({ action: 'select', organization_id: denied }))).status, 403);
     const detail = await request(runtime, editor.jar, `${queue}/${denied}`);
     assert.match(await detail.text(), /Decision: denied/);
@@ -91,6 +113,10 @@ test('workerd: current local CMS Admin decisions, audit, outbox and retry with r
     assert.equal(smsState.notices[0].status, 'unavailable');
     assert.equal(smsState.notices[0].unavailable_reason, 'sms_unavailable');
     assert.equal(smsState.messages.length, 1, 'no fallback to email');
+    const smsAccount = await request(runtime, merchant.jar, '/account');
+    const smsAccountHtml = await smsAccount.text();
+    assert.match(smsAccountHtml, /SMS notifications are unavailable/);
+    assert.doesNotMatch(smsAccountHtml, /sms_unavailable|selected_phone_unverified|provider/);
     await configure({ organizationId: unverified, profile: { channel: 'email', emailVerified: 0, phoneVerified: 1 } });
     assert.equal((await decide(unverified, 'denied')).status, 303);
     assert.equal((await state(unverified)).notices[0].unavailable_reason, 'selected_email_unverified');
@@ -101,5 +127,84 @@ test('workerd: current local CMS Admin decisions, audit, outbox and retry with r
     assert.equal(raceState.notices.length, 1);
     assert.equal(raceState.notices[0].decision, raceState.audit.decision);
     assert.deepEqual(raceState.allocations, before.allocations);
+  } finally { await stopRuntime(runtime); }
+});
+
+test('merchant admission refresh isolates owner notifications, current members and outsiders', async () => {
+  const runtime = await startCmsMerchantTestRuntime();
+  try {
+    const editor = await createAuthenticatedEditor(runtime);
+    assert.equal(editor.ok, true);
+    const owner = await signup(runtime, 'status-owner@example.test');
+    const member = await signup(runtime, 'status-member@example.test');
+    const outsider = await signup(runtime, 'status-outsider@example.test');
+    const configure = body => request(runtime, new Map(), '/__proof/approvals', { method: 'POST', body: JSON.stringify(body) });
+    const state = async id => (await request(runtime, new Map(), `/__proof/approvals?id=${id}`)).json();
+    const account = async jar => {
+      const r = await request(runtime, jar, '/account');
+      assert.equal(r.status, 200);
+      assert.equal(r.headers.get('cache-control'), 'private, no-store');
+      return r.text();
+    };
+    const initial = await (await request(runtime, owner.jar, '/api/account/organizations')).json();
+    const automatic = initial.organizations[0].organizationId;
+    assert.match(accountSection(await account(owner.jar), automatic), /Admission: Admitted/);
+    assert.doesNotMatch(accountSection(await account(owner.jar), automatic), /notification|operator decision/i);
+    const created = await request(runtime, owner.jar, '/api/account/organizations', form({ name: 'Private admission example' }));
+    const id = new URL(created.headers.get('location'), runtime.origin).searchParams.get('organization_id');
+    const manage = (action, email) => request(runtime, owner.jar, '/api/account/memberships', form({ action, organization_id: id, email }));
+    assert.equal((await manage('add_member', 'status-member@example.test')).status, 303);
+    assert.equal((await request(runtime, member.jar, '/api/account/organizations', form({ action: 'select', organization_id: id }))).status, 303);
+    assert.match(accountSection(await account(owner.jar), id), /Admission: Pending/);
+    assert.match(accountSection(await account(member.jar), id), /Admission: Pending/);
+    const before = await state(id);
+    await configure({ mode: 'failure' });
+    assert.equal((await request(runtime, editor.jar, api, form({ organization_id: id, decision: 'approved' }))).status, 303);
+    const ownerHtml = await account(owner.jar);
+    const ownerSection = accountSection(ownerHtml, id);
+    assert.match(ownerSection, /Admission: Admitted/);
+    assert.match(ownerSection, /Email notification is pending/);
+    assert.match(ownerSection, /Notification availability does not change this admission decision/);
+    assert.match(ownerHtml, /Admission does not connect sites or activate services/);
+    const saved = await state(id);
+    for (const forbidden of [saved.audit.actor_user_id, saved.audit.actor_email, saved.notices[0].notification_id, 'delivery_failed', '+15555550123']) {
+      assert.ok(!ownerSection.includes(forbidden), 'no raw audit, recipient, claim or error disclosure');
+    }
+    assert.ok(!ownerSection.includes('status-owner@example.test'), 'notification recipient is not rendered');
+    const memberSection = accountSection(await account(member.jar), id);
+    assert.match(memberSection, /Admission: Admitted/);
+    assert.doesNotMatch(memberSection, /notification|accepted for sending|recipient/i);
+    assert.doesNotMatch(await account(outsider.jar), /Private admission example|Email notification/);
+    assert.equal((await request(runtime, owner.jar, api, form({ notification_id: saved.notices[0].notification_id, retry: '1' }))).status, 403);
+    assert.equal((await request(runtime, member.jar, api, form({ organization_id: id, decision: 'denied' }))).status, 403);
+    await configure({ mode: 'success' });
+    assert.equal((await request(runtime, editor.jar, api, form({ notification_id: saved.notices[0].notification_id, retry: '1' }))).status, 303);
+    const accepted = accountSection(await account(owner.jar), id);
+    assert.match(accepted, /Email accepted for sending/);
+    assert.match(accepted, /does not confirm delivery to the recipient/);
+    assert.doesNotMatch(accountSection(await account(member.jar), id), /accepted for sending/);
+    await configure({ removeMembership: { organizationId: id, email: 'status-member@example.test' } });
+    assert.doesNotMatch(await account(member.jar), /Private admission example/);
+    const second = await request(runtime, owner.jar, '/api/account/organizations', form({ name: 'Denied-only example' }));
+    const deniedId = new URL(second.headers.get('location'), runtime.origin).searchParams.get('organization_id');
+    await configure({ organizationId: deniedId, profile: { channel: 'phone', emailVerified: 1, phoneVerified: 1 } });
+    assert.equal((await request(runtime, editor.jar, api, form({ organization_id: deniedId, decision: 'denied' }))).status, 303);
+    const deniedSection = accountSection(await account(owner.jar), deniedId);
+    assert.match(deniedSection, /Admission: Denied/);
+    assert.match(deniedSection, /SMS notifications are unavailable/);
+    assert.match(deniedSection, /Service connections are unavailable/);
+    for (const organizationId of [automatic, id]) await configure({ removeMembership: { organizationId, email: 'status-owner@example.test' } });
+    const deniedOnly = await account(owner.jar);
+    assert.match(deniedOnly, /No organization is currently selectable/);
+    assert.doesNotMatch(deniedOnly, /organization-switcher-form|Switch organization|Employee access/);
+    const missing = await request(runtime, owner.jar, '/api/account/organizations', form({ name: 'Missing contact example' }));
+    const missingId = new URL(missing.headers.get('location'), runtime.origin).searchParams.get('organization_id');
+    await configure({ organizationId: missingId, profile: 'missing' });
+    assert.equal((await request(runtime, editor.jar, api, form({ organization_id: missingId, decision: 'denied' }))).status, 303);
+    assert.match(accountSection(await account(owner.jar), missingId), /Decision notification is unavailable/);
+    const after = await state(id);
+    assert.deepEqual(after.audit, saved.audit);
+    assert.deepEqual(after.allocations, before.allocations);
+    assert.equal(after.grants.n, 0);
   } finally { await stopRuntime(runtime); }
 });

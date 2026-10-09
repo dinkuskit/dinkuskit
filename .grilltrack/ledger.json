@@ -4,11 +4,11 @@
   "current_focus": {
     "cadence": "sequential",
     "confirmed": true,
-    "confirmed_at": "2026-10-09T12:41:19+00:00",
-    "domain": "CMS Admin organization admission decisions and service notifications",
-    "started_at": "2026-10-09T12:41:18+00:00",
+    "confirmed_at": "2026-10-09T13:48:58+00:00",
+    "domain": "Merchant admission status and notification evidence",
+    "started_at": "2026-10-09T13:48:58+00:00",
     "status": "confirmed",
-    "summary": "Implement the approved narrow CMS Admin pending-organization queue and approve/deny workflow with atomic audit/outbox, separate truthful selected-contact notification status and retries. Verify current local CMS identity/demotion/disabled checks, CSRF/site provenance, first50 invariants, concurrency and synthetic failure paths with unit, real route/workerd and browser proof. Coordinate a focused PR with required exact-source review; no merge, deploy or live sends."
+    "summary": "Implement current membership-scoped admission status on /account with private/no-store and owner-only sanitized notification state. Label existing delivered transport state as email accepted for sending, never recipient delivery. No recipient, CMS actor or provider-error disclosure; no merchant retry or decision controls. Preserve automatic admission and selection/auth semantics; suppress an empty switch action only when no organization is selectable. Prove same-session refresh, owner/member/outsider isolation and admission independent of service activation through real workerd sessions, browser inspection and full checks. No roles, appeals, reasons, billing, provider configuration, live sends, deployment or merge."
   },
   "decisions": [
     {
@@ -4409,6 +4409,85 @@
       "superseded_by": null,
       "updated_at": "2026-10-09T13:20:54+00:00",
       "verification_ref": "proof/organization-approvals/PROOF.md"
+    },
+    {
+      "baseline_ref": "git:775236b61e2a5f1a417b44f4f6e2dea630c4749c",
+      "candidate_refs": [],
+      "choice": "Show current membership-scoped Pending, Admitted or Denied status on the private no-store account page. Owners alone see a sanitized notification summary; transport acceptance is not recipient delivery. Explain that admission never activates services and persists despite notification failure. Preserve selection, automatic admission, authority and existing workflows.",
+      "context_ref": "docs/organization-approvals.md",
+      "created_at": "2026-10-09T13:48:58+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [
+        "website-organization-approvals-028"
+      ],
+      "domain": "Merchant admission status and notification evidence",
+      "history": [
+        {
+          "at": "2026-10-09T13:48:58+00:00",
+          "choice": "Show current membership-scoped Pending, Admitted or Denied status on the private no-store account page. Owners alone see a sanitized notification summary; transport acceptance is not recipient delivery. Explain that admission never activates services and persists despite notification failure. Preserve selection, automatic admission, authority and existing workflows.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-09T14:00:00+00:00",
+          "choice": "Show current membership-scoped Pending, Admitted or Denied status on the private no-store account page. Owners alone see a sanitized notification summary; transport acceptance is not recipient delivery. Explain that admission never activates services and persists despite notification failure. Preserve selection, automatic admission, authority and existing workflows.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-09T14:03:57+00:00",
+          "choice": "Show current membership-scoped Pending, Admitted or Denied status on the private no-store account page. Owners alone see a sanitized notification summary; transport acceptance is not recipient delivery. Explain that admission never activates services and persists despite notification failure. Preserve selection, automatic admission, authority and existing workflows.",
+          "from": "implemented",
+          "implementation_ref": "src/account/merchant-admission-status.ts",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": null
+        }
+      ],
+      "id": "website-merchant-admission-status-029",
+      "implementation_ref": "src/account/merchant-admission-status.ts",
+      "question": "How should a signed-in merchant understand current admission and decision-notification state after a CMS decision?",
+      "rationale": "Real-session route inspection showed approval silently removes pending copy, delivery failures are invisible, and the account response lacks private/no-store. The approved follow-up is read-only merchant status UX and regression proof.",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [
+        {
+          "classifications": [],
+          "ref": "proof/merchant-admission-status/REVIEW.md",
+          "result": "clean",
+          "reviewed_at": "2026-10-09T14:03:58+00:00",
+          "source_identity": "sha256:e008d372e9a0dbe9a9abd089db0e736b2cfe793d6454a3247c16d1f410947ab3"
+        }
+      ],
+      "review_ref": "proof/merchant-admission-status/REVIEW.md",
+      "review_result": "clean",
+      "review_source_identity": "sha256:e008d372e9a0dbe9a9abd089db0e736b2cfe793d6454a3247c16d1f410947ab3",
+      "status": "verified",
+      "superseded_by": null,
+      "updated_at": "2026-10-09T14:03:58+00:00",
+      "verification_ref": "proof/merchant-admission-status/PROOF.md"
     }
   ],
   "last_activation": {
@@ -4436,5 +4515,5 @@
   "status": "active",
   "title": "Website PR9 current-main reconciliation",
   "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca",
-  "updated_at": "2026-10-09T13:20:54+00:00"
+  "updated_at": "2026-10-09T14:03:58+00:00"
 }

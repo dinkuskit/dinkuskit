@@ -5,8 +5,10 @@ import { seeOther } from '../../account/config.ts';
 import { MerchantUnavailableError, unavailableResponse } from '../../account/config.ts';
 import { getMerchantEnv } from '../../account/bindings.ts';
 import { listMemberships, deletionGuard } from '../../account/organizations.ts';
+import { listMerchantAdmissionStatuses } from '../../account/merchant-admission-status.ts';
 
 export const prerender = false;
+Astro.response.headers.set('cache-control', 'private, no-store');
 if (Astro.request.method === 'POST') return submitAccountPost(Astro);
 const merchant = Astro.locals.merchant;
 const login = Astro.locals.login;
@@ -20,7 +22,9 @@ try {
   throw error;
 }
 const organizations = await listMemberships(env.MERCHANT_DB, login.userId);
+const admissionStatuses = await listMerchantAdmissionStatuses(env.MERCHANT_DB, login.userId);
 const selectedOrganization = organizations.find(org => org.organizationId === merchant?.organizationId) ?? null;
+const selectableOrganizations = organizations.filter(org => org.status !== 'denied');
 const canManage = selectedOrganization?.role === 'owner' || (selectedOrganization?.role === 'administrator' && selectedOrganization.permissions.includes('membership:manage'));
 const loginDeletion = await deletionGuard(env.MERCHANT_DB, login.userId);
 ---
@@ -33,19 +37,29 @@ const loginDeletion = await deletionGuard(env.MERCHANT_DB, login.userId);
     <p class="lead">This identity is separate from anyone who edits this website. Connect an Inventory site only after explicit consent.</p>
     <section aria-labelledby="org-heading">
       <h2 id="org-heading">Organizations</h2>
-      {organizations.filter(org => org.status === 'denied').map(org => <p role="status">{org.name}: admission denied. Service connections are unavailable.</p>)}
+      <p>Admission does not connect sites or activate services.</p>
+      {organizations.map(org => {
+        const status = admissionStatuses.get(org.organizationId);
+        return <section aria-labelledby={`admission-${org.organizationId}`}>
+          <h3 id={`admission-${org.organizationId}`}>{org.name}</h3>
+          <p role="status">Admission: {status?.admission === 'pending' ? 'Pending' : status?.admission === 'denied' ? 'Denied' : status?.admission === 'admitted' ? 'Admitted' : 'Status unavailable'}.</p>
+          {status?.admission === 'pending' ? <p>This organization is waiting for operator approval. Service connections are unavailable until approval.</p> : null}
+          {status?.admission === 'denied' ? <p>Admission was denied. Service connections are unavailable.</p> : null}
+          {status?.admission === 'admitted' ? <p>Admission is complete. This does not connect sites or activate services.</p> : null}
+          {status?.notification ? <><p role="status">{status.notification}</p><p>Notification availability does not change this admission decision.</p></> : null}
+        </section>;
+      })}
       {organizations.length === 0 ? <p><a href="/account/signup">Complete signup to create your first organization</a>.</p> : (
         <>
-          <form id="organization-switcher-form" method="post" action="/api/account/organizations" class="account-form">
+          {selectableOrganizations.length > 0 ? <form id="organization-switcher-form" method="post" action="/api/account/organizations" class="account-form">
           <input type="hidden" name="action" value="select" />
           <label for="organization-switcher">Current organization</label>
           <select id="organization-switcher" name="organization_id">
             {!selectedOrganization ? <option value="">Choose an organization</option> : null}
-            {organizations.filter(org => org.status !== 'denied').map(org => <option value={org.organizationId} selected={selectedOrganization?.organizationId === org.organizationId}>{org.name} ({org.role}){org.admissionStatus === 'pending_operator' ? ' — operator approval pending' : ''}</option>)}
+            {selectableOrganizations.map(org => <option value={org.organizationId} selected={selectedOrganization?.organizationId === org.organizationId}>{org.name} ({org.role}){org.admissionStatus === 'pending_operator' ? ' — admission pending' : ''}</option>)}
           </select>
-          </form>
-          {selectedOrganization?.admissionStatus === 'pending_operator' ? <p role="status">This organization is waiting for operator approval. Service connections are unavailable until approval.</p> : null}
-          <button type="submit" form="organization-switcher-form">Switch organization</button>
+          </form> : <p role="status">No organization is currently selectable. Denied organizations cannot be selected.</p>}
+          {selectableOrganizations.length > 0 ? <button type="submit" form="organization-switcher-form">Switch organization</button> : null}
           {canManage && selectedOrganization ? (
             <section aria-labelledby="members-heading">
               <h3 id="members-heading">Employee access</h3>

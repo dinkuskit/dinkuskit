@@ -97,6 +97,10 @@ async function proofRoutes(request, env, ctx) {
       if (b.mode) admissionMode = b.mode;
       if (b.cms) await env.DB.prepare('UPDATE users SET role=?,disabled=? WHERE email=?')
         .bind(b.cms.role, b.cms.disabled, 'editor@cms.example').run();
+      // Synthetic denied-only account and removed-membership proof; never part of production.
+      if (b.removeMembership) await db.prepare(`UPDATE dinkuskit_membership SET status='removed'
+        WHERE organization_id=? AND user_id=(SELECT id FROM "user" WHERE email=?)`)
+        .bind(b.removeMembership.organizationId, b.removeMembership.email).run();
       if (b.profile) {
         const owner = await db.prepare('SELECT owner_user_id FROM dinkuskit_organization WHERE organization_id=?').bind(b.organizationId).first();
         if (b.profile === 'missing') await db.prepare('DELETE FROM dinkuskit_signup_profile WHERE user_id=?').bind(owner.owner_user_id).run();

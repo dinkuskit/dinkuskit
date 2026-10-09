@@ -12,6 +12,7 @@ const expectedLedger = [
   { version: 2, name: '0002_dinkuskit.sql' },
   { version: 3, name: '0003_store_connect.sql' },
   { version: 4, name: '0004_account_foundation.sql' },
+  { version: 5, name: '0005_operator_authorization.sql' },
 ];
 
 function wranglerD1(persistTo, args) {
@@ -79,7 +80,7 @@ async function assertRepeatAndRestart(persistTo, sitePrefix, secret) {
   }
 }
 
-test('merchant D1 migrations: runtime-fresh records 1-4 and survives repeat/restart', async () => {
+test('merchant D1 migrations: runtime-fresh records 1-5 and survives repeat/restart', async () => {
   const persistTo = await mkdtemp(join(tmpdir(), 'dk-runtime-fresh-'));
   try {
     await assertRepeatAndRestart(persistTo, 'runtime-fresh', testSecret());
@@ -88,7 +89,7 @@ test('merchant D1 migrations: runtime-fresh records 1-4 and survives repeat/rest
   }
 });
 
-test('merchant D1 migrations: wrangler apply all 4 records 1-4 and survives repeat/restart', async () => {
+test('merchant D1 migrations: wrangler apply all 5 records 1-5 and survives repeat/restart', async () => {
   const persistTo = await mkdtemp(join(tmpdir(), 'dk-cli-all3-'));
   try {
     applyAllMigrations(persistTo);
@@ -99,7 +100,7 @@ test('merchant D1 migrations: wrangler apply all 4 records 1-4 and survives repe
   }
 });
 
-test('merchant D1 migrations: upgrade from 0002 records 1-4 and survives repeat/restart', async () => {
+test('merchant D1 migrations: upgrade from 0002 records 1-5 and survives repeat/restart', async () => {
   const persistTo = await mkdtemp(join(tmpdir(), 'dk-upgrade-'));
   try {
     applySql(persistTo, 'migrations/merchant/0001_better_auth.sql');

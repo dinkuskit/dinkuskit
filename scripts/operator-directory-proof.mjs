@@ -1,7 +1,8 @@
-import { startMerchantTestRuntime, stopRuntime, signup, request } from '../tests/helpers/merchant-harness.mjs';
+import { startMerchantTestRuntime, startProductionWorker, stopRuntime, signup, request } from '../tests/helpers/merchant-harness.mjs';
 
 // Local-only synthetic browser fixture. Production never imports this entry.
 const runtime = await startMerchantTestRuntime({ port: 47861 });
+let missingRuntime;
 try {
   const actors = [];
   for (const email of ['operator@example.test', 'redwood@example.test', 'lakeside@example.test']) {
@@ -12,15 +13,13 @@ try {
   }
   const [operator, redwood, lakeside] = actors;
   await request(runtime, new Map(), '/__proof/inventory-overview', { method: 'POST', body: JSON.stringify({ organizationId: redwood.organizationId, seed_bindings: true }) });
-  const grants = [{ userId: operator.userId, resourceType: 'directory', resourceId: 'directory' }];
-  for (const actor of actors) for (const [resourceType, resourceId] of [['person', actor.userId], ['organization', actor.organizationId]]) grants.push({ userId: operator.userId, resourceType, resourceId });
-  for (const id of ['site-north', 'site-south']) grants.push({ userId: operator.userId, resourceType: 'store', resourceId: id });
-  await request(runtime, new Map(), '/__proof/operator-directory', { method: 'POST', body: JSON.stringify({ grants, detach_user: operator.userId, organization_names: [
+  await request(runtime, new Map(), '/__proof/operator-directory', { method: 'POST', body: JSON.stringify({ use_persisted: true, persisted_grants: [{ userId: operator.userId }], detach_user: operator.userId, organization_names: [
     { organizationId: operator.organizationId, name: 'Local demonstration' },
     { organizationId: redwood.organizationId, name: 'Redwood Works' },
     { organizationId: lakeside.organizationId, name: 'Lakeside Lab' },
   ] }) });
-  console.log(JSON.stringify({ syntheticOnly: true, origin: runtime.origin, email: operator.email, directory: '/account/operator', mailbox: '/__proof/browser', organization: '/account/operator/organizations/' + redwood.organizationId }));
-  const stop = async () => { await stopRuntime(runtime); process.exit(0); };
+  missingRuntime = await startProductionWorker();
+  console.log(JSON.stringify({ syntheticOnly: true, origin: runtime.origin, missingRuntimeOrigin: missingRuntime.origin, email: operator.email, directory: '/account/operator', mailbox: '/__proof/browser', organizations: [redwood, lakeside].map(actor => '/account/operator/organizations/' + actor.organizationId), actors }));
+  const stop = async () => { await stopRuntime(runtime); await stopRuntime(missingRuntime); process.exit(0); };
   process.once('SIGINT', stop); process.once('SIGTERM', stop);
-} catch (error) { await stopRuntime(runtime); throw error; }
+} catch (error) { await stopRuntime(runtime); if (missingRuntime) await stopRuntime(missingRuntime); throw error; }

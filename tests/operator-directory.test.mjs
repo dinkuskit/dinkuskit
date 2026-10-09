@@ -104,3 +104,54 @@ test('built directory rejects grant revocation and account changes after asynchr
     }
   } finally { await stopRuntime(runtime); }
 });
+
+test('production entry enforces persisted grants across organizations and subsequent revocation', async () => {
+  const runtime = await startMerchantTestRuntime();
+  try {
+    const operator = await identity(runtime, 'persisted-operator@example.test');
+    const second = await identity(runtime, 'persisted-second@example.test');
+    const third = await identity(runtime, 'persisted-third@example.test');
+    const setup = async body => {
+      assert.equal((await configure(runtime, body)).status, 200);
+    };
+    await setup({ detach_user: operator.userId });
+    const production = await startProductionWorker({ persistTo: runtime.persistTo, secret: runtime.secret, origin: runtime.origin, jwt: runtime.jwt, rogueTestBindings: true });
+    try {
+      const read = path => request(production, operator.jar, path);
+      const denied = async path => {
+        const response = await read(path);
+        assert.equal(response.status, 403);
+        assert.match(response.headers.get('cache-control'), /no-store/);
+        assert.doesNotMatch(await response.text(), /persisted-second|persisted-third/);
+      };
+      await denied('/account/operator');
+      await setup({ persisted_grants: [{ userId: operator.userId }] });
+      let response = await read('/account/operator');
+      assert.equal(response.status, 200);
+      assert.match(response.headers.get('cache-control'), /private, no-store/);
+      const html = await response.text();
+      assert.match(html, /persisted-second/); assert.match(html, /persisted-third/);
+      for (const actor of [second, third]) {
+        assert.equal((await read('/account/operator/organizations/' + actor.organizationId)).status, 200);
+        assert.equal((await read('/account/operator/people/' + actor.userId)).status, 200);
+        assert.equal((await read('/account/operator/inventory?organization_id=' + actor.organizationId)).status, 403);
+      }
+      assert.equal((await request(production, second.jar, '/account/operator')).status, 403);
+      assert.equal((await request(production, second.jar, '/account/operator', { headers: { 'cf-access-authenticated-user-email': 'cms@example.test' } })).status, 403);
+      assert.equal((await request(production, new Map(), '/account/operator', { headers: { 'cf-access-authenticated-user-email': 'cms@example.test' } })).status, 303);
+      assert.equal((await request(production, new Map(), '/__proof/operator-directory', { method: 'POST', body: '{}' })).status, 404);
+      await setup({ revoke_persisted: [{ userId: operator.userId }] });
+      await denied('/account/operator');
+      await denied('/account/operator/organizations/' + second.organizationId);
+      // Test-only restoration supports independent failure cases; no production regrant API exists.
+      await setup({ persisted_grants: [{ userId: operator.userId, grantedBy: '   ' }] });
+      await denied('/account/operator');
+      await setup({ persisted_grants: [{ userId: operator.userId }] });
+      assert.equal((await read('/account/operator')).status, 200);
+      await setup({ account_states: [{ userId: operator.userId, disabled: true }] });
+      response = await read('/account/operator');
+      assert.ok([303, 403].includes(response.status), 'disabled login must lose access');
+      assert.doesNotMatch(await response.text(), /persisted-second|persisted-third/);
+    } finally { await stopRuntime(production); }
+  } finally { await stopRuntime(runtime); }
+});

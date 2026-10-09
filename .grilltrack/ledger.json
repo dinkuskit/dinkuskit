@@ -4,11 +4,11 @@
   "current_focus": {
     "cadence": "sequential",
     "confirmed": true,
-    "confirmed_at": "2026-10-08T21:34:53+00:00",
-    "domain": "Read-only operator directory",
-    "started_at": "2026-10-08T21:34:53+00:00",
+    "confirmed_at": "2026-10-09T01:22:35+00:00",
+    "domain": "Explicit read-only operator authorization provider",
+    "started_at": "2026-10-09T01:22:34+00:00",
     "status": "confirmed",
-    "summary": "Approved read-only operator directory implementation: existing identity/tables, bounded search and pagination, independent deny-by-default authorization with synthetic grants only, current-state checks around async reads, explicit unavailable service observations and unchanged one-service SiteBinding. Verify authorization/isolation/pagination/failures, preserved account/Inventory behavior and actual desktop/mobile routes. Source PR for human review; no merge, deployment, or live grants."
+    "summary": "Implement a scope-limited persisted D1 stable-subject operator authorization provider and minimal grant/revoke provenance. Prove all-organization reads and denied ordinary merchant/CMS, missing/malformed runtime, revoked grants and disabled callers using synthetic local fixtures and browser/workerd. Preserve service isolation and fences. Deliver source PR with required review evidence; no actual principal binding, live grants, deployment or merge."
   },
   "decisions": [
     {
@@ -4243,6 +4243,91 @@
       "superseded_by": null,
       "updated_at": "2026-10-08T21:50:23+00:00",
       "verification_ref": "proof/operator-directory/PROOF.md"
+    },
+    {
+      "baseline_ref": "git:a8a6529784875fbca084a1340affcdcdfc16ccd9",
+      "candidate_refs": [],
+      "choice": "A server-owned persisted stable canonical account identity grant authorizes only operator:directory:read across all organizations. Initial live setup is reserved for the explicitly designated sole operator; future staff require separate explicit grants. No implicit email, CMS, membership or signup authority. Use current D1 reads, grant/revoke lifecycle provenance, disabled-account and revocation denial, existing mid-read checks and no-store. No broad RBAC, management UI/API, service authority, directory-access surveillance or live activation. Public source and tests use synthetic identities only.",
+      "context_ref": "docs/operator-directory.md",
+      "created_at": "2026-10-09T01:22:34+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [
+        "website-operator-directory-026"
+      ],
+      "domain": "Explicit read-only operator authorization provider",
+      "history": [
+        {
+          "at": "2026-10-09T01:22:34+00:00",
+          "choice": "A server-owned persisted stable canonical account identity grant authorizes only operator:directory:read across all organizations. Initial live setup is reserved for the explicitly designated sole operator; future staff require separate explicit grants. No implicit email, CMS, membership or signup authority. Use current D1 reads, grant/revoke lifecycle provenance, disabled-account and revocation denial, existing mid-read checks and no-store. No broad RBAC, management UI/API, service authority, directory-access surveillance or live activation. Public source and tests use synthetic identities only.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-09T01:36:52+00:00",
+          "choice": "A server-owned persisted stable canonical account identity grant authorizes only operator:directory:read across all organizations. Initial live setup is reserved for the explicitly designated sole operator; future staff require separate explicit grants. No implicit email, CMS, membership or signup authority. Use current D1 reads, grant/revoke lifecycle provenance, disabled-account and revocation denial, existing mid-read checks and no-store. No broad RBAC, management UI/API, service authority, directory-access surveillance or live activation. Public source and tests use synthetic identities only.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-09T01:39:05+00:00",
+          "choice": "A server-owned persisted stable canonical account identity grant authorizes only operator:directory:read across all organizations. Initial live setup is reserved for the explicitly designated sole operator; future staff require separate explicit grants. No implicit email, CMS, membership or signup authority. Use current D1 reads, grant/revoke lifecycle provenance, disabled-account and revocation denial, existing mid-read checks and no-store. No broad RBAC, management UI/API, service authority, directory-access surveillance or live activation. Public source and tests use synthetic identities only.",
+          "from": "implemented",
+          "implementation_ref": "src/account/operator-directory.ts;migrations/merchant/0005_operator_authorization.sql;docs/operator-directory.md",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": null
+        }
+      ],
+      "id": "website-operator-authorization-027",
+      "implementation_ref": "src/account/operator-directory.ts;migrations/merchant/0005_operator_authorization.sql;docs/operator-directory.md",
+      "question": "How is the initial platform operator explicitly authorized without merchant or CMS authority?",
+      "rationale": "User approved this bounded slice and coordinator acknowledged admission. Actual principal binding and live permissions remain separately gated.",
+      "repair_required": false,
+      "review_classifications": [
+        "reject_false_positive",
+        "human_gate"
+      ],
+      "review_history": [
+        {
+          "classifications": [
+            "reject_false_positive",
+            "human_gate"
+          ],
+          "ref": "proof/operator-authorization/REVIEW.md",
+          "result": "findings",
+          "reviewed_at": "2026-10-09T01:39:06+00:00",
+          "source_identity": "sha256:cb90f11df3c3128370e159831e848d51fb5f75b7f7db64e25a2f100efc8c7340"
+        }
+      ],
+      "review_ref": "proof/operator-authorization/REVIEW.md",
+      "review_result": "findings",
+      "review_source_identity": "sha256:cb90f11df3c3128370e159831e848d51fb5f75b7f7db64e25a2f100efc8c7340",
+      "status": "verified",
+      "superseded_by": null,
+      "updated_at": "2026-10-09T01:39:06+00:00",
+      "verification_ref": "proof/operator-authorization/PROOF.md"
     }
   ],
   "last_activation": {
@@ -4270,5 +4355,5 @@
   "status": "active",
   "title": "Website PR9 current-main reconciliation",
   "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca",
-  "updated_at": "2026-10-08T21:50:23+00:00"
+  "updated_at": "2026-10-09T01:39:06+00:00"
 }

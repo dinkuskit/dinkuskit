@@ -4,7 +4,7 @@ import OperatorDirectory from '../../../components/OperatorDirectory.astro';
 import { getMerchantEnv } from '../../../account/bindings.ts';
 import { MerchantUnavailableError, seeOther, unavailableResponse } from '../../../account/config.ts';
 import { getInjectedTransports } from '../../../account/transports.ts';
-import { readDirectory, parseDirectoryPage } from '../../../account/operator-directory.ts';
+import { operatorDirectoryRuntime, readDirectory, parseDirectoryPage } from '../../../account/operator-directory.ts';
 
 export const prerender = false;
 Astro.response.headers.set('cache-control', 'private, no-store');
@@ -17,7 +17,7 @@ try { env = await getMerchantEnv(); } catch (error) {
   if (error instanceof MerchantUnavailableError) return unavailableResponse();
   throw error;
 }
-const runtime = getInjectedTransports().operatorDirectory;
+const runtime = getInjectedTransports().operatorDirectory ?? operatorDirectoryRuntime(env.MERCHANT_DB);
 const directory = await readDirectory({ db: env.MERCHANT_DB, userId: Astro.locals.login.userId, ...params, runtime });
 const result = directory.state;
 const people = directory.state === 'ok' ? directory.value.people : null;

@@ -6,25 +6,65 @@ organization details show paginated member IDs, roles, permissions, status,
 admission and linked stores. Store details show the existing service grant,
 grant/revocation times and latest matching website connection timestamps.
 
-A separate `operator:directory:read` runtime authorizes the exact caller and
-resource: directory, person, organization or store. A directory grant permits
-the minimal directory listing; it does not confer detail access. Person details
-also require each displayed organization's grant; organization details require
-each displayed store's grant. Store details require the owning organization.
-If a displayed relation is denied, the complete page is denied. The bounded lookahead used for next-page detection also requires authorization;
-records beyond that lookahead are not read or returned.
-Membership identities shown within an organization are that organization's
-recorded user IDs; following a person link requires a separate person grant.
+The server-owned D1 provider grants only `operator:directory:read` across all
+organizations and their directory records. It authorizes the exact caller and
+resource on every check; the scope grants directory, person, organization and
+store reads, without merchant membership or a selected organization. Each
+related organization and store, including pagination lookahead, remains checked
+before a complete response is returned. Test providers can restrict individual
+resources; production grants cover the complete directory.
 
-Production has no operator principal or grant provider and denies by default.
-Neither CMS editor access, merchant ownership, selected organization nor
-membership confers this permission. Existing Better Auth authenticates the
-person; there is no additional account system. A signed-in operator may read
-without a merchant membership. The source rechecks enabled caller identity
-before and after asynchronous authorization, all grants after data reads, and
-store binding ownership before returning the complete response. Exceptions
-return unavailable or forbidden without partial rows. Authorized missing
-resources return 404. GET routes are private and no-store.
+Neither CMS editor access, merchant ownership, email address nor membership
+confers operator authority. Better Auth authenticates the person; the existing
+DinkusKit-owned stable subject supplies the canonical identity. Caller enabled
+state and identity bracket asynchronous authorization. Grants and store binding
+ownership are rechecked after reads. Exceptions deny or return unavailable
+without partial rows. Authorized missing resources return 404. GET routes are
+private and no-store. The provider caches no decisions and uses ordinary D1
+binding reads against the primary, not a read-replica session (see
+[Cloudflare D1 guidance](https://developers.cloudflare.com/d1/worker-api/d1-database/#withsession)).
+
+Migration `0005` creates an empty `dinkuskit_operator_grant` table. Missing,
+invalid or revoked records deny access. No actual principal is named or seeded.
+Initial activation is reserved for the sole operator explicitly approved by the
+maintainer. Additional staff require individual explicit approval and records;
+there is no automatic grant or role inheritance. Deployment and live binding
+remain separate approval gates.
+
+## Separately approved setup and revocation
+
+An authorized maintainer first verifies the intended existing account's stable
+subject through a trusted account record, independently of its mutable email.
+Use `JSON.stringify(["https://dinkuskit.com/account", subject])` as `account_id`.
+Record the authorizing actor, Unix timestamp in seconds, and approval reference.
+These fields are minimal lifecycle provenance, not directory-access logging.
+The actor/reference must be nonblank, trimmed strings of at most 200 characters
+without control characters. Timestamps must be positive safe integers.
+
+The following SQL illustrates synthetic local records only; this change does
+not execute it against a live database or supply a grant-management UI/API:
+
+```sql
+INSERT INTO dinkuskit_operator_grant
+  (account_id, scope, granted_by, granted_at, grant_reference)
+VALUES ('["https://dinkuskit.com/account","synthetic-operator"]',
+  'operator:directory:read', 'synthetic-maintainer', 1791500000,
+  'synthetic-approval-001');
+
+UPDATE dinkuskit_operator_grant
+SET revoked_by = 'synthetic-maintainer', revoked_at = 1791500100,
+    revoke_reference = 'synthetic-revocation-001'
+WHERE account_id = '["https://dinkuskit.com/account","synthetic-operator"]'
+  AND scope = 'operator:directory:read' AND revoked_at IS NULL;
+```
+
+Verify the exact affected record and retained provenance after either operation.
+Any non-null revocation field denies access, including incomplete revocation.
+Subsequent reads must deny without requiring logout; disabling the login also
+denies. Retain revoked records and original grant provenance. Regrant lifecycle
+is outside this slice; do not clear revocation or overwrite prior provenance.
+This grant confers no Inventory observation, approvals, refunds, stock changes,
+account management or other service mutation authority.
 
 Pages default to 20 records and accept 1–50 records, with page 1–10000. Detail
 pages use the same page for each related list, with a separate next/previous

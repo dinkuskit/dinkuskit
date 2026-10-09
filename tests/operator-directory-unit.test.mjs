@@ -2,13 +2,13 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import Database from 'better-sqlite3';
 import { readFile } from 'node:fs/promises';
-import { readDirectory, getPerson, getOrganization, getStore, parseDirectoryPage, OPERATOR_DIRECTORY_SCOPE } from '../src/account/operator-directory.ts';
+import { readDirectory, getPerson, getOrganization, getStore, operatorDirectoryRuntime, parseDirectoryPage, OPERATOR_DIRECTORY_SCOPE } from '../src/account/operator-directory.ts';
 import { canonicalAccountId } from '../src/account/identity.ts';
 import { ACCOUNT_ISSUER } from '../src/account/config.ts';
 
 async function fixture() {
   const sqlite = new Database(':memory:');
-  for (const name of ['0001_better_auth', '0002_dinkuskit', '0003_store_connect', '0004_account_foundation']) sqlite.exec(await readFile(`migrations/merchant/${name}.sql`, 'utf8'));
+  for (const name of ['0001_better_auth', '0002_dinkuskit', '0003_store_connect', '0004_account_foundation', '0005_operator_authorization']) sqlite.exec(await readFile(`migrations/merchant/${name}.sql`, 'utf8'));
   let afterRead = () => {}, failure = false;
   const db = { prepare(sql) {
     const stmt = sqlite.prepare(sql); let values = [];
@@ -29,7 +29,7 @@ async function fixture() {
     return grants.has(`${resource.type}:${resource.id}`);
   } };
   const input = { db, userId: 'operator', runtime, page: 1, pageSize: 1, search: '' };
-  return { sqlite, input, grants, setHook(fn) { afterRead = fn; }, fail() { failure = true; } };
+  return { sqlite, db, input, grants, setHook(fn) { afterRead = fn; }, fail() { failure = true; } };
 }
 test('strict pagination rejects malformed, duplicate and excessive values', () => {
   for (const q of ['page=0','page=-1','page=abc','page=1&page=2','page=1.5','page=10001','page_size=51','page_size=0','q=a&q=b','unknown=1']) assert.equal(parseDirectoryPage(new URL('https://example.test/?'+q)), null, q);
@@ -42,6 +42,30 @@ test('production absence, wrong resource and authorizer errors deny without data
     f.grants.add('directory:directory');
     assert.equal((await getOrganization({ ...f.input, organizationId: 'org-a' })).state, 'forbidden');
     assert.equal((await readDirectory({ ...f.input, runtime: { authorize: async () => { throw new Error('offline'); } } })).state, 'forbidden');
+  } finally { f.sqlite.close(); }
+});
+
+test('D1 provider requires canonical current identity and a valid current grant', async () => {
+  const f = await fixture(); try {
+    const provider = operatorDirectoryRuntime(f.db);
+    const accountId = canonicalAccountId(ACCOUNT_ISSUER, 'personal-operator');
+    const grant = f.sqlite.prepare(`INSERT INTO dinkuskit_operator_grant
+      (account_id, scope, granted_by, granted_at, grant_reference)
+      VALUES (?, ?, 'synthetic-actor', 1, 'synthetic-reference')`);
+    assert.equal(await provider.authorize({ userId: 'operator', callerId: accountId, scope: OPERATOR_DIRECTORY_SCOPE, resource: { type: 'directory', id: 'directory' } }), false);
+    grant.run(accountId, OPERATOR_DIRECTORY_SCOPE);
+    assert.equal(await provider.authorize({ userId: 'operator', callerId: accountId, scope: OPERATOR_DIRECTORY_SCOPE, resource: { type: 'directory', id: 'directory' } }), true);
+    f.sqlite.prepare("UPDATE dinkuskit_operator_grant SET revoked_by = 'synthetic-actor', revoked_at = 2, revoke_reference = 'synthetic-revoke' WHERE account_id = ?").run(accountId);
+    assert.equal(await provider.authorize({ userId: 'operator', callerId: accountId, scope: OPERATOR_DIRECTORY_SCOPE, resource: { type: 'directory', id: 'directory' } }), false);
+    f.sqlite.prepare("UPDATE dinkuskit_operator_grant SET revoked_by = NULL, revoked_at = NULL, revoke_reference = NULL, granted_by = '' WHERE account_id = ?").run(accountId);
+    assert.equal(await provider.authorize({ userId: 'operator', callerId: accountId, scope: OPERATOR_DIRECTORY_SCOPE, resource: { type: 'directory', id: 'directory' } }), false);
+    f.sqlite.prepare("UPDATE dinkuskit_operator_grant SET granted_by = 'synthetic-actor'").run();
+    f.sqlite.prepare("UPDATE user SET email = 'renamed@example.test' WHERE id = 'operator'").run();
+    assert.equal(await provider.authorize({ userId: 'operator', callerId: accountId, scope: OPERATOR_DIRECTORY_SCOPE, resource: { type: 'directory', id: 'directory' } }), true, 'mutable email does not control authority');
+    assert.equal(await provider.authorize({ userId: 'operator', callerId: canonicalAccountId(ACCOUNT_ISSUER, 'other-subject'), scope: OPERATOR_DIRECTORY_SCOPE, resource: { type: 'directory', id: 'directory' } }), false);
+    assert.equal(await provider.authorize({ userId: 'operator', callerId: accountId, scope: 'inventory:read', resource: { type: 'directory', id: 'directory' } }), false);
+    f.sqlite.prepare("UPDATE dinkuskit_account SET disabled = 1 WHERE user_id = 'operator'").run();
+    assert.equal(await provider.authorize({ userId: 'operator', callerId: accountId, scope: OPERATOR_DIRECTORY_SCOPE, resource: { type: 'directory', id: 'directory' } }), false);
   } finally { f.sqlite.close(); }
 });
 test('literal search, deterministic list and relation pagination, explicit empty and unavailable', async () => {
@@ -104,6 +128,30 @@ test('store connection is bound to current org, subject and service; reassignmen
       const result = await getStore({ ...f.input, siteId: 'site-a' });
       if (reassign) assert.deepEqual(result, { state: 'forbidden' });
       else { assert.equal(result.value.connection.status, 'redeemed'); assert.doesNotMatch(JSON.stringify(result), /SENTINEL/); }
+    } finally { f.sqlite.close(); }
+  }
+});
+
+test('persisted grants preserve current-state fences and fail closed on missing schema', async () => {
+  for (const change of ['revoke', 'disable', 'subject', 'missing-schema']) {
+    const f = await fixture(); try {
+      const accountId = canonicalAccountId(ACCOUNT_ISSUER, 'personal-operator');
+      f.sqlite.prepare("INSERT INTO dinkuskit_operator_grant (account_id,scope,granted_by,granted_at,grant_reference) VALUES (?, ?, 'synthetic-authorizer', 1, 'synthetic-approval')").run(accountId, OPERATOR_DIRECTORY_SCOPE);
+      const input = { ...f.input, runtime: operatorDirectoryRuntime(f.db) };
+      assert.equal((await getOrganization({ ...input, organizationId: 'org-a' })).state, 'ok');
+      assert.equal((await getOrganization({ ...input, organizationId: 'org-b' })).state, 'ok');
+      if (change === 'missing-schema') f.sqlite.exec('DROP TABLE dinkuskit_operator_grant');
+      else {
+        let changed = false;
+        f.setHook(sql => {
+          if (changed || !sql.includes('ORDER BY lower(name)')) return;
+          changed = true;
+          if (change === 'revoke') f.sqlite.prepare("UPDATE dinkuskit_operator_grant SET revoked_at = 2").run();
+          if (change === 'disable') f.sqlite.prepare("UPDATE dinkuskit_account SET disabled = 1 WHERE user_id = 'operator'").run();
+          if (change === 'subject') f.sqlite.prepare("UPDATE dinkuskit_account SET subject = 'replacement' WHERE user_id = 'operator'").run();
+        });
+      }
+      assert.deepEqual(await readDirectory(input), { state: 'forbidden' }, change);
     } finally { f.sqlite.close(); }
   }
 });

@@ -2,7 +2,7 @@
 
 ## Accepted direction
 
-DinkusKit's website is an EmDash-powered public home and account experience for its hosted commerce services. Use upstream native EmDash blocks; do not add a dependency on the retiring DinkusKit blocks package.
+DinkusKit's website is an EmDash-powered public home and account experience for its hosted commerce services. Use upstream native EmDash blocks; do not depend on the archived `dinkuskit/blocks` repository, which is reference only.
 
 The canonical public address is `https://dinkuskit.com`. Local development uses localhost. Production routing and deployment are separate from this scaffold.
 

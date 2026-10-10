@@ -124,7 +124,21 @@ export class MerchantUnavailableError extends Error {
   }
 }
 
-export function unavailableResponse(reason = 'merchant_unavailable'): Response {
+const SETUP_PAGE = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex"><title>Accounts are being set up | DinkusKit</title><style>body{font:16px/1.5 system-ui,sans-serif;margin:0;padding:3rem 1rem;color:#18231c;background:#f7f8f4}main{max-width:32rem;margin:0 auto}a{color:#215d43}</style></head><body><main><p><a href="/">DinkusKit</a></p><h1>Accounts are being set up</h1><p>Sign-up and sign-in on DinkusKit.com are not switched on yet. Please try again soon.</p></main></body></html>`;
+
+/** Browsers get a plain page; API and service callers keep the JSON error. */
+function wantsPage(request?: Request): boolean {
+  if (!request || (request.method !== 'GET' && request.method !== 'HEAD')) return false;
+  return (request.headers.get('accept') ?? '').includes('text/html');
+}
+
+export function unavailableResponse(reason = 'merchant_unavailable', request?: Request): Response {
+  if (reason === 'merchant_unavailable' && wantsPage(request)) {
+    return new Response(SETUP_PAGE, {
+      status: 503,
+      headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'private, no-store', 'retry-after': '3600' },
+    });
+  }
   return new Response(JSON.stringify({ error: reason }), {
     status: 503,
     headers: { 'content-type': 'application/json', 'cache-control': 'private, no-store' },

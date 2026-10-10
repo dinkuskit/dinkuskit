@@ -22,7 +22,7 @@
     "typecheck": "astro check",
     "audit:repo": "node scripts/audit-repo.mjs",
     "test:smoke": "node scripts/smoke.mjs",
-    "test:account": "node --experimental-strip-types --test tests/emdash-public-auth-feasibility.test.mjs",
+    "test:account": "node --experimental-strip-types --test tests/emdash-public-auth-feasibility.test.mjs tests/merchant-unavailable-page.test.mjs",
     "test:merchant": "node --experimental-strip-types --test --test-concurrency=1 --test-timeout=180000 tests/better-auth-routes.test.mjs tests/store-connections.test.mjs tests/merchant-migrations.test.mjs tests/cms-merchant-isolation.test.mjs",
     "test:foundation": "node --experimental-strip-types --test --test-concurrency=1 --test-timeout=180000 tests/account-foundation.test.mjs",
     "test:inventory-overview": "node --experimental-strip-types --test --test-concurrency=1 --test-timeout=180000 tests/inventory-overview.test.mjs tests/inventory-overview-routes.test.mjs",

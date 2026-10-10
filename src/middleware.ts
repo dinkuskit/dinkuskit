@@ -18,7 +18,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
     context.locals.login = await resolveLogin(runtime.auth, env.MERCHANT_DB, context.request);
     context.locals.merchant = await resolveMerchant(runtime.auth, env.MERCHANT_DB, context.request);
   } catch (error) {
-    if (error instanceof MerchantUnavailableError) return unavailableResponse();
+    if (error instanceof MerchantUnavailableError) return unavailableResponse('merchant_unavailable', context.request);
     throw error;
   }
   if (isProtectedAccountPath(context.url.pathname) && !context.locals.merchant) {

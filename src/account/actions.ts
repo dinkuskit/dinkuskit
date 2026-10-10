@@ -29,12 +29,14 @@ export async function submitMagicLinkForm(context: AstroLike, intent: MerchantMa
     return seeOther(`${base}?${query.toString()}`);
   }
   if (intent === 'signup') {
+    // Email is required and proven by the link; phone is optional and stored only.
     const phone = String(form.get('phone') ?? '').trim();
-    const serviceChannel = String(form.get('service_channel') ?? '').trim();
+    const requestedChannel = String(form.get('service_channel') ?? '').trim() || 'email';
+    const serviceChannel = phone ? requestedChannel : 'email';
     const agreement = form.get('agreement') === 'on';
     const promotionalEmail = form.get('promotional_email') === 'on' ? 1 : 0;
-    const promotionalSms = form.get('promotional_sms') === 'on' ? 1 : 0;
-    if (!/^\+[1-9][0-9]{6,14}$/.test(phone) || !['email', 'phone'].includes(serviceChannel) || !agreement) {
+    const promotionalSms = phone && form.get('promotional_sms') === 'on' ? 1 : 0;
+    if ((phone && !/^\+[1-9][0-9]{6,14}$/.test(phone)) || !['email', 'phone'].includes(serviceChannel) || !agreement) {
       return seeOther(`/account/signup?error=missing_intake${callbackURL ? `&callbackURL=${encodeURIComponent(callbackURL)}` : ''}`);
     }
     const attemptId = crypto.randomUUID();

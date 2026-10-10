@@ -201,7 +201,7 @@ test('every admin page and action returns valid Block Kit', async () => {
   const cutRow = r.blocks.find(b => b.type === 'table').rows[0];
   assert.deepEqual(cutRow.restore.items.map(i => i.label), ['Payments']);
   r = await check({ type: 'block_action', action_id: 'stores:restore', value: cutRow.restore.items[0].value });
-  assert.equal(r.toast.message, 'Restored. The owner can press Connect again.');
+  assert.equal(r.toast.message, 'Restored. The owner can turn it on again.');
   assert.equal(r.blocks.find(b => b.type === 'table').rows[0].payments, 'Disconnected');
   r = await check({ type: 'block_action', action_id: 'stores:cut', value: JSON.stringify({ id: 'site-1', service: 'stock', page: 1, q: '' }) });
   assert.equal(r.toast.type, 'error');

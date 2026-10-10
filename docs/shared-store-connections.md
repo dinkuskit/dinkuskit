@@ -131,6 +131,57 @@ mean the service cannot currently issue credentials. No consumer may fall back
 to manual tokens or another service's token. This list describes expected
 classes; unknown errors also fail closed.
 
+## Store keys and passes for Commerce
+
+Commerce cannot press Connect (it has no room for that code), so it reaches the
+hosted services with a store key instead. On `/account/sites` the owner of a
+store's business sees **Set up Commerce** for each store that already has a
+DinkusKit store ID from Connect, and can:
+
+- turn Coupons and Ship on or off for that store. Turning one on is the owner's
+  consent and creates or revives that service's grant. Turning it off is an
+  owner revoke. Payments is on while its own Connect grant is active, and is
+  turned off with Revoke on the same page. An operator cut-off refuses
+  turning a service on again until an operator presses Restore. Coupons shows
+  as coming soon and cannot be turned on yet (`COMING_SOON_SERVICES`), because
+  Commerce's v1 Registry build refuses every coupon code to stay under the
+  Registry size limit. The route still answers `coupons:checkout` for a store
+  that has Coupons on, so turning it back on later is only a page change;
+- create or replace the store key. The key is `dk_store_` followed by 32
+  random bytes in base64url. It is shown once and only its SHA-256 hash is
+  kept. Replace key overwrites it, so the old key stops working at once.
+
+Commerce trades the key for a pass whenever it needs one:
+
+```
+POST /api/store-passes
+Authorization: Bearer <store key>
+{"site_id": "<store ID>", "scope": "payments:checkout", "audience": "dinkus-payments"}
+```
+
+The allowed pairs are `payments:checkout` with `dinkus-payments`,
+`coupons:checkout` with `dinkus-coupons`, and `ship:orders` with `dinkus-ship`.
+The answer is `{"access_token", "token_type": "Bearer", "expires_in": 300}`: an
+ES256 pass from the same issuer and keys as Connect passes, with `sub` the
+business's subject, `site_id`, `scope`, `iat` and `exp`. `iat` is dated two
+seconds back so a verifier never sees it in the future; the pass lasts 300
+seconds from it. Commerce may reuse one pass until it expires. The route never
+redirects. Every trade checks, in this order:
+
+| Status | Error | Meaning |
+| --- | --- | --- |
+| 401 | `invalid_store_key` | missing, malformed, unknown or replaced key |
+| 400 | `invalid_request` | body is not exactly `site_id`, `scope`, `audience`, or the pair is not allowed |
+| 429 | `rate_limited` | more than 1,200 trades for this key in the current minute |
+| 403 | `site_mismatch` | the key belongs to another store |
+| 403 | `store_suspended` | the business is suspended, waiting for approval, or its owner is suspended |
+| 403 | `service_cut_off` | an operator cut that service off |
+| 403 | `service_not_enabled` | the service is not on for this store |
+| 503 | `signing_unavailable` | passes cannot be signed right now |
+
+A store that has no store ID cannot get a key: the store ID still comes only
+from pressing Connect in the Payments or Inventory plugin.
+
 ## Production proof fetch
 
 The deployed site reads the store's registered proof route itself with

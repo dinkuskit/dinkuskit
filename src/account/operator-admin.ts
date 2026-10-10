@@ -9,10 +9,10 @@ import { denyUnredeemedConnections } from './store.ts';
 export type OperatorActor = { userId: string; email: string };
 
 export const OPERATOR_SERVICES = [
-  { service: 'payments', label: 'Payments', connectable: true },
-  { service: 'inventory', label: 'Inventory', connectable: true },
-  { service: 'coupons', label: 'Coupons', connectable: false },
-  { service: 'ship', label: 'Ship', connectable: false },
+  { service: 'payments', label: 'Payments' },
+  { service: 'inventory', label: 'Inventory' },
+  { service: 'coupons', label: 'Coupons' },
+  { service: 'ship', label: 'Ship' },
 ] as const;
 export type OperatorService = (typeof OPERATOR_SERVICES)[number]['service'];
 export const PAGE_SIZE = 25;

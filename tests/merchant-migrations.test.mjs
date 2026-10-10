@@ -17,6 +17,7 @@ const expectedLedger = [
   { version: 7, name: '0007_shared_store_service_grants.sql' },
   { version: 8, name: '0008_operator_actions.sql' },
   { version: 9, name: '0009_service_grant_revoked_by.sql' },
+  { version: 10, name: '0010_store_keys.sql' },
 ];
 
 function wranglerD1(persistTo, args) {

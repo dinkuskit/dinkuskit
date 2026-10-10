@@ -8,6 +8,7 @@ import { startStoreConnection, consentStoreConnection, exchangeStoreConnectionTo
 import { createLocalTestKeys } from '../src/account/jwt.ts';
 import { revokeServiceGrant } from '../src/account/store.ts';
 import { cutOffStore, restoreStore } from '../src/account/operator-admin.ts';
+import { issueStorePass, listStoreSetup, replaceStoreKey, setOwnerService } from '../src/account/store-passes.ts';
 import { PAYMENTS_CALLBACK_PATH, PAYMENTS_PROOF_PATH, PAYMENTS_REGISTRY_IDENTITY } from '../src/account/config.ts';
 import { stripTypeScriptTypes } from 'node:module';
 
@@ -267,4 +268,88 @@ test('independent contract: redemption rechecks authority after token preparatio
       assert.equal(count(f,'dinkuskit_jwks'),0,'no public-key publication for denied issuance');
     } finally {f.close();}
   }
+});
+
+async function storeWithKey(f) {
+  const c = await start(f, 'payments'); assert.equal((await consent(f, c)).ok, true);
+  const siteId = c.body.site_id;
+  const owner = { subject: 'org-a', siteId, organizationId: 'a', actorUserId: 'alice' };
+  const key = await replaceStoreKey(f.db, owner); assert.match(key, /^dk_store_[A-Za-z0-9_-]{43}$/);
+  const pass = async (scope, audience, overrides = {}) => {
+    const response = await issueStorePass({ db: f.db, authorization: `Bearer ${overrides.key ?? key}`, body: overrides.body ?? { site_id: siteId, scope, audience }, privateJwkJson: JSON.stringify(f.keys.privateJwk) });
+    return { status: response.status, body: await response.json() };
+  };
+  return { siteId, owner, key, pass };
+}
+
+test('store passes: one key, a 5-minute pass for each service that is on, nothing for the rest', async () => {
+  const f = await fixture(); try {
+    const { siteId, owner, key, pass } = await storeWithKey(f);
+    assert.equal(f.sqlite.prepare('SELECT count(*) n FROM dinkuskit_store_key WHERE key_hash = ?').get(createHash('sha256').update(key).digest('hex')).n, 1, 'only the hash is kept');
+    assert.equal(f.sqlite.prepare('SELECT count(*) n FROM dinkuskit_store_key WHERE key_hash = ?').get(key).n, 0);
+    const payments = await pass('payments:checkout', 'dinkus-payments'); assert.equal(payments.status, 200);
+    const jwks = createLocalJWKSet({ keys: [f.keys.publicJwk] });
+    const { payload } = await jwtVerify(payments.body.access_token, jwks, { issuer: 'https://dinkuskit.com/account', audience: 'dinkus-payments' });
+    assert.deepEqual([payload.sub, payload.site_id, payload.scope, payload.exp - payload.iat], ['org-a', siteId, 'payments:checkout', 300]);
+    assert.ok(payload.iat <= Math.floor(Date.now() / 1000) - 2, 'iat is dated back so no verifier sees it in the future');
+    assert.deepEqual(payments.body.expires_in, 300);
+    assert.deepEqual(await pass('coupons:checkout', 'dinkus-coupons'), { status: 403, body: { error: 'service_not_enabled' } });
+    assert.deepEqual(await pass('ship:orders', 'dinkus-ship'), { status: 403, body: { error: 'service_not_enabled' } });
+    assert.equal(await setOwnerService(f.db, { ...owner, service: 'ship', on: true }), 'on');
+    const ship = await pass('ship:orders', 'dinkus-ship'); assert.equal(ship.status, 200);
+    await jwtVerify(ship.body.access_token, jwks, { audience: 'dinkus-ship' });
+    assert.equal(await setOwnerService(f.db, { ...owner, service: 'ship', on: false }), 'off');
+    assert.deepEqual(await pass('ship:orders', 'dinkus-ship'), { status: 403, body: { error: 'service_not_enabled' } });
+    assert.equal(await setOwnerService(f.db, { ...owner, service: 'payments', on: true }), 'forbidden', 'Payments is turned on only by its own Connect');
+    const listed = (await listStoreSetup(f.db, 'org-a'))[0];
+    assert.deepEqual(listed.services, { payments: 'on', coupons: 'off', ship: 'off' }); assert.ok(listed.key.lastUsedAt);
+  } finally { f.close(); }
+});
+
+test('store passes: replaced, malformed and mismatched keys and requests are refused', async () => {
+  const f = await fixture(); try {
+    const { siteId, owner, key, pass } = await storeWithKey(f);
+    const replaced = await replaceStoreKey(f.db, owner); assert.notEqual(replaced, key);
+    assert.deepEqual(await pass('payments:checkout', 'dinkus-payments'), { status: 401, body: { error: 'invalid_store_key' } });
+    assert.equal((await pass('payments:checkout', 'dinkus-payments', { key: replaced })).status, 200);
+    assert.deepEqual(await pass('payments:checkout', 'dinkus-payments', { key: 'dk_store_' + 'A'.repeat(43) }), { status: 401, body: { error: 'invalid_store_key' } });
+    assert.deepEqual(await pass('payments:checkout', 'dinkus-payments', { key: 'not-a-store-key' }), { status: 401, body: { error: 'invalid_store_key' } });
+    for (const body of [null, [], { site_id: siteId, scope: 'payments:admin', audience: 'dinkus-payments' }, { site_id: siteId, scope: 'payments:checkout', audience: 'dinkus-coupons' },
+      { site_id: siteId, scope: 'payments:checkout', audience: 'dinkus-payments', extra: 1 }, { scope: 'payments:checkout', audience: 'dinkus-payments' }]) {
+      assert.deepEqual(await pass(null, null, { key: replaced, body }), { status: 400, body: { error: 'invalid_request' } }, JSON.stringify(body));
+    }
+    assert.deepEqual(await pass(null, null, { key: replaced, body: { site_id: 'some-other-store', scope: 'payments:checkout', audience: 'dinkus-payments' } }), { status: 403, body: { error: 'site_mismatch' } });
+    const response = await issueStorePass({ db: f.db, authorization: null, body: { site_id: siteId, scope: 'payments:checkout', audience: 'dinkus-payments' } });
+    assert.equal(response.status, 401);
+    assert.equal(await replaceStoreKey(f.db, { ...owner, organizationId: 'b', actorUserId: 'bob', subject: 'org-b' }), null, 'another business cannot make a key for this store');
+    assert.equal(await replaceStoreKey(f.db, { ...owner, actorUserId: 'staff' }), null, 'only the owner makes keys');
+    assert.equal(await setOwnerService(f.db, { ...owner, actorUserId: 'staff', service: 'coupons', on: true }), 'forbidden');
+    f.sqlite.prepare('UPDATE dinkuskit_store_key SET window_start = ?, window_count = 1200').run(Math.floor(Date.now() / 60_000));
+    assert.deepEqual(await pass('payments:checkout', 'dinkus-payments', { key: replaced }), { status: 429, body: { error: 'rate_limited' } });
+    assert.deepEqual(await issueStorePass({ db: f.db, authorization: `Bearer ${replaced}`, body: { site_id: siteId, scope: 'payments:checkout', audience: 'dinkus-payments' } }).then(r => r.status), 429);
+  } finally { f.close(); }
+});
+
+test('store passes: suspension, operator cut-off and restore are enforced at every trade', async () => {
+  const f = await fixture(); try {
+    const { siteId, owner, pass } = await storeWithKey(f);
+    const operator = { userId: 'cms-admin', email: 'operator@example.test' };
+    assert.equal(await setOwnerService(f.db, { ...owner, service: 'coupons', on: true }), 'on');
+    assert.equal(await cutOffStore(f.db, siteId, 'coupons', operator), 1);
+    assert.deepEqual(await pass('coupons:checkout', 'dinkus-coupons'), { status: 403, body: { error: 'service_cut_off' } });
+    assert.equal(await setOwnerService(f.db, { ...owner, service: 'coupons', on: true }), 'cut_off', 'the owner cannot undo a cut-off');
+    assert.equal(await setOwnerService(f.db, { ...owner, service: 'coupons', on: false }), 'cut_off');
+    assert.equal((await pass('payments:checkout', 'dinkus-payments')).status, 200, 'a cut-off is per service');
+    assert.equal(await restoreStore(f.db, siteId, 'coupons', operator), 1);
+    assert.deepEqual(await pass('coupons:checkout', 'dinkus-coupons'), { status: 403, body: { error: 'service_not_enabled' } }, 'after restore the owner turns it on again');
+    assert.equal(await setOwnerService(f.db, { ...owner, service: 'coupons', on: true }), 'on');
+    assert.equal((await pass('coupons:checkout', 'dinkus-coupons')).status, 200);
+    f.sqlite.prepare("UPDATE dinkuskit_account SET disabled = 1 WHERE user_id = 'alice'").run();
+    assert.deepEqual(await pass('payments:checkout', 'dinkus-payments'), { status: 403, body: { error: 'store_suspended' } });
+    f.sqlite.prepare("UPDATE dinkuskit_account SET disabled = 0 WHERE user_id = 'alice'").run();
+    f.sqlite.prepare("UPDATE dinkuskit_organization SET status = 'suspended' WHERE organization_id = 'a'").run();
+    assert.deepEqual(await pass('payments:checkout', 'dinkus-payments'), { status: 403, body: { error: 'store_suspended' } });
+    f.sqlite.prepare("UPDATE dinkuskit_organization SET status = 'active', admission_status = 'pending_operator' WHERE organization_id = 'a'").run();
+    assert.deepEqual(await pass('payments:checkout', 'dinkus-payments'), { status: 403, body: { error: 'store_suspended' } });
+  } finally { f.close(); }
 });

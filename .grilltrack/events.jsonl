@@ -271,3 +271,21 @@
 {"action": "decision_superseded", "at": "2026-10-10T21:16:59+00:00", "data": {"affected": [], "decision_id": "website-operator-cut-off-store-037", "replacement_id": "website-operator-restore-cut-off-store-041"}, "event_id": "4209660e-da01-4771-a96e-c0f816f2c471"}
 {"action": "decision_implemented", "at": "2026-10-10T21:51:18+00:00", "data": {"decision_id": "website-operator-restore-cut-off-store-041"}, "event_id": "0a4337d8-2909-43cc-a88d-7ec1f0d26c23"}
 {"action": "decision_verified", "at": "2026-10-10T21:51:18+00:00", "data": {"decision_id": "website-operator-restore-cut-off-store-041"}, "event_id": "df03cca9-2dcb-4506-8c8a-e3565b165916"}
+{"action": "decision_proposed", "at": "2026-10-10T21:59:54+00:00", "data": {"decision_id": "website-store-key-for-commerce-042"}, "event_id": "18416103-6954-4eba-9bb1-f987d33217e1"}
+{"action": "decision_locked", "at": "2026-10-10T21:59:54+00:00", "data": {"decision_id": "website-store-key-for-commerce-042"}, "event_id": "13b0f4e1-6beb-4d83-8af6-0494cb12a0db"}
+{"action": "decision_proposed", "at": "2026-10-10T21:59:54+00:00", "data": {"decision_id": "website-store-services-opt-in-043"}, "event_id": "5d01afcb-6bc5-4af8-b114-62bbc875d054"}
+{"action": "decision_locked", "at": "2026-10-10T21:59:54+00:00", "data": {"decision_id": "website-store-services-opt-in-043"}, "event_id": "5b1612ca-ebab-44ea-aed0-8173fc8fb9e0"}
+{"action": "decision_proposed", "at": "2026-10-10T21:59:54+00:00", "data": {"decision_id": "website-commerce-checkout-settings-044"}, "event_id": "9a3e2c39-c4a0-4c3f-967c-ac1c9e172bd1"}
+{"action": "decision_locked", "at": "2026-10-10T21:59:54+00:00", "data": {"decision_id": "website-commerce-checkout-settings-044"}, "event_id": "6f526e76-a822-46ce-863a-2a0bf6385e00"}
+{"action": "decision_implemented", "at": "2026-10-10T21:59:54+00:00", "data": {"decision_id": "website-store-key-for-commerce-042"}, "event_id": "5ea61169-3512-4e49-b8a6-6d1c97ac80ff"}
+{"action": "decision_implemented", "at": "2026-10-10T21:59:54+00:00", "data": {"decision_id": "website-store-services-opt-in-043"}, "event_id": "1b464636-e665-4b09-aa2a-c7264a92f70e"}
+{"action": "decision_proposed", "at": "2026-10-10T22:04:37+00:00", "data": {"decision_id": "website-store-key-without-payments-045"}, "event_id": "dd455586-7bd0-4e8b-bbc0-1a5c358957a0"}
+{"action": "decision_locked", "at": "2026-10-10T22:04:38+00:00", "data": {"decision_id": "website-store-key-without-payments-045"}, "event_id": "ee2bc6f7-957e-4b38-98dd-a93cf4ee999a"}
+{"action": "decision_implemented", "at": "2026-10-10T22:04:38+00:00", "data": {"decision_id": "website-store-key-without-payments-045"}, "event_id": "2f72999e-9276-4970-ab02-3cb30737058c"}
+{"action": "decision_verified", "at": "2026-10-10T22:21:12+00:00", "data": {"decision_id": "website-store-key-for-commerce-042"}, "event_id": "f6bebc05-bf59-4185-a82a-cf67b5316053"}
+{"action": "decision_verified", "at": "2026-10-10T22:21:12+00:00", "data": {"decision_id": "website-store-services-opt-in-043"}, "event_id": "8acb99f7-8aed-46b7-8cab-d717772467d0"}
+{"action": "decision_verified", "at": "2026-10-10T22:21:12+00:00", "data": {"decision_id": "website-store-key-without-payments-045"}, "event_id": "22ec69c4-f63a-4532-bfca-c6bfc7ebf3df"}
+{"action": "decision_proposed", "at": "2026-10-10T22:34:24+00:00", "data": {"decision_id": "website-coupons-coming-soon-046"}, "event_id": "72bf6d8f-a0aa-48af-8158-c527bb11ddad"}
+{"action": "decision_locked", "at": "2026-10-10T22:34:24+00:00", "data": {"decision_id": "website-coupons-coming-soon-046"}, "event_id": "4397cf66-6389-448d-b5c9-4b9e3b5cb05b"}
+{"action": "decision_implemented", "at": "2026-10-10T22:34:24+00:00", "data": {"decision_id": "website-coupons-coming-soon-046"}, "event_id": "68fcb740-fba7-41fd-941d-525797f41671"}
+{"action": "decision_verified", "at": "2026-10-10T22:34:24+00:00", "data": {"decision_id": "website-coupons-coming-soon-046"}, "event_id": "708a65a5-dead-483c-9bae-2bacbc7fbcc1"}

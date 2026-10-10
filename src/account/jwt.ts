@@ -52,7 +52,7 @@ export async function prepareInventoryAccess(input: {
 }
 
 export async function prepareServiceAccess(input: {
-  subject: string; siteId: string; service: StoreService; privateJwkJson?: string; ttlSeconds?: number;
+  subject: string; siteId: string; service: StoreService; privateJwkJson?: string; ttlSeconds?: number; backdateSeconds?: number;
 }): Promise<
   | { ok: true; token: string; expiresIn: number; kid: string; publicJwk: JsonWebKey }
   | { ok: false; reason: 'missing' | 'invalid' }

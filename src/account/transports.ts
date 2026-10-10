@@ -11,6 +11,8 @@ export type MerchantTransports = {
   /** Isolated local admission notification sink; production uses the EMAIL binding. */
   admissionEmail?: import('./config.ts').MerchantEmailBinding;
   proofFetch?: ProofFetchFn;
+  /** Controlled local stand-in for Payments' GET /v1/status; production calls Payments. */
+  paymentsStatusFetch?: import('./commerce-settings.ts').PaymentsStatusFetch;
   /** Exact request-scoped loopback origin admission for a test entry only. */
   testSiteOrigin?: string;
 };

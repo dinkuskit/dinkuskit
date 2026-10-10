@@ -57,6 +57,10 @@ export type OwnerEnabledService = (typeof OWNER_ENABLED_SERVICES)[number];
 export const COMING_SOON_SERVICES: readonly OwnerEnabledService[] = ['coupons'];
 /** A store key is this prefix and 32 random bytes in base64url; only its SHA-256 is kept. */
 export const STORE_KEY_PREFIX = 'dk_store_';
+/** Hosted service addresses Commerce is published with; the checkout settings name them. */
+export const PAYMENTS_ORIGIN = 'https://payments.dinkuskit.com';
+export const COUPONS_ORIGIN = 'https://coupons.dinkuskit.com';
+export const SHIP_ORIGIN = 'https://ship.dinkuskit.com';
 /** Commerce trades once per request that needs a service, including a shopper's payment status checks. */
 export const STORE_PASS_LIMIT_PER_MINUTE = 1200;
 export const CONNECTION_MAX_LIFETIME_MS = 600_000;
@@ -64,7 +68,7 @@ export const TOKEN_TTL_SECONDS = 300;
 export const TOKEN_TTL_MAX_SECONDS = 600;
 export const PROOF_FETCH_TIMEOUT_MS = 3_000;
 export const PROOF_FETCH_MAX_BYTES = 8_192;
-export const CURRENT_MERCHANT_SCHEMA_VERSION = 10;
+export const CURRENT_MERCHANT_SCHEMA_VERSION = 11;
 
 export const PUBLIC_ACCOUNT_PATHS = [
   '/account/signup',

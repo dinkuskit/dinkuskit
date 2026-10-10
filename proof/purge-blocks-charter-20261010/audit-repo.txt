@@ -1,0 +1,2 @@
+Repository path/manifest checks passed (235 files). Content review is still required.
+exit 0

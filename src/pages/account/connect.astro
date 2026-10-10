@@ -64,7 +64,9 @@ const error = Astro.url.searchParams.get('error');
     <p>Service: {preview.service}</p>
     {preview.service === 'payments' ? <p>Payments status and processor setup access; this does not grant checkout access.</p> : null}
     <p>Site origin: {preview.siteOrigin}</p>
-    {error ? <p class="account-error" role="alert">This connection could not be approved.</p> : null}
+    {error === 'grant_revoked'
+      ? <p class="account-error" role="alert">DinkusKit has cut this store off from {preview.service}. Contact DinkusKit to have it restored.</p>
+      : error ? <p class="account-error" role="alert">This connection could not be approved.</p> : null}
     {preview.status === 'pending' ? (
       <form method="post" class="account-form">
         <input type="hidden" name="action" value="approve" />

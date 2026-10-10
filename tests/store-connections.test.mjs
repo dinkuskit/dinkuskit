@@ -226,9 +226,9 @@ test('store-connections protocol: consent, PKCE, uniqueness, revoke, already_red
       headers: { 'content-type': 'application/x-www-form-urlencoded' },
       body: await accountForm(runtime, alice, 'action=approve'),
     });
-    const remintLoc = new URL(remint.headers.get('location'), runtime.origin);
-    assert.equal(remintLoc.searchParams.get('error'), 'grant_revoked');
-    const blockedRemintToken = await request(runtime, new Map(), '/api/store-connections/token', {
+    // The owner's own revoke is undone only by this fresh explicit consent.
+    assert.equal(remint.headers.get('location'), afterRevoke.callback);
+    const remintToken = await request(runtime, new Map(), '/api/store-connections/token', {
       method: 'POST',
       body: JSON.stringify({
         client_id: 'dinkus-inventory-emdash',
@@ -236,8 +236,8 @@ test('store-connections protocol: consent, PKCE, uniqueness, revoke, already_red
         code_verifier: afterRevoke.pkce.verifier,
       }),
     });
-    assert.notEqual(blockedRemintToken.status, 200);
-    assert.equal((await blockedRemintToken.json()).error, 'authorization_pending');
+    assert.equal(remintToken.status, 200);
+    assert.equal(typeof (await remintToken.json()).access_token, 'string');
   } finally {
     await stopRuntime(runtime);
   }
@@ -749,7 +749,7 @@ test("unauthenticated connect preserves safe continuation to sign-in and signup 
     assert.ok(verified.payload.exp && verified.payload.iat);
     assert.ok(verified.payload.exp - verified.payload.iat <= 300);
 
-    // 9. Revoke site binding blocks new issuance
+    // 9. Revoke blocks new issuance until the owner explicitly consents again
     const revoke = await request(runtime, existingJar, "/account/sites", {
       method: "POST",
       headers: { "content-type": "application/x-www-form-urlencoded" },
@@ -757,19 +757,12 @@ test("unauthenticated connect preserves safe continuation to sign-in and signup 
     });
     assert.equal(revoke.status, 303);
 
-    // A new connection attempt for the revoked site cannot exchange tokens
+    // A new connection attempt for the revoked site cannot exchange tokens before consent
     const nextStart = await startConnection(runtime, "site-cont", site);
     nextStart.siteId = nextStart.body.site_id;
     nextStart.siteOrigin = site;
     await storeReceipt(runtime, nextStart);
-    const reApprove = await request(runtime, existingJar, `/account/connect?connection_id=${nextStart.body.connection_id}`, {
-      method: "POST",
-      headers: { "content-type": "application/x-www-form-urlencoded" },
-      body: await accountForm(runtime, existingJar, "action=approve"),
-    });
-    const reApproveLoc = new URL(reApprove.headers.get("location"), runtime.origin);
-    assert.equal(reApproveLoc.searchParams.get("error"), "grant_revoked");
-    const blockedToken = await request(runtime, new Map(), "/api/store-connections/token", {
+    const nextToken = () => request(runtime, new Map(), "/api/store-connections/token", {
       method: "POST",
       body: JSON.stringify({
         client_id: "dinkus-inventory-emdash",
@@ -777,8 +770,16 @@ test("unauthenticated connect preserves safe continuation to sign-in and signup 
         code_verifier: nextStart.pkce.verifier,
       }),
     });
+    const blockedToken = await nextToken();
     assert.notEqual(blockedToken.status, 200);
     assert.equal((await blockedToken.json()).error, "authorization_pending");
+    const reApprove = await request(runtime, existingJar, `/account/connect?connection_id=${nextStart.body.connection_id}`, {
+      method: "POST",
+      headers: { "content-type": "application/x-www-form-urlencoded" },
+      body: await accountForm(runtime, existingJar, "action=approve"),
+    });
+    assert.equal(reApprove.headers.get("location"), nextStart.callback);
+    assert.equal((await nextToken()).status, 200);
 
     // Already-issued JWT remains valid until exp (no immediate revocation/introspection per CHARTER)
     const reverified = await jwtVerify(tokenBody.access_token, keySet, {

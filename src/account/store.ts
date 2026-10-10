@@ -5,6 +5,8 @@ export type MerchantAccountRow = { userId: string; subject: string; disabled: bo
 export type SiteBinding = {
   siteId: string; siteOrigin: string; accountSubject: string; service: string;
   revoked: boolean; grantedAt: number; revokedAt: number | null;
+  /** 'owner' or 'operator_restored': Connect may grant again. 'operator': refused until restored. */
+  revokedBy: string | null;
 };
 export type StoreConnection = {
   connectionId: string; protocolVersion: number; clientId: string; service: string;
@@ -48,11 +50,11 @@ export async function disableMerchantAccount(db: D1Database, userId: string): Pr
   ]);
 }
 
-const bindingSelect = `SELECT i.site_id, i.site_origin, i.account_subject, g.service, g.revoked, g.granted_at, g.revoked_at
+const bindingSelect = `SELECT i.site_id, i.site_origin, i.account_subject, g.service, g.revoked, g.granted_at, g.revoked_at, g.revoked_by
   FROM dinkuskit_store_identity i JOIN dinkuskit_service_grant g ON g.site_id = i.site_id`;
-type BindingRow = { site_id: string; site_origin: string; account_subject: string; service: string; revoked: number; granted_at: number; revoked_at: number | null };
+type BindingRow = { site_id: string; site_origin: string; account_subject: string; service: string; revoked: number; granted_at: number; revoked_at: number | null; revoked_by: string | null };
 function mapBinding(row: BindingRow): SiteBinding {
-  return { siteId: row.site_id, siteOrigin: row.site_origin, accountSubject: row.account_subject, service: row.service, revoked: row.revoked === 1, grantedAt: row.granted_at, revokedAt: row.revoked_at };
+  return { siteId: row.site_id, siteOrigin: row.site_origin, accountSubject: row.account_subject, service: row.service, revoked: row.revoked === 1, grantedAt: row.granted_at, revokedAt: row.revoked_at, revokedBy: row.revoked_by };
 }
 export async function listActiveBindings(db: D1Database, subject: string): Promise<SiteBinding[]> {
   const result = await db.prepare(`${bindingSelect} WHERE i.account_subject = ?`).bind(subject).all<BindingRow>();
@@ -66,7 +68,8 @@ export async function revokeBinding(db: D1Database, subject: string, siteId: str
   return revokeServiceGrant(db, subject, siteId, 'inventory', actorUserId, organizationId);
 }
 export async function revokeServiceGrant(db: D1Database, subject: string, siteId: string, service: string, actorUserId: string, organizationId: string): Promise<boolean> {
-  const result = await db.prepare(`UPDATE dinkuskit_service_grant SET revoked = 1, revoked_at = ?
+  const results = await db.batch([
+    db.prepare(`UPDATE dinkuskit_service_grant SET revoked = 1, revoked_at = ?, revoked_by = 'owner'
     WHERE site_id = ? AND service = ? AND revoked = 0
       AND EXISTS (SELECT 1 FROM dinkuskit_store_identity i WHERE i.site_id = dinkuskit_service_grant.site_id AND i.account_subject = ?)
       AND EXISTS (SELECT 1 FROM dinkuskit_membership m JOIN dinkuskit_account a ON a.user_id = m.user_id
@@ -74,8 +77,19 @@ export async function revokeServiceGrant(db: D1Database, subject: string, siteId
         JOIN dinkuskit_user_selection s ON s.user_id = m.user_id AND s.organization_id = m.organization_id
         WHERE m.organization_id = ? AND m.user_id = ? AND m.role = 'owner' AND m.status = 'active'
           AND a.disabled = 0 AND o.status IN ('active', 'pending_operator') AND o.authority_subject = ?)`)
-    .bind(nowSeconds(), siteId, service, subject, organizationId, actorUserId, subject).run() as { meta?: { changes?: number } };
-  return (result.meta?.changes ?? 0) > 0;
+      .bind(nowSeconds(), siteId, service, subject, organizationId, actorUserId, subject),
+    denyUnredeemedConnections(db, siteId, service),
+  ]) as { meta?: { changes?: number } }[];
+  return (results[0]?.meta?.changes ?? 0) > 0;
+}
+/**
+ * Approved connections not yet exchanged for a pass die with the grant they were
+ * approved under, so a later reconnect cannot revive them. Batched right after the
+ * revoking statement; changes() keeps it a no-op when that statement changed nothing.
+ */
+export function denyUnredeemedConnections(db: D1Database, siteId: string, service: string): ReturnType<D1Database['prepare']> {
+  return db.prepare(`UPDATE dinkuskit_store_connection SET status = 'denied'
+    WHERE site_id = ? AND service = ? AND status = 'approved' AND changes() > 0`).bind(siteId, service);
 }
 
 export async function insertStoreConnection(db: D1Database, row: StoreConnection): Promise<void> {
@@ -136,7 +150,9 @@ export async function approveConnectionAndBind(db: D1Database, input: {
   if (identity && (identity.site_id !== input.siteId || identity.site_origin !== input.siteOrigin)) return { ok: false, reason: 'origin_id_conflict' };
   if (identity && identity.account_subject !== input.subject) return { ok: false, reason: 'ownership_conflict' };
   const existingGrant = await loadActiveBinding(db, input.siteId, input.service);
-  if (existingGrant?.revoked) return { ok: false, reason: 'grant_revoked' };
+  // An owner's own disconnect, or a lifted operator cut-off, can be granted again by this
+  // explicit consent; an operator cut-off refuses until an operator restores it.
+  if (existingGrant?.revoked && existingGrant.revokedBy === 'operator') return { ok: false, reason: 'grant_revoked' };
   const expiresAt = Date.now();
   try {
     await db.batch([
@@ -151,14 +167,14 @@ export async function approveConnectionAndBind(db: D1Database, input: {
           WHERE c.connection_id = ? AND c.status = 'pending' AND c.protocol_version = 2 AND c.expires_at > ?
             AND (c.account_subject IS NULL OR c.account_subject = ?) AND c.site_id = ? AND c.site_origin = ? AND c.service = ?
         ) AND NOT EXISTS (
-          SELECT 1 FROM dinkuskit_service_grant g WHERE g.site_id = ? AND g.service = ? AND g.revoked = 1
+          SELECT 1 FROM dinkuskit_service_grant g WHERE g.site_id = ? AND g.service = ? AND g.revoked = 1 AND g.revoked_by = 'operator'
         )`).bind(input.siteId, input.siteOrigin, input.subject, now, input.organizationId, input.subject, input.actorUserId,
           input.connectionId, expiresAt, input.subject, input.siteId, input.siteOrigin, input.service, input.siteId, input.service),
       db.prepare(`UPDATE dinkuskit_store_connection SET status = 'approved', account_subject = ?, organization_id = ?, consented_at = ?
         WHERE connection_id = ? AND status = 'pending' AND protocol_version = 2 AND expires_at > ?
           AND (account_subject IS NULL OR account_subject = ?) AND site_id = ? AND site_origin = ? AND service = ?
           AND EXISTS (SELECT 1 FROM dinkuskit_store_identity WHERE site_id = ? AND site_origin = ? AND account_subject = ?)
-          AND NOT EXISTS (SELECT 1 FROM dinkuskit_service_grant WHERE site_id = ? AND service = ? AND revoked = 1)
+          AND NOT EXISTS (SELECT 1 FROM dinkuskit_service_grant WHERE site_id = ? AND service = ? AND revoked = 1 AND revoked_by = 'operator')
           AND EXISTS (SELECT 1 FROM dinkuskit_organization o JOIN dinkuskit_membership m ON m.organization_id = o.organization_id
             JOIN dinkuskit_account a ON a.user_id = m.user_id JOIN dinkuskit_user_selection s ON s.user_id = m.user_id AND s.organization_id = m.organization_id
             WHERE o.organization_id = ? AND o.authority_subject = ? AND o.owner_user_id = ? AND m.user_id = o.owner_user_id
@@ -169,8 +185,8 @@ export async function approveConnectionAndBind(db: D1Database, input: {
         SELECT ?, ?, 0, ?, NULL WHERE EXISTS (
           SELECT 1 FROM dinkuskit_store_connection WHERE connection_id = ? AND status = 'approved' AND protocol_version = 2
             AND account_subject = ? AND organization_id = ? AND site_id = ? AND site_origin = ? AND service = ?
-        ) ON CONFLICT(site_id, service) DO UPDATE SET revoked = 0, granted_at = excluded.granted_at, revoked_at = NULL
-          WHERE dinkuskit_service_grant.revoked = 0`)
+        ) ON CONFLICT(site_id, service) DO UPDATE SET revoked = 0, granted_at = excluded.granted_at, revoked_at = NULL, revoked_by = NULL
+          WHERE dinkuskit_service_grant.revoked = 0 OR dinkuskit_service_grant.revoked_by IS NOT 'operator'`)
         .bind(input.siteId, input.service, now, input.connectionId, input.subject, input.organizationId, input.siteId, input.siteOrigin, input.service),
     ]);
   } catch {

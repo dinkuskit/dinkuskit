@@ -32,6 +32,7 @@ test('shared service routes require separate consent and display processor setup
     const revoke=await request(runtime,owner,'/account/sites',{method:'POST',headers:{'content-type':'application/x-www-form-urlencoded'},body:await accountForm(runtime,owner,new URLSearchParams({action:'revoke',site_id:payments.body.site_id,service:'payments'}).toString())});
     assert.equal(revoke.status,303);
     assert.equal((await token(inventory)).status,200,'Payments revoke leaves Inventory grant redeemable');
-    const again=await start('payments'); assert.notEqual((await approve(again)).headers.get('location'),again.callback,'revoked Payments cannot reconnect silently');
+    const again=await start('payments'); assert.equal((await token(again)).status,400,'revoked Payments needs fresh consent');
+    assert.equal((await approve(again)).headers.get('location'),again.callback,'the owner reconnects Payments by explicit consent'); assert.equal((await token(again)).status,200);
   } finally { await stopRuntime(runtime); }
 });

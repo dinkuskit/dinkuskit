@@ -6,6 +6,8 @@ import { createHash, randomBytes } from 'node:crypto';
 import { createLocalJWKSet, jwtVerify } from 'jose';
 import { startStoreConnection, consentStoreConnection, exchangeStoreConnectionToken } from '../src/account/connect.ts';
 import { createLocalTestKeys } from '../src/account/jwt.ts';
+import { revokeServiceGrant } from '../src/account/store.ts';
+import { cutOffStore, restoreStore } from '../src/account/operator-admin.ts';
 import { PAYMENTS_CALLBACK_PATH, PAYMENTS_PROOF_PATH, PAYMENTS_REGISTRY_IDENTITY } from '../src/account/config.ts';
 import { stripTypeScriptTypes } from 'node:module';
 
@@ -146,14 +148,24 @@ test('independent contract: concurrent provisional identities cannot split one o
   } finally { f.close(); }
 });
 
-test('independent contract: revocation is service-specific and revoked grants cannot silently reconnect', async () => {
+test('independent contract: revocation is service-specific; an owner revoke needs fresh consent and an operator cut-off refuses until restored', async () => {
   const f = await fixture(); try {
     const i = await start(f); assert.equal((await consent(f,i)).ok,true);
     const p = await start(f,'payments'); assert.equal((await consent(f,p)).ok,true);
-    f.sqlite.prepare("UPDATE dinkuskit_service_grant SET revoked=1, revoked_at=2 WHERE service='inventory'").run();
+    const siteId = i.body.site_id;
+    assert.equal(await revokeServiceGrant(f.db,'org-a',siteId,'inventory','alice','a'),true);
     assert.equal((await exchange(f,i)).status,400); assert.equal((await exchange(f,p)).status,200);
-    const again = await start(f); assert.equal((await consent(f,again)).ok,false);
-    const payAgain = await start(f,'payments'); assert.equal((await consent(f,payAgain)).ok,true);
+    const again = await start(f); assert.equal((await consent(f,again)).ok,true);
+    assert.equal((await exchange(f,i)).status,400,'a connection approved before the revoke stays dead after reconnecting');
+    assert.equal((await exchange(f,again)).status,200);
+    const operator = { userId: 'cms-admin', email: 'operator@example.test' };
+    const unredeemed = await start(f,'payments'); assert.equal((await consent(f,unredeemed)).ok,true);
+    assert.equal(await cutOffStore(f.db,siteId,'payments',operator),1);
+    const refused = await start(f,'payments'); assert.equal((await consent(f,refused)).ok,false);
+    assert.equal(await restoreStore(f.db,siteId,'payments',operator),1);
+    const restored = await start(f,'payments'); assert.equal((await consent(f,restored)).ok,true);
+    assert.equal((await exchange(f,unredeemed)).status,400,'a connection approved before the cut-off stays dead after restore');
+    assert.equal((await exchange(f,restored)).status,200);
     assert.equal(count(f,'dinkuskit_store_identity'),1);
   } finally { f.close(); }
 });

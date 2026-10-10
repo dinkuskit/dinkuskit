@@ -1,4 +1,5 @@
 import { decideOrganization, type ApprovalDecision } from './organization-approvals.ts';
+import { denyUnredeemedConnections } from './store.ts';
 
 /**
  * Operator actions behind the EmDash admin operator pages. Every caller is a
@@ -163,7 +164,8 @@ export async function setPersonSuspended(db: D1Database, userId: string, suspend
 
 export type OperatorStore = {
   siteId: string; siteOrigin: string; organizationName: string | null; ownerEmail: string | null;
-  createdAt: number; services: Record<OperatorService, 'connected' | 'cut_off' | 'none'>;
+  /** cut_off: by an operator; disconnected: by the owner, or a lifted cut-off. Both refuse passes until Connect. */
+  createdAt: number; services: Record<OperatorService, 'connected' | 'cut_off' | 'disconnected' | 'none'>;
 };
 
 export async function listStores(db: D1Database, search = '', page = 1): Promise<{ rows: OperatorStore[]; hasNext: boolean }> {
@@ -178,11 +180,11 @@ export async function listStores(db: D1Database, search = '', page = 1): Promise
   const stores = (result.results ?? []).slice(0, PAGE_SIZE + 1);
   const rows: OperatorStore[] = [];
   for (const r of stores.slice(0, PAGE_SIZE)) {
-    const grants = await db.prepare('SELECT service, revoked FROM dinkuskit_service_grant WHERE site_id = ?')
-      .bind(String(r.site_id)).all<{ service: string; revoked: number }>();
+    const grants = await db.prepare('SELECT service, revoked, revoked_by FROM dinkuskit_service_grant WHERE site_id = ?')
+      .bind(String(r.site_id)).all<{ service: string; revoked: number; revoked_by: string | null }>();
     const services = Object.fromEntries(OPERATOR_SERVICES.map(s => [s.service, 'none'])) as OperatorStore['services'];
     for (const g of grants.results ?? []) {
-      if (g.service in services) services[g.service as OperatorService] = g.revoked === 1 ? 'cut_off' : 'connected';
+      if (g.service in services) services[g.service as OperatorService] = g.revoked !== 1 ? 'connected' : g.revoked_by === 'operator' ? 'cut_off' : 'disconnected';
     }
     rows.push({
       siteId: String(r.site_id), siteOrigin: String(r.site_origin), createdAt: Number(r.created_at),
@@ -193,20 +195,36 @@ export async function listStores(db: D1Database, search = '', page = 1): Promise
   return { rows, hasNext: stores.length > PAGE_SIZE };
 }
 
-/** Cut off one service, or every service when service is null. Like an owner's revoke, Connect then refuses that store and service (grant_revoked). */
+/**
+ * Cut off one service, or every service when service is null. Connect then refuses that
+ * store and service (grant_revoked), even after the owner's own disconnect, until restored.
+ */
 export async function cutOffStore(db: D1Database, siteId: string, service: OperatorService | null, actor: OperatorActor): Promise<number> {
-  const grants = await db.prepare(`SELECT service FROM dinkuskit_service_grant WHERE site_id = ? AND revoked = 0${service ? ' AND service = ?' : ''}`)
+  return changeGrants(db, siteId, service, actor, 'service_cut_off',
+    `revoked = 1, revoked_at = ?, revoked_by = 'operator'`, `revoked_by IS NOT 'operator'`);
+}
+
+/** Lift a cut-off. The grant stays revoked: the owner presses Connect again to get a pass. */
+export async function restoreStore(db: D1Database, siteId: string, service: OperatorService | null, actor: OperatorActor): Promise<number> {
+  return changeGrants(db, siteId, service, actor, 'service_restored',
+    `revoked_by = 'operator_restored', revoked_at = coalesce(revoked_at, ?)`, `revoked = 1 AND revoked_by = 'operator'`);
+}
+
+async function changeGrants(db: D1Database, siteId: string, service: OperatorService | null, actor: OperatorActor,
+  action: 'service_cut_off' | 'service_restored', set: string, where: string): Promise<number> {
+  const grants = await db.prepare(`SELECT service FROM dinkuskit_service_grant WHERE site_id = ? AND ${where}${service ? ' AND service = ?' : ''}`)
     .bind(...(service ? [siteId, service] : [siteId])).all<{ service: string }>();
   const t = now();
   let count = 0;
   for (const g of grants.results ?? []) {
     const results = await db.batch([
-      db.prepare('UPDATE dinkuskit_service_grant SET revoked = 1, revoked_at = ? WHERE site_id = ? AND service = ? AND revoked = 0')
+      db.prepare(`UPDATE dinkuskit_service_grant SET ${set} WHERE site_id = ? AND service = ? AND ${where}`)
         .bind(t, siteId, g.service),
       db.prepare(`INSERT INTO dinkuskit_operator_action
         (action_id, action, target_type, target_id, service, actor_user_id, actor_email, created_at)
-        SELECT ?, 'service_cut_off', 'store', ?, ?, ?, ?, ? WHERE changes() > 0`)
-        .bind(`op_${crypto.randomUUID()}`, siteId, g.service, actor.userId, actor.email, t),
+        SELECT ?, ?, 'store', ?, ?, ?, ?, ? WHERE changes() > 0`)
+        .bind(`op_${crypto.randomUUID()}`, action, siteId, g.service, actor.userId, actor.email, t),
+      ...(action === 'service_cut_off' ? [denyUnredeemedConnections(db, siteId, g.service)] : []),
     ]) as unknown[];
     if (changed(results[0])) count++;
   }

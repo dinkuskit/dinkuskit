@@ -3,7 +3,8 @@ import test from 'node:test';
 import Database from 'better-sqlite3';
 import { readdir, readFile } from 'node:fs/promises';
 import { validateBlockResponse } from '@emdash-cms/blocks/server';
-import { cutOffStore, decideAsOperator, listPeople, listReviewOrganizations, listStores, setPersonSuspended } from '../src/account/operator-admin.ts';
+import { cutOffStore, decideAsOperator, listPeople, listReviewOrganizations, listStores, restoreStore, setPersonSuspended } from '../src/account/operator-admin.ts';
+import { approveConnectionAndBind, revokeServiceGrant } from '../src/account/store.ts';
 import { handleInteraction } from '../src/operator-admin/pages.ts';
 
 const actor = { userId: 'cms-admin', email: 'operator@example.test' };
@@ -136,6 +137,42 @@ test('cut off one service, then everything left, and log each', async () => {
   assert.equal((await listStores(db, 'no-such-store')).rows.length, 0);
 });
 
+test('Connect refuses a cut-off store until restored; an owner disconnect can reconnect', async () => {
+  const { sqlite, db } = await fixture();
+  sqlite.prepare("INSERT INTO dinkuskit_user_selection VALUES ('alice', 'org-auto', 1)").run();
+  let n = 0;
+  const connect = async service => {
+    const id = `conn-${++n}`;
+    sqlite.prepare(`INSERT INTO dinkuskit_store_connection (connection_id, client_id, service, site_id, site_origin, callback_uri, code_challenge,
+      challenge, expires_at, interval_seconds, status, created_at, protocol_version) VALUES (?, 'client', ?, 'site-1', 'https://shop.example.test',
+      'https://shop.example.test/cb', 'cc', 'ch', ?, 5, 'pending', 1, 2)`).run(id, service, Date.now() + 60_000);
+    return approveConnectionAndBind(db, { connectionId: id, subject: 'subject-org-auto', organizationId: 'org-auto', actorUserId: 'alice',
+      siteId: 'site-1', siteOrigin: 'https://shop.example.test', service });
+  };
+  const state = async () => (await listStores(db)).rows[0].services;
+
+  assert.equal(await cutOffStore(db, 'site-1', 'payments', actor), 1);
+  assert.deepEqual(await connect('payments'), { ok: false, reason: 'grant_revoked' });
+  assert.equal(await restoreStore(db, 'site-1', 'payments', actor), 1);
+  assert.equal(await restoreStore(db, 'site-1', 'payments', actor), 0);
+  assert.equal((await state()).payments, 'disconnected', 'restore alone issues nothing');
+  assert.deepEqual(await connect('payments'), { ok: true });
+  assert.equal((await state()).payments, 'connected');
+
+  assert.equal(await revokeServiceGrant(db, 'subject-org-auto', 'site-1', 'inventory', 'alice', 'org-auto'), true);
+  assert.equal((await state()).inventory, 'disconnected');
+  assert.deepEqual(await connect('inventory'), { ok: true });
+  // A cut-off also blocks a service the owner had disconnected.
+  assert.equal(await revokeServiceGrant(db, 'subject-org-auto', 'site-1', 'inventory', 'alice', 'org-auto'), true);
+  assert.equal(await restoreStore(db, 'site-1', 'inventory', actor), 0, 'an owner disconnect is not a cut-off');
+  assert.equal(await cutOffStore(db, 'site-1', null, actor), 2);
+  assert.deepEqual(await state(), { payments: 'cut_off', inventory: 'cut_off', coupons: 'none', ship: 'none' });
+  assert.deepEqual(await connect('inventory'), { ok: false, reason: 'grant_revoked' });
+  assert.deepEqual(actions(sqlite).map(a => [a.action, a.service]), [
+    ['service_cut_off', 'payments'], ['service_restored', 'payments'], ['service_cut_off', 'payments'], ['service_cut_off', 'inventory'],
+  ]);
+});
+
 test('every admin page and action returns valid Block Kit', async () => {
   const { sqlite, db } = await fixture();
   const ctx = { db, actor };
@@ -161,6 +198,11 @@ test('every admin page and action returns valid Block Kit', async () => {
   assert.equal(sqlite.prepare("SELECT revoked FROM dinkuskit_service_grant WHERE service='payments'").get().revoked, 0, 'choosing alone changes nothing');
   r = await check({ type: 'block_action', action_id: 'stores:cut', value: JSON.stringify({ id: 'site-1', service: 'payments', page: 1, q: '' }) });
   assert.equal(r.toast.message, 'Service cut off.');
+  const cutRow = r.blocks.find(b => b.type === 'table').rows[0];
+  assert.deepEqual(cutRow.restore.items.map(i => i.label), ['Payments']);
+  r = await check({ type: 'block_action', action_id: 'stores:restore', value: cutRow.restore.items[0].value });
+  assert.equal(r.toast.message, 'Restored. The owner can press Connect again.');
+  assert.equal(r.blocks.find(b => b.type === 'table').rows[0].payments, 'Disconnected');
   r = await check({ type: 'block_action', action_id: 'stores:cut', value: JSON.stringify({ id: 'site-1', service: 'stock', page: 1, q: '' }) });
   assert.equal(r.toast.type, 'error');
   await check({ type: 'block_action', action_id: 'people:page', value: JSON.stringify({ page: 2, q: '' }) });

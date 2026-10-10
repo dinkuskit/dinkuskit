@@ -269,3 +269,5 @@
 {"action": "decision_proposed", "at": "2026-10-10T21:16:59+00:00", "data": {"decision_id": "website-operator-restore-cut-off-store-041"}, "event_id": "7a442ad9-c700-49cc-8f6d-9b5efe87ef2f"}
 {"action": "decision_locked", "at": "2026-10-10T21:16:59+00:00", "data": {"decision_id": "website-operator-restore-cut-off-store-041"}, "event_id": "fcb07078-9667-469d-b1f1-6bf3751d1796"}
 {"action": "decision_superseded", "at": "2026-10-10T21:16:59+00:00", "data": {"affected": [], "decision_id": "website-operator-cut-off-store-037", "replacement_id": "website-operator-restore-cut-off-store-041"}, "event_id": "4209660e-da01-4771-a96e-c0f816f2c471"}
+{"action": "decision_implemented", "at": "2026-10-10T21:51:18+00:00", "data": {"decision_id": "website-operator-restore-cut-off-store-041"}, "event_id": "0a4337d8-2909-43cc-a88d-7ec1f0d26c23"}
+{"action": "decision_verified", "at": "2026-10-10T21:51:18+00:00", "data": {"decision_id": "website-operator-restore-cut-off-store-041"}, "event_id": "df03cca9-2dcb-4506-8c8a-e3565b165916"}

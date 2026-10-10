@@ -4571,10 +4571,54 @@
           "review_source_identity": null,
           "to": "verified",
           "verification_ref": null
+        },
+        {
+          "at": "2026-10-10T03:16:02+00:00",
+          "choice": "One canonical organization-owned store identity with separate explicit Inventory and Payments grants. All clients use shared protocol version2 with server-generated/resolved identity and authenticated origin proof plus current Owner consent. Existing Inventory connections are disposable dev/test: no v1 compatibility or migration required. Add clean identity and service-grant tables without deleting old data; reject old protocol and document explicit consumer upgrade/reconnect. Keep per-service audience, scope and headers; no Ship, live activation, silent identity rewriting, cascading revocation or refresh lifecycle.",
+          "from": "verified",
+          "implementation_ref": "src/account/connect.ts",
+          "note": "adjudicated review requires a fix",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": "proof/shared-store-service-grants/REVIEW.md",
+          "review_result": "clean",
+          "review_source_identity": "sha256:fddf9c85df3aa1a5542e6cca18d0c26639b526b2b3bee542f2b02f2739f93835",
+          "to": "needs_reverification",
+          "verification_ref": "proof/shared-store-service-grants/PROOF.md"
+        },
+        {
+          "at": "2026-10-10T03:20:29+00:00",
+          "choice": "One canonical organization-owned store identity with separate explicit Inventory and Payments grants. All clients use shared protocol version2 with server-generated/resolved identity and authenticated origin proof plus current Owner consent. Existing Inventory connections are disposable dev/test: no v1 compatibility or migration required. Add clean identity and service-grant tables without deleting old data; reject old protocol and document explicit consumer upgrade/reconnect. Keep per-service audience, scope and headers; no Ship, live activation, silent identity rewriting, cascading revocation or refresh lifecycle.",
+          "from": "needs_reverification",
+          "implementation_ref": "src/account/connect.ts",
+          "note": "bounded implementation recorded",
+          "repair_required": true,
+          "review_classifications": [
+            "required_fix"
+          ],
+          "review_ref": "proof/registry-store-paths/FINDING.md",
+          "review_result": "findings",
+          "review_source_identity": "git:c0e871e3b2b63a511c78669cb78b29bd810c51f3",
+          "to": "implemented",
+          "verification_ref": "proof/shared-store-service-grants/PROOF.md"
+        },
+        {
+          "at": "2026-10-10T03:24:56+00:00",
+          "choice": "One canonical organization-owned store identity with separate explicit Inventory and Payments grants. All clients use shared protocol version2 with server-generated/resolved identity and authenticated origin proof plus current Owner consent. Existing Inventory connections are disposable dev/test: no v1 compatibility or migration required. Add clean identity and service-grant tables without deleting old data; reject old protocol and document explicit consumer upgrade/reconnect. Keep per-service audience, scope and headers; no Ship, live activation, silent identity rewriting, cascading revocation or refresh lifecycle.",
+          "from": "implemented",
+          "implementation_ref": "src/account/config.ts",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": "proof/shared-store-service-grants/PROOF.md"
         }
       ],
       "id": "website-shared-store-service-grants-030",
-      "implementation_ref": "src/account/connect.ts",
+      "implementation_ref": "src/account/config.ts",
       "question": "How do Inventory and Payments share store identity without sharing authorization?",
       "rationale": "Explicit direction removes legacy connection preservation. A clean additive schema and one protocol are sufficient; actual data reset remains separately scoped.",
       "repair_required": false,
@@ -4586,15 +4630,31 @@
           "result": "clean",
           "reviewed_at": "2026-10-10T00:48:25+00:00",
           "source_identity": "sha256:fddf9c85df3aa1a5542e6cca18d0c26639b526b2b3bee542f2b02f2739f93835"
+        },
+        {
+          "classifications": [
+            "required_fix"
+          ],
+          "ref": "proof/registry-store-paths/FINDING.md",
+          "result": "findings",
+          "reviewed_at": "2026-10-10T03:16:02+00:00",
+          "source_identity": "git:c0e871e3b2b63a511c78669cb78b29bd810c51f3"
+        },
+        {
+          "classifications": [],
+          "ref": "proof/registry-store-paths/REVIEW.md",
+          "result": "clean",
+          "reviewed_at": "2026-10-10T03:30:47+00:00",
+          "source_identity": "sha256:469e2539b58eb10c8de304957ec5c279a46b74f5bdfb402626409508bdfee397"
         }
       ],
-      "review_ref": "proof/shared-store-service-grants/REVIEW.md",
+      "review_ref": "proof/registry-store-paths/REVIEW.md",
       "review_result": "clean",
-      "review_source_identity": "sha256:fddf9c85df3aa1a5542e6cca18d0c26639b526b2b3bee542f2b02f2739f93835",
+      "review_source_identity": "sha256:469e2539b58eb10c8de304957ec5c279a46b74f5bdfb402626409508bdfee397",
       "status": "verified",
       "superseded_by": null,
-      "updated_at": "2026-10-10T00:48:25+00:00",
-      "verification_ref": "proof/shared-store-service-grants/PROOF.md"
+      "updated_at": "2026-10-10T03:30:47+00:00",
+      "verification_ref": "proof/registry-store-paths/PROOF.md"
     }
   ],
   "last_activation": {
@@ -4622,5 +4682,5 @@
   "status": "active",
   "title": "Website PR9 current-main reconciliation",
   "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca",
-  "updated_at": "2026-10-10T00:48:25+00:00"
+  "updated_at": "2026-10-10T03:30:47+00:00"
 }

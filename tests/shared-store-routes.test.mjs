@@ -11,7 +11,7 @@ test('shared service routes require separate consent and display processor setup
     async function start(service) {
       const verifier = randomBytes(32).toString('base64url'); const challenge = createHash('sha256').update(verifier).digest('base64url');
       const client = `dinkus-${service}-emdash`;
-      const callback = `${origin}/_emdash/admin/plugins/dinkus-${service}/${service === 'payments' ? 'status' : 'inventory'}`;
+      const callback = `${origin}/_emdash/admin/plugins/${service === 'payments' ? 'r_3brsc2on3bu673rn/status' : 'dinkus-inventory/inventory'}`;
       const response = await request(runtime,new Map(),'/api/store-connections',{method:'POST',body:JSON.stringify({protocol_version:2,client_id:client,service,site_origin:origin,callback_uri:callback,code_challenge:challenge,code_challenge_method:'S256'})});
       assert.equal(response.status,200); const body=await response.json();
       assert.equal(body.protocol_version,2);

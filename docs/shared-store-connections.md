@@ -214,10 +214,21 @@ because Commerce only calls the services its settings name. The page names the
 problem instead of showing settings when Payments is not connected, has not
 finished setting up the account, or cannot be reached.
 
-Payments is on the same Cloudflare zone as this site. If the deployed Worker's
-call to Payments is refused or loops back to this site, the fix is a service
-binding to Payments or the `global_fetch_strictly_public` compatibility flag;
-that is a deploy change and needs its own go.
+The answer is read as Payments' hosted status: `state`, `mode`, `bindingRef`
+once a connection has started, and `connectionEvidence` (`provider`, `mode`,
+`result`, and `accountRef` for Stripe) once an account exists. `disconnected`,
+`connecting` and `recovery_required` give no settings; `setup_required`,
+`checking` and `action_required` give settings with a note that Payments still
+needs attention; `ready` gives settings with no note.
+
+Payments is on the same Cloudflare zone as this site. Without
+`global_fetch_strictly_public`, a Worker's fetch to its own zone goes straight
+to the origin and skips any Worker on a route there, so the deployed site sets
+that flag in `cloudflare/wrangler.jsonc`. Its call to `payments.dinkuskit.com`
+then enters Cloudflare the same way a store's call does, whether Payments runs
+on a route or a Custom Domain. The tests use a stand-in for Payments' status,
+so the first live proof is showing checkout settings for a connected store
+after deploy.
 
 ## Production proof fetch
 

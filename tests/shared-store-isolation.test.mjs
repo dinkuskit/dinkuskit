@@ -436,3 +436,24 @@ test('checkout settings: only the owner saves them, and Payments problems are na
     for (const bad of ['', '5.123', '-1', '1,000', 'five', '1e3']) assert.equal(dollarsToMinor(bad), null, bad);
   } finally { f.close(); }
 });
+
+test('checkout settings: every state in Payments\' status answer maps to settings or a named reason', async () => {
+  const f = await fixture(); try {
+    const { siteId } = await storeWithKey(f);
+    const read = body => readPaymentsBinding({ db: f.db, subject: 'org-a', siteId, privateJwkJson: JSON.stringify(f.keys.privateJwk), fetchStatus: async () => ({ status: 200, body }) });
+    const stripe = (result, extra = {}) => ({ provider: 'stripe', mode: 'test', result, accountRef: 'acct_1StateTest', ...extra });
+    // Payments' hosted Status: state, mode, bindingRef (once connecting), connectionEvidence (once an account exists).
+    assert.deepEqual(await read({ state: 'disconnected', mode: 'test' }), { ok: false, reason: 'payments_not_set_up' });
+    for (const state of ['connecting', 'recovery_required']) {
+      assert.deepEqual(await read({ state, mode: 'test', bindingRef: 'bind_state' }), { ok: false, reason: 'payments_not_set_up' }, state);
+    }
+    for (const [state, result] of [['setup_required', 'unknown'], ['checking', 'unknown'], ['action_required', 'action_required']]) {
+      assert.deepEqual(await read({ state, mode: 'test', bindingRef: 'bind_state', connectionEvidence: stripe(result) }),
+        { ok: true, binding: { providerId: 'stripe', bindingRef: 'bind_state', stripeAccountId: 'acct_1StateTest', ready: false } }, state);
+    }
+    assert.deepEqual(await read({ state: 'ready', mode: 'live', bindingRef: 'bind_state', connectionEvidence: stripe('verified', { mode: 'live' }) }),
+      { ok: true, binding: { providerId: 'stripe', bindingRef: 'bind_state', stripeAccountId: 'acct_1StateTest', ready: true } });
+    assert.deepEqual(await read({ state: 'ready', mode: 'test', bindingRef: 'bind_state', connectionEvidence: { provider: 'authorize_net', mode: 'test', result: 'unsupported' } }),
+      { ok: true, binding: { providerId: 'authorize_net', bindingRef: 'bind_state', ready: true } });
+  } finally { f.close(); }
+});

@@ -1,5 +1,10 @@
 # DinkusKit Inventory Connect Protocol & Local Proof Contract
 
+> Historical version 1 development protocol. New connections use
+> [shared store connections](shared-store-connections.md), protocol version 2.
+> Existing dev clients require an update and explicit reconnect; these older
+> request shapes no longer authorize new connections.
+
 This document specifies the merchant store-connection protocol between the DinkusKit website and DinkusKit Inventory (EmDash plugin), the local proof test harness, and the production boundary conditions.
 
 ## Protocol Contract Overview

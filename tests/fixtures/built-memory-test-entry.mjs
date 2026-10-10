@@ -4,7 +4,10 @@ import production from './entry.mjs';
 const ALS = Symbol.for('dinkuskit.merchant.transports.als');
 const MAX_BYTES = 8192;
 const TIMEOUT_MS = 3000;
-const PROOF_PATH = '/_emdash/api/plugins/dinkus-inventory/store-proof';
+const PROOF_PATHS = {
+  inventory: { client: 'dinkus-inventory-emdash', path: '/_emdash/api/plugins/dinkus-inventory/store-proof' },
+  payments: { client: 'dinkus-payments-emdash', path: '/_emdash/api/plugins/dinkus-payments/store-proof' },
+};
 const MAILBOX = new Map();
 
 function storage() {
@@ -55,7 +58,9 @@ function concat(chunks) {
 }
 
 function createProofFetch(env) {
-  return async function proofFetch({ siteOrigin, connectionId }) {
+  return async function proofFetch({ siteOrigin, connectionId, clientId, service }) {
+    const registered = PROOF_PATHS[service];
+    if (!registered || registered.client !== clientId) return { ok: false, reason: 'unregistered_service', transport: 'simulation' };
     if (siteOrigin !== env.TEST_INVENTORY_LOGICAL_ORIGIN) {
       return { ok: false, reason: 'test_origin_not_admitted', transport: 'simulation' };
     }
@@ -63,7 +68,7 @@ function createProofFetch(env) {
     if (!Number.isInteger(port) || port < 1024 || port > 65535) {
       return { ok: false, reason: 'proof_dispatcher_unavailable', transport: 'simulation' };
     }
-    const url = new URL(PROOF_PATH, `http://127.0.0.1:${port}`);
+    const url = new URL(registered.path, `http://127.0.0.1:${port}`);
     url.searchParams.set('connection_id', connectionId);
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
@@ -97,7 +102,7 @@ function createProofFetch(env) {
       } catch {
         return { ok: false, reason: 'proof_malformed', transport: 'simulation' };
       }
-      if (!receipt || receipt.version !== 1 || receipt.connection_id !== connectionId) {
+      if (!receipt || receipt.version !== 2 || receipt.connection_id !== connectionId) {
         return { ok: false, reason: 'proof_malformed', transport: 'simulation' };
       }
       return { ok: true, receipt, transport: 'simulation' };

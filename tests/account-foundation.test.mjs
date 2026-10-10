@@ -207,12 +207,11 @@ test('pending Owner cannot claim Connect and a removed Owner cannot approve afte
     const jar = new Map();
     await signup(runtime, 'consent-owner@example.com', jar);
     const org = (await organizations(runtime, jar)).selectedOrganizationId;
-    const siteId = 'synthetic-consent-race';
-    const siteOrigin = 'https://consent-race.stores.example';
+        const siteOrigin = 'https://consent-race.stores.example';
     const callback = siteOrigin + '/_emdash/admin/plugins/dinkus-inventory/inventory';
     const challenge = 'a'.repeat(43);
     const start = await request(runtime, new Map(), '/api/store-connections', {
-      method: 'POST', body: JSON.stringify({ client_id: 'dinkus-inventory-emdash', service: 'inventory', site_id: siteId,
+      method: 'POST', body: JSON.stringify({ client_id: 'dinkus-inventory-emdash', service: 'inventory', protocol_version: 2,
         site_origin: siteOrigin, callback_uri: callback, code_challenge: challenge, code_challenge_method: 'S256' }),
     });
     assert.equal(start.status, 200);
@@ -225,13 +224,13 @@ test('pending Owner cannot claim Connect and a removed Owner cannot approve afte
     const missing = await form(runtime, jar, path, { action: 'approve' });
     assert.match(missing.headers.get('location'), /stale_organization/);
     await request(runtime, new Map(), '/__proof/receipt', { method: 'POST', body: JSON.stringify({
-      version: 1, connection_id: connection.connection_id, challenge: connection.challenge, client_id: 'dinkus-inventory-emdash',
-      service: 'inventory', site_id: siteId, site_origin: siteOrigin, callback_uri: callback, code_challenge: challenge,
+      version: 2, connection_id: connection.connection_id, challenge: connection.challenge, client_id: 'dinkus-inventory-emdash',
+      service: 'inventory', site_id: connection.site_id, site_origin: siteOrigin, callback_uri: callback, code_challenge: challenge,
       expires_at: connection.expires_at, delay_ms: 20, revoke_owner_after_delay: true,
     }) });
     const approved = await form(runtime, jar, path, { action: 'approve', organization_id: org });
     assert.match(approved.headers.get('location'), /error=/);
-    const grant = await (await request(runtime, new Map(), '/__proof/grant?site_id=' + siteId)).json();
+    const grant = await (await request(runtime, new Map(), '/__proof/grant?site_id=' + connection.site_id)).json();
     assert.equal(grant.present, false);
   } finally { await stopRuntime(runtime); }
 });

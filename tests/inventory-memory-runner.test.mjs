@@ -82,7 +82,7 @@ async function initiate(controller, siteId = SITE_ID, siteOrigin = controller.ex
     body: JSON.stringify({
       client_id: 'dinkus-inventory-emdash',
       service: 'inventory',
-      site_id: siteId,
+      protocol_version: 2,
       site_origin: siteOrigin,
       callback_uri: `${siteOrigin}/_emdash/admin/plugins/dinkus-inventory/inventory`,
       code_challenge: codeChallenge,
@@ -100,14 +100,14 @@ async function initiate(controller, siteId = SITE_ID, siteOrigin = controller.ex
       controller,
     }));
   }
-  return { ...body, verifier, codeChallenge, siteId, siteOrigin };
+  return { ...body, verifier, codeChallenge, siteId: body.site_id, siteOrigin };
 }
 
 async function approve(controller, jar, connection) {
   const page = await request(controller, jar, `/account/connect?connection_id=${encodeURIComponent(connection.connection_id)}`);
   assert.equal(page.status, 200);
   const html = await page.text();
-  assert.match(html, /Approve this site/);
+  assert.match(html, /Approve inventory/);
   const organizationId = html.match(/name="organization_id" value="([^"]+)"/)?.[1];
   assert.ok(organizationId);
   return request(controller, jar, `/account/connect?connection_id=${encodeURIComponent(connection.connection_id)}`, {
@@ -158,13 +158,13 @@ test('actual built website runner proves Better Auth consent, receipt, JWT/JWKS 
   assert.equal(tokenResponse.status, 200);
   const tokenBody = await tokenResponse.json();
   assert.equal(tokenBody.token_type, 'Bearer');
-  assert.equal(tokenBody.site_id, SITE_ID);
+  assert.equal(tokenBody.site_id, connection.site_id);
   const token = tokenBody.access_token;
   const tokenHeader = decodeJwt(token);
   const protectedHeader = decodeProtectedHeader(token);
   assert.equal(tokenHeader.iss, 'https://dinkuskit.com/account');
   assert.equal(tokenHeader.aud, 'inventory');
-  assert.equal(tokenHeader.site_id, SITE_ID);
+  assert.equal(tokenHeader.site_id, connection.site_id);
 
   const jwksBefore = await (await request(controller, jar, '/account/.well-known/jwks.json')).json();
   assert.equal(jwksBefore.keys.length, 1);
@@ -173,7 +173,7 @@ test('actual built website runner proves Better Auth consent, receipt, JWT/JWKS 
     issuer: 'https://dinkuskit.com/account',
     audience: 'inventory',
   });
-  assert.equal(verifiedBefore.payload.site_id, SITE_ID);
+  assert.equal(verifiedBefore.payload.site_id, connection.site_id);
 
   await controller.restart();
   assert.equal((await request(controller, jar, '/account')).status, 200);
@@ -205,7 +205,7 @@ test('finite bridge rejects foreign authority, redirect, malformed, size and dea
     body: JSON.stringify({
       client_id: 'dinkus-inventory-emdash',
       service: 'inventory',
-      site_id: 'foreign-authority-site',
+      protocol_version: 2,
       site_origin: 'https://foreign.invalid',
       callback_uri: 'https://foreign.invalid/_emdash/admin/plugins/dinkus-inventory/inventory',
       code_challenge: 'a'.repeat(43),
@@ -220,7 +220,7 @@ test('finite bridge rejects foreign authority, redirect, malformed, size and dea
     body: JSON.stringify({
       client_id: 'dinkus-inventory-emdash',
       service: 'inventory',
-      site_id: 'wrong-port',
+      protocol_version: 2,
       site_origin: 'http://127.0.0.1:47632',
       callback_uri: 'http://127.0.0.1:47632/_emdash/admin/plugins/dinkus-inventory/inventory',
       code_challenge: 'b'.repeat(43),
@@ -259,7 +259,7 @@ test('controller dispatch preserves canonical request bytes and rejects foreign 
     body: JSON.stringify({
       client_id: 'dinkus-inventory-emdash',
       service: 'inventory',
-      site_id: 'dispatch-body-site',
+      protocol_version: 2,
       site_origin: controller.expectedStoreOrigin,
       callback_uri: `${controller.expectedStoreOrigin}/_emdash/admin/plugins/dinkus-inventory/inventory`,
       code_challenge: 'c'.repeat(43),

@@ -10,12 +10,31 @@ export const INVENTORY_SERVICE = 'inventory';
 export const INVENTORY_SCOPE = 'inventory:admin';
 export const INVENTORY_CALLBACK_PATH = '/_emdash/admin/plugins/dinkus-inventory/inventory';
 export const INVENTORY_PROOF_PATH = '/_emdash/api/plugins/dinkus-inventory/store-proof';
+export const PAYMENTS_CLIENT_ID = 'dinkus-payments-emdash';
+export const PAYMENTS_SERVICE = 'payments';
+export const PAYMENTS_SCOPE = 'payments:admin';
+export const PAYMENTS_CALLBACK_PATH = '/_emdash/admin/plugins/dinkus-payments/status';
+export const PAYMENTS_PROOF_PATH = '/_emdash/api/plugins/dinkus-payments/store-proof';
+export const STORE_CONNECTION_PROTOCOL_VERSION = 2;
+export type StoreService = 'inventory' | 'payments';
+export type RegisteredStoreService = {
+  clientId: string;
+  service: StoreService;
+  callbackPath: string;
+  proofPath: string;
+  audience: string;
+  scope: string;
+};
+export const REGISTERED_STORE_SERVICES: readonly RegisteredStoreService[] = [
+  { clientId: INVENTORY_CLIENT_ID, service: INVENTORY_SERVICE, callbackPath: INVENTORY_CALLBACK_PATH, proofPath: INVENTORY_PROOF_PATH, audience: 'inventory', scope: INVENTORY_SCOPE },
+  { clientId: PAYMENTS_CLIENT_ID, service: PAYMENTS_SERVICE, callbackPath: PAYMENTS_CALLBACK_PATH, proofPath: PAYMENTS_PROOF_PATH, audience: 'dinkus-payments', scope: PAYMENTS_SCOPE },
+];
 export const CONNECTION_MAX_LIFETIME_MS = 600_000;
 export const TOKEN_TTL_SECONDS = 300;
 export const TOKEN_TTL_MAX_SECONDS = 600;
 export const PROOF_FETCH_TIMEOUT_MS = 3_000;
 export const PROOF_FETCH_MAX_BYTES = 8_192;
-export const CURRENT_MERCHANT_SCHEMA_VERSION = 6;
+export const CURRENT_MERCHANT_SCHEMA_VERSION = 7;
 
 export const PUBLIC_ACCOUNT_PATHS = [
   '/account/signup',

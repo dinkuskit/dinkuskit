@@ -14,6 +14,7 @@ const expectedLedger = [
   { version: 4, name: '0004_account_foundation.sql' },
   { version: 5, name: '0005_operator_authorization.sql' },
   { version: 6, name: '0006_organization_approvals.sql' },
+  { version: 7, name: '0007_shared_store_service_grants.sql' },
 ];
 
 function wranglerD1(persistTo, args) {
@@ -50,9 +51,9 @@ async function assertAccountAndConnect(runtime, siteId) {
   const start = await request(runtime, new Map(), '/api/store-connections', {
     method: 'POST',
     body: JSON.stringify({
+      protocol_version: 2,
       client_id: 'dinkus-inventory-emdash',
       service: 'inventory',
-      site_id: siteId,
       site_origin: `https://${siteId}.stores.example`,
       callback_uri: `https://${siteId}.stores.example/_emdash/admin/plugins/dinkus-inventory/inventory`,
       code_challenge: 'a'.repeat(43),
@@ -81,7 +82,7 @@ async function assertRepeatAndRestart(persistTo, sitePrefix, secret) {
   }
 }
 
-test('merchant D1 migrations: runtime-fresh records 1-6 and survives repeat/restart', async () => {
+test('merchant D1 migrations: runtime-fresh records 1-7 and survives repeat/restart', async () => {
   const persistTo = await mkdtemp(join(tmpdir(), 'dk-runtime-fresh-'));
   try {
     await assertRepeatAndRestart(persistTo, 'runtime-fresh', testSecret());
@@ -90,7 +91,7 @@ test('merchant D1 migrations: runtime-fresh records 1-6 and survives repeat/rest
   }
 });
 
-test('merchant D1 migrations: wrangler apply all 6 records 1-6 and survives repeat/restart', async () => {
+test('merchant D1 migrations: wrangler apply all 7 records 1-7 and survives repeat/restart', async () => {
   const persistTo = await mkdtemp(join(tmpdir(), 'dk-cli-all3-'));
   try {
     applyAllMigrations(persistTo);
@@ -101,7 +102,7 @@ test('merchant D1 migrations: wrangler apply all 6 records 1-6 and survives repe
   }
 });
 
-test('merchant D1 migrations: upgrade from 0002 records 1-6 and survives repeat/restart', async () => {
+test('merchant D1 migrations: upgrade from 0002 records 1-7 and survives repeat/restart', async () => {
   const persistTo = await mkdtemp(join(tmpdir(), 'dk-upgrade-'));
   try {
     applySql(persistTo, 'migrations/merchant/0001_better_auth.sql');

@@ -312,12 +312,12 @@ export function connectionReceipt({ response, siteId, codeChallenge, expiresAt, 
     throw safeError('invalid_fixture_receipt_response');
   }
   return {
-    version: 1,
+    version: 2,
     connection_id: response.connection_id,
     challenge: response.challenge,
     client_id: 'dinkus-inventory-emdash',
     service: 'inventory',
-    site_id: siteId,
+    site_id: response.site_id,
     site_origin: controller.expectedStoreOrigin,
     callback_uri: `${controller.expectedStoreOrigin}/_emdash/admin/plugins/dinkus-inventory/inventory`,
     code_challenge: codeChallenge,

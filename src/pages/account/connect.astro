@@ -9,6 +9,7 @@ import { rejectCrossOriginMutation } from '../../account/origin.ts';
 import { authorizeOrganization } from '../../account/organizations.ts';
 
 export const prerender = false;
+Astro.response.headers.set('cache-control', 'private, no-store');
 const merchant = Astro.locals.merchant;
 if (!merchant) return seeOther('/account/sign-in');
 let organizationId = Astro.url.searchParams.get('organization_id') ?? '';
@@ -55,19 +56,20 @@ if (!await authorizeOrganization(env.MERCHANT_DB, merchant.userId, organizationI
 const preview = connectionPreview(connection);
 const error = Astro.url.searchParams.get('error');
 ---
-<Site title="Connect a site" description="Approve or deny an Inventory store connection.">
+<Site title="Connect a site" description="Approve or deny a service connection.">
   <div class="account-panel">
     <p class="eyebrow">Explicit consent</p>
     <h1>Connect this store?</h1>
     <p class="lead">Approve only if you administer this store. This does not grant website editor access.</p>
     <p>Service: {preview.service}</p>
+    {preview.service === 'payments' ? <p>Payments status and processor setup access; this does not grant checkout access.</p> : null}
     <p>Site origin: {preview.siteOrigin}</p>
     {error ? <p class="account-error" role="alert">This connection could not be approved.</p> : null}
     {preview.status === 'pending' ? (
       <form method="post" class="account-form">
         <input type="hidden" name="action" value="approve" />
         <input type="hidden" name="organization_id" value={organizationId} />
-        <button type="submit">Approve this site</button>
+        <button type="submit">Approve {preview.service}</button>
       </form>
     ) : <p>This connection is no longer waiting for consent.</p>}
     <form method="post" class="account-form">

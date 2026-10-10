@@ -157,7 +157,8 @@ async function proofRoutes(request, env, ctx) {
       const org = await env.MERCHANT_DB.prepare('SELECT authority_subject FROM dinkuskit_organization WHERE organization_id = ?').bind(fixture.organizationId).first();
       if (!org) return json(400, { error: 'synthetic_org_missing' });
       for (const [siteId, origin, revoked] of [['site-north', 'https://north.example.test', 0], ['site-south', 'https://south.example.test', 1]]) {
-        await env.MERCHANT_DB.prepare(`INSERT OR REPLACE INTO dinkuskit_site_binding (site_id,site_origin,account_subject,service,revoked,granted_at) VALUES (?, ?, ?, 'inventory', ?, 1)`).bind(siteId, origin, org.authority_subject, revoked).run();
+        await env.MERCHANT_DB.prepare(`INSERT OR REPLACE INTO dinkuskit_store_identity (site_id,site_origin,account_subject,created_at) VALUES (?, ?, ?, 1)`).bind(siteId, origin, org.authority_subject).run();
+        await env.MERCHANT_DB.prepare(`INSERT OR REPLACE INTO dinkuskit_service_grant (site_id,service,revoked,granted_at) VALUES (?, 'inventory', ?, 1)`).bind(siteId, revoked).run();
       }
     }
     return json(200, { syntheticOnly: true });
@@ -260,8 +261,8 @@ async function proofRoutes(request, env, ctx) {
     const siteId = url.searchParams.get('site_id') ?? '';
     if (!siteId || !env.MERCHANT_DB) return json(400, { error: 'invalid_site' });
     const row = await env.MERCHANT_DB.prepare(
-      'SELECT site_id, revoked FROM dinkuskit_site_binding WHERE site_id = ?',
-    ).bind(siteId).first();
+      'SELECT i.site_id, g.revoked FROM dinkuskit_store_identity i JOIN dinkuskit_service_grant g ON g.site_id = i.site_id WHERE i.site_id = ? AND g.service = ?',
+    ).bind(siteId, url.searchParams.get('service') ?? 'inventory').first();
     return json(200, { present: Boolean(row), revoked: row?.revoked === 1 });
   }
 
@@ -270,6 +271,8 @@ async function proofRoutes(request, env, ctx) {
     const result = await fetchStoreProofReceipt({
       siteOrigin: String(body.siteOrigin ?? ''),
       connectionId: String(body.connectionId ?? 'probe'),
+      clientId: String(body.clientId ?? 'dinkus-inventory-emdash'),
+      service: String(body.service ?? 'inventory'),
     });
     return json(result.ok ? 200 : 403, result);
   }

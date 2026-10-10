@@ -33,8 +33,8 @@ installation only. Its manifest has a placeholder publisher; no approved Registr
 publisher identity is established by this contract. Do not substitute the Payments
 publisher or claim Inventory Registry installation from the local fixture. A
 separately evidenced publisher assignment and exact-path registration are required
-before Inventory Registry integration can be qualified. Production issuance remains
-unavailable for both services under the existing transport gate.
+before Inventory Registry integration can be qualified. Production issuance works
+for Payments through the production proof fetch (see "Production proof fetch").
 
 ## Shared identity resolution
 
@@ -123,6 +123,17 @@ keeps failures on the website rather than trusting an arbitrary callback.
 mean the service cannot currently issue credentials. No consumer may fall back
 to manual tokens or another service's token. This list describes expected
 classes; unknown errors also fail closed.
+
+## Production proof fetch
+
+The deployed site reads the store's registered proof route itself with
+`fetchStoreProofReceipt`. Only `https:` public origins are fetched, with a fixed
+path and a single `connection_id` query. Workers reject `redirect: "error"`, so
+the fetch uses `redirect: "manual"` and refuses any 3xx or opaque redirect
+instead of following it. Size and time limits and field-for-field receipt
+comparison are unchanged. Workers cannot reach private networks, and the
+hostname prechecks remain a convenience rather than a firewall. The first
+connection from a real Registry store with the Payments plugin is the live proof.
 
 ## Local integration proof
 

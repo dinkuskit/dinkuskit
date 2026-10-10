@@ -4,19 +4,39 @@
   "main": "./worker.ts",
   "compatibility_date": "2026-02-24",
   "compatibility_flags": ["nodejs_compat"],
+  "account_id": "cddb32366789cab1bdf4c25584dc1920",
   "workers_dev": false,
   "preview_urls": false,
+  "routes": [
+    {
+      "pattern": "dinkuskit.com",
+      "custom_domain": true
+    }
+  ],
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1
+  },
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "dinkuskit-website-candidate",
-      "database_id": "local-dinkuskit-website-candidate-d1"
+      "database_name": "dinkuskit-website-candidate"
+    },
+    {
+      "binding": "MERCHANT_DB",
+      "database_name": "dinkuskit-merchant-production",
+      "migrations_dir": "../migrations/merchant"
     }
   ],
   "r2_buckets": [
     {
       "binding": "MEDIA",
       "bucket_name": "dinkuskit-website-candidate-media"
+    }
+  ],
+  "send_email": [
+    {
+      "name": "EMAIL"
     }
   ],
   "triggers": {

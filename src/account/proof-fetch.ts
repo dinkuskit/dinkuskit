@@ -141,11 +141,12 @@ export async function fetchStoreProofReceipt(input: {
   try {
     const response = await fetch(url, {
       method: 'GET',
-      redirect: 'error',
+      // Workers reject redirect: 'error'; take redirects manually and refuse them below.
+      redirect: 'manual',
       signal: controller.signal,
       headers: { accept: 'application/json' },
     });
-    if (response.redirected) return { ok: false, reason: 'proof_redirect_rejected', transport: 'production-fetch' };
+    if (response.redirected || (response.status >= 300 && response.status < 400) || response.type === 'opaqueredirect') return { ok: false, reason: 'proof_redirect_rejected', transport: 'production-fetch' };
     if (response.status !== 200) return { ok: false, reason: 'proof_unavailable', transport: 'production-fetch' };
     const length = Number(response.headers.get('content-length') ?? '0');
     if (length > PROOF_FETCH_MAX_BYTES) return { ok: false, reason: 'proof_too_large', transport: 'production-fetch' };

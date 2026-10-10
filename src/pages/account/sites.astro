@@ -44,7 +44,6 @@ if (!await authorizeOrganization(env.MERCHANT_DB, merchant.userId, organizationI
     <p class="eyebrow">Site consent</p>
     <h1>Connected sites</h1>
     <p class="lead">Connect services from your EmDash site. Each service requires separate approval.</p>
-    <p>Site connections are being prepared and are not available on the hosted service yet.</p>
     <p>Organization: {organizationId}</p>
     {bindings.length === 0 ? <p>No sites are connected yet.</p> : (
       <ul>

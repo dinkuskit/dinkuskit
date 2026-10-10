@@ -2,6 +2,7 @@ import { betterAuth } from 'better-auth';
 import { magicLink } from 'better-auth/plugins';
 import { ACCOUNT_BASE_PATH, ACCOUNT_COOKIE_PREFIX, SIGNUP_ATTEMPT_COOKIE, type MerchantEnv, type MerchantMailIntent } from './config.ts';
 import { createMerchantEmailDelivery, type MerchantEmailDelivery } from './email.ts';
+import { fetchStoreProofReceipt } from './proof-fetch.ts';
 import { getInjectedTransports } from './transports.ts';
 import { ensureMerchantSubject, isMerchantDisabled } from './store.ts';
 import { consumeSignupAttempt } from './organizations.ts';
@@ -91,7 +92,7 @@ export function createMerchantRuntime(env: MerchantEnv, email?: MerchantEmailDel
     env,
     email: delivery,
     auth: createMerchantAuth(env, delivery),
-    proofFetch: injected.proofFetch,
+    proofFetch: injected.proofFetch ?? fetchStoreProofReceipt,
   };
 }
 

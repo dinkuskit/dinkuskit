@@ -4,6 +4,7 @@ import react from '@astrojs/react';
 import { access, d1, r2 } from '@emdash-cms/cloudflare';
 import { defineConfig } from 'astro/config';
 import emdash from 'emdash/astro';
+import { operatorAdminPlugin } from './src/operator-admin/descriptor.mjs';
 import { INSTALLED_EDITOR_ROLE } from './scripts/lib/access-namespace-gate.mjs';
 
 const workRoot = new URL('./.grilltrack/work/cloudflare-candidate-20260930/', import.meta.url);
@@ -24,6 +25,7 @@ export default defineConfig({
     emdash({
       database: d1({ binding: 'DB' }),
       storage: r2({ binding: 'MEDIA' }),
+      plugins: [operatorAdminPlugin()],
       auth: access({
         teamDomain,
         audienceEnvVar: 'CF_ACCESS_AUDIENCE',

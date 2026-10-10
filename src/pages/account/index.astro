@@ -92,6 +92,14 @@ const loginDeletion = await deletionGuard(env.MERCHANT_DB, login.userId);
                   <button type="submit">Grant Administrator permissions</button>
                 </form>
               ) : null}
+              <form method="post" action="/api/account/memberships" class="account-form">
+                <input type="hidden" name="action" value="remove_member" />
+                <input type="hidden" name="organization_id" value={selectedOrganization.organizationId} />
+                <label for="remove-email">Remove an employee</label>
+                <input id="remove-email" name="email" type="email" required aria-describedby="remove-note" />
+                <small id="remove-note">{selectedOrganization.role === 'owner' ? 'They lose access to this organization right away and keep their own DinkusKit login. You can add them again later.' : 'You can remove employees. Only the owner can remove an Administrator.'}</small>
+                <button type="submit">Remove employee</button>
+              </form>
             </section>
           ) : null}
         </>

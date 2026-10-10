@@ -67,7 +67,9 @@ authority subject. Payments sends the canonical ID as `X-Dinkus-Site`; Inventory
 
 Transactions expire after ten minutes. Tokens last five minutes. There is no
 refresh token or automatic grant renewal; reconnect repeats explicit consent.
-Revoked grants are not silently revived. A service grant check never uses a
+Revoked grants are not silently revived. An operator cut-off on the admin's
+Stores and services page revokes the same grant, so Connect then refuses that
+store and service with `grant_revoked` exactly as after an owner's revoke. A service grant check never uses a
 different service's grant. Ownership transfer and cascading revocation are not
 implemented by this contract.
 

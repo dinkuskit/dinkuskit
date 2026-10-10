@@ -15,6 +15,7 @@ const expectedLedger = [
   { version: 5, name: '0005_operator_authorization.sql' },
   { version: 6, name: '0006_organization_approvals.sql' },
   { version: 7, name: '0007_shared_store_service_grants.sql' },
+  { version: 8, name: '0008_operator_actions.sql' },
 ];
 
 function wranglerD1(persistTo, args) {

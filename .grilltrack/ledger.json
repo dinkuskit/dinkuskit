@@ -5441,6 +5441,20 @@
           "review_source_identity": null,
           "to": "implemented",
           "verification_ref": null
+        },
+        {
+          "at": "2026-10-10T22:21:12+00:00",
+          "choice": "Each store gets one store key from Set up Commerce on DinkusKit.com and pastes it once into Commerce's settings in EmDash. Commerce shows that key only to DinkusKit.com, at POST /api/store-passes, and gets back a fresh 5-minute pass for one service whenever it needs one, signed like Connect passes. So Commerce talks to DinkusKit.com, which reverses the earlier picture where it never did. The key is shown once and only its hash is kept. Replace key makes a new one, and the old one stops working everywhere at once.",
+          "from": "implemented",
+          "implementation_ref": "file:migrations/merchant/0010_store_keys.sql;file:src/account/store-passes.ts;file:src/pages/api/store-passes.ts;file:src/pages/account/sites.astro;file:src/account/jwt.ts;file:src/account/config.ts;file:docs/shared-store-connections.md",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": null
         }
       ],
       "id": "website-store-key-for-commerce-042",
@@ -5453,10 +5467,10 @@
       "review_ref": null,
       "review_result": null,
       "review_source_identity": null,
-      "status": "implemented",
+      "status": "verified",
       "superseded_by": null,
-      "updated_at": "2026-10-10T21:59:54+00:00",
-      "verification_ref": null
+      "updated_at": "2026-10-10T22:21:12+00:00",
+      "verification_ref": "file:tests/shared-store-isolation.test.mjs;file:tests/shared-store-routes.test.mjs;file:tests/operator-admin.test.mjs;file:tests/merchant-migrations.test.mjs"
     },
     {
       "baseline_ref": null,
@@ -5498,6 +5512,20 @@
           "review_source_identity": null,
           "to": "implemented",
           "verification_ref": null
+        },
+        {
+          "at": "2026-10-10T22:21:12+00:00",
+          "choice": "One key covers Payments checkout, Coupons and Ship, but each service is on or off separately, so a store can use any one, two or all three. Payments is on while the store's Payments Connect is active. The owner turns Coupons and Ship on and off in Set up Commerce, and turning one on is the owner's consent for that service. A pass is refused for a service that is off, for an operator cut-off (until the operator restores it and the owner turns it on again), and for a suspended business or owner.",
+          "from": "implemented",
+          "implementation_ref": "file:src/account/store-passes.ts;file:src/pages/account/sites.astro;file:src/account/operator-admin.ts;file:src/operator-admin/pages.ts;file:docs/shared-store-connections.md",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": null
         }
       ],
       "id": "website-store-services-opt-in-043",
@@ -5510,10 +5538,10 @@
       "review_ref": null,
       "review_result": null,
       "review_source_identity": null,
-      "status": "implemented",
+      "status": "verified",
       "superseded_by": null,
-      "updated_at": "2026-10-10T21:59:54+00:00",
-      "verification_ref": null
+      "updated_at": "2026-10-10T22:21:12+00:00",
+      "verification_ref": "file:tests/shared-store-isolation.test.mjs;file:tests/shared-store-routes.test.mjs;file:tests/operator-admin.test.mjs;file:tests/merchant-migrations.test.mjs"
     },
     {
       "baseline_ref": null,
@@ -5598,6 +5626,20 @@
           "review_source_identity": null,
           "to": "implemented",
           "verification_ref": null
+        },
+        {
+          "at": "2026-10-10T22:21:12+00:00",
+          "choice": "Not in v1. A store key needs a DinkusKit store ID, which a store gets only by pressing Connect in the Payments (or Inventory) plugin, because that is how DinkusKit.com checks the store owns its web address. Every v1 store uses DinkusKit Payments, so it gets its ID there. Stores that bring their own payments plugin wait until after v1; a store ID given when DinkusKit itself creates a store is a possible later path.",
+          "from": "implemented",
+          "implementation_ref": "file:src/account/store-passes.ts;file:docs/shared-store-connections.md",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": null
         }
       ],
       "id": "website-store-key-without-payments-045",
@@ -5610,10 +5652,10 @@
       "review_ref": null,
       "review_result": null,
       "review_source_identity": null,
-      "status": "implemented",
+      "status": "verified",
       "superseded_by": null,
-      "updated_at": "2026-10-10T22:04:38+00:00",
-      "verification_ref": null
+      "updated_at": "2026-10-10T22:21:12+00:00",
+      "verification_ref": "file:tests/shared-store-isolation.test.mjs;file:tests/shared-store-routes.test.mjs;file:tests/operator-admin.test.mjs;file:tests/merchant-migrations.test.mjs"
     }
   ],
   "last_activation": {
@@ -5641,5 +5683,5 @@
   "status": "active",
   "title": "Website PR9 current-main reconciliation",
   "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca",
-  "updated_at": "2026-10-10T22:04:38+00:00"
+  "updated_at": "2026-10-10T22:21:12+00:00"
 }

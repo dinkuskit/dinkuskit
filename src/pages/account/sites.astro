@@ -5,6 +5,8 @@ import { getMerchantEnv } from '../../account/bindings.ts';
 import { listActiveBindings, revokeServiceGrant } from '../../account/store.ts';
 import { rejectCrossOriginMutation } from '../../account/origin.ts';
 import { authorizeOrganization } from '../../account/organizations.ts';
+import { listStoreSetup, replaceStoreKey, setOwnerService } from '../../account/store-passes.ts';
+import { OWNER_ENABLED_SERVICES, type OwnerEnabledService } from '../../account/config.ts';
 
 export const prerender = false;
 Astro.response.headers.set('cache-control', 'private, no-store');
@@ -17,6 +19,7 @@ try {
   if (error instanceof MerchantUnavailableError) return unavailableResponse();
   throw error;
 }
+let newKey: { siteId: string; key: string } | null = null;
 if (Astro.request.method === 'POST') {
   const blocked = rejectCrossOriginMutation(Astro.request, env.MERCHANT_BASE_URL);
   if (blocked) return blocked;
@@ -25,16 +28,29 @@ if (Astro.request.method === 'POST') {
   if (organizationId !== merchant.organizationId) return new Response(JSON.stringify({ error: 'stale_organization' }), { status: 409 });
   const mutationMembership = await authorizeOrganization(env.MERCHANT_DB, merchant.userId, organizationId);
   if (!mutationMembership || mutationMembership.role !== 'owner') return new Response(JSON.stringify({ error: 'organization_forbidden' }), { status: 403 });
+  const siteId = String(form.get('site_id') ?? '');
+  const owner = { subject: merchant.subject, siteId, organizationId, actorUserId: merchant.userId };
   if (form.get('action') === 'revoke') {
-    const siteId = String(form.get('site_id') ?? '');
     const service = String(form.get('service') ?? 'inventory');
     if (siteId) await revokeServiceGrant(env.MERCHANT_DB, merchant.subject, siteId, service, merchant.userId, organizationId);
   }
-  return seeOther('/account/sites');
+  if (form.get('action') === 'service' && siteId && OWNER_ENABLED_SERVICES.includes(form.get('service') as OwnerEnabledService)) {
+    await setOwnerService(env.MERCHANT_DB, { ...owner, service: form.get('service') as OwnerEnabledService, on: form.get('on') === '1' });
+  }
+  if (form.get('action') === 'store_key' && siteId) {
+    // The key is shown on this response only; it is never stored or put in a URL.
+    const key = await replaceStoreKey(env.MERCHANT_DB, owner);
+    if (key) newKey = { siteId, key };
+  }
+  if (!newKey) return seeOther('/account/sites');
 }
 const readMembership = await authorizeOrganization(env.MERCHANT_DB, merchant.userId, merchant.organizationId);
 if (!readMembership || (readMembership.role !== 'owner' && !readMembership.permissions.includes('site:view'))) return new Response(null, { status: 403 });
 const bindings = await listActiveBindings(env.MERCHANT_DB, merchant.subject);
+const isOwner = readMembership.role === 'owner';
+const stores = await listStoreSetup(env.MERCHANT_DB, merchant.subject);
+const when = (seconds: number) => `${new Date(seconds * 1000).toISOString().slice(0, 16).replace('T', ' ')} UTC`;
+const SERVICE_LABEL = { payments: 'Payments', coupons: 'Coupons', ship: 'Ship' } as const;
 const organizationId = Astro.url.searchParams.get('organization_id') ?? merchant.organizationId;
 if (organizationId !== merchant.organizationId) return new Response(JSON.stringify({ error: 'stale_organization' }), { status: 409 });
 if (!await authorizeOrganization(env.MERCHANT_DB, merchant.userId, organizationId)) return new Response(JSON.stringify({ error: 'organization_forbidden' }), { status: 403 });
@@ -51,7 +67,7 @@ if (!await authorizeOrganization(env.MERCHANT_DB, merchant.userId, organizationI
           <li>
             <p>{binding.siteOrigin}</p>
             <p>Service: {binding.service}{!binding.revoked ? '' : binding.revokedBy === 'operator' ? ' (cut off by DinkusKit; contact DinkusKit to restore it)' : ' (revoked; press Connect in the store to connect again)'}</p>
-            {binding.revoked || readMembership.role !== 'owner' ? null : (
+            {binding.revoked || !isOwner ? null : (
               <form method="post" action="/account/sites" class="account-form">
                 <input type="hidden" name="action" value="revoke" />
                 <input type="hidden" name="site_id" value={binding.siteId} />
@@ -63,6 +79,48 @@ if (!await authorizeOrganization(env.MERCHANT_DB, merchant.userId, organizationI
           </li>
         ))}
       </ul>
+    )}
+    {stores.length === 0 ? null : (
+      <section aria-labelledby="commerce-setup">
+        <h2 id="commerce-setup">Set up Commerce</h2>
+        <p>Commerce uses one store key to reach the DinkusKit services you turn on below. Paste the key once into Commerce's settings in EmDash.</p>
+        {stores.map(store => (
+          <div class="account-form">
+            <h3>{store.siteOrigin}</h3>
+            <p>Store ID: <code>{store.siteId}</code></p>
+            <ul>
+              {(['payments', 'coupons', 'ship'] as const).map(service => (
+                <li>
+                  {SERVICE_LABEL[service]}: {store.services[service] === 'cut_off' ? 'Cut off by DinkusKit. Contact DinkusKit to have it restored.'
+                    : store.services[service] === 'on' ? 'On' : service === 'payments' ? 'Off. Press Connect in the Payments plugin to turn it on.' : 'Off'}
+                  {isOwner && service !== 'payments' && store.services[service] !== 'cut_off' ? (
+                    <form method="post" action="/account/sites">
+                      <input type="hidden" name="action" value="service" />
+                      <input type="hidden" name="site_id" value={store.siteId} />
+                      <input type="hidden" name="service" value={service} />
+                      <input type="hidden" name="on" value={store.services[service] === 'on' ? '0' : '1'} />
+                      <input type="hidden" name="organization_id" value={organizationId} />
+                      <button type="submit">{store.services[service] === 'on' ? `Turn off ${SERVICE_LABEL[service]}` : `Turn on ${SERVICE_LABEL[service]}`}</button>
+                    </form>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+            <p>Store key: {store.key ? `created ${when(store.key.createdAt)}, ${store.key.lastUsedAt ? `last used ${when(store.key.lastUsedAt)}` : 'not used yet'}` : 'none yet'}</p>
+            {newKey?.siteId === store.siteId ? (
+              <p role="status">Your new store key: <code>{newKey.key}</code> Copy it into Commerce's settings in EmDash now. It will not be shown again. If this store had a key before, that key has stopped working.</p>
+            ) : null}
+            {isOwner ? (
+              <form method="post" action="/account/sites">
+                <input type="hidden" name="action" value="store_key" />
+                <input type="hidden" name="site_id" value={store.siteId} />
+                <input type="hidden" name="organization_id" value={organizationId} />
+                <button type="submit">{store.key ? 'Replace key' : 'Create store key'}</button>
+              </form>
+            ) : null}
+          </div>
+        ))}
+      </section>
     )}
     <p><a href="/account">Back to account</a></p>
   </div>

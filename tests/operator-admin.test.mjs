@@ -63,7 +63,7 @@ test('workerd: the operator pages live in the EmDash admin and only an Admin can
     const storeRow = async () => (await blocks(await call(runtime, editor.jar, { type: 'page_load', page: '/stores' })))
       .blocks.find(b => b.type === 'table').rows.find(r => r.store === origin);
     const listed = await storeRow();
-    assert.deepEqual([listed.payments, listed.inventory, listed.coupons, listed.ship], ['Connected', 'Connected', 'Cannot connect yet', 'Cannot connect yet']);
+    assert.deepEqual([listed.payments, listed.inventory, listed.coupons, listed.ship], ['Connected', 'Connected', 'Not connected', 'Not connected']);
     assert.equal(listed.owner, 'operator-view-owner@example.test');
     assert.deepEqual(listed.action.items.map(i => i.label), ['Payments', 'Inventory', 'Everything']);
     const confirm = await blocks(await call(runtime, editor.jar, { type: 'block_action', action_id: 'stores:choose', value: listed.action.items[0].value }));

@@ -37,12 +37,29 @@ export const REGISTERED_STORE_SERVICES: readonly RegisteredStoreService[] = [
   { clientId: INVENTORY_CLIENT_ID, service: INVENTORY_SERVICE, callbackPath: INVENTORY_CALLBACK_PATH, proofPath: INVENTORY_PROOF_PATH, audience: 'inventory', scope: INVENTORY_SCOPE },
   { clientId: PAYMENTS_CLIENT_ID, service: PAYMENTS_SERVICE, callbackPath: PAYMENTS_CALLBACK_PATH, proofPath: PAYMENTS_PROOF_PATH, audience: 'dinkus-payments', scope: PAYMENTS_SCOPE },
 ];
+/**
+ * Passes Commerce trades its store key for at /api/store-passes. Payments is on for a
+ * store while its Payments Connect grant is active; the owner turns Coupons and Ship
+ * on and off on DinkusKit.com. Each service verifies its own audience and scope.
+ */
+export type StorePassService = 'payments' | 'coupons' | 'ship';
+export const STORE_PASS_SERVICES: readonly { service: StorePassService; scope: string; audience: string }[] = [
+  { service: 'payments', scope: 'payments:checkout', audience: 'dinkus-payments' },
+  { service: 'coupons', scope: 'coupons:checkout', audience: 'dinkus-coupons' },
+  { service: 'ship', scope: 'ship:orders', audience: 'dinkus-ship' },
+];
+export const OWNER_ENABLED_SERVICES = ['coupons', 'ship'] as const;
+export type OwnerEnabledService = (typeof OWNER_ENABLED_SERVICES)[number];
+/** A store key is this prefix and 32 random bytes in base64url; only its SHA-256 is kept. */
+export const STORE_KEY_PREFIX = 'dk_store_';
+/** Commerce trades once per request that needs a service, including a shopper's payment status checks. */
+export const STORE_PASS_LIMIT_PER_MINUTE = 1200;
 export const CONNECTION_MAX_LIFETIME_MS = 600_000;
 export const TOKEN_TTL_SECONDS = 300;
 export const TOKEN_TTL_MAX_SECONDS = 600;
 export const PROOF_FETCH_TIMEOUT_MS = 3_000;
 export const PROOF_FETCH_MAX_BYTES = 8_192;
-export const CURRENT_MERCHANT_SCHEMA_VERSION = 9;
+export const CURRENT_MERCHANT_SCHEMA_VERSION = 10;
 
 export const PUBLIC_ACCOUNT_PATHS = [
   '/account/signup',

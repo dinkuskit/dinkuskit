@@ -57,6 +57,20 @@ export async function prepareServiceAccess(input: {
   | { ok: true; token: string; expiresIn: number; kid: string; publicJwk: JsonWebKey }
   | { ok: false; reason: 'missing' | 'invalid' }
 > {
+  const registered = REGISTERED_STORE_SERVICES.find(service => service.service === input.service);
+  if (!registered) return { ok: false, reason: 'invalid' };
+  return signServicePass({ ...input, audience: registered.audience, scope: registered.scope });
+}
+
+/** Signs a short-lived pass for one store, one audience and one scope. */
+export async function signServicePass(input: {
+  subject: string; siteId: string; audience: string; scope: string; privateJwkJson?: string; ttlSeconds?: number;
+  /** Seconds to date iat back, so a verifier whose clock runs slightly behind never sees it in the future. */
+  backdateSeconds?: number;
+}): Promise<
+  | { ok: true; token: string; expiresIn: number; kid: string; publicJwk: JsonWebKey }
+  | { ok: false; reason: 'missing' | 'invalid' }
+> {
   if (!input.privateJwkJson) return { ok: false, reason: 'missing' };
   try {
     const privateJwk = JSON.parse(input.privateJwkJson) as JWK;
@@ -64,13 +78,11 @@ export async function prepareServiceAccess(input: {
     if (!fields) return { ok: false, reason: 'invalid' };
     const privateKey = await importJWK(privateJwk, 'ES256');
     const ttlSeconds = Math.min(input.ttlSeconds ?? TOKEN_TTL_SECONDS, TOKEN_TTL_MAX_SECONDS);
-    const issuedAt = Math.floor(Date.now() / 1000);
-    const registered = REGISTERED_STORE_SERVICES.find(service => service.service === input.service);
-    if (!registered) return { ok: false, reason: 'invalid' };
-    const token = await new SignJWT({ site_id: input.siteId, scope: registered.scope })
+    const issuedAt = Math.floor(Date.now() / 1000) - (input.backdateSeconds ?? 0);
+    const token = await new SignJWT({ site_id: input.siteId, scope: input.scope })
       .setProtectedHeader({ alg: 'ES256', kid: fields.kid })
       .setIssuer(ACCOUNT_ISSUER)
-      .setAudience(registered.audience)
+      .setAudience(input.audience)
       .setSubject(input.subject)
       .setIssuedAt(issuedAt)
       .setExpirationTime(issuedAt + ttlSeconds)

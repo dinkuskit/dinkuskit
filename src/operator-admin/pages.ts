@@ -230,8 +230,7 @@ async function storesPage(ctx: PageContext, v: View, note?: PageResponse['toast'
           ];
           return {
             store: s.siteOrigin, business: s.organizationName ?? 'Unknown', owner: s.ownerEmail ?? 'Unknown',
-            ...Object.fromEntries(OPERATOR_SERVICES.map(x => [x.service,
-              !x.connectable && s.services[x.service] === 'none' ? 'Cannot connect yet' : SERVICE_STATE[s.services[x.service]]])),
+            ...Object.fromEntries(OPERATOR_SERVICES.map(x => [x.service, SERVICE_STATE[s.services[x.service]]])),
             ...(live.length ? { action: { type: 'menu', action_id: 'stores:choose', label: 'Cut off', items: choices(live) } } : {}),
             ...(blocked.length ? { restore: { type: 'menu', action_id: 'stores:restore', label: 'Restore', items: choices(blocked) } } : {}),
           };

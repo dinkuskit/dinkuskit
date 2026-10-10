@@ -1,6 +1,6 @@
 import {
   OPERATOR_SERVICES, cutOffStore, decideAsOperator, listPeople, listReviewOrganizations, listStores,
-  recentActions, setPersonSuspended, type OperatorActor, type OperatorService, type ReviewOrganization,
+  recentActions, restoreStore, setPersonSuspended, type OperatorActor, type OperatorService, type ReviewOrganization,
 } from '../account/operator-admin.ts';
 import type { MerchantEmailBinding } from '../account/config.ts';
 import { dispatchNotification, getApprovalDetail, getNotification } from '../account/organization-approvals.ts';
@@ -54,6 +54,7 @@ const STATE_LABEL = { waiting: 'Waiting for you', approved: 'Approved', declined
 const ACTION_LABEL: Record<string, string> = {
   organization_approved: 'Approved business', organization_declined: 'Declined business',
   person_suspended: 'Suspended person', person_restored: 'Restored person', service_cut_off: 'Cut off service',
+  service_restored: 'Restored service',
 };
 
 function noticeLabel(notice: ReviewOrganization['notice']): string {
@@ -191,13 +192,13 @@ function target(raw: unknown): { id: string; v: View } | null {
 
 // ── Stores and services ────────────────────────────────────────
 
-const SERVICE_STATE = { connected: 'Connected', cut_off: 'Cut off', none: 'Not connected' } as const;
+const SERVICE_STATE = { connected: 'Connected', cut_off: 'Cut off', disconnected: 'Disconnected', none: 'Not connected' } as const;
 
 async function storesPage(ctx: PageContext, v: View, note?: PageResponse['toast'], confirm?: { siteId: string; origin: string; service: OperatorService | null }): Promise<PageResponse> {
   const { rows, hasNext } = await listStores(ctx.db, v.q, v.page);
   const confirmBlocks: Block[] = confirm ? [
     { type: 'banner', variant: 'alert', title: `Cut off ${confirm.service ? OPERATOR_SERVICES.find(s => s.service === confirm.service)!.label : 'every service'} for ${confirm.origin}?`,
-      description: 'The store gets no new pass for this from now on, and any pass it already holds stops working within 10 minutes. This cannot be undone yet: pressing Connect again on that store will be refused.' },
+      description: 'The store gets no new pass for this from now on, and any pass it already holds stops working within 10 minutes. The owner cannot connect it again until you press Restore on this page.' },
     { type: 'actions', elements: [
       { type: 'button', action_id: 'stores:cut', label: 'Yes, cut it off', style: 'danger',
         value: JSON.stringify({ id: confirm.siteId, service: confirm.service, ...v }) },
@@ -207,7 +208,7 @@ async function storesPage(ctx: PageContext, v: View, note?: PageResponse['toast'
   return {
     blocks: [
       { type: 'header', text: 'Stores and services' },
-      { type: 'context', text: 'Every store that has pressed Connect, and which DinkusKit services it uses. Coupons and Ship cannot connect through DinkusKit.com yet, so their columns stay empty for now.' },
+      { type: 'context', text: 'Every store that has pressed Connect, and which DinkusKit services it uses. Disconnected means the owner turned it off or you restored it; the owner can press Connect again. Cut off means only you can let it back, with Restore. Coupons and Ship cannot connect through DinkusKit.com yet, so their columns stay empty for now.' },
       ...confirmBlocks,
       search('stores', 'Search by store address, business or owner email', v.q),
       {
@@ -218,20 +219,21 @@ async function storesPage(ctx: PageContext, v: View, note?: PageResponse['toast'
           { key: 'owner', label: 'Owner email' },
           ...OPERATOR_SERVICES.map(s => ({ key: s.service, label: s.label, format: 'badge' })),
           { key: 'action', label: 'Cut off', format: 'element' },
+          { key: 'restore', label: 'Restore', format: 'element' },
         ],
         rows: rows.map(s => {
-          const live = OPERATOR_SERVICES.filter(x => s.services[x.service] === 'connected');
+          const live = OPERATOR_SERVICES.filter(x => s.services[x.service] === 'connected' || s.services[x.service] === 'disconnected');
+          const blocked = OPERATOR_SERVICES.filter(x => s.services[x.service] === 'cut_off');
+          const choices = (list: typeof live) => [
+            ...list.map(x => ({ label: x.label, value: JSON.stringify({ id: s.siteId, service: x.service, ...v }) })),
+            ...(list.length > 1 ? [{ label: 'Everything', value: JSON.stringify({ id: s.siteId, service: null, ...v }) }] : []),
+          ];
           return {
             store: s.siteOrigin, business: s.organizationName ?? 'Unknown', owner: s.ownerEmail ?? 'Unknown',
             ...Object.fromEntries(OPERATOR_SERVICES.map(x => [x.service,
               !x.connectable && s.services[x.service] === 'none' ? 'Cannot connect yet' : SERVICE_STATE[s.services[x.service]]])),
-            ...(live.length ? { action: {
-              type: 'menu', action_id: 'stores:choose', label: 'Cut off',
-              items: [
-                ...live.map(x => ({ label: x.label, value: JSON.stringify({ id: s.siteId, service: x.service, ...v }) })),
-                ...(live.length > 1 ? [{ label: 'Everything', value: JSON.stringify({ id: s.siteId, service: null, ...v }) }] : []),
-              ],
-            } } : {}),
+            ...(live.length ? { action: { type: 'menu', action_id: 'stores:choose', label: 'Cut off', items: choices(live) } } : {}),
+            ...(blocked.length ? { restore: { type: 'menu', action_id: 'stores:restore', label: 'Restore', items: choices(blocked) } } : {}),
           };
         }),
       },
@@ -309,6 +311,12 @@ export async function handleInteraction(ctx: PageContext, interaction: Interacti
       if (!t) return storesPage(ctx, view(null), toast('That store was not found.', 'error'));
       const count = await cutOffStore(ctx.db, t.id, t.service, ctx.actor);
       return storesPage(ctx, t.v, count ? toast(count === 1 ? 'Service cut off.' : `${count} services cut off.`) : toast('Nothing left to cut off.', 'info'));
+    }
+    if (action === 'restore') {
+      const t = storeTarget(value);
+      if (!t) return storesPage(ctx, view(null), toast('That store was not found.', 'error'));
+      const count = await restoreStore(ctx.db, t.id, t.service, ctx.actor);
+      return storesPage(ctx, t.v, count ? toast('Restored. The owner can press Connect again.') : toast('Nothing is cut off there.', 'info'));
     }
     return storesPage(ctx, view(value));
   }

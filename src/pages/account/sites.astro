@@ -50,7 +50,7 @@ if (!await authorizeOrganization(env.MERCHANT_DB, merchant.userId, organizationI
         {bindings.map(binding => (
           <li>
             <p>{binding.siteOrigin}</p>
-            <p>Service: {binding.service}{binding.revoked ? ' (revoked)' : ''}</p>
+            <p>Service: {binding.service}{!binding.revoked ? '' : binding.revokedBy === 'operator' ? ' (cut off by DinkusKit; contact DinkusKit to restore it)' : ' (revoked; press Connect in the store to connect again)'}</p>
             {binding.revoked || readMembership.role !== 'owner' ? null : (
               <form method="post" action="/account/sites" class="account-form">
                 <input type="hidden" name="action" value="revoke" />

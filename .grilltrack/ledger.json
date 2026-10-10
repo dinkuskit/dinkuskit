@@ -5088,6 +5088,20 @@
           "review_source_identity": null,
           "to": "locked",
           "verification_ref": null
+        },
+        {
+          "at": "2026-10-10T21:16:59+00:00",
+          "choice": "The operator can cut off one service (for example only Payments) on one store, or every service on that store at once. Cutting off revokes the service grant, so no new pass is issued (outstanding passes expire within their lifetime). There is no operator undo; the store owner reconnects through Connect. Each cut-off is recorded with the operator and time.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "Ronald chose operator Restore on 2026-10-10 at 21:14 UTC; 041 records the cut-off together with how it is lifted.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "superseded",
+          "verification_ref": null
         }
       ],
       "id": "website-operator-cut-off-store-037",
@@ -5100,9 +5114,9 @@
       "review_ref": null,
       "review_result": null,
       "review_source_identity": null,
-      "status": "locked",
-      "superseded_by": null,
-      "updated_at": "2026-10-10T19:28:32+00:00",
+      "status": "superseded",
+      "superseded_by": "website-operator-restore-cut-off-store-041",
+      "updated_at": "2026-10-10T21:16:59+00:00",
       "verification_ref": null
     },
     {
@@ -5315,6 +5329,77 @@
       "superseded_by": null,
       "updated_at": "2026-10-10T20:20:41+00:00",
       "verification_ref": "file:tests/account-foundation.test.mjs"
+    },
+    {
+      "baseline_ref": null,
+      "candidate_refs": [],
+      "choice": "The operator can cut off one service on one store, or every service on that store, from the Stores and services page; cutting off revokes the grant, so no new pass is issued and Connect refuses that store and service. Only the operator lifts a cut-off, with Restore on the same page; the owner then presses Connect again to get a fresh grant. Owners cannot undo a cut-off themselves. An owner's own disconnect is not a block: pressing Connect again with explicit consent grants the service again. Each cut-off and restore is recorded with the operator and time.",
+      "context_ref": "file:docs/shared-store-connections.md",
+      "created_at": "2026-10-10T21:16:59+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [
+        "website-operator-admin-emdash-access-035"
+      ],
+      "domain": "Accounts and operator admin for v1",
+      "history": [
+        {
+          "at": "2026-10-10T21:16:59+00:00",
+          "choice": "The operator can cut off one service on one store, or every service on that store, from the Stores and services page; cutting off revokes the grant, so no new pass is issued and Connect refuses that store and service. Only the operator lifts a cut-off, with Restore on the same page; the owner then presses Connect again to get a fresh grant. Owners cannot undo a cut-off themselves. An owner's own disconnect is not a block: pressing Connect again with explicit consent grants the service again. Each cut-off and restore is recorded with the operator and time.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-10T21:51:18+00:00",
+          "choice": "The operator can cut off one service on one store, or every service on that store, from the Stores and services page; cutting off revokes the grant, so no new pass is issued and Connect refuses that store and service. Only the operator lifts a cut-off, with Restore on the same page; the owner then presses Connect again to get a fresh grant. Owners cannot undo a cut-off themselves. An owner's own disconnect is not a block: pressing Connect again with explicit consent grants the service again. Each cut-off and restore is recorded with the operator and time.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-10T21:51:18+00:00",
+          "choice": "The operator can cut off one service on one store, or every service on that store, from the Stores and services page; cutting off revokes the grant, so no new pass is issued and Connect refuses that store and service. Only the operator lifts a cut-off, with Restore on the same page; the owner then presses Connect again to get a fresh grant. Owners cannot undo a cut-off themselves. An owner's own disconnect is not a block: pressing Connect again with explicit consent grants the service again. Each cut-off and restore is recorded with the operator and time.",
+          "from": "implemented",
+          "implementation_ref": "file:migrations/merchant/0009_service_grant_revoked_by.sql;file:src/account/store.ts;file:src/account/operator-admin.ts;file:src/operator-admin/pages.ts;file:src/pages/account/connect.astro;file:src/pages/account/sites.astro;file:docs/shared-store-connections.md",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": null
+        }
+      ],
+      "id": "website-operator-restore-cut-off-store-041",
+      "implementation_ref": "file:migrations/merchant/0009_service_grant_revoked_by.sql;file:src/account/store.ts;file:src/account/operator-admin.ts;file:src/operator-admin/pages.ts;file:src/pages/account/connect.astro;file:src/pages/account/sites.astro;file:docs/shared-store-connections.md",
+      "question": "How does a store come back after the operator cuts it off, and can an owner reconnect after their own disconnect?",
+      "rationale": "Ronald chose 'You restore it' on the decision card 'After you cut off a store's service, how should it come back?' in the project thread 'DinkusKit.com accounts and operator admin' on 2026-10-10 at 21:14 UTC. The card's option read: 'A Restore button on the Stores page lifts your cut-off, then the owner presses Connect again; owners can't undo your cut-off themselves.' Its context said owners would also be able to reconnect after their own disconnect, since DEPLOY.md step 4 expects that. It replaces 037, whose recorded choice ('no operator undo; the store owner reconnects through Connect') did not match the code, where every revoked grant was refused forever.",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [],
+      "review_ref": null,
+      "review_result": null,
+      "review_source_identity": null,
+      "status": "verified",
+      "superseded_by": null,
+      "updated_at": "2026-10-10T21:51:18+00:00",
+      "verification_ref": "file:tests/shared-store-isolation.test.mjs;file:tests/operator-admin-unit.test.mjs;file:tests/store-connections.test.mjs;file:tests/merchant-migrations.test.mjs;file:tests/shared-store-routes.test.mjs"
     }
   ],
   "last_activation": {
@@ -5342,5 +5427,5 @@
   "status": "active",
   "title": "Website PR9 current-main reconciliation",
   "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca",
-  "updated_at": "2026-10-10T20:20:41+00:00"
+  "updated_at": "2026-10-10T21:51:18+00:00"
 }

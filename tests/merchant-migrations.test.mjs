@@ -16,6 +16,7 @@ const expectedLedger = [
   { version: 6, name: '0006_organization_approvals.sql' },
   { version: 7, name: '0007_shared_store_service_grants.sql' },
   { version: 8, name: '0008_operator_actions.sql' },
+  { version: 9, name: '0009_service_grant_revoked_by.sql' },
 ];
 
 function wranglerD1(persistTo, args) {
@@ -145,6 +146,49 @@ test('merchant D1 migration 0006 preserves populated v5 organization references'
     const rowPayload = JSON.parse(rows.stdout);
     const rowBatch = Array.isArray(rowPayload) ? rowPayload[0] : rowPayload;
     assert.deepEqual(rowBatch.results, [{ memberships: 1, admissions: 1, selections: 1 }]);
+  } finally {
+    await rm(persistTo, { recursive: true, force: true });
+  }
+});
+
+test('merchant D1 migration 0009 marks earlier cut-offs and keeps the operator history', async () => {
+  const persistTo = await mkdtemp(join(tmpdir(), 'dk-v8-populated-'));
+  const seed = join(persistTo, 'seed.sql');
+  try {
+    for (const migration of expectedLedger.filter(m => m.version <= 8)) {
+      applySql(persistTo, `migrations/merchant/${migration.name}`);
+    }
+    await writeFile(seed, `INSERT INTO dinkuskit_store_identity (site_id,site_origin,account_subject,created_at) VALUES ('v8-site','https://v8.stores.example','v8-subject',1);
+      INSERT INTO dinkuskit_service_grant (site_id,service,revoked,granted_at,revoked_at) VALUES ('v8-site','payments',1,1,2);
+      INSERT INTO dinkuskit_service_grant (site_id,service,revoked,granted_at,revoked_at) VALUES ('v8-site','inventory',1,1,3);
+      INSERT INTO dinkuskit_service_grant (site_id,service,revoked,granted_at,revoked_at) VALUES ('v8-site','coupons',0,1,NULL);
+      INSERT INTO dinkuskit_operator_action (action_id,action,target_type,target_id,service,actor_user_id,actor_email,created_at)
+      VALUES ('op_v8','service_cut_off','store','v8-site','payments','cms-admin','operator@example.test',2);`);
+    applySql(persistTo, seed);
+    const runtime = await startMerchantTestRuntime({ persistTo, secret: testSecret() });
+    await assertAccountAndConnect(runtime, 'v8-populated');
+    await stopRuntime({ ...runtime, ownedPersist: false });
+    assert.deepEqual(ledgerRows(persistTo), expectedLedger);
+    const rows = wranglerD1(persistTo, ['execute', '--yes', '--json', '--command',
+      `SELECT service, revoked_by FROM dinkuskit_service_grant WHERE site_id='v8-site' ORDER BY service`]);
+    assert.equal(rows.status, 0, rows.stderr || rows.stdout);
+    const payload = JSON.parse(rows.stdout);
+    const batch = Array.isArray(payload) ? payload[0] : payload;
+    assert.deepEqual(batch.results, [
+      { service: 'coupons', revoked_by: null },
+      { service: 'inventory', revoked_by: 'owner' },
+      { service: 'payments', revoked_by: 'operator' },
+    ]);
+    const history = wranglerD1(persistTo, ['execute', '--yes', '--json', '--command',
+      `INSERT INTO dinkuskit_operator_action (action_id,action,target_type,target_id,service,actor_user_id,actor_email,created_at)
+        VALUES ('op_v9','service_restored','store','v8-site','payments','cms-admin','operator@example.test',4);
+       SELECT action_id, action FROM dinkuskit_operator_action ORDER BY created_at`]);
+    assert.equal(history.status, 0, history.stderr || history.stdout);
+    const historyPayload = JSON.parse(history.stdout);
+    assert.deepEqual(historyPayload.at(-1).results, [
+      { action_id: 'op_v8', action: 'service_cut_off' },
+      { action_id: 'op_v9', action: 'service_restored' },
+    ]);
   } finally {
     await rm(persistTo, { recursive: true, force: true });
   }

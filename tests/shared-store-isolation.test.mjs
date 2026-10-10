@@ -6,10 +6,35 @@ import { createHash, randomBytes } from 'node:crypto';
 import { createLocalJWKSet, jwtVerify } from 'jose';
 import { startStoreConnection, consentStoreConnection, exchangeStoreConnectionToken } from '../src/account/connect.ts';
 import { createLocalTestKeys } from '../src/account/jwt.ts';
+import { PAYMENTS_CALLBACK_PATH, PAYMENTS_PROOF_PATH, PAYMENTS_REGISTRY_IDENTITY } from '../src/account/config.ts';
+import { stripTypeScriptTypes } from 'node:module';
+
+test('Payments registration matches pinned EmDash Registry publisher identity and rejects unregistered paths', async () => {
+  const source = await readFile(new URL('../node_modules/emdash/src/registry/plugin-id.ts', import.meta.url), 'utf8');
+  const { makeRegistryPluginId } = await import(`data:text/javascript;base64,${Buffer.from(stripTypeScriptTypes(source)).toString('base64')}`);
+  const id = await makeRegistryPluginId('did:plc:ekk4pjmkh3k3ql2kfoex3qt4', 'dinkus-payments');
+  assert.equal(id, 'r_3brsc2on3bu673rn');
+  assert.deepEqual(PAYMENTS_REGISTRY_IDENTITY, { publisherDid: 'did:plc:ekk4pjmkh3k3ql2kfoex3qt4', slug: 'dinkus-payments', installedPluginId: id });
+  assert.equal(PAYMENTS_CALLBACK_PATH, `/_emdash/admin/plugins/${id}/status`);
+  assert.equal(PAYMENTS_PROOF_PATH, `/_emdash/api/plugins/${id}/store-proof`);
+  const otherId = await makeRegistryPluginId('did:plc:otherpublisher', 'dinkus-payments');
+  const f = await fixture(); try {
+    for (const path of [
+      '/_emdash/admin/plugins/dinkus-payments/status',
+      `/_emdash/admin/plugins/${otherId}/status`,
+      `/_emdash/admin/plugins/${id}/status?next=elsewhere`,
+      `/_emdash/admin/plugins/${id}/other`,
+    ]) {
+      const result = await start(f, 'payments', 'https://store.example.test', { callback_uri: `https://store.example.test${path}` });
+      assert.equal(result.response.status, 400);
+      assert.equal(result.body.error, 'invalid_callback');
+    }
+  } finally { f.close(); }
+});
 
 const registrations = {
   inventory: { client: 'dinkus-inventory-emdash', callback: '/_emdash/admin/plugins/dinkus-inventory/inventory', audience: 'inventory', scope: 'inventory:admin' },
-  payments: { client: 'dinkus-payments-emdash', callback: '/_emdash/admin/plugins/dinkus-payments/status', audience: 'dinkus-payments', scope: 'payments:admin' },
+  payments: { client: 'dinkus-payments-emdash', callback: '/_emdash/admin/plugins/r_3brsc2on3bu673rn/status', audience: 'dinkus-payments', scope: 'payments:admin' },
 };
 async function fixture() {
   const sqlite = new Database(':memory:');
@@ -178,7 +203,8 @@ test('independent contract: proof transport selects only the registered service 
     for (const service of ['inventory','payments']) {
       const result=await fetchStoreProofReceipt({siteOrigin:'https://store.example.test',connectionId:'proof-id',clientId:registrations[service].client,service});
       assert.equal(result.ok,true);
-      assert.equal(requested.at(-1).url,`https://store.example.test/_emdash/api/plugins/dinkus-${service}/store-proof?connection_id=proof-id`);
+      const installedId = service === 'payments' ? 'r_3brsc2on3bu673rn' : 'dinkus-inventory';
+      assert.equal(requested.at(-1).url,`https://store.example.test/_emdash/api/plugins/${installedId}/store-proof?connection_id=proof-id`);
       assert.equal(requested.at(-1).options.redirect,'error');
     }
     assert.equal((await fetchStoreProofReceipt({siteOrigin:'https://store.example.test',connectionId:'proof-id',clientId:registrations.inventory.client,service:'payments'})).ok,false);

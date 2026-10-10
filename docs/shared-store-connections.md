@@ -11,13 +11,30 @@ Ship integration is outside this slice.
 | Service | Client | Callback path | Public proof path | JWT audience | Scope |
 | --- | --- | --- | --- | --- | --- |
 | `inventory` | `dinkus-inventory-emdash` | `/_emdash/admin/plugins/dinkus-inventory/inventory` | `/_emdash/api/plugins/dinkus-inventory/store-proof` | `inventory` | `inventory:admin` |
-| `payments` | `dinkus-payments-emdash` | `/_emdash/admin/plugins/dinkus-payments/status` | `/_emdash/api/plugins/dinkus-payments/store-proof` | `dinkus-payments` | `payments:admin` |
+| `payments` | `dinkus-payments-emdash` | `/_emdash/admin/plugins/r_3brsc2on3bu673rn/status` | `/_emdash/api/plugins/r_3brsc2on3bu673rn/store-proof` | `dinkus-payments` | `payments:admin` |
 
 The server selects these values from the registered client/service pair, never
 from arbitrary client-supplied proof URLs, scopes, or audiences. Payments consent
 includes status and processor setup; it is not read-only and does not grant
 `payments:checkout`. The Payments proof endpoint is a consumer contract requiring
 separate implementation. These website changes do not prove live transport.
+
+Payments paths use the EmDash Registry installed ID `r_3brsc2on3bu673rn`, derived
+by pinned EmDash 1.2.0 from publisher `did:plc:ekk4pjmkh3k3ql2kfoex3qt4` and slug
+`dinkus-payments`. The Payments manifest's publisher identity is the registration
+input; the package slug alone is not the installed route ID. The previous slug
+callback/proof paths are rejected. Another publisher's derived ID, an arbitrary
+`r_*` string or a caller-provided path cannot select a different registration.
+An exact registered path still does not attest installation by itself: origin
+proof, transaction comparison and current Owner consent remain required.
+
+Inventory's listed slug paths currently describe a config-managed local sandbox
+installation only. Its manifest has a placeholder publisher; no approved Registry
+publisher identity is established by this contract. Do not substitute the Payments
+publisher or claim Inventory Registry installation from the local fixture. A
+separately evidenced publisher assignment and exact-path registration are required
+before Inventory Registry integration can be qualified. Production issuance remains
+unavailable for both services under the existing transport gate.
 
 ## Shared identity resolution
 

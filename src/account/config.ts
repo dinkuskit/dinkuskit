@@ -8,13 +8,21 @@ export const MERCHANT_DB_BINDING = 'MERCHANT_DB';
 export const INVENTORY_CLIENT_ID = 'dinkus-inventory-emdash';
 export const INVENTORY_SERVICE = 'inventory';
 export const INVENTORY_SCOPE = 'inventory:admin';
+// Config-managed local installation only; no Registry publisher is assigned yet.
 export const INVENTORY_CALLBACK_PATH = '/_emdash/admin/plugins/dinkus-inventory/inventory';
 export const INVENTORY_PROOF_PATH = '/_emdash/api/plugins/dinkus-inventory/store-proof';
 export const PAYMENTS_CLIENT_ID = 'dinkus-payments-emdash';
 export const PAYMENTS_SERVICE = 'payments';
 export const PAYMENTS_SCOPE = 'payments:admin';
-export const PAYMENTS_CALLBACK_PATH = '/_emdash/admin/plugins/dinkus-payments/status';
-export const PAYMENTS_PROOF_PATH = '/_emdash/api/plugins/dinkus-payments/store-proof';
+// EmDash 1.2 Registry ID for the approved publisher DID + package slug.
+// This fixed registration is not caller-supplied installation attestation.
+export const PAYMENTS_REGISTRY_IDENTITY = {
+  publisherDid: 'did:plc:ekk4pjmkh3k3ql2kfoex3qt4',
+  slug: 'dinkus-payments',
+  installedPluginId: 'r_3brsc2on3bu673rn',
+} as const;
+export const PAYMENTS_CALLBACK_PATH = '/_emdash/admin/plugins/r_3brsc2on3bu673rn/status';
+export const PAYMENTS_PROOF_PATH = '/_emdash/api/plugins/r_3brsc2on3bu673rn/store-proof';
 export const STORE_CONNECTION_PROTOCOL_VERSION = 2;
 export type StoreService = 'inventory' | 'payments';
 export type RegisteredStoreService = {

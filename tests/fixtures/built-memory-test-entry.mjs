@@ -6,7 +6,7 @@ const MAX_BYTES = 8192;
 const TIMEOUT_MS = 3000;
 const PROOF_PATHS = {
   inventory: { client: 'dinkus-inventory-emdash', path: '/_emdash/api/plugins/dinkus-inventory/store-proof' },
-  payments: { client: 'dinkus-payments-emdash', path: '/_emdash/api/plugins/dinkus-payments/store-proof' },
+  payments: { client: 'dinkus-payments-emdash', path: '/_emdash/api/plugins/r_3brsc2on3bu673rn/store-proof' },
 };
 const MAILBOX = new Map();
 

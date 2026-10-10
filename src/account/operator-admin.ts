@@ -193,7 +193,7 @@ export async function listStores(db: D1Database, search = '', page = 1): Promise
   return { rows, hasNext: stores.length > PAGE_SIZE };
 }
 
-/** Cut off one service, or every service when service is null. The owner reconnects through Connect. */
+/** Cut off one service, or every service when service is null. Like an owner's revoke, Connect then refuses that store and service (grant_revoked). */
 export async function cutOffStore(db: D1Database, siteId: string, service: OperatorService | null, actor: OperatorActor): Promise<number> {
   const grants = await db.prepare(`SELECT service FROM dinkuskit_service_grant WHERE site_id = ? AND revoked = 0${service ? ' AND service = ?' : ''}`)
     .bind(...(service ? [siteId, service] : [siteId])).all<{ service: string }>();

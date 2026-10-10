@@ -257,3 +257,8 @@
 {"action": "decision_verified", "at": "2026-10-10T19:37:02+00:00", "data": {"decision_id": "website-optional-phone-signup-033"}, "event_id": "e7b2dc5e-6273-4258-a3b9-36cb0409fbae"}
 {"action": "decision_implemented", "at": "2026-10-10T19:37:02+00:00", "data": {"decision_id": "website-email-contact-without-phone-034"}, "event_id": "d6c2f32e-4c23-4c3a-9345-6d67e61573a4"}
 {"action": "decision_verified", "at": "2026-10-10T19:37:02+00:00", "data": {"decision_id": "website-email-contact-without-phone-034"}, "event_id": "7dfab39b-ec11-4039-9df1-4c1b49c101e7"}
+{"action": "decision_implemented", "at": "2026-10-10T20:07:16+00:00", "data": {"decision_id": "website-operator-admin-emdash-access-035"}, "event_id": "760418b7-afd8-4c90-beaa-31110ff9cb76"}
+{"action": "decision_implemented", "at": "2026-10-10T20:07:16+00:00", "data": {"decision_id": "website-operator-suspend-account-036"}, "event_id": "3a61e7ad-e297-4f90-ab8c-86b0bf238915"}
+{"action": "decision_implemented", "at": "2026-10-10T20:07:16+00:00", "data": {"decision_id": "website-operator-services-view-038"}, "event_id": "5e992c74-8564-45ae-b672-7e0976d0c246"}
+{"action": "decision_implemented", "at": "2026-10-10T20:07:16+00:00", "data": {"decision_id": "website-operator-approvals-in-admin-039"}, "event_id": "bf6a3c4f-e33c-41e8-9f74-90ae9af2f673"}
+{"action": "decision_implemented", "at": "2026-10-10T20:07:16+00:00", "data": {"decision_id": "website-owner-remove-employee-040"}, "event_id": "936f1a39-4b97-40c3-84d0-a75e715fd42d"}

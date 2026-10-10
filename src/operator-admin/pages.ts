@@ -197,7 +197,7 @@ async function storesPage(ctx: PageContext, v: View, note?: PageResponse['toast'
   const { rows, hasNext } = await listStores(ctx.db, v.q, v.page);
   const confirmBlocks: Block[] = confirm ? [
     { type: 'banner', variant: 'alert', title: `Cut off ${confirm.service ? OPERATOR_SERVICES.find(s => s.service === confirm.service)!.label : 'every service'} for ${confirm.origin}?`,
-      description: 'The store stops getting new passes right away; passes it already has run out within 10 minutes. Only the store owner can turn it back on, by pressing Connect again.' },
+      description: 'The store gets no new pass for this from now on, and any pass it already holds stops working within 10 minutes. This cannot be undone yet: pressing Connect again on that store will be refused.' },
     { type: 'actions', elements: [
       { type: 'button', action_id: 'stores:cut', label: 'Yes, cut it off', style: 'danger',
         value: JSON.stringify({ id: confirm.siteId, service: confirm.service, ...v }) },

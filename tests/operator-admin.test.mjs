@@ -56,6 +56,25 @@ test('workerd: the operator pages live in the EmDash admin and only an Admin can
     const stores = await blocks(await call(runtime, editor.jar, { type: 'page_load', page: '/stores' }));
     assert.match(JSON.stringify(stores), /No store has connected yet/);
 
+    // A store with Payments and Inventory; cut off only Payments after confirming.
+    const origin = 'https://operator-view-shop.example.test';
+    await request(runtime, new Map(), '/__proof/approvals', { method: 'POST', body: JSON.stringify({
+      store: { organizationId, siteId: 'synthetic-operator-site', origin, services: ['payments', 'inventory'] } }) });
+    const storeRow = async () => (await blocks(await call(runtime, editor.jar, { type: 'page_load', page: '/stores' })))
+      .blocks.find(b => b.type === 'table').rows.find(r => r.store === origin);
+    const listed = await storeRow();
+    assert.deepEqual([listed.payments, listed.inventory, listed.coupons, listed.ship], ['Connected', 'Connected', 'Cannot connect yet', 'Cannot connect yet']);
+    assert.equal(listed.owner, 'operator-view-owner@example.test');
+    assert.deepEqual(listed.action.items.map(i => i.label), ['Payments', 'Inventory', 'Everything']);
+    const confirm = await blocks(await call(runtime, editor.jar, { type: 'block_action', action_id: 'stores:choose', value: listed.action.items[0].value }));
+    const banner = confirm.blocks.find(b => b.type === 'banner');
+    assert.equal(banner.title, `Cut off Payments for ${origin}?`);
+    const yes = confirm.blocks.find(b => b.type === 'actions').elements.find(e => e.action_id === 'stores:cut');
+    assert.equal((await blocks(await call(runtime, editor.jar, { type: 'block_action', action_id: 'stores:cut', value: yes.value }))).toast.message, 'Service cut off.');
+    const cut = await storeRow();
+    assert.deepEqual([cut.payments, cut.inventory], ['Cut off', 'Connected']);
+    assert.deepEqual(cut.action.items.map(i => i.label), ['Inventory']);
+
     // Suspending signs the merchant out of the account pages at once.
     const row = people.blocks.find(b => b.type === 'table').rows.find(r => r.email === 'operator-view-owner@example.test');
     assert.equal(row.action.action_id, 'people:suspend');

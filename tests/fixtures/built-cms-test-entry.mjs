@@ -101,6 +101,15 @@ async function proofRoutes(request, env, ctx) {
       if (b.removeMembership) await db.prepare(`UPDATE dinkuskit_membership SET status='removed'
         WHERE organization_id=? AND user_id=(SELECT id FROM "user" WHERE email=?)`)
         .bind(b.removeMembership.organizationId, b.removeMembership.email).run();
+      // Synthetic store that pressed Connect for the given services.
+      if (b.store) {
+        const org = await db.prepare('SELECT authority_subject FROM dinkuskit_organization WHERE organization_id=?').bind(b.store.organizationId).first();
+        const t = Math.floor(Date.now() / 1000);
+        await db.prepare('INSERT INTO dinkuskit_store_identity (site_id, site_origin, account_subject, created_at) VALUES (?,?,?,?)')
+          .bind(b.store.siteId, b.store.origin, org.authority_subject, t).run();
+        for (const service of b.store.services) await db.prepare('INSERT INTO dinkuskit_service_grant (site_id, service, revoked, granted_at) VALUES (?,?,0,?)')
+          .bind(b.store.siteId, service, t).run();
+      }
       if (b.profile) {
         const owner = await db.prepare('SELECT owner_user_id FROM dinkuskit_organization WHERE organization_id=?').bind(b.organizationId).first();
         if (b.profile === 'missing') await db.prepare('DELETE FROM dinkuskit_signup_profile WHERE user_id=?').bind(owner.owner_user_id).run();

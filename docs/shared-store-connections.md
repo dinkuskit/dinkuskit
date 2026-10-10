@@ -142,7 +142,11 @@ DinkusKit store ID from Connect, and can:
   consent and creates or revives that service's grant. Turning it off is an
   owner revoke. Payments is on while its own Connect grant is active, and is
   turned off with Revoke on the same page. An operator cut-off refuses
-  turning a service on again until an operator presses Restore;
+  turning a service on again until an operator presses Restore. Coupons shows
+  as coming soon and cannot be turned on yet (`COMING_SOON_SERVICES`), because
+  Commerce's v1 Registry build refuses every coupon code to stay under the
+  Registry size limit. The route still answers `coupons:checkout` for a store
+  that has Coupons on, so turning it back on later is only a page change;
 - create or replace the store key. The key is `dk_store_` followed by 32
   random bytes in base64url. It is shown once and only its SHA-256 hash is
   kept. Replace key overwrites it, so the old key stops working at once.

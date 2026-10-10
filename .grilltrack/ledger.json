@@ -5656,6 +5656,77 @@
       "superseded_by": null,
       "updated_at": "2026-10-10T22:21:12+00:00",
       "verification_ref": "file:tests/shared-store-isolation.test.mjs;file:tests/shared-store-routes.test.mjs;file:tests/operator-admin.test.mjs;file:tests/merchant-migrations.test.mjs"
+    },
+    {
+      "baseline_ref": null,
+      "candidate_refs": [],
+      "choice": "No. Set up Commerce shows Coupons as coming soon with no Turn on button, and the page refuses a request to turn it on. Payments and Ship work as decided in 043. The store-passes route still answers coupons:checkout for a store that has Coupons on, so offering Coupons again later is only a page change.",
+      "context_ref": "file:docs/shared-store-connections.md",
+      "created_at": "2026-10-10T22:34:24+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [
+        "website-store-services-opt-in-043"
+      ],
+      "domain": "Accounts and operator admin for v1",
+      "history": [
+        {
+          "at": "2026-10-10T22:34:24+00:00",
+          "choice": "No. Set up Commerce shows Coupons as coming soon with no Turn on button, and the page refuses a request to turn it on. Payments and Ship work as decided in 043. The store-passes route still answers coupons:checkout for a store that has Coupons on, so offering Coupons again later is only a page change.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-10T22:34:24+00:00",
+          "choice": "No. Set up Commerce shows Coupons as coming soon with no Turn on button, and the page refuses a request to turn it on. Payments and Ship work as decided in 043. The store-passes route still answers coupons:checkout for a store that has Coupons on, so offering Coupons again later is only a page change.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-10T22:34:24+00:00",
+          "choice": "No. Set up Commerce shows Coupons as coming soon with no Turn on button, and the page refuses a request to turn it on. Payments and Ship work as decided in 043. The store-passes route still answers coupons:checkout for a store that has Coupons on, so offering Coupons again later is only a page change.",
+          "from": "implemented",
+          "implementation_ref": "file:src/account/config.ts;file:src/pages/account/sites.astro;file:docs/shared-store-connections.md",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": null
+        }
+      ],
+      "id": "website-coupons-coming-soon-046",
+      "implementation_ref": "file:src/account/config.ts;file:src/pages/account/sites.astro;file:docs/shared-store-connections.md",
+      "question": "Can a store owner turn Coupons on under Set up Commerce in v1, now that Commerce's v1 Registry build refuses every coupon code?",
+      "rationale": "Ronald said on 2026-10-10 at 22:24 UTC in the project thread about Commerce's size: 'yes merge 97 ; unhook coupons first; inventory only if you got too'. Commerce's Registry build now refuses every coupon code and never trades for a coupons:checkout pass, so a Coupons switch that turns on would do nothing at checkout. His earlier direction for this case was a greyed 'Coupons coming soon' box in Template Store, and this page matches it. The coordinator left the choice between coming soon and leaving Coupons out to this thread.",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [],
+      "review_ref": null,
+      "review_result": null,
+      "review_source_identity": null,
+      "status": "verified",
+      "superseded_by": null,
+      "updated_at": "2026-10-10T22:34:24+00:00",
+      "verification_ref": "file:tests/shared-store-routes.test.mjs"
     }
   ],
   "last_activation": {
@@ -5683,5 +5754,5 @@
   "status": "active",
   "title": "Website PR9 current-main reconciliation",
   "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca",
-  "updated_at": "2026-10-10T22:21:12+00:00"
+  "updated_at": "2026-10-10T22:34:24+00:00"
 }

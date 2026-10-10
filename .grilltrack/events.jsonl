@@ -285,3 +285,7 @@
 {"action": "decision_verified", "at": "2026-10-10T22:21:12+00:00", "data": {"decision_id": "website-store-key-for-commerce-042"}, "event_id": "f6bebc05-bf59-4185-a82a-cf67b5316053"}
 {"action": "decision_verified", "at": "2026-10-10T22:21:12+00:00", "data": {"decision_id": "website-store-services-opt-in-043"}, "event_id": "8acb99f7-8aed-46b7-8cab-d717772467d0"}
 {"action": "decision_verified", "at": "2026-10-10T22:21:12+00:00", "data": {"decision_id": "website-store-key-without-payments-045"}, "event_id": "22ec69c4-f63a-4532-bfca-c6bfc7ebf3df"}
+{"action": "decision_proposed", "at": "2026-10-10T22:34:24+00:00", "data": {"decision_id": "website-coupons-coming-soon-046"}, "event_id": "72bf6d8f-a0aa-48af-8158-c527bb11ddad"}
+{"action": "decision_locked", "at": "2026-10-10T22:34:24+00:00", "data": {"decision_id": "website-coupons-coming-soon-046"}, "event_id": "4397cf66-6389-448d-b5c9-4b9e3b5cb05b"}
+{"action": "decision_implemented", "at": "2026-10-10T22:34:24+00:00", "data": {"decision_id": "website-coupons-coming-soon-046"}, "event_id": "68fcb740-fba7-41fd-941d-525797f41671"}
+{"action": "decision_verified", "at": "2026-10-10T22:34:24+00:00", "data": {"decision_id": "website-coupons-coming-soon-046"}, "event_id": "708a65a5-dead-483c-9bae-2bacbc7fbcc1"}

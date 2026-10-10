@@ -6,7 +6,7 @@ import { listActiveBindings, revokeServiceGrant } from '../../account/store.ts';
 import { rejectCrossOriginMutation } from '../../account/origin.ts';
 import { authorizeOrganization } from '../../account/organizations.ts';
 import { listStoreSetup, replaceStoreKey, setOwnerService } from '../../account/store-passes.ts';
-import { OWNER_ENABLED_SERVICES, type OwnerEnabledService } from '../../account/config.ts';
+import { COMING_SOON_SERVICES, OWNER_ENABLED_SERVICES, type OwnerEnabledService } from '../../account/config.ts';
 
 export const prerender = false;
 Astro.response.headers.set('cache-control', 'private, no-store');
@@ -34,8 +34,10 @@ if (Astro.request.method === 'POST') {
     const service = String(form.get('service') ?? 'inventory');
     if (siteId) await revokeServiceGrant(env.MERCHANT_DB, merchant.subject, siteId, service, merchant.userId, organizationId);
   }
-  if (form.get('action') === 'service' && siteId && OWNER_ENABLED_SERVICES.includes(form.get('service') as OwnerEnabledService)) {
-    await setOwnerService(env.MERCHANT_DB, { ...owner, service: form.get('service') as OwnerEnabledService, on: form.get('on') === '1' });
+  const ownerService = form.get('service') as OwnerEnabledService;
+  const turnOn = form.get('on') === '1';
+  if (form.get('action') === 'service' && siteId && OWNER_ENABLED_SERVICES.includes(ownerService) && !(turnOn && COMING_SOON_SERVICES.includes(ownerService))) {
+    await setOwnerService(env.MERCHANT_DB, { ...owner, service: ownerService, on: turnOn });
   }
   if (form.get('action') === 'store_key' && siteId) {
     // The key is shown on this response only; it is never stored or put in a URL.
@@ -51,6 +53,7 @@ const isOwner = readMembership.role === 'owner';
 const stores = await listStoreSetup(env.MERCHANT_DB, merchant.subject);
 const when = (seconds: number) => `${new Date(seconds * 1000).toISOString().slice(0, 16).replace('T', ' ')} UTC`;
 const SERVICE_LABEL = { payments: 'Payments', coupons: 'Coupons', ship: 'Ship' } as const;
+const comingSoon = (service: string) => (COMING_SOON_SERVICES as readonly string[]).includes(service);
 const organizationId = Astro.url.searchParams.get('organization_id') ?? merchant.organizationId;
 if (organizationId !== merchant.organizationId) return new Response(JSON.stringify({ error: 'stale_organization' }), { status: 409 });
 if (!await authorizeOrganization(env.MERCHANT_DB, merchant.userId, organizationId)) return new Response(JSON.stringify({ error: 'organization_forbidden' }), { status: 403 });
@@ -92,8 +95,9 @@ if (!await authorizeOrganization(env.MERCHANT_DB, merchant.userId, organizationI
               {(['payments', 'coupons', 'ship'] as const).map(service => (
                 <li>
                   {SERVICE_LABEL[service]}: {store.services[service] === 'cut_off' ? 'Cut off by DinkusKit. Contact DinkusKit to have it restored.'
-                    : store.services[service] === 'on' ? 'On' : service === 'payments' ? 'Off. Press Connect in the Payments plugin to turn it on.' : 'Off'}
-                  {isOwner && service !== 'payments' && store.services[service] !== 'cut_off' ? (
+                    : store.services[service] === 'on' ? 'On' : service === 'payments' ? 'Off. Press Connect in the Payments plugin to turn it on.'
+                    : comingSoon(service) ? 'Coming soon. Commerce does not take coupon codes yet.' : 'Off'}
+                  {isOwner && service !== 'payments' && store.services[service] !== 'cut_off' && (store.services[service] === 'on' || !comingSoon(service)) ? (
                     <form method="post" action="/account/sites">
                       <input type="hidden" name="action" value="service" />
                       <input type="hidden" name="site_id" value={store.siteId} />

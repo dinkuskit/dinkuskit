@@ -4,7 +4,13 @@ import { startCmsMerchantTestRuntime, stopRuntime, signup, request } from './hel
 import { createAuthenticatedEditor } from './helpers/emdash-editor.mjs';
 
 const queue = '/account/organization-approvals';
-const api = '/api/account/organization-approvals';
+const adminRoute = '/_emdash/api/plugins/dinkuskit-operator/admin';
+const adminCall = (runtime, jar, body) => request(runtime, jar, adminRoute, {
+  method: 'POST', headers: { 'content-type': 'application/json', 'x-emdash-request': '1' }, body: JSON.stringify(body),
+});
+const adminDecide = (runtime, jar, id, decision) => adminCall(runtime, jar, { type: 'block_action', action_id: decision === 'approved' ? 'approvals:approve' : 'approvals:decline', value: id });
+const adminRetry = (runtime, jar, notificationId) => adminCall(runtime, jar, { type: 'block_action', action_id: 'approvals:retry', value: notificationId });
+const toastOf = async response => { assert.equal(response.status, 200); const body = await response.json(); return (body.data ?? body).toast; };
 const accountSection = (html, id) => {
   const section = html.match(new RegExp(`<section aria-labelledby="admission-${id}"[\\s\\S]*?</section>`));
   assert.ok(section, `Missing admission section ${id}`);
@@ -12,7 +18,7 @@ const accountSection = (html, id) => {
 };
 const form = body => ({ method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams(body).toString() });
 
-test('workerd: current local CMS Admin decisions, audit, outbox and retry with real sessions', async () => {
+test('workerd: EmDash Admin decisions in the operator admin, audit, outbox and retry with real sessions', async () => {
   const runtime = await startCmsMerchantTestRuntime();
   try {
     const editor = await createAuthenticatedEditor(runtime);
@@ -29,12 +35,18 @@ test('workerd: current local CMS Admin decisions, audit, outbox and retry with r
       assert.equal(r.status, 303);
       return new URL(r.headers.get('location'), runtime.origin).searchParams.get('organization_id');
     };
-    const decide = (id, decision, jar = editor.jar, extra = {}) => request(runtime, jar, api, { ...form({ organization_id: id, decision }), ...extra });
+    const decide = (id, decision, jar = editor.jar) => adminDecide(runtime, jar, id, decision);
     const organizations = await (await request(runtime, merchant.jar, '/api/account/organizations')).json();
     const automatic = organizations.organizations[0].organizationId;
-    assert.equal((await decide(automatic, 'approved')).status, 409);
-    assert.equal((await state(automatic)).audit, null, 'automatic admission cannot be operator-audited');
-    assert.equal((await request(runtime, editor.jar, `${queue}/${automatic}`)).status, 404, 'no unrelated directory powers');
+    // The old queue address now opens the admin page.
+    for (const path of [queue, `${queue}/${automatic}`]) {
+      const moved = await request(runtime, editor.jar, path, { omitOrigin: true });
+      assert.equal(moved.status, 303);
+      assert.equal(moved.headers.get('location'), '/_emdash/admin/plugins/dinkuskit-operator/approvals');
+    }
+    assert.equal((await toastOf(await decide(automatic, 'approved'))).message, 'Business approved.');
+    assert.equal((await state(automatic)).audit.decision, 'approved', 'confirming an automatic approval is recorded');
+    assert.equal((await state(automatic)).notices.length, 0, 'no email for an automatic approval');
     const approved = await pending('Redwood Works');
     const denied = await pending('Lakeside Lab');
     const sms = await pending('SMS example');
@@ -45,28 +57,22 @@ test('workerd: current local CMS Admin decisions, audit, outbox and retry with r
     assert.equal(pendingAccount.status, 200);
     assert.match(accountSection(await pendingAccount.text(), approved), /Admission: Pending/);
     assert.match(pendingAccount.headers.get('cache-control'), /private, no-store/);
-    const q = await request(runtime, editor.jar, queue, { omitOrigin: true });
-    assert.equal(q.status, 200, 'browser GET needs no Origin header');
-    assert.match(q.headers.get('cache-control'), /no-store/);
-    assert.match(await q.text(), /Redwood Works/);
-    assert.equal((await request(runtime, new Map(), queue)).status, 401);
-    assert.equal((await request(runtime, merchant.jar, queue)).status, 401);
-    assert.equal((await decide(approved, 'approved', merchant.jar)).status, 403);
-    assert.equal((await decide(approved, 'approved', new Map())).status, 403);
-    assert.equal((await decide(approved, 'approved', editor.jar, { omitOrigin: true })).status, 403);
-    assert.equal((await decide(approved, 'approved', editor.jar, { headers: { 'content-type': 'application/x-www-form-urlencoded', origin: 'https://foreign.example' } })).status, 403);
-    assert.equal((await request(runtime, editor.jar, '/__proof/foreign-approval')).status, 403);
+    const q = await adminCall(runtime, editor.jar, { type: 'page_load', page: '/approvals' });
+    assert.equal(q.status, 200);
+    assert.match(JSON.stringify(await q.json()), /Redwood Works/);
+    for (const jar of [new Map(), merchant.jar]) assert.ok([401, 403].includes((await decide(approved, 'approved', jar)).status));
     await configure({ cms: { role: 40, disabled: 0 } });
     assert.equal((await decide(approved, 'approved')).status, 403, 'demotion applies to existing CMS session');
     await configure({ cms: { role: 50, disabled: 1 } });
-    assert.equal((await decide(approved, 'approved')).status, 403, 'disabled current CMS user denied');
+    assert.ok([401, 403].includes((await decide(approved, 'approved')).status), 'disabled current CMS user denied');
+    assert.equal((await state(approved)).org.status, 'pending_operator');
     await configure({ cms: { role: 50, disabled: 0 }, mode: 'failure' });
-    assert.equal((await decide(approved, 'approved')).status, 303);
+    assert.equal((await toastOf(await decide(approved, 'approved'))).message, 'Business approved.');
     let saved = await state(approved);
     assert.equal(saved.org.status, 'active');
     assert.equal(saved.org.admission_status, 'admitted');
     assert.equal(saved.audit.decision, 'approved');
-    assert.ok(saved.audit.actor_user_id);
+    assert.equal(saved.audit.actor_email, editor.email);
     assert.equal(saved.notices.length, 1);
     assert.equal(saved.notices[0].status, 'pending');
     assert.equal(saved.notices[0].last_error, 'delivery_failed');
@@ -79,13 +85,11 @@ test('workerd: current local CMS Admin decisions, audit, outbox and retry with r
     assert.deepEqual(saved.allocations, before.allocations);
     assert.equal(saved.grants.n, 0);
     const originalAudit = saved.audit;
-    assert.equal((await decide(approved, 'approved')).status, 303);
-    assert.equal((await decide(approved, 'denied')).status, 409);
+    assert.equal((await toastOf(await decide(approved, 'approved'))).message, 'Already approved.');
     assert.deepEqual((await state(approved)).audit, originalAudit);
     await configure({ mode: 'slow' });
-    const retry = () => request(runtime, editor.jar, api, form({ notification_id: saved.notices[0].notification_id, retry: '1' }));
-    const retries = await Promise.all([retry(), retry()]);
-    assert.ok(retries.every(r => r.status === 303));
+    const retries = await Promise.all([adminRetry(runtime, editor.jar, saved.notices[0].notification_id), adminRetry(runtime, editor.jar, saved.notices[0].notification_id)]);
+    assert.ok(retries.every(r => r.status === 200));
     saved = await state(approved);
     assert.equal(saved.notices[0].status, 'delivered');
     assert.equal(saved.messages.length, 1, 'concurrent retries share one delivery claim');
@@ -96,7 +100,7 @@ test('workerd: current local CMS Admin decisions, audit, outbox and retry with r
     assert.match(acceptedAccountHtml, /does not confirm delivery to the recipient/);
     assert.deepEqual(saved.audit, originalAudit);
     await configure({ mode: 'failure' });
-    assert.equal((await decide(denied, 'denied')).status, 303);
+    assert.equal((await toastOf(await decide(denied, 'denied'))).message, 'Business declined.');
     const d = await state(denied);
     assert.equal(d.org.status, 'denied');
     assert.equal(d.notices[0].status, 'pending');
@@ -105,10 +109,15 @@ test('workerd: current local CMS Admin decisions, audit, outbox and retry with r
     assert.match(accountSection(deniedAccountHtml, denied), /Admission: Denied/);
     assert.match(deniedAccountHtml, /Email notification is pending/);
     assert.equal((await request(runtime, merchant.jar, '/api/account/organizations', form({ action: 'select', organization_id: denied }))).status, 403);
-    const detail = await request(runtime, editor.jar, `${queue}/${denied}`);
-    assert.match(await detail.text(), /Decision: denied/);
+    // Approving a declined business later cancels its unsent "denied" email.
+    assert.equal((await toastOf(await decide(denied, 'approved'))).message, 'Business approved.');
+    const reversed = await state(denied);
+    assert.equal(reversed.org.status, 'active');
+    assert.equal(reversed.notices[0].status, 'unavailable');
+    assert.equal(reversed.notices[0].unavailable_reason, 'decision_changed');
+    assert.equal((await toastOf(await adminRetry(runtime, editor.jar, reversed.notices[0].notification_id))).type, 'info');
     await configure({ mode: 'success', organizationId: sms, profile: { channel: 'phone', emailVerified: 1, phoneVerified: 1 } });
-    assert.equal((await decide(sms, 'approved')).status, 303);
+    await toastOf(await decide(sms, 'approved'));
     const smsState = await state(sms);
     assert.equal(smsState.notices[0].status, 'unavailable');
     assert.equal(smsState.notices[0].unavailable_reason, 'sms_unavailable');
@@ -118,14 +127,13 @@ test('workerd: current local CMS Admin decisions, audit, outbox and retry with r
     assert.match(smsAccountHtml, /SMS notifications are unavailable/);
     assert.doesNotMatch(smsAccountHtml, /sms_unavailable|selected_phone_unverified|provider/);
     await configure({ organizationId: unverified, profile: { channel: 'email', emailVerified: 0, phoneVerified: 1 } });
-    assert.equal((await decide(unverified, 'denied')).status, 303);
+    await toastOf(await decide(unverified, 'denied'));
     assert.equal((await state(unverified)).notices[0].unavailable_reason, 'selected_email_unverified');
     await configure({ organizationId: concurrent, profile: { channel: 'email', emailVerified: 1, phoneVerified: 0 } });
     const racing = await Promise.all([decide(concurrent, 'approved'), decide(concurrent, 'denied')]);
-    assert.deepEqual(racing.map(r => r.status).sort(), [303, 409]);
+    assert.ok(racing.every(r => r.status === 200));
     const raceState = await state(concurrent);
-    assert.equal(raceState.notices.length, 1);
-    assert.equal(raceState.notices[0].decision, raceState.audit.decision);
+    assert.equal(raceState.notices.length, 1, 'only the first answer queues an email');
     assert.deepEqual(raceState.allocations, before.allocations);
   } finally { await stopRuntime(runtime); }
 });
@@ -159,7 +167,7 @@ test('merchant admission refresh isolates owner notifications, current members a
     assert.match(accountSection(await account(member.jar), id), /Admission: Pending/);
     const before = await state(id);
     await configure({ mode: 'failure' });
-    assert.equal((await request(runtime, editor.jar, api, form({ organization_id: id, decision: 'approved' }))).status, 303);
+    await toastOf(await adminDecide(runtime, editor.jar, id, 'approved'));
     const ownerHtml = await account(owner.jar);
     const ownerSection = accountSection(ownerHtml, id);
     assert.match(ownerSection, /Admission: Admitted/);
@@ -175,10 +183,10 @@ test('merchant admission refresh isolates owner notifications, current members a
     assert.match(memberSection, /Admission: Admitted/);
     assert.doesNotMatch(memberSection, /notification|accepted for sending|recipient/i);
     assert.doesNotMatch(await account(outsider.jar), /Private admission example|Email notification/);
-    assert.equal((await request(runtime, owner.jar, api, form({ notification_id: saved.notices[0].notification_id, retry: '1' }))).status, 403);
-    assert.equal((await request(runtime, member.jar, api, form({ organization_id: id, decision: 'denied' }))).status, 403);
+    assert.ok([401, 403].includes((await adminRetry(runtime, owner.jar, saved.notices[0].notification_id)).status));
+    assert.ok([401, 403].includes((await adminDecide(runtime, member.jar, id, 'denied')).status));
     await configure({ mode: 'success' });
-    assert.equal((await request(runtime, editor.jar, api, form({ notification_id: saved.notices[0].notification_id, retry: '1' }))).status, 303);
+    assert.equal((await toastOf(await adminRetry(runtime, editor.jar, saved.notices[0].notification_id))).message, 'Email sent.');
     const accepted = accountSection(await account(owner.jar), id);
     assert.match(accepted, /Email accepted for sending/);
     assert.match(accepted, /does not confirm delivery to the recipient/);
@@ -188,7 +196,7 @@ test('merchant admission refresh isolates owner notifications, current members a
     const second = await request(runtime, owner.jar, '/api/account/organizations', form({ name: 'Denied-only example' }));
     const deniedId = new URL(second.headers.get('location'), runtime.origin).searchParams.get('organization_id');
     await configure({ organizationId: deniedId, profile: { channel: 'phone', emailVerified: 1, phoneVerified: 1 } });
-    assert.equal((await request(runtime, editor.jar, api, form({ organization_id: deniedId, decision: 'denied' }))).status, 303);
+    await toastOf(await adminDecide(runtime, editor.jar, deniedId, 'denied'));
     const deniedSection = accountSection(await account(owner.jar), deniedId);
     assert.match(deniedSection, /Admission: Denied/);
     assert.match(deniedSection, /SMS notifications are unavailable/);
@@ -200,7 +208,7 @@ test('merchant admission refresh isolates owner notifications, current members a
     const missing = await request(runtime, owner.jar, '/api/account/organizations', form({ name: 'Missing contact example' }));
     const missingId = new URL(missing.headers.get('location'), runtime.origin).searchParams.get('organization_id');
     await configure({ organizationId: missingId, profile: 'missing' });
-    assert.equal((await request(runtime, editor.jar, api, form({ organization_id: missingId, decision: 'denied' }))).status, 303);
+    await toastOf(await adminDecide(runtime, editor.jar, missingId, 'denied'));
     assert.match(accountSection(await account(owner.jar), missingId), /Decision notification is unavailable/);
     const after = await state(id);
     assert.deepEqual(after.audit, saved.audit);

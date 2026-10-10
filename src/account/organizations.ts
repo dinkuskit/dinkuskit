@@ -249,6 +249,22 @@ export async function setEmployeePermissions(db: D1Database, actorId: string, or
   return changed(result) ? 'ok' : 'forbidden';
 }
 
+/**
+ * Removal ends the person's access to this organization only; their login and
+ * other organizations stay. Owners remove anyone but themselves; administrators
+ * with manage-employees remove plain employees. They can be added again by email.
+ */
+export async function removeMember(db: D1Database, actorId: string, organizationId: string, targetUserId: string): Promise<ManagementResult> {
+  if (actorId === targetUserId) return 'forbidden';
+  const result = await db.prepare(`UPDATE dinkuskit_membership SET status = 'removed', role = 'member', permissions = '[]', updated_at = ?
+    WHERE organization_id = ? AND user_id = ? AND status = 'active' AND role IN ('member', 'administrator')
+      AND (role = 'member' OR EXISTS (SELECT 1 FROM dinkuskit_membership owner
+        WHERE owner.organization_id = ? AND owner.user_id = ? AND owner.role = 'owner' AND owner.status = 'active'))
+      AND EXISTS (${MANAGER})`)
+    .bind(now(), organizationId, targetUserId, organizationId, actorId, organizationId, actorId, '[]').run();
+  return changed(result) ? 'ok' : 'forbidden';
+}
+
 export async function deletionGuard(db: D1Database, userId: string): Promise<{ allowed: false; reason: 'owned_organizations' } | { allowed: true }> {
   const row = await db.prepare(
     `SELECT 1 FROM dinkuskit_organization WHERE owner_user_id = ? AND status <> 'closed' LIMIT 1`,

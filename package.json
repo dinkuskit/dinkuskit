@@ -29,6 +29,7 @@
     "test:inventory-runner": "node --experimental-strip-types --test --test-concurrency=1 --test-timeout=180000 tests/inventory-memory-runner.test.mjs",
     "test:operator-directory": "node --experimental-strip-types --test --test-concurrency=1 --test-timeout=180000 tests/operator-directory-unit.test.mjs tests/operator-directory.test.mjs",
     "test:organization-approvals": "node --experimental-strip-types --test --test-concurrency=1 --test-timeout=180000 tests/organization-approvals-unit.test.mjs tests/organization-approvals.test.mjs",
+    "test:operator-admin": "node --experimental-strip-types --test --test-concurrency=1 --test-timeout=180000 tests/operator-admin-unit.test.mjs tests/operator-admin.test.mjs",
     "inventory:runner": "node --experimental-strip-types scripts/inventory-memory-runner.mjs --serve",
     "test:dev-cms": "node scripts/dev-cms.mjs",
     "test:public-release-reuse": "node scripts/test-public-release-reuse.mjs",
@@ -38,7 +39,7 @@
     "test:cloudflare-candidate": "node scripts/cloudflare-candidate-denial.mjs",
     "test:safe-http-url": "node scripts/test-safe-http-url.mjs",
     "build:cloudflare": "astro build --config astro.cloudflare.config.mjs",
-    "verify": "npm run audit:repo && npm run setup && npm run types:wrangler && npm run typecheck && npm run test:account && npm run build && npm run test:inventory-runner && npm run test:merchant && npm run test:shared-store && npm run test:foundation && npm run test:inventory-overview && npm run test:operator-directory && npm run test:organization-approvals && npm run test:smoke && npm run test:dev-cms && npm run test:public-release-reuse && npm run test:cms-operation-helpers && npm run test:access-gate && npm run test:safe-http-url && npm run test:cms-operation && npm run test:emdash-upgrade && npm run test:cloudflare-candidate",
+    "verify": "npm run audit:repo && npm run setup && npm run types:wrangler && npm run typecheck && npm run test:account && npm run build && npm run test:inventory-runner && npm run test:merchant && npm run test:shared-store && npm run test:foundation && npm run test:inventory-overview && npm run test:operator-directory && npm run test:organization-approvals && npm run test:operator-admin && npm run test:smoke && npm run test:dev-cms && npm run test:public-release-reuse && npm run test:cms-operation-helpers && npm run test:access-gate && npm run test:safe-http-url && npm run test:cms-operation && npm run test:emdash-upgrade && npm run test:cloudflare-candidate",
     "prepare:public-release": "npm run setup && npm run build && node scripts/prepare-public-release.mjs",
     "test:emdash-upgrade": "node scripts/cms-operation-fixture.mjs --upgrade",
     "test:shared-store": "node --experimental-strip-types --test --test-concurrency=1 --test-timeout=180000 tests/shared-store-isolation.test.mjs tests/shared-store-routes.test.mjs"

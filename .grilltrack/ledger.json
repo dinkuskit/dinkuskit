@@ -4960,10 +4960,24 @@
           "review_source_identity": null,
           "to": "locked",
           "verification_ref": null
+        },
+        {
+          "at": "2026-10-10T20:07:16+00:00",
+          "choice": "The operator is a dinkuskit.com EmDash Admin, signed in through the existing Cloudflare Access lane (official access() auth plus the /_emdash namespace guard, which opens only when the team domain, the Access audience and the operator allow-list are all set). No separate merchant-side operator list is added. Operator screens are Block Kit pages of a site-local operator plugin loaded in-process from this repository (standard format in plugins: []), shown in the EmDash admin; every route requires the users:manage permission. The plugin reads the merchant database directly, so it is never published to the Registry and never runs sandboxed. The hand-granted read-only operator directory under /account/operator retires.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": null
         }
       ],
       "id": "website-operator-admin-emdash-access-035",
-      "implementation_ref": null,
+      "implementation_ref": "file:src/operator-admin/plugin.ts",
       "question": "How does the operator sign in, and where do operator screens live?",
       "rationale": "Ronald answered the numbered grilling in the project thread 'DinkusKit.com accounts and operator admin' on 2026-10-10 (19:23 UTC: '1 yes 2 yes 3 A 4 yes 5 yes 6 yes, build-out accordingly'; 19:24 UTC: 'yes to 7; should live in the admin and have approve/decline buttons; the 50 first people should also populate here but default to approve').",
       "repair_required": false,
@@ -4972,9 +4986,9 @@
       "review_ref": null,
       "review_result": null,
       "review_source_identity": null,
-      "status": "locked",
+      "status": "implemented",
       "superseded_by": null,
-      "updated_at": "2026-10-10T19:28:31+00:00",
+      "updated_at": "2026-10-10T20:07:16+00:00",
       "verification_ref": null
     },
     {
@@ -5003,10 +5017,38 @@
           "review_source_identity": null,
           "to": "locked",
           "verification_ref": null
+        },
+        {
+          "at": "2026-10-10T20:07:16+00:00",
+          "choice": "Suspend marks the merchant account disabled and deletes its sessions: sign-in, recovery and the account pages refuse it, and no new service pass is issued for any store whose organization it owns (passes already issued expire within their 5 to 10 minute lifetime). Restore clears the flag; nothing else is changed, so grants and memberships come back as they were. Each suspend and restore is recorded with the operator and time.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-10T20:20:41+00:00",
+          "choice": "Suspend marks the merchant account disabled and deletes its sessions: sign-in, recovery and the account pages refuse it, and no new service pass is issued for any store whose organization it owns (passes already issued expire within their 5 to 10 minute lifetime). Restore clears the flag; nothing else is changed, so grants and memberships come back as they were. Each suspend and restore is recorded with the operator and time.",
+          "from": "implemented",
+          "implementation_ref": "file:src/account/operator-admin.ts",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": null
         }
       ],
       "id": "website-operator-suspend-account-036",
-      "implementation_ref": null,
+      "implementation_ref": "file:src/account/operator-admin.ts",
       "question": "What does suspending a person do?",
       "rationale": "Ronald answered the numbered grilling in the project thread 'DinkusKit.com accounts and operator admin' on 2026-10-10 (19:23 UTC: '1 yes 2 yes 3 A 4 yes 5 yes 6 yes, build-out accordingly'; 19:24 UTC: 'yes to 7; should live in the admin and have approve/decline buttons; the 50 first people should also populate here but default to approve').",
       "repair_required": false,
@@ -5015,10 +5057,10 @@
       "review_ref": null,
       "review_result": null,
       "review_source_identity": null,
-      "status": "locked",
+      "status": "verified",
       "superseded_by": null,
-      "updated_at": "2026-10-10T19:28:32+00:00",
-      "verification_ref": null
+      "updated_at": "2026-10-10T20:20:41+00:00",
+      "verification_ref": "file:tests/operator-admin.test.mjs"
     },
     {
       "baseline_ref": null,
@@ -5089,10 +5131,38 @@
           "review_source_identity": null,
           "to": "locked",
           "verification_ref": null
+        },
+        {
+          "at": "2026-10-10T20:07:16+00:00",
+          "choice": "The operator admin lists stores with one column per service: Payments, Inventory, Coupons and Ship. Coupons and Ship stay empty, marked 'cannot connect yet', until they get DinkusKit.com passes; adding them later needs no change to the view's shape.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-10T20:20:41+00:00",
+          "choice": "The operator admin lists stores with one column per service: Payments, Inventory, Coupons and Ship. Coupons and Ship stay empty, marked 'cannot connect yet', until they get DinkusKit.com passes; adding them later needs no change to the view's shape.",
+          "from": "implemented",
+          "implementation_ref": "file:src/operator-admin/pages.ts",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": null
         }
       ],
       "id": "website-operator-services-view-038",
-      "implementation_ref": null,
+      "implementation_ref": "file:src/operator-admin/pages.ts",
       "question": "Which services does the operator see?",
       "rationale": "Ronald answered the numbered grilling in the project thread 'DinkusKit.com accounts and operator admin' on 2026-10-10 (19:23 UTC: '1 yes 2 yes 3 A 4 yes 5 yes 6 yes, build-out accordingly'; 19:24 UTC: 'yes to 7; should live in the admin and have approve/decline buttons; the 50 first people should also populate here but default to approve').",
       "repair_required": false,
@@ -5101,10 +5171,10 @@
       "review_ref": null,
       "review_result": null,
       "review_source_identity": null,
-      "status": "locked",
+      "status": "verified",
       "superseded_by": null,
-      "updated_at": "2026-10-10T19:28:32+00:00",
-      "verification_ref": null
+      "updated_at": "2026-10-10T20:20:41+00:00",
+      "verification_ref": "file:tests/operator-admin.test.mjs"
     },
     {
       "baseline_ref": null,
@@ -5132,10 +5202,38 @@
           "review_source_identity": null,
           "to": "locked",
           "verification_ref": null
+        },
+        {
+          "at": "2026-10-10T20:07:16+00:00",
+          "choice": "The approval queue moves into the EmDash admin operator pages with Approve and Decline buttons. It lists every organization: ones waiting for a decision first, then the first 50 admitted automatically, shown as Approved by default. The operator can decline an automatically approved organization and change any earlier decision; the latest decision applies and every decision is kept in an operator action history. A declined organization gets no new passes. The old /account/organization-approvals page redirects into the admin.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-10T20:20:41+00:00",
+          "choice": "The approval queue moves into the EmDash admin operator pages with Approve and Decline buttons. It lists every organization: ones waiting for a decision first, then the first 50 admitted automatically, shown as Approved by default. The operator can decline an automatically approved organization and change any earlier decision; the latest decision applies and every decision is kept in an operator action history. A declined organization gets no new passes. The old /account/organization-approvals page redirects into the admin.",
+          "from": "implemented",
+          "implementation_ref": "file:src/operator-admin/pages.ts",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": null
         }
       ],
       "id": "website-operator-approvals-in-admin-039",
-      "implementation_ref": null,
+      "implementation_ref": "file:src/operator-admin/pages.ts",
       "question": "Where do organization approvals live and what do they show?",
       "rationale": "Ronald answered the numbered grilling in the project thread 'DinkusKit.com accounts and operator admin' on 2026-10-10 (19:23 UTC: '1 yes 2 yes 3 A 4 yes 5 yes 6 yes, build-out accordingly'; 19:24 UTC: 'yes to 7; should live in the admin and have approve/decline buttons; the 50 first people should also populate here but default to approve').",
       "repair_required": false,
@@ -5144,10 +5242,10 @@
       "review_ref": null,
       "review_result": null,
       "review_source_identity": null,
-      "status": "locked",
+      "status": "verified",
       "superseded_by": null,
-      "updated_at": "2026-10-10T19:28:32+00:00",
-      "verification_ref": null
+      "updated_at": "2026-10-10T20:20:41+00:00",
+      "verification_ref": "file:tests/organization-approvals.test.mjs"
     },
     {
       "baseline_ref": null,
@@ -5173,10 +5271,38 @@
           "review_source_identity": null,
           "to": "locked",
           "verification_ref": null
+        },
+        {
+          "at": "2026-10-10T20:07:16+00:00",
+          "choice": "An organization owner, or an administrator holding manage-employees, can remove an employee or administrator (never the owner). Removal ends their access to that organization at once; the person keeps their own DinkusKit login and other organizations. A removed person can be added again by email.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-10T20:20:41+00:00",
+          "choice": "An organization owner, or an administrator holding manage-employees, can remove an employee or administrator (never the owner). Removal ends their access to that organization at once; the person keeps their own DinkusKit login and other organizations. A removed person can be added again by email.",
+          "from": "implemented",
+          "implementation_ref": "file:src/account/organizations.ts",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": null
         }
       ],
       "id": "website-owner-remove-employee-040",
-      "implementation_ref": null,
+      "implementation_ref": "file:src/account/organizations.ts",
       "question": "Can an owner remove an employee?",
       "rationale": "Ronald answered the numbered grilling in the project thread 'DinkusKit.com accounts and operator admin' on 2026-10-10 (19:23 UTC: '1 yes 2 yes 3 A 4 yes 5 yes 6 yes, build-out accordingly'; 19:24 UTC: 'yes to 7; should live in the admin and have approve/decline buttons; the 50 first people should also populate here but default to approve').",
       "repair_required": false,
@@ -5185,10 +5311,10 @@
       "review_ref": null,
       "review_result": null,
       "review_source_identity": null,
-      "status": "locked",
+      "status": "verified",
       "superseded_by": null,
-      "updated_at": "2026-10-10T19:28:32+00:00",
-      "verification_ref": null
+      "updated_at": "2026-10-10T20:20:41+00:00",
+      "verification_ref": "file:tests/account-foundation.test.mjs"
     }
   ],
   "last_activation": {
@@ -5216,5 +5342,5 @@
   "status": "active",
   "title": "Website PR9 current-main reconciliation",
   "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca",
-  "updated_at": "2026-10-10T19:37:02+00:00"
+  "updated_at": "2026-10-10T20:20:41+00:00"
 }

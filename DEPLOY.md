@@ -76,10 +76,42 @@ npm run build:cloudflare
 npx wrangler deploy --config cloudflare/wrangler.jsonc
 ```
 
-The editor area (`/_emdash`) stays fully denied until a Cloudflare Access lane is
-configured (`EMDASH_ACCESS_TEAM_DOMAIN` at build time and `CF_ACCESS_AUDIENCE`).
-That also keeps the organization approval queue unreachable; the first 50
-organizations are admitted automatically, so test mode does not need it.
+The editor area (`/_emdash`) stays fully denied until the Cloudflare Access lane
+below is configured. The operator pages (business approvals, people, stores and
+services) live inside it, so they stay unreachable until then too; the first 50
+organizations are still admitted automatically.
+
+## Operator admin (Cloudflare Access)
+
+The operator signs in to the dinkuskit.com EmDash admin through Cloudflare
+Access (decision `website-operator-admin-emdash-access-035`). Owner-only, once:
+
+1. In Cloudflare Zero Trust, add a self-hosted Access application for
+   `dinkuskit.com/_emdash` with a policy that allows only the operator's email
+   (one-time PIN login is enough). Note the team domain
+   (`<team>.cloudflareaccess.com`) and the application's audience tag.
+2. Set the runtime values (never in source):
+
+   ```sh
+   npx wrangler secret put CF_ACCESS_AUDIENCE --config cloudflare/wrangler.jsonc
+   npx wrangler secret put EMDASH_OPERATOR_ALLOWLIST --config cloudflare/wrangler.jsonc
+   ```
+
+   `EMDASH_OPERATOR_ALLOWLIST` is the operator email, or several separated by
+   commas. The admin opens only when the team domain, the audience and this list
+   are all set, and only for a listed email that Access has verified.
+3. Rebuild with the team domain and deploy:
+
+   ```sh
+   EMDASH_ACCESS_TEAM_DOMAIN=<team>.cloudflareaccess.com npm run build:cloudflare
+   npx wrangler deploy --config cloudflare/wrangler.jsonc
+   ```
+
+4. Open `https://dinkuskit.com/_emdash/admin`. The first person Access lets in
+   becomes the site's Admin; later people start as Editors and do not see the
+   operator pages. The operator pages are under **Plugins**:
+   `/_emdash/admin/plugins/dinkuskit-operator/approvals`, `/people` and
+   `/stores`. The old `/account/organization-approvals` address redirects there.
 
 ## Post-deploy checks
 

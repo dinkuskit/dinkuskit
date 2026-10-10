@@ -4,7 +4,7 @@ import { getMerchantEnv } from '../../../account/bindings.ts';
 import { rejectCrossOriginMutation } from '../../../account/origin.ts';
 import { resolveMerchant } from '../../../account/session.ts';
 import { createMerchantRuntime } from '../../../account/auth.ts';
-import { authorizeOrganization, canManageMembership, memberUserIdByEmail, addMemberByEmail, grantAdministrator, setEmployeePermissions } from '../../../account/organizations.ts';
+import { authorizeOrganization, canManageMembership, memberUserIdByEmail, addMemberByEmail, grantAdministrator, removeMember, setEmployeePermissions } from '../../../account/organizations.ts';
 
 export const prerender = false;
 
@@ -32,6 +32,7 @@ export const POST: APIRoute = async (context) => {
       const permissions = form.getAll('permission').map(String);
       if (action === 'set_permissions') result = await setEmployeePermissions(env.MERCHANT_DB, merchant.userId, organizationId, target, permissions);
       else if (action === 'grant_admin') result = await grantAdministrator(env.MERCHANT_DB, merchant.userId, organizationId, target, permissions);
+      else if (action === 'remove_member') result = await removeMember(env.MERCHANT_DB, merchant.userId, organizationId, target);
       else return new Response(null, { status: 400 });
     }
     if (result !== 'ok') return new Response(JSON.stringify({ error: result }), { status: result === 'not_found' ? 404 : 403 });

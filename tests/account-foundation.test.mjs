@@ -134,7 +134,18 @@ test('pending selection persists and Owner/Admin employee routes enforce current
     assert.equal((await request(runtime, employee, '/api/account/memberships')).status, 403);
     assert.equal((await manage(runtime, employee, org, 'owner@example.com', 'add_member')).status, 403);
     assert.equal((await state(runtime, 'owner@example.com')).stats.slots, slots);
-    await fixture(runtime, { action: 'remove_member', organizationId: org, email: 'admin@example.com' });
+    // Removal: nobody removes the owner or themselves, and only the owner removes an Administrator.
+    for (const [actor, email] of [[admin, 'owner@example.com'], [admin, 'admin@example.com'], [owner, 'owner@example.com'], [employee, 'owner@example.com']]) {
+      assert.equal((await manage(runtime, actor, org, email, 'remove_member')).status, 403);
+    }
+    assert.equal((await manage(runtime, admin, org, 'employee@example.com', 'remove_member')).status, 303);
+    assert.equal((await organizations(runtime, employee)).selectedOrganizationId, null);
+    assert.equal((await select(runtime, employee, org)).status, 403);
+    assert.equal((await manage(runtime, admin, org, 'employee@example.com', 'add_member')).status, 303, 'a removed employee can be added again');
+    assert.equal((await select(runtime, employee, org)).status, 303);
+    assert.equal((await manage(runtime, owner, org, 'employee@example.com', 'grant_admin', ['membership:manage'])).status, 303);
+    assert.equal((await manage(runtime, admin, org, 'employee@example.com', 'remove_member')).status, 403, 'an Administrator cannot remove another');
+    assert.equal((await manage(runtime, owner, org, 'admin@example.com', 'remove_member')).status, 303);
     assert.equal((await organizations(runtime, admin)).selectedOrganizationId, null);
     assert.equal((await manage(runtime, admin, org, 'employee@example.com', 'set_permissions', [])).status, 401);
     const other = (await organizations(runtime, admin)).organizations[0].organizationId;

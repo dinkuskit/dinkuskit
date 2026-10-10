@@ -219,8 +219,6 @@ async function proofRoutes(request, env, ctx) {
     }
     const body = await request.json();
     if (body.action === 'expire_signup') await env.MERCHANT_DB.prepare('UPDATE dinkuskit_signup_attempt SET expires_at = 1').run();
-    else if (body.action === 'remove_member') await env.MERCHANT_DB.prepare(`UPDATE dinkuskit_membership SET status = 'removed'
-      WHERE organization_id = ? AND user_id = (SELECT id FROM "user" WHERE email = ?) AND role <> 'owner'`).bind(body.organizationId, body.email).run();
     else if (body.action === 'seed_last_slot') {
       const t = Math.floor(Date.now() / 1000);
       for (let i = 1; i < 50; i++) {

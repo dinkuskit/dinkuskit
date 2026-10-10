@@ -1,4 +1,5 @@
 ---
+import { OPERATOR_APPROVALS_PATH } from '../operator-admin/paths.ts';
 interface Props { title: string; description: string }
 const { title, description } = Astro.props;
 const canonical = new URL(Astro.url.pathname, Astro.site);
@@ -21,7 +22,7 @@ import { Role } from '@emdash-cms/auth';
       <nav aria-label="Main navigation">
         <a href="/getting-started">Getting started</a>
         <a href="/account">Account</a>
-        {Astro.locals.user?.role === Role.ADMIN && !Astro.locals.user.disabled ? <a href="/account/organization-approvals">Organization approvals</a> : null}
+        {Astro.locals.user?.role === Role.ADMIN && !Astro.locals.user.disabled ? <a href={OPERATOR_APPROVALS_PATH}>Operator admin</a> : null}
         <a href="https://github.com/dinkuskit">GitHub</a>
       </nav>
     </header>

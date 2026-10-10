@@ -20,8 +20,7 @@
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "dinkuskit-website-candidate",
-      "database_id": "local-dinkuskit-website-candidate-d1"
+      "database_name": "dinkuskit-website-candidate"
     },
     {
       "binding": "MERCHANT_DB",
@@ -33,6 +32,11 @@
     {
       "binding": "MEDIA",
       "bucket_name": "dinkuskit-website-candidate-media"
+    }
+  ],
+  "send_email": [
+    {
+      "name": "EMAIL"
     }
   ],
   "triggers": {

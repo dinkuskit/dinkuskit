@@ -2,7 +2,7 @@
 
 The EmDash-powered website for DinkusKit's hosted commerce services, intended for **https://dinkuskit.com**.
 
-Public pages are seeded CMS content on Cloudflare Workers and D1. Merchant signup, sign-in, recovery, and logout are real Better Auth routes. They use a separate merchant D1, cookie namespace, and `Astro.locals.merchant`. They do not sign anyone into the EmDash editor. Production Inventory Connect is unavailable. Local fixtures compare store-proof receipts. Inventory is coming soon and is not required for Commerce. Commerce and the Template Store will be released together as a verified pair. Getting started provides 'Try the demo' (browse and cart with disabled checkout on a synthetic catalog) and 'Template setup' (development source pilot guide), while the released installable package pair remains pending.
+Public pages are seeded CMS content on Cloudflare Workers and D1. Merchant signup, sign-in, recovery, and logout are real Better Auth routes. They use a separate merchant D1, cookie namespace, and `Astro.locals.merchant`. They do not sign anyone into the EmDash editor. Store Connect reads each store's registered proof route; Inventory has no Registry publisher identity yet, so only Payments can connect from a Registry install. Local fixtures compare store-proof receipts. Inventory is coming soon and is not required for Commerce. Commerce and the Template Store will be released together as a verified pair. Getting started provides 'Try the demo' (browse and cart with disabled checkout on a synthetic catalog) and 'Template setup' (development source pilot guide), while the released installable package pair remains pending.
 
 ## Run locally
 
@@ -14,7 +14,13 @@ npm run setup
 npm run dev
 ```
 
-Open the localhost URL printed by Astro. Public pages and `/account/signup`, `/account/sign-in`, `/account/recover`, and `/account` are in this site. Ordinary `npm run dev` and `npm run start` do not capture magic-link mail automatically. Only the isolated test worker entry captures links.
+Account pages answer `{"error":"merchant_unavailable"}` until you create an ignored `.dev.vars` with a throwaway secret:
+
+```sh
+printf 'MERCHANT_AUTH_SECRET=%s\nMERCHANT_BASE_URL=http://127.0.0.1:4321\n' "$(openssl rand -hex 32)" > .dev.vars
+```
+
+Open the localhost URL printed by Astro. Public pages and `/account/signup`, `/account/sign-in`, `/account/recover`, and `/account` are in this site. No email is sent locally: the dev server log prints `send_email binding called` with the path of a text file under `.wrangler/tmp/email/` that holds the sign-up or sign-in link. To act as the website admin (for example to approve a second organization at `/account/organization-approvals`), open `/_emdash/api/setup/dev-bypass?redirect=/account/organization-approvals`.
 
 ### Local workerd
 

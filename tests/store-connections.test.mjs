@@ -533,29 +533,18 @@ test('unusable signing keys do not consume or leak library errors', async () => 
   }
 });
 
-test('production entry cannot mint persisted approved rows even with rogue bindings', async () => {
+test('production entry ignores rogue simulation bindings and mints nothing for an unapproved store', async () => {
   const persistTo = await mkdtemp(join(tmpdir(), 'dk-prod-issue-'));
   const seeded = await startMerchantTestRuntime({ persistTo });
   const alice = new Map();
-  let connectionId = '';
-  let canonicalSiteId = '';
-  let verifier = '';
+  let start;
   try {
     await signup(seeded, ALICE, alice);
-    const start = await startConnection(seeded, 'prod-blocked', originFor('prod-blocked'));
+    start = await startConnection(seeded, 'prod-blocked', originFor('prod-blocked'));
     start.siteId = start.body.site_id;
     start.siteOrigin = originFor('prod-blocked');
+    // A simulated receipt exists, but production must never read it.
     await storeReceipt(seeded, start);
-    const approve = await request(seeded, alice, `/account/connect?connection_id=${start.body.connection_id}`, {
-      method: 'POST',
-      headers: { 'content-type': 'application/x-www-form-urlencoded' },
-      body: await accountForm(seeded, alice, 'action=approve'),
-    });
-    assert.equal(approve.status, 303);
-    assert.equal(approve.headers.get('location'), start.callback);
-    connectionId = start.body.connection_id;
-    canonicalSiteId = start.body.site_id;
-    verifier = start.pkce.verifier;
   } finally {
     await stopRuntime(seeded);
   }
@@ -568,30 +557,20 @@ test('production entry cannot mint persisted approved rows even with rogue bindi
     rogueTestBindings: true,
   });
   try {
-    const first = await request(production, new Map(), '/api/store-connections/token', {
+    const receipt = await storeReceipt(production, start);
+    assert.equal(receipt.status, 404, 'production has no simulated receipt route');
+    const pending = await request(production, new Map(), '/api/store-connections/token', {
       method: 'POST',
       body: JSON.stringify({
         client_id: 'dinkus-inventory-emdash',
-        connection_id: connectionId,
-        code_verifier: verifier,
+        connection_id: start.body.connection_id,
+        code_verifier: start.pkce.verifier,
       }),
     });
-    const firstBody = await first.json();
-    assert.equal(first.status, 503);
-    assert.equal(firstBody.error, 'integration_unavailable');
-    assert.equal('access_token' in firstBody, false);
-    const replay = await request(production, new Map(), '/api/store-connections/token', {
-      method: 'POST',
-      body: JSON.stringify({
-        client_id: 'dinkus-inventory-emdash',
-        connection_id: connectionId,
-        code_verifier: verifier,
-      }),
-    });
-    const replayBody = await replay.json();
-    assert.equal(replay.status, 503);
-    assert.equal(replayBody.error, 'integration_unavailable');
-    assert.equal('access_token' in replayBody, false);
+    const pendingBody = await pending.json();
+    assert.equal(pending.status, 400);
+    assert.equal(pendingBody.error, 'authorization_pending');
+    assert.equal('access_token' in pendingBody, false);
   } finally {
     await stopRuntime(production);
   }
@@ -602,18 +581,25 @@ test('production entry cannot mint persisted approved rows even with rogue bindi
     jwt: seeded.jwt,
   });
   try {
+    const approve = await request(simulation, alice, `/account/connect?connection_id=${start.body.connection_id}`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      body: await accountForm(simulation, alice, 'action=approve'),
+    });
+    assert.equal(approve.status, 303);
+    assert.equal(approve.headers.get('location'), start.callback);
     const minted = await request(simulation, new Map(), '/api/store-connections/token', {
       method: 'POST',
       body: JSON.stringify({
         client_id: 'dinkus-inventory-emdash',
-        connection_id: connectionId,
-        code_verifier: verifier,
+        connection_id: start.body.connection_id,
+        code_verifier: start.pkce.verifier,
       }),
     });
     const body = await minted.json();
     assert.equal(minted.status, 200);
     assert.equal(body.token_type, 'Bearer');
-    assert.equal(body.site_id, canonicalSiteId);
+    assert.equal(body.site_id, start.siteId);
     assert.equal(typeof body.access_token, 'string');
   } finally {
     await stopRuntime({ ...simulation, ownedPersist: true });

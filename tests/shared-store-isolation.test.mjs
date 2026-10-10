@@ -205,10 +205,40 @@ test('independent contract: proof transport selects only the registered service 
       assert.equal(result.ok,true);
       const installedId = service === 'payments' ? 'r_3brsc2on3bu673rn' : 'dinkus-inventory';
       assert.equal(requested.at(-1).url,`https://store.example.test/_emdash/api/plugins/${installedId}/store-proof?connection_id=proof-id`);
-      assert.equal(requested.at(-1).options.redirect,'error');
+      assert.equal(requested.at(-1).options.redirect,'manual');
     }
     assert.equal((await fetchStoreProofReceipt({siteOrigin:'https://store.example.test',connectionId:'proof-id',clientId:registrations.inventory.client,service:'payments'})).ok,false);
     assert.equal(requested.length,2);
+  } finally { globalThis.fetch=original; }
+});
+
+test('independent contract: production consent checks the store through the network transport', async () => {
+  const {fetchStoreProofReceipt} = await import('../src/account/proof-fetch.ts');
+  const original = globalThis.fetch;
+  for (const [label, reply, ok] of [
+    ['matching receipt', c => new Response(JSON.stringify(c.receipt), {status:200}), true],
+    ['store says no', () => new Response('not found', {status:404}), false],
+    ['redirect', () => new Response(null, {status:302, headers:{location:'https://elsewhere.example.test/'}}), false],
+  ]) {
+    const f = await fixture(); try {
+      const c = await start(f, 'payments'); const requested = [];
+      globalThis.fetch = async url => { requested.push(String(url)); return reply(c); };
+      const result = await consent(f, c, 'alice', { proofFetch: fetchStoreProofReceipt });
+      assert.equal(result.ok, ok, label);
+      assert.deepEqual(requested, [`https://store.example.test/_emdash/api/plugins/r_3brsc2on3bu673rn/store-proof?connection_id=${c.body.connection_id}`], label);
+      assert.equal(count(f,'dinkuskit_service_grant'), ok ? 1 : 0, label);
+    } finally { globalThis.fetch = original; f.close(); }
+  }
+});
+
+test('independent contract: proof transport refuses redirects without following them', async () => {
+  const {fetchStoreProofReceipt} = await import('../src/account/proof-fetch.ts');
+  const original = globalThis.fetch; let calls=0;
+  globalThis.fetch = async () => { calls++; return new Response(null, {status:302, headers:{location:'https://elsewhere.example.test/'}}); };
+  try {
+    const result=await fetchStoreProofReceipt({siteOrigin:'https://store.example.test',connectionId:'proof-id',clientId:registrations.payments.client,service:'payments'});
+    assert.deepEqual([result.ok,result.reason],[false,'proof_redirect_rejected']);
+    assert.equal(calls,1);
   } finally { globalThis.fetch=original; }
 });
 

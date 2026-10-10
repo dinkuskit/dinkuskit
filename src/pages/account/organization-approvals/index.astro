@@ -1,40 +1,7 @@
 ---
-import Site from '../../../layouts/Site.astro';
-import { getMerchantEnv } from '../../../account/bindings.ts';
-import { currentCmsAdmin, approvalOrigin } from '../../../account/cms-approval-authorization.ts';
-import { listPendingApprovals, type ApprovalRow } from '../../../account/organization-approvals.ts';
+import { OPERATOR_APPROVALS_PATH } from '../../../operator-admin/paths.ts';
 
 export const prerender = false;
-Astro.response.headers.set('cache-control', 'private, no-store');
-let pending: ApprovalRow[] = [];
-let authorized = false;
-try {
-  if (!approvalOrigin(Astro.request, import.meta.env.DEV)) Astro.response.status = 403;
-  else if (!Astro.locals.user) Astro.response.status = 401;
-  else if (!Astro.locals.emdash?.db) Astro.response.status = 503;
-  else {
-    const actor = await currentCmsAdmin(Astro.locals.user, Astro.locals.emdash.db);
-    if (!actor) Astro.response.status = 403;
-    else {
-      pending = await listPendingApprovals((await getMerchantEnv()).MERCHANT_DB);
-      const current = await currentCmsAdmin(Astro.locals.user, Astro.locals.emdash.db);
-      authorized = current?.id === actor.id;
-      if (!authorized) { pending = []; Astro.response.status = 403; }
-    }
-  }
-} catch { pending = []; Astro.response.status = 503; }
+// Business approvals moved into the EmDash admin (decision website-operator-approvals-in-admin-039).
+return new Response(null, { status: 303, headers: { location: OPERATOR_APPROVALS_PATH, 'cache-control': 'private, no-store' } });
 ---
-<Site title="Organization approvals" description="Pending organization admission decisions.">
-  <section class="account-panel">
-    {Astro.response.status === 401 ? <><h1>CMS sign-in required</h1><p>Sign in through the dinkuskit.com EmDash Admin before opening this queue.</p></> : null}
-    {Astro.response.status === 403 ? <><h1>CMS Admin required</h1><p>Merchant organization roles and the separate operator directory do not authorize admission decisions.</p></> : null}
-    {Astro.response.status === 503 ? <><h1>Approvals unavailable</h1><p>The CMS or merchant database is unavailable.</p></> : null}
-    {authorized ? <><p class="eyebrow">EmDash CMS Admin</p><h1>Organization approvals</h1>
-      <p>Admission only. This does not connect stores, provision Inventory, activate Payments, or grant account privileges.</p>
-      {pending.length === 0 ? <p>No pending organizations.</p> : <ul class="directory-list">
-        {pending.map(item => <li><a href={`/account/organization-approvals/${encodeURIComponent(item.organizationId)}`}>{item.name}</a><span>{item.ownerEmail} · submitted {new Date(item.createdAt * 1000).toISOString()}</span></li>)}
-      </ul>}
-      {pending.length === 50 ? <p>The oldest 50 pending organizations are shown. More appear as decisions are completed.</p> : null}
-    </> : null}
-  </section>
-</Site>

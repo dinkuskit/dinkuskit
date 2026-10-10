@@ -76,7 +76,7 @@ test('workerd: the operator pages live in the EmDash admin and only an Admin can
     assert.deepEqual(cut.action.items.map(i => i.label), ['Inventory']);
     assert.deepEqual(cut.restore.items.map(i => i.label), ['Payments']);
     const restored = await blocks(await call(runtime, editor.jar, { type: 'block_action', action_id: 'stores:restore', value: cut.restore.items[0].value }));
-    assert.equal(restored.toast.message, 'Restored. The owner can press Connect again.');
+    assert.equal(restored.toast.message, 'Restored. The owner can turn it on again.');
     assert.equal((await storeRow()).payments, 'Disconnected');
 
     // Suspending signs the merchant out of the account pages at once.

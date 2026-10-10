@@ -208,7 +208,7 @@ async function storesPage(ctx: PageContext, v: View, note?: PageResponse['toast'
   return {
     blocks: [
       { type: 'header', text: 'Stores and services' },
-      { type: 'context', text: 'Every store that has pressed Connect, and which DinkusKit services it uses. Disconnected means the owner turned it off or you restored it; the owner can press Connect again. Cut off means only you can let it back, with Restore. Coupons and Ship cannot connect through DinkusKit.com yet, so their columns stay empty for now.' },
+      { type: 'context', text: 'Every store that has pressed Connect, and which DinkusKit services it uses. The owner turns Payments and Inventory on by pressing Connect in those plugins, and Coupons and Ship under Set up Commerce on their Connected sites page. Disconnected means the owner turned it off or you restored it; the owner can turn it on again. Cut off means only you can let it back, with Restore.' },
       ...confirmBlocks,
       search('stores', 'Search by store address, business or owner email', v.q),
       {
@@ -315,7 +315,7 @@ export async function handleInteraction(ctx: PageContext, interaction: Interacti
       const t = storeTarget(value);
       if (!t) return storesPage(ctx, view(null), toast('That store was not found.', 'error'));
       const count = await restoreStore(ctx.db, t.id, t.service, ctx.actor);
-      return storesPage(ctx, t.v, count ? toast('Restored. The owner can press Connect again.') : toast('Nothing is cut off there.', 'info'));
+      return storesPage(ctx, t.v, count ? toast('Restored. The owner can turn it on again.') : toast('Nothing is cut off there.', 'info'));
     }
     return storesPage(ctx, view(value));
   }

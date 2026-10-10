@@ -168,14 +168,14 @@ export async function getPerson(input: Input & Paging & { personId: string }) {
   });
 }
 type BindingRow = { site_id: string; site_origin: string; service: string; revoked: number; granted_at: number; revoked_at: number | null; account_subject: string; organization_id: string | null };
-const bindingSelect = 'SELECT b.site_id, b.site_origin, b.service, b.revoked, b.granted_at, b.revoked_at, b.account_subject, o.organization_id FROM dinkuskit_site_binding b LEFT JOIN dinkuskit_organization o ON o.authority_subject = b.account_subject';
+const bindingSelect = 'SELECT i.site_id, i.site_origin, g.service, g.revoked, g.granted_at, g.revoked_at, i.account_subject, o.organization_id FROM dinkuskit_store_identity i JOIN dinkuskit_service_grant g ON g.site_id = i.site_id LEFT JOIN dinkuskit_organization o ON o.authority_subject = i.account_subject';
 async function store(input: Input, binding: BindingRow): Promise<DirectoryStore> {
-  const connection = binding.organization_id === null ? null : await input.db.prepare(`SELECT service, status, created_at, consented_at, redeemed_at FROM dinkuskit_store_connection WHERE site_id = ? AND account_subject = ? AND organization_id = ? AND service = ? ORDER BY created_at DESC, connection_id DESC LIMIT 1`).bind(binding.site_id, binding.account_subject, binding.organization_id, binding.service).first<{ service: string; status: string; created_at: number; consented_at: number | null; redeemed_at: number | null }>();
+  const connection = binding.organization_id === null ? null : await input.db.prepare(`SELECT service, status, created_at, consented_at, redeemed_at FROM dinkuskit_store_connection WHERE site_id = ? AND account_subject = ? AND organization_id = ? AND service = ? AND protocol_version = 2 ORDER BY created_at DESC, connection_id DESC LIMIT 1`).bind(binding.site_id, binding.account_subject, binding.organization_id, binding.service).first<{ service: string; status: string; created_at: number; consented_at: number | null; redeemed_at: number | null }>();
   return { siteId: binding.site_id, siteOrigin: binding.site_origin, organizationId: binding.organization_id, service: binding.service, revoked: binding.revoked === 1, grantedAt: binding.granted_at, revokedAt: binding.revoked_at, connection: connection ? { service: connection.service, status: connection.status, createdAt: connection.created_at, consentedAt: connection.consented_at, redeemedAt: connection.redeemed_at } : null };
 }
 function bindingFence(input: Input, binding: BindingRow): () => Promise<boolean> {
   return async () => {
-    const current = await input.db.prepare(`${bindingSelect} WHERE b.site_id = ?`).bind(binding.site_id).first<BindingRow>();
+    const current = await input.db.prepare(`${bindingSelect} WHERE i.site_id = ? AND g.service = ?`).bind(binding.site_id, binding.service).first<BindingRow>();
     return JSON.stringify(current) === JSON.stringify(binding);
   };
 }
@@ -186,7 +186,7 @@ export async function getOrganization(input: Input & Paging & { organizationId: 
     if (!row) throw new NotFound();
     const offset = (input.page - 1) * input.pageSize;
     const members = paged(await rows<MemberRow>(input.db.prepare(`${memberSelect} WHERE m.organization_id = ? ORDER BY m.user_id LIMIT ? OFFSET ?`).bind(input.organizationId, input.pageSize + 1, offset)), input);
-    const bindingRows = await rows<BindingRow>(input.db.prepare(`${bindingSelect} WHERE o.organization_id = ? ORDER BY b.site_id LIMIT ? OFFSET ?`).bind(input.organizationId, input.pageSize + 1, offset));
+    const bindingRows = await rows<BindingRow>(input.db.prepare(`${bindingSelect} WHERE o.organization_id = ? ORDER BY i.site_id, g.service LIMIT ? OFFSET ?`).bind(input.organizationId, input.pageSize + 1, offset));
     const bindings = paged(bindingRows, input);
     for (const b of bindingRows) await require({ type: 'store', id: b.site_id });
     const stores: DirectoryStore[] = [];
@@ -199,10 +199,14 @@ export async function getOrganization(input: Input & Paging & { organizationId: 
 }
 export async function getStore(input: Input & { siteId: string }) {
   return read(input, { type: 'store', id: input.siteId }, async (require, fence) => {
-    const b = await input.db.prepare(`${bindingSelect} WHERE b.site_id = ?`).bind(input.siteId).first<BindingRow>();
-    if (!b) throw new NotFound();
-    if (b.organization_id) await require({ type: 'organization', id: b.organization_id });
-    fence(bindingFence(input, b));
-    return store(input, b);
+    const bindings = await rows<BindingRow>(input.db.prepare(`${bindingSelect} WHERE i.site_id = ? ORDER BY g.service`).bind(input.siteId));
+    if (!bindings.length) throw new NotFound();
+    const grants: DirectoryStore[] = [];
+    for (const binding of bindings) {
+      if (binding.organization_id) await require({ type: 'organization', id: binding.organization_id });
+      fence(bindingFence(input, binding));
+      grants.push(await store(input, binding));
+    }
+    return { ...grants[0], grants };
   });
 }

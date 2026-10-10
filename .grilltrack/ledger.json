@@ -4,11 +4,11 @@
   "current_focus": {
     "cadence": "sequential",
     "confirmed": true,
-    "confirmed_at": "2026-10-09T13:48:58+00:00",
-    "domain": "Merchant admission status and notification evidence",
-    "started_at": "2026-10-09T13:48:58+00:00",
+    "confirmed_at": "2026-10-10T00:35:47+00:00",
+    "domain": "Shared store identity and separate service grants",
+    "started_at": "2026-10-10T00:35:41+00:00",
     "status": "confirmed",
-    "summary": "Implement current membership-scoped admission status on /account with private/no-store and owner-only sanitized notification state. Label existing delivered transport state as email accepted for sending, never recipient delivery. No recipient, CMS actor or provider-error disclosure; no merchant retry or decision controls. Preserve automatic admission and selection/auth semantics; suppress an empty switch action only when no organization is selectable. Prove same-session refresh, owner/member/outsider isolation and admission independent of service activation through real workerd sessions, browser inspection and full checks. No roles, appeals, reasons, billing, provider configuration, live sends, deployment or merge."
+    "summary": "Implement clean shared protocol version2 and independent grants for Inventory and Payments. Existing Inventory connections are dev/test and need consumer upgrade/reconnect, not compatibility machinery. No old data deletion or silent migration. Test both service orderings, org/store/service isolation and exact token audiences. No Ship, live activation, deploy or merge."
   },
   "decisions": [
     {
@@ -4488,10 +4488,117 @@
       "superseded_by": null,
       "updated_at": "2026-10-09T14:03:58+00:00",
       "verification_ref": "proof/merchant-admission-status/PROOF.md"
+    },
+    {
+      "baseline_ref": "git:d148a87211abcee6ac72614465a5bb0273e79be8",
+      "candidate_refs": [],
+      "choice": "One canonical organization-owned store identity with separate explicit Inventory and Payments grants. All clients use shared protocol version2 with server-generated/resolved identity and authenticated origin proof plus current Owner consent. Existing Inventory connections are disposable dev/test: no v1 compatibility or migration required. Add clean identity and service-grant tables without deleting old data; reject old protocol and document explicit consumer upgrade/reconnect. Keep per-service audience, scope and headers; no Ship, live activation, silent identity rewriting, cascading revocation or refresh lifecycle.",
+      "context_ref": "docs/shared-store-connections.md",
+      "created_at": "2026-10-10T00:35:09+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [
+        "website-merchant-admission-status-029"
+      ],
+      "domain": "Shared store identity and separate service grants",
+      "history": [
+        {
+          "at": "2026-10-10T00:35:09+00:00",
+          "choice": "One canonical organization-owned store identity; separate explicit service grants. Preserve Inventory v1 and established IDs. Add opt-in version 2 shared resolution with registered service proof/callback/audience/scope, ownership proof and current Owner consent. Admission is separate. Payments grants payments:admin with audience dinkus-payments only. No Ship integration, live activation, identity remapping, cascading revocation or refresh lifecycle.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-10T00:35:41+00:00",
+          "choice": "One canonical organization-owned store identity; separate explicit service grants. Preserve Inventory v1 and established IDs. Add opt-in version 2 shared resolution with registered service proof/callback/audience/scope, ownership proof and current Owner consent. Admission is separate. Payments grants payments:admin with audience dinkus-payments only. No Ship integration, live activation, identity remapping, cascading revocation or refresh lifecycle.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "Explicit direction: existing Inventory connections are disposable development tests; drop version1 compatibility and migration requirements. Use clean shared protocol with explicit consumer upgrade/reconnect, no executed reset or silent identity rewrite.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "reopened",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-10T00:35:47+00:00",
+          "choice": "One canonical organization-owned store identity; separate explicit service grants. Preserve Inventory v1 and established IDs. Add opt-in version 2 shared resolution with registered service proof/callback/audience/scope, ownership proof and current Owner consent. Admission is separate. Payments grants payments:admin with audience dinkus-payments only. No Ship integration, live activation, identity remapping, cascading revocation or refresh lifecycle.",
+          "from": "reopened",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-10T00:45:56+00:00",
+          "choice": "One canonical organization-owned store identity with separate explicit Inventory and Payments grants. All clients use shared protocol version2 with server-generated/resolved identity and authenticated origin proof plus current Owner consent. Existing Inventory connections are disposable dev/test: no v1 compatibility or migration required. Add clean identity and service-grant tables without deleting old data; reject old protocol and document explicit consumer upgrade/reconnect. Keep per-service audience, scope and headers; no Ship, live activation, silent identity rewriting, cascading revocation or refresh lifecycle.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-10T00:48:25+00:00",
+          "choice": "One canonical organization-owned store identity with separate explicit Inventory and Payments grants. All clients use shared protocol version2 with server-generated/resolved identity and authenticated origin proof plus current Owner consent. Existing Inventory connections are disposable dev/test: no v1 compatibility or migration required. Add clean identity and service-grant tables without deleting old data; reject old protocol and document explicit consumer upgrade/reconnect. Keep per-service audience, scope and headers; no Ship, live activation, silent identity rewriting, cascading revocation or refresh lifecycle.",
+          "from": "implemented",
+          "implementation_ref": "src/account/connect.ts",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": null
+        }
+      ],
+      "id": "website-shared-store-service-grants-030",
+      "implementation_ref": "src/account/connect.ts",
+      "question": "How do Inventory and Payments share store identity without sharing authorization?",
+      "rationale": "Explicit direction removes legacy connection preservation. A clean additive schema and one protocol are sufficient; actual data reset remains separately scoped.",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [
+        {
+          "classifications": [],
+          "ref": "proof/shared-store-service-grants/REVIEW.md",
+          "result": "clean",
+          "reviewed_at": "2026-10-10T00:48:25+00:00",
+          "source_identity": "sha256:fddf9c85df3aa1a5542e6cca18d0c26639b526b2b3bee542f2b02f2739f93835"
+        }
+      ],
+      "review_ref": "proof/shared-store-service-grants/REVIEW.md",
+      "review_result": "clean",
+      "review_source_identity": "sha256:fddf9c85df3aa1a5542e6cca18d0c26639b526b2b3bee542f2b02f2739f93835",
+      "status": "verified",
+      "superseded_by": null,
+      "updated_at": "2026-10-10T00:48:25+00:00",
+      "verification_ref": "proof/shared-store-service-grants/PROOF.md"
     }
   ],
   "last_activation": {
-    "at": "2026-10-07T12:36:49+00:00",
+    "at": "2026-10-10T00:35:41+00:00",
     "mechanism": "implicit"
   },
   "last_pause": null,
@@ -4515,5 +4622,5 @@
   "status": "active",
   "title": "Website PR9 current-main reconciliation",
   "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca",
-  "updated_at": "2026-10-09T14:03:58+00:00"
+  "updated_at": "2026-10-10T00:48:25+00:00"
 }

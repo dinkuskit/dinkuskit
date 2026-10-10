@@ -8,7 +8,7 @@ import { ACCOUNT_ISSUER } from '../src/account/config.ts';
 
 async function fixture() {
   const sqlite = new Database(':memory:');
-  for (const name of ['0001_better_auth', '0002_dinkuskit', '0003_store_connect', '0004_account_foundation', '0005_operator_authorization']) sqlite.exec(await readFile(`migrations/merchant/${name}.sql`, 'utf8'));
+  for (const name of ['0001_better_auth', '0002_dinkuskit', '0003_store_connect', '0004_account_foundation', '0005_operator_authorization', '0006_organization_approvals', '0007_shared_store_service_grants']) sqlite.exec(await readFile(`migrations/merchant/${name}.sql`, 'utf8'));
   let afterRead = () => {}, failure = false;
   const db = { prepare(sql) {
     const stmt = sqlite.prepare(sql); let values = [];
@@ -118,13 +118,14 @@ test('all related organization grants rechecked after later reads', async () => 
 test('store connection is bound to current org, subject and service; reassignment fails closed', async () => {
   for (const reassign of [false, true]) {
     const f = await fixture(); try {
-      f.sqlite.prepare(`INSERT INTO dinkuskit_site_binding VALUES ('site-a', 'https://site-a.example.test', 'subject-org-a', 'inventory', 0, 1, NULL)`).run();
-      const add = f.sqlite.prepare(`INSERT INTO dinkuskit_store_connection (connection_id,client_id,service,site_id,site_origin,callback_uri,code_challenge,challenge,expires_at,interval_seconds,status,account_subject,consented_at,redeemed_at,created_at,organization_id) VALUES (?, 'fixture', ?, 'site-a', 'https://site-a.example.test', 'https://site-a.example.test/callback', 'synthetic', 'synthetic', 9999, 5, ?, ?, 1, 1, ?, ?)`);
+      f.sqlite.prepare(`INSERT INTO dinkuskit_store_identity VALUES ('site-a', 'https://site-a.example.test', 'subject-org-a', 1)`).run();
+      f.sqlite.prepare(`INSERT INTO dinkuskit_service_grant VALUES ('site-a', 'inventory', 0, 1, NULL)`).run();
+      const add = f.sqlite.prepare(`INSERT INTO dinkuskit_store_connection (connection_id,client_id,service,site_id,site_origin,callback_uri,code_challenge,challenge,expires_at,interval_seconds,status,account_subject,consented_at,redeemed_at,created_at,organization_id,protocol_version) VALUES (?, 'fixture', ?, 'site-a', 'https://site-a.example.test', 'https://site-a.example.test/callback', 'synthetic', 'synthetic', 9999, 5, ?, ?, 1, 1, ?, ?, 2)`);
       add.run('valid', 'inventory', 'redeemed', 'subject-org-a', 1, 'org-a');
       add.run('foreign', 'inventory', 'FOREIGN_SENTINEL', 'subject-org-b', 2, 'org-b');
       add.run('foreign-service', 'payments', 'OTHER_SERVICE_SENTINEL', 'subject-org-a', 3, 'org-a');
       f.grants.add('store:site-a'); f.grants.add('organization:org-a');
-      if (reassign) f.setHook(sql => { if (sql.includes('FROM dinkuskit_store_connection')) f.sqlite.prepare("UPDATE dinkuskit_site_binding SET account_subject = 'subject-org-b' WHERE site_id = 'site-a'").run(); });
+      if (reassign) f.setHook(sql => { if (sql.includes('FROM dinkuskit_store_connection')) f.sqlite.prepare("UPDATE dinkuskit_store_identity SET account_subject = 'subject-org-b' WHERE site_id = 'site-a'").run(); });
       const result = await getStore({ ...f.input, siteId: 'site-a' });
       if (reassign) assert.deepEqual(result, { state: 'forbidden' });
       else { assert.equal(result.value.connection.status, 'redeemed'); assert.doesNotMatch(JSON.stringify(result), /SENTINEL/); }
@@ -154,4 +155,15 @@ test('persisted grants preserve current-state fences and fail closed on missing 
       assert.deepEqual(await readDirectory(input), { state: 'forbidden' }, change);
     } finally { f.sqlite.close(); }
   }
+});
+
+test('shared store detail exposes each separately fenced service grant', async () => {
+  const f = await fixture(); try {
+    f.sqlite.prepare("INSERT INTO dinkuskit_store_identity VALUES ('shared', 'https://shared.example.test', 'subject-org-a', 1)").run();
+    f.sqlite.prepare("INSERT INTO dinkuskit_service_grant VALUES ('shared', 'inventory', 0, 1, NULL), ('shared', 'payments', 1, 2, 3)").run();
+    f.grants.add('store:shared'); f.grants.add('organization:org-a');
+    const result = await getStore({...f.input,siteId:'shared'});
+    assert.equal(result.state,'ok');
+    assert.deepEqual(result.value.grants.map(g=>[g.service,g.revoked]),[['inventory',false],['payments',true]]);
+  } finally { f.sqlite.close(); }
 });

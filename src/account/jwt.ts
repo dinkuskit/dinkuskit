@@ -1,5 +1,5 @@
 import { exportJWK, generateKeyPair, importJWK, SignJWT, type JWK } from 'jose';
-import { ACCOUNT_ISSUER, TOKEN_TTL_MAX_SECONDS, TOKEN_TTL_SECONDS } from './config.ts';
+import { ACCOUNT_ISSUER, REGISTERED_STORE_SERVICES, TOKEN_TTL_MAX_SECONDS, TOKEN_TTL_SECONDS, type StoreService } from './config.ts';
 import { persistPublicJwk } from './store.ts';
 
 export async function createEphemeralServiceKeys() {
@@ -48,6 +48,15 @@ export async function prepareInventoryAccess(input: {
   | { ok: true; token: string; expiresIn: number; kid: string; publicJwk: JsonWebKey }
   | { ok: false; reason: 'missing' | 'invalid' }
 > {
+  return prepareServiceAccess({ ...input, service: 'inventory' });
+}
+
+export async function prepareServiceAccess(input: {
+  subject: string; siteId: string; service: StoreService; privateJwkJson?: string; ttlSeconds?: number;
+}): Promise<
+  | { ok: true; token: string; expiresIn: number; kid: string; publicJwk: JsonWebKey }
+  | { ok: false; reason: 'missing' | 'invalid' }
+> {
   if (!input.privateJwkJson) return { ok: false, reason: 'missing' };
   try {
     const privateJwk = JSON.parse(input.privateJwkJson) as JWK;
@@ -56,10 +65,12 @@ export async function prepareInventoryAccess(input: {
     const privateKey = await importJWK(privateJwk, 'ES256');
     const ttlSeconds = Math.min(input.ttlSeconds ?? TOKEN_TTL_SECONDS, TOKEN_TTL_MAX_SECONDS);
     const issuedAt = Math.floor(Date.now() / 1000);
-    const token = await new SignJWT({ site_id: input.siteId, scope: 'inventory:admin' })
+    const registered = REGISTERED_STORE_SERVICES.find(service => service.service === input.service);
+    if (!registered) return { ok: false, reason: 'invalid' };
+    const token = await new SignJWT({ site_id: input.siteId, scope: registered.scope })
       .setProtectedHeader({ alg: 'ES256', kid: fields.kid })
       .setIssuer(ACCOUNT_ISSUER)
-      .setAudience('inventory')
+      .setAudience(registered.audience)
       .setSubject(input.subject)
       .setIssuedAt(issuedAt)
       .setExpirationTime(issuedAt + ttlSeconds)

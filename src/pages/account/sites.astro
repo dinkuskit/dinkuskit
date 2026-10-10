@@ -2,11 +2,12 @@
 import Site from '../../layouts/Site.astro';
 import { MerchantUnavailableError, seeOther, unavailableResponse } from '../../account/config.ts';
 import { getMerchantEnv } from '../../account/bindings.ts';
-import { listActiveBindings, revokeBinding } from '../../account/store.ts';
+import { listActiveBindings, revokeServiceGrant } from '../../account/store.ts';
 import { rejectCrossOriginMutation } from '../../account/origin.ts';
 import { authorizeOrganization } from '../../account/organizations.ts';
 
 export const prerender = false;
+Astro.response.headers.set('cache-control', 'private, no-store');
 const merchant = Astro.locals.merchant;
 if (!merchant) return seeOther('/account/sign-in');
 let env;
@@ -26,7 +27,8 @@ if (Astro.request.method === 'POST') {
   if (!mutationMembership || mutationMembership.role !== 'owner') return new Response(JSON.stringify({ error: 'organization_forbidden' }), { status: 403 });
   if (form.get('action') === 'revoke') {
     const siteId = String(form.get('site_id') ?? '');
-    if (siteId) await revokeBinding(env.MERCHANT_DB, merchant.subject, siteId, merchant.userId, organizationId);
+    const service = String(form.get('service') ?? 'inventory');
+    if (siteId) await revokeServiceGrant(env.MERCHANT_DB, merchant.subject, siteId, service, merchant.userId, organizationId);
   }
   return seeOther('/account/sites');
 }
@@ -37,11 +39,11 @@ const organizationId = Astro.url.searchParams.get('organization_id') ?? merchant
 if (organizationId !== merchant.organizationId) return new Response(JSON.stringify({ error: 'stale_organization' }), { status: 409 });
 if (!await authorizeOrganization(env.MERCHANT_DB, merchant.userId, organizationId)) return new Response(JSON.stringify({ error: 'organization_forbidden' }), { status: 403 });
 ---
-<Site title="Connected sites" description="Explicit Inventory site grants for this merchant.">
+<Site title="Connected sites" description="Explicit service grants for this merchant.">
   <div class="account-panel">
     <p class="eyebrow">Site consent</p>
     <h1>Connected sites</h1>
-    <p class="lead">Connect Inventory from your EmDash site. Each connection requires your approval.</p>
+    <p class="lead">Connect services from your EmDash site. Each service requires separate approval.</p>
     <p>Site connections are being prepared and are not available on the hosted service yet.</p>
     <p>Organization: {organizationId}</p>
     {bindings.length === 0 ? <p>No sites are connected yet.</p> : (
@@ -54,8 +56,9 @@ if (!await authorizeOrganization(env.MERCHANT_DB, merchant.userId, organizationI
               <form method="post" action="/account/sites" class="account-form">
                 <input type="hidden" name="action" value="revoke" />
                 <input type="hidden" name="site_id" value={binding.siteId} />
+                <input type="hidden" name="service" value={binding.service} />
                 <input type="hidden" name="organization_id" value={organizationId} />
-                <button type="submit">Revoke this site</button>
+                <button type="submit">Revoke {binding.service}</button>
               </form>
             )}
           </li>

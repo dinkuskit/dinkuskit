@@ -26,9 +26,9 @@ async function startConnection(runtime, siteId, siteOrigin, pkce = challenge()) 
   const response = await request(runtime, new Map(), '/api/store-connections', {
     method: 'POST',
     body: JSON.stringify({
+      protocol_version: 2,
       client_id: 'dinkus-inventory-emdash',
       service: 'inventory',
-      site_id: siteId,
       site_origin: siteOrigin,
       callback_uri: callback,
       code_challenge: pkce.challenge,
@@ -43,14 +43,14 @@ async function storeReceipt(runtime, start) {
   return request(runtime, new Map(), '/__proof/receipt', {
     method: 'POST',
     body: JSON.stringify({
-      version: 1,
+      version: 2,
       connection_id: start.body.connection_id,
       challenge: start.body.challenge,
       client_id: 'dinkus-inventory-emdash',
       service: 'inventory',
       site_id: start.body.verification_uri && start.body.connection_id ? undefined : undefined,
       ...{
-        site_id: start.siteId,
+        site_id: start.body.site_id,
         site_origin: start.siteOrigin,
         callback_uri: start.callback,
         code_challenge: start.pkce.challenge,
@@ -72,7 +72,7 @@ test('store-connections protocol: consent, PKCE, uniqueness, revoke, already_red
     const siteB = originFor('beta');
     const pkceA = challenge();
     const startA = await startConnection(runtime, 'site-alpha', siteA, pkceA);
-    startA.siteId = 'site-alpha';
+    startA.siteId = startA.body.site_id;
     startA.siteOrigin = siteA;
     assert.equal(startA.response.status, 200);
     assert.equal(startA.body.verification_uri, `${runtime.origin}/account/connect?connection_id=${startA.body.connection_id}`);
@@ -112,7 +112,7 @@ test('store-connections protocol: consent, PKCE, uniqueness, revoke, already_red
     assert.equal(token.status, 200);
     const issued = await token.json();
     assert.equal(issued.token_type, 'Bearer');
-    assert.equal(issued.site_id, 'site-alpha');
+    assert.equal(issued.site_id, startA.body.site_id);
     assert.equal(typeof issued.access_token, 'string');
 
     const replay = await request(runtime, new Map(), '/api/store-connections/token', {
@@ -128,7 +128,7 @@ test('store-connections protocol: consent, PKCE, uniqueness, revoke, already_red
 
     const pkceFresh = challenge();
     const startFresh = await startConnection(runtime, 'site-alpha', siteA, pkceFresh);
-    startFresh.siteId = 'site-alpha';
+    startFresh.siteId = startFresh.body.site_id;
     startFresh.siteOrigin = siteA;
     await storeReceipt(runtime, startFresh);
     const freshApprove = await request(runtime, alice, `/account/connect?connection_id=${startFresh.body.connection_id}`, {
@@ -159,7 +159,7 @@ test('store-connections protocol: consent, PKCE, uniqueness, revoke, already_red
 
     const pkceB = challenge();
     const startB = await startConnection(runtime, 'site-beta', siteB, pkceB);
-    startB.siteId = 'site-beta';
+    startB.siteId = startB.body.site_id;
     startB.siteOrigin = siteB;
     await storeReceipt(runtime, startB);
     const bobApprove = await request(runtime, bob, `/account/connect?connection_id=${startB.body.connection_id}`, {
@@ -171,7 +171,7 @@ test('store-connections protocol: consent, PKCE, uniqueness, revoke, already_red
 
     const conflictPkce = challenge();
     const conflict = await startConnection(runtime, 'site-alpha', siteA, conflictPkce);
-    conflict.siteId = 'site-alpha';
+    conflict.siteId = conflict.body.site_id;
     conflict.siteOrigin = siteA;
     await storeReceipt(runtime, conflict);
     const bobConflict = await request(runtime, bob, `/account/connect?connection_id=${conflict.body.connection_id}`, {
@@ -183,17 +183,17 @@ test('store-connections protocol: consent, PKCE, uniqueness, revoke, already_red
     assert.match(bobConflict.headers.get('location') ?? '', /error=ownership_conflict|error=/);
 
     const tampered = await startConnection(runtime, 'site-gamma', originFor('gamma'));
-    tampered.siteId = 'site-gamma';
+    tampered.siteId = tampered.body.site_id;
     tampered.siteOrigin = originFor('gamma');
     await request(runtime, new Map(), '/__proof/receipt', {
       method: 'POST',
       body: JSON.stringify({
-        version: 1,
+        version: 2,
         connection_id: tampered.body.connection_id,
         challenge: 'tampered-challenge',
         client_id: 'dinkus-inventory-emdash',
         service: 'inventory',
-        site_id: 'site-gamma',
+        site_id: tampered.body.site_id,
         site_origin: originFor('gamma'),
         callback_uri: tampered.callback,
         code_challenge: tampered.pkce.challenge,
@@ -213,12 +213,12 @@ test('store-connections protocol: consent, PKCE, uniqueness, revoke, already_red
     const revoke = await request(runtime, alice, '/account/sites', {
       method: 'POST',
       headers: { 'content-type': 'application/x-www-form-urlencoded' },
-      body: await accountForm(runtime, alice, 'action=revoke&site_id=site-alpha'),
+      body: await accountForm(runtime, alice, `action=revoke&site_id=${startA.body.site_id}&service=inventory`),
     });
     assert.equal(revoke.status, 303);
 
     const afterRevoke = await startConnection(runtime, 'site-alpha', siteA);
-    afterRevoke.siteId = 'site-alpha';
+    afterRevoke.siteId = afterRevoke.body.site_id;
     afterRevoke.siteOrigin = siteA;
     await storeReceipt(runtime, afterRevoke);
     const remint = await request(runtime, alice, `/account/connect?connection_id=${afterRevoke.body.connection_id}`, {
@@ -227,7 +227,7 @@ test('store-connections protocol: consent, PKCE, uniqueness, revoke, already_red
       body: await accountForm(runtime, alice, 'action=approve'),
     });
     const remintLoc = new URL(remint.headers.get('location'), runtime.origin);
-    assert.equal(remintLoc.searchParams.get('error'), 'reinstall_requires_manual_migration');
+    assert.equal(remintLoc.searchParams.get('error'), 'grant_revoked');
     const blockedRemintToken = await request(runtime, new Map(), '/api/store-connections/token', {
       method: 'POST',
       body: JSON.stringify({
@@ -277,7 +277,7 @@ test('pending claim isolates a second merchant from preview and consent', async 
     await signup(runtime, ALICE, alice);
     await signup(runtime, BOB, bob);
     const start = await startConnection(runtime, 'pending-iso', originFor('pending-iso'));
-    start.siteId = 'pending-iso';
+    start.siteId = start.body.site_id;
     start.siteOrigin = originFor('pending-iso');
     const path = `/account/connect?connection_id=${start.body.connection_id}`;
     const first = await request(runtime, alice, path);
@@ -302,7 +302,7 @@ test('pending claim isolates a second merchant from preview and consent', async 
       body: await accountForm(runtime, bob, 'action=deny'),
     });
     assert.equal(bobDeny.headers.get('location'), '/account/sites');
-    assert.equal(await grantPresent(runtime, 'pending-iso'), false);
+    assert.equal(await grantPresent(runtime, start.body.site_id), false);
   } finally {
     await stopRuntime(runtime);
   }
@@ -314,7 +314,7 @@ test('denied then approve leaves no grant; concurrent deny/approve is consistent
   try {
     await signup(runtime, ALICE, alice);
     const denied = await startConnection(runtime, 'denied-race', originFor('denied-race'));
-    denied.siteId = 'denied-race';
+    denied.siteId = denied.body.site_id;
     denied.siteOrigin = originFor('denied-race');
     await storeReceipt(runtime, denied);
     const path = `/account/connect?connection_id=${denied.body.connection_id}`;
@@ -331,10 +331,10 @@ test('denied then approve leaves no grant; concurrent deny/approve is consistent
       body: await accountForm(runtime, alice, 'action=approve'),
     });
     assert.match(lateApprove.headers.get('location') ?? '', /error=|\/account\/sites/);
-    assert.equal(await grantPresent(runtime, 'denied-race'), false);
+    assert.equal(await grantPresent(runtime, denied.body.site_id), false);
 
     const concurrent = await startConnection(runtime, 'concurrent-race', originFor('concurrent-race'));
-    concurrent.siteId = 'concurrent-race';
+    concurrent.siteId = concurrent.body.site_id;
     concurrent.siteOrigin = originFor('concurrent-race');
     await storeReceipt(runtime, concurrent);
     const concurrentPath = `/account/connect?connection_id=${concurrent.body.connection_id}`;
@@ -353,7 +353,7 @@ test('denied then approve leaves no grant; concurrent deny/approve is consistent
     ]);
     assert.equal(denyRace.status, 303);
     assert.equal(approveRace.status, 303);
-    const granted = await grantPresent(runtime, 'concurrent-race');
+    const granted = await grantPresent(runtime, concurrent.body.site_id);
     const denyLoc = denyRace.headers.get('location') ?? '';
     const approveLoc = approveRace.headers.get('location') ?? '';
     const denySuccess = denyLoc.includes('/_emdash/admin/plugins/dinkus-inventory/inventory');
@@ -373,17 +373,17 @@ test('delayed proof past expiry and missing signing key do not mint', async () =
   try {
     await signup(keyed, ALICE, alice);
     const delayed = await startConnection(keyed, 'late-proof', originFor('late-proof'));
-    delayed.siteId = 'late-proof';
+    delayed.siteId = delayed.body.site_id;
     delayed.siteOrigin = originFor('late-proof');
     await request(keyed, new Map(), '/__proof/receipt', {
       method: 'POST',
       body: JSON.stringify({
-        version: 1,
+        version: 2,
         connection_id: delayed.body.connection_id,
         challenge: delayed.body.challenge,
         client_id: 'dinkus-inventory-emdash',
         service: 'inventory',
-        site_id: 'late-proof',
+        site_id: delayed.body.site_id,
         site_origin: originFor('late-proof'),
         callback_uri: delayed.callback,
         code_challenge: delayed.pkce.challenge,
@@ -399,7 +399,7 @@ test('delayed proof past expiry and missing signing key do not mint', async () =
       body: await accountForm(keyed, alice, 'action=approve'),
     });
     assert.match(late.headers.get('location') ?? '', /error=/);
-    assert.equal(await grantPresent(keyed, 'late-proof'), false);
+    assert.equal(await grantPresent(keyed, delayed.body.site_id), false);
   } finally {
     await stopRuntime(keyed);
   }
@@ -409,7 +409,7 @@ test('delayed proof past expiry and missing signing key do not mint', async () =
   try {
     await signup(unsigned, ALICE, unsignedJar);
     const start = await startConnection(unsigned, 'unsigned', originFor('unsigned'));
-    start.siteId = 'unsigned';
+    start.siteId = start.body.site_id;
     start.siteOrigin = originFor('unsigned');
     await storeReceipt(unsigned, start);
     const approve = await request(unsigned, unsignedJar, `/account/connect?connection_id=${start.body.connection_id}`, {
@@ -447,7 +447,7 @@ test('delayed proof past expiry and missing signing key do not mint', async () =
   try {
     await signup(invalid, ALICE, invalidJar);
     const start = await startConnection(invalid, 'bad-key', originFor('bad-key'));
-    start.siteId = 'bad-key';
+    start.siteId = start.body.site_id;
     start.siteOrigin = originFor('bad-key');
     await storeReceipt(invalid, start);
     const approve = await request(invalid, invalidJar, `/account/connect?connection_id=${start.body.connection_id}`, {
@@ -494,7 +494,7 @@ test('unusable signing keys do not consume or leak library errors', async () => 
     try {
       await signup(runtime, ALICE, jar);
       const start = await startConnection(runtime, fixture.label, originFor(fixture.label));
-      start.siteId = fixture.label;
+      start.siteId = start.body.site_id;
       start.siteOrigin = originFor(fixture.label);
       await storeReceipt(runtime, start);
       const approve = await request(runtime, jar, `/account/connect?connection_id=${start.body.connection_id}`, {
@@ -538,11 +538,12 @@ test('production entry cannot mint persisted approved rows even with rogue bindi
   const seeded = await startMerchantTestRuntime({ persistTo });
   const alice = new Map();
   let connectionId = '';
+  let canonicalSiteId = '';
   let verifier = '';
   try {
     await signup(seeded, ALICE, alice);
     const start = await startConnection(seeded, 'prod-blocked', originFor('prod-blocked'));
-    start.siteId = 'prod-blocked';
+    start.siteId = start.body.site_id;
     start.siteOrigin = originFor('prod-blocked');
     await storeReceipt(seeded, start);
     const approve = await request(seeded, alice, `/account/connect?connection_id=${start.body.connection_id}`, {
@@ -553,6 +554,7 @@ test('production entry cannot mint persisted approved rows even with rogue bindi
     assert.equal(approve.status, 303);
     assert.equal(approve.headers.get('location'), start.callback);
     connectionId = start.body.connection_id;
+    canonicalSiteId = start.body.site_id;
     verifier = start.pkce.verifier;
   } finally {
     await stopRuntime(seeded);
@@ -611,7 +613,7 @@ test('production entry cannot mint persisted approved rows even with rogue bindi
     const body = await minted.json();
     assert.equal(minted.status, 200);
     assert.equal(body.token_type, 'Bearer');
-    assert.equal(body.site_id, 'prod-blocked');
+    assert.equal(body.site_id, canonicalSiteId);
     assert.equal(typeof body.access_token, 'string');
   } finally {
     await stopRuntime({ ...simulation, ownedPersist: true });
@@ -631,7 +633,7 @@ test("unauthenticated connect preserves safe continuation to sign-in and signup 
 
     const site = originFor("continuation-site");
     const start = await startConnection(runtime, "site-cont", site);
-    start.siteId = "site-cont";
+    start.siteId = start.body.site_id;
     start.siteOrigin = site;
     await storeReceipt(runtime, start);
     const connId = start.body.connection_id;
@@ -742,7 +744,7 @@ test("unauthenticated connect preserves safe continuation to sign-in and signup 
     assert.equal(tokenRes.status, 200);
     const tokenBody = await tokenRes.json();
     assert.equal(tokenBody.token_type, "Bearer");
-    assert.equal(tokenBody.site_id, "site-cont");
+    assert.equal(tokenBody.site_id, start.body.site_id);
     assert.equal(typeof tokenBody.access_token, "string");
     assert.ok(tokenBody.expires_in <= 300);
 
@@ -755,7 +757,7 @@ test("unauthenticated connect preserves safe continuation to sign-in and signup 
       issuer: "https://dinkuskit.com/account",
       audience: "inventory",
     });
-    assert.equal(verified.payload.site_id, "site-cont");
+    assert.equal(verified.payload.site_id, start.body.site_id);
     assert.equal(verified.payload.scope, "inventory:admin");
     assert.ok(typeof verified.payload.sub === "string" && verified.payload.sub.length > 0);
     assert.ok(verified.payload.exp && verified.payload.iat);
@@ -765,13 +767,13 @@ test("unauthenticated connect preserves safe continuation to sign-in and signup 
     const revoke = await request(runtime, existingJar, "/account/sites", {
       method: "POST",
       headers: { "content-type": "application/x-www-form-urlencoded" },
-      body: await accountForm(runtime, existingJar, "action=revoke&site_id=site-cont"),
+      body: await accountForm(runtime, existingJar, `action=revoke&site_id=${start.body.site_id}&service=inventory`),
     });
     assert.equal(revoke.status, 303);
 
     // A new connection attempt for the revoked site cannot exchange tokens
     const nextStart = await startConnection(runtime, "site-cont", site);
-    nextStart.siteId = "site-cont";
+    nextStart.siteId = nextStart.body.site_id;
     nextStart.siteOrigin = site;
     await storeReceipt(runtime, nextStart);
     const reApprove = await request(runtime, existingJar, `/account/connect?connection_id=${nextStart.body.connection_id}`, {
@@ -780,7 +782,7 @@ test("unauthenticated connect preserves safe continuation to sign-in and signup 
       body: await accountForm(runtime, existingJar, "action=approve"),
     });
     const reApproveLoc = new URL(reApprove.headers.get("location"), runtime.origin);
-    assert.equal(reApproveLoc.searchParams.get("error"), "reinstall_requires_manual_migration");
+    assert.equal(reApproveLoc.searchParams.get("error"), "grant_revoked");
     const blockedToken = await request(runtime, new Map(), "/api/store-connections/token", {
       method: "POST",
       body: JSON.stringify({
@@ -797,7 +799,7 @@ test("unauthenticated connect preserves safe continuation to sign-in and signup 
       issuer: "https://dinkuskit.com/account",
       audience: "inventory",
     });
-    assert.equal(reverified.payload.site_id, "site-cont");
+    assert.equal(reverified.payload.site_id, start.body.site_id);
 
     // Cryptographic exp rejection at a test future clock without sleeping
     await assert.rejects(
@@ -811,7 +813,7 @@ test("unauthenticated connect preserves safe continuation to sign-in and signup 
 
     // 10. Also verify new merchant signup continuation flow
     const startNew = await startConnection(runtime, "site-cont-new", originFor("continuation-site-new"));
-    startNew.siteId = "site-cont-new";
+    startNew.siteId = startNew.body.site_id;
     startNew.siteOrigin = originFor("continuation-site-new");
     await storeReceipt(runtime, startNew);
     const newExpected = `/account/connect?connection_id=${encodeURIComponent(startNew.body.connection_id)}`;

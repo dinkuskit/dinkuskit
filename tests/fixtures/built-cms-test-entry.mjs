@@ -115,7 +115,7 @@ async function proofRoutes(request, env, ctx) {
     const notices = await db.prepare('SELECT * FROM dinkuskit_organization_notification WHERE organization_id=?').bind(id).all();
     const allocations = await db.prepare('SELECT * FROM dinkuskit_admission ORDER BY user_id').all();
     return json(200, { org, audit, notices: notices.results, allocations: allocations.results,
-      messages: admissionMessages, grants: await db.prepare('SELECT count(*) n FROM dinkuskit_site_binding').first() });
+      messages: admissionMessages, grants: await db.prepare('SELECT count(*) n FROM dinkuskit_service_grant').first() });
   }
   if (url.pathname === '/__proof/foreign-approval') {
     return production.fetch(new Request('https://foreign.example/account/organization-approvals', {
@@ -184,8 +184,8 @@ async function proofRoutes(request, env, ctx) {
     const siteId = url.searchParams.get('site_id') ?? '';
     if (!siteId || !env.MERCHANT_DB) return json(400, { error: 'invalid_site' });
     const row = await env.MERCHANT_DB.prepare(
-      'SELECT site_id, revoked FROM dinkuskit_site_binding WHERE site_id = ?',
-    ).bind(siteId).first();
+      'SELECT i.site_id, g.revoked FROM dinkuskit_store_identity i JOIN dinkuskit_service_grant g ON g.site_id = i.site_id WHERE i.site_id = ? AND g.service = ?',
+    ).bind(siteId, url.searchParams.get('service') ?? 'inventory').first();
     return json(200, { present: Boolean(row), revoked: row?.revoked === 1 });
   }
 
@@ -194,6 +194,8 @@ async function proofRoutes(request, env, ctx) {
     const result = await fetchStoreProofReceipt({
       siteOrigin: String(body.siteOrigin ?? ''),
       connectionId: String(body.connectionId ?? 'probe'),
+      clientId: String(body.clientId ?? 'dinkus-inventory-emdash'),
+      service: String(body.service ?? 'inventory'),
     });
     return json(result.ok ? 200 : 403, result);
   }

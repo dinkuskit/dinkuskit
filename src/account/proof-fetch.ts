@@ -1,11 +1,11 @@
 import {
-  INVENTORY_PROOF_PATH,
+  REGISTERED_STORE_SERVICES,
   PROOF_FETCH_MAX_BYTES,
   PROOF_FETCH_TIMEOUT_MS,
 } from './config.ts';
 
 export type StoreProofReceipt = {
-  version: 1;
+  version: 2;
   connection_id: string;
   challenge: string;
   client_id: string;
@@ -24,6 +24,8 @@ export type ProofFetchResult =
 export type ProofFetchFn = (input: {
   siteOrigin: string;
   connectionId: string;
+  clientId: string;
+  service: string;
 }) => Promise<ProofFetchResult>;
 
 const PRIVATE_HOSTS = new Set(['localhost', 'localhost.']);
@@ -82,8 +84,10 @@ export function parseCanonicalSiteOrigin(input: string, options: { allowExactOri
   return { ok: true, origin: url.origin };
 }
 
-export function proofUrlFor(siteOrigin: string, connectionId: string): URL {
-  const url = new URL(INVENTORY_PROOF_PATH, `${siteOrigin}/`);
+export function proofUrlFor(siteOrigin: string, connectionId: string, clientId: string, service: string): URL {
+  const registered = REGISTERED_STORE_SERVICES.find(item => item.clientId === clientId && item.service === service);
+  if (!registered) throw new Error('unregistered_service');
+  const url = new URL(registered.proofPath, `${siteOrigin}/`);
   url.search = '';
   url.hash = '';
   url.searchParams.set('connection_id', connectionId);
@@ -93,14 +97,14 @@ export function proofUrlFor(siteOrigin: string, connectionId: string): URL {
 function asReceipt(value: unknown): StoreProofReceipt | null {
   if (!value || typeof value !== 'object') return null;
   const row = value as Record<string, unknown>;
-  if (row.version !== 1) return null;
+  if (row.version !== 2) return null;
   const required = ['connection_id', 'challenge', 'client_id', 'service', 'site_id', 'site_origin', 'callback_uri', 'code_challenge'] as const;
   for (const key of required) {
     if (typeof row[key] !== 'string' || !row[key]) return null;
   }
   if (typeof row.expires_at !== 'number' || !Number.isInteger(row.expires_at)) return null;
   return {
-    version: 1,
+    version: 2,
     connection_id: row.connection_id as string,
     challenge: row.challenge as string,
     client_id: row.client_id as string,
@@ -116,12 +120,16 @@ function asReceipt(value: unknown): StoreProofReceipt | null {
 export async function fetchStoreProofReceipt(input: {
   siteOrigin: string;
   connectionId: string;
+  clientId: string;
+  service: string;
 }): Promise<ProofFetchResult> {
   const origin = parseCanonicalSiteOrigin(input.siteOrigin);
   if (!origin.ok) return { ok: false, reason: origin.reason, transport: 'production-fetch' };
-  const url = proofUrlFor(origin.origin, input.connectionId);
+  const registered = REGISTERED_STORE_SERVICES.find(item => item.clientId === input.clientId && item.service === input.service);
+  if (!registered) return { ok: false, reason: 'unregistered_service', transport: 'production-fetch' };
+  const url = proofUrlFor(origin.origin, input.connectionId, input.clientId, input.service);
   if (url.username || url.password) return { ok: false, reason: 'invalid_proof_url', transport: 'production-fetch' };
-  if (url.pathname !== INVENTORY_PROOF_PATH) return { ok: false, reason: 'invalid_proof_path', transport: 'production-fetch' };
+  if (url.pathname !== registered.proofPath) return { ok: false, reason: 'invalid_proof_path', transport: 'production-fetch' };
   if ([...url.searchParams.keys()].join(',') !== 'connection_id') {
     return { ok: false, reason: 'invalid_proof_query', transport: 'production-fetch' };
   }

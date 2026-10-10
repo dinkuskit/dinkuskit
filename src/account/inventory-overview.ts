@@ -163,7 +163,7 @@ export async function readInventoryOverview(input: {
     if (!await permitted() || !await unchanged()) return forbidden;
     const result = validateOverview(response.body, input.organizationId, response.status);
     if (!('overview' in result)) return result;
-    const bindings = await listActiveBindings(input.db, initial.subject);
+    const bindings = (await listActiveBindings(input.db, initial.subject)).filter(binding => binding.service === 'inventory');
     if (!await permitted() || !await unchanged()) return forbidden;
     const bySite = new Map(bindings.filter(binding => binding.service === 'inventory').map(binding => [binding.siteId, binding]));
     result.overview.rows = result.overview.rows.map(row => {

@@ -15,4 +15,16 @@ Node 22.23.2. The new upstream-derivation regression failed against the old slug
 Full npm run verify passed: 83 tests, audit, generated types, typecheck/build, route/CMS persistence and upgrade checks, and production/candidate denial checks. The first attempt failed fetching an external font; the URL returned HTTP200 and the unmodified retry completed. Working logs are ignored under .grilltrack/work/registry-store-paths/ (regression-before.log, regression-after.log, verify.log, verify-retry.log).
 
 ## Paired proof and delivery gate
-Actual local Registry installer plus installed Payments callback/proof integration is a required paired acceptance check, owned by the Payments consumer lane (PR34). At this source freeze it is pending; local synthetic route tests above do not establish Registry installation. The final handoff must include the installer record, exact source/bundle identities and reviewed consumer proof. No production Registry publication, hosted availability, Inventory Registry claim, deployment or merge is authorized by this packet.
+The Payments consumer lane (PR34) completed the actual upstream handleRegistryInstall and installed browser flow against website source 6c38e938fe535ebe3ffa719edd2e7bf766be3171. This packet's follow-up changes are proof/ledger metadata only; the source digest above and website runtime bundle are unchanged.
+
+The inspected installer record persists source=registry, status=active, publisher did:plc:ekk4pjmkh3k3ql2kfoex3qt4, slug dinkus-payments and runtime ID r_3brsc2on3bu673rn. Official artifact checksum/archive/identity checks and explicit access/public-route acknowledgment were exercised using local synthetic authoritative records. The installed browser flow completed normal merchant consent, the exact hashed callback, one token exchange and two successful status requests. The consumed hashed proof endpoint returned404; anonymous/subscriber requests returned401/403; another admin did not inherit the status session. Stored registry_session was encrypted. No processor call occurred. The screenshot shows status checked while processor connection and test-order readiness remain incomplete.
+
+Immutable artifact SHA256 values:
+- Installed Payments tarball: 7851000b747cc4ace2c9c13dc98696eb26b8a655e29e49a91029a66009ee2774.
+- Installed state record: f403560cddff267460db4ad00a45bf4f3cdd626b51c267910b3ddfb4755015b1.
+- Payments status screenshot: 66c0815c7626b792411f7e4565389db46dbc9273297cfe5cde35078b8dd1366d.
+- Website dist/server/entry.mjs: e320884da9e7eeefbef988e4b508481ec0adb951a4ee04b4f2723eb7d8ad2a5b.
+- Website built-memory-test-entry.mjs: 4427e92e8eee066cb7ba60567a3e534cf850f12067f79f6a21a0bb524af5aa0e.
+- Website inventory-memory-runner.mjs: 2cc2b4403f56e53be8d7a2311e05eebf634c77cb89ddfee8c496db80bb38d536.
+
+Payments owns the generated installer record, real-integration.json, package and browser capture; public curated consumer proof is tracked through Payments PR34. Website source review independently inspected those records and the screenshot without importing consumer source/history or raw sessions. Limits: authoritative Registry records and status transport are local simulations; provenance was absent-optional in the local fixture. This proves the actual installer and installed route identity, not live PDS/Registry publication, production transport, Inventory Registry installation, deployment or merge readiness.

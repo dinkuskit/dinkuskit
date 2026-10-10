@@ -4639,14 +4639,21 @@
           "result": "findings",
           "reviewed_at": "2026-10-10T03:16:02+00:00",
           "source_identity": "git:c0e871e3b2b63a511c78669cb78b29bd810c51f3"
+        },
+        {
+          "classifications": [],
+          "ref": "proof/registry-store-paths/REVIEW.md",
+          "result": "clean",
+          "reviewed_at": "2026-10-10T03:30:47+00:00",
+          "source_identity": "sha256:469e2539b58eb10c8de304957ec5c279a46b74f5bdfb402626409508bdfee397"
         }
       ],
-      "review_ref": null,
-      "review_result": null,
-      "review_source_identity": null,
+      "review_ref": "proof/registry-store-paths/REVIEW.md",
+      "review_result": "clean",
+      "review_source_identity": "sha256:469e2539b58eb10c8de304957ec5c279a46b74f5bdfb402626409508bdfee397",
       "status": "verified",
       "superseded_by": null,
-      "updated_at": "2026-10-10T03:24:56+00:00",
+      "updated_at": "2026-10-10T03:30:47+00:00",
       "verification_ref": "proof/registry-store-paths/PROOF.md"
     }
   ],
@@ -4675,5 +4682,5 @@
   "status": "active",
   "title": "Website PR9 current-main reconciliation",
   "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca",
-  "updated_at": "2026-10-10T03:24:56+00:00"
+  "updated_at": "2026-10-10T03:30:47+00:00"
 }

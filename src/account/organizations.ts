@@ -102,7 +102,7 @@ export async function authoritySubjectForOrganization(db: D1Database, organizati
 const ELIGIBLE_USER = `SELECT u.id FROM "user" u
   JOIN dinkuskit_account a ON a.user_id = u.id AND a.disabled = 0
   JOIN dinkuskit_signup_profile p ON p.user_id = u.id AND p.email = u.email
-  WHERE u.id = ? AND p.phone <> '' AND p.agreement_accepted = 1
+  WHERE u.id = ? AND p.agreement_accepted = 1
     AND ((p.email_verified = 1 AND u.emailVerified = 1) OR p.phone_verified = 1)`;
 
 function changed(result: unknown): boolean {

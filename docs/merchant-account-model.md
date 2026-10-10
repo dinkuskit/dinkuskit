@@ -14,15 +14,14 @@ CMS editor identity and platform operator authority remain separate. Membership 
 
 ## Compact signup and consent
 
-One page collects required email and phone, one required service-contact choice, separate optional promotional email/SMS preferences (unchecked), and a separate required agreement checkbox. Staff setup, pools and billing occur later. The eligibility contract is:
+One page collects a required email, an optional phone number, separate optional promotional email/SMS preferences (unchecked), and a separate required agreement checkbox (decision `website-optional-phone-signup-033`). The service-contact choice appears only when a phone number is typed; without one the contact is email (`website-email-contact-without-phone-034`), and promotional SMS cannot be chosen. Staff setup, pools and billing occur later. The eligibility contract is:
 
 ```text
-email_present && phone_present &&
-(email_verified || phone_verified) &&
-service_contact_selected && agreement_accepted
+email_present && email_verified &&
+service_contact (email unless a phone is given) && agreement_accepted
 ```
 
-The local implemented path verifies email through pinned Better Auth 1.7.6 magic links. Phone remains an independent required contact with unverified state. The selected dedicated-phone transport still needs qualification; no SMS delivery or phone OTP runtime is claimed. An unavailable optional second verification route does not block complete verified-email signup. A required service-contact preference is not a promise that an unqualified delivery route operates.
+The implemented path verifies email through pinned Better Auth 1.7.6 magic links. A phone number, when given, is stored unverified; no SMS delivery or phone OTP runtime exists or is claimed, and a phone service-contact choice is not a promise that a text route operates. Admission to the first 50 and operator approval do not need a phone number.
 
 Each submission creates an immutable five-minute attempt and an HttpOnly, SameSite=Lax browser locator. Completion requires that exact unexpired, unused attempt and an independently verified matching user email. Consumption uses a unique marker, and a verified profile is immutable. Anonymous submissions for the same email cannot replace another browser’s choices. An unsolicited link or raw auth-API login can authenticate the person, but cannot create an eligible profile, organization, grant or service token. A signed-in login-only person can complete the same signup page. Verification never sets the other contact’s verified state or either promotional preference.
 

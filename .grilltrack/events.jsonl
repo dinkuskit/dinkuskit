@@ -235,3 +235,25 @@
 {"action": "decision_locked", "at": "2026-10-10T18:03:50+00:00", "data": {"decision_id": "website-production-store-connect-032"}, "event_id": "9f93be71-a878-4db9-969e-ad5c26ae91a6"}
 {"action": "decision_implemented", "at": "2026-10-10T18:03:50+00:00", "data": {"decision_id": "website-production-store-connect-032"}, "event_id": "8849723f-470d-4b2a-91dd-5c992c858f0d"}
 {"action": "decision_verified", "at": "2026-10-10T18:03:51+00:00", "data": {"decision_id": "website-production-store-connect-032"}, "event_id": "961d33de-4462-4764-ac46-7334a43c51eb"}
+{"action": "focus_started", "at": "2026-10-10T19:28:05+00:00", "data": {"cadence": "frontier-batch", "domain": "Accounts and operator admin for v1"}, "event_id": "2b7a9970-e4e8-4e3e-adb0-4ba0ebfa7e29"}
+{"action": "shared_understanding_confirmed", "at": "2026-10-10T19:28:31+00:00", "data": {"summary": "Ronald confirmed the ordered plan and answered all seven questions on 2026-10-10 19:23-19:24 UTC."}, "event_id": "104ae4f8-3f98-4886-8a16-9d67e920aa54"}
+{"action": "decision_proposed", "at": "2026-10-10T19:28:31+00:00", "data": {"decision_id": "website-optional-phone-signup-033"}, "event_id": "0baf7a2c-fbee-470f-8a70-b6c9310af4bb"}
+{"action": "decision_locked", "at": "2026-10-10T19:28:31+00:00", "data": {"decision_id": "website-optional-phone-signup-033"}, "event_id": "07f750bb-0be3-4e4a-a8b2-d235e1f80312"}
+{"action": "decision_proposed", "at": "2026-10-10T19:28:31+00:00", "data": {"decision_id": "website-email-contact-without-phone-034"}, "event_id": "e16aef0b-34b8-40e9-b709-540d08ffea28"}
+{"action": "decision_locked", "at": "2026-10-10T19:28:31+00:00", "data": {"decision_id": "website-email-contact-without-phone-034"}, "event_id": "b5759ccf-952a-45b5-ba92-03f42e7578ca"}
+{"action": "decision_proposed", "at": "2026-10-10T19:28:31+00:00", "data": {"decision_id": "website-operator-admin-emdash-access-035"}, "event_id": "d3f632a9-6167-408c-b454-412ba381a69a"}
+{"action": "decision_locked", "at": "2026-10-10T19:28:31+00:00", "data": {"decision_id": "website-operator-admin-emdash-access-035"}, "event_id": "d57af1a0-27ac-472e-8548-236cb6584123"}
+{"action": "decision_proposed", "at": "2026-10-10T19:28:31+00:00", "data": {"decision_id": "website-operator-suspend-account-036"}, "event_id": "b98c7f0a-c061-4372-9649-1174ac9d9a18"}
+{"action": "decision_locked", "at": "2026-10-10T19:28:32+00:00", "data": {"decision_id": "website-operator-suspend-account-036"}, "event_id": "019487b3-a589-473c-b03e-3a096df8aa5e"}
+{"action": "decision_proposed", "at": "2026-10-10T19:28:32+00:00", "data": {"decision_id": "website-operator-cut-off-store-037"}, "event_id": "7e5bdc1a-34b3-4ec3-9fd8-13391bd895c5"}
+{"action": "decision_locked", "at": "2026-10-10T19:28:32+00:00", "data": {"decision_id": "website-operator-cut-off-store-037"}, "event_id": "79984142-0e32-4959-aaf6-ad0b2b632d6d"}
+{"action": "decision_proposed", "at": "2026-10-10T19:28:32+00:00", "data": {"decision_id": "website-operator-services-view-038"}, "event_id": "8b73709b-955b-4e4f-83a7-6a4babac9459"}
+{"action": "decision_locked", "at": "2026-10-10T19:28:32+00:00", "data": {"decision_id": "website-operator-services-view-038"}, "event_id": "2a7248a4-aad7-4e8f-9c7a-23491f3604ca"}
+{"action": "decision_proposed", "at": "2026-10-10T19:28:32+00:00", "data": {"decision_id": "website-operator-approvals-in-admin-039"}, "event_id": "146053e2-afd6-4570-bbc1-8dc36c003902"}
+{"action": "decision_locked", "at": "2026-10-10T19:28:32+00:00", "data": {"decision_id": "website-operator-approvals-in-admin-039"}, "event_id": "11d904e0-3c64-4619-a7df-68555b0fe0ff"}
+{"action": "decision_proposed", "at": "2026-10-10T19:28:32+00:00", "data": {"decision_id": "website-owner-remove-employee-040"}, "event_id": "a134b667-f8c5-4c43-acf0-728a243427f9"}
+{"action": "decision_locked", "at": "2026-10-10T19:28:32+00:00", "data": {"decision_id": "website-owner-remove-employee-040"}, "event_id": "1b610d19-7071-42c9-ba16-604a4bf331bd"}
+{"action": "decision_implemented", "at": "2026-10-10T19:37:02+00:00", "data": {"decision_id": "website-optional-phone-signup-033"}, "event_id": "5f8814d9-f7ab-40ed-ab7a-62e83a2de63f"}
+{"action": "decision_verified", "at": "2026-10-10T19:37:02+00:00", "data": {"decision_id": "website-optional-phone-signup-033"}, "event_id": "e7b2dc5e-6273-4258-a3b9-36cb0409fbae"}
+{"action": "decision_implemented", "at": "2026-10-10T19:37:02+00:00", "data": {"decision_id": "website-email-contact-without-phone-034"}, "event_id": "d6c2f32e-4c23-4c3a-9345-6d67e61573a4"}
+{"action": "decision_verified", "at": "2026-10-10T19:37:02+00:00", "data": {"decision_id": "website-email-contact-without-phone-034"}, "event_id": "7dfab39b-ec11-4039-9df1-4c1b49c101e7"}

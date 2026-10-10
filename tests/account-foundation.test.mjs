@@ -69,6 +69,29 @@ test('verified signup consumes this browser snapshot; expired, unsolicited and d
   } finally { await stopRuntime(runtime); }
 });
 
+test('email-only signup is admitted; without a phone the contact is email and no texts are chosen', async () => {
+  const runtime = await startMerchantTestRuntime();
+  try {
+    const jar = new Map();
+    const email = 'email-only@example.com';
+    const posted = await form(runtime, jar, '/account/signup', { email, phone: '', service_channel: 'phone', promotional_sms: 'on', agreement: 'on' });
+    assert.equal(posted.headers.get('location'), '/account/check-email');
+    await completeProofMail(runtime, jar, email);
+    const saved = await state(runtime, email);
+    assert.equal(saved.profile.phone, '');
+    assert.equal(saved.profile.service_channel, 'email');
+    assert.equal(saved.profile.promotional_sms, 0);
+    assert.equal(saved.profile.email_verified, 1);
+    const orgs = await organizations(runtime, jar);
+    assert.equal(orgs.organizations.length, 1);
+    assert.equal(orgs.organizations[0].admissionStatus, 'admitted');
+    const noChannel = await form(runtime, new Map(), '/account/signup', { email: 'no-channel@example.com', phone: '+15555550199', agreement: 'on' });
+    assert.equal(noChannel.headers.get('location'), '/account/check-email');
+    const noAgreement = await form(runtime, new Map(), '/account/signup', { email: 'no-agreement@example.com' });
+    assert.match(noAgreement.headers.get('location'), /missing_intake/);
+  } finally { await stopRuntime(runtime); }
+});
+
 test('pending selection persists and Owner/Admin employee routes enforce current organization ceilings', async () => {
   const runtime = await startMerchantTestRuntime();
   try {

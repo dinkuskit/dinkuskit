@@ -9,31 +9,36 @@ const error = Astro.url.searchParams.get('error');
 const callbackURL = safeAccountPath(Astro.url.searchParams.get('callbackURL'), '');
 const signinHref = callbackURL ? `/account/sign-in?callbackURL=${encodeURIComponent(callbackURL)}` : '/account/sign-in';
 ---
-<Site title="Create account" description="Create a DinkusKit merchant account with your email and phone.">
+<Site title="Create account" description="Create a DinkusKit merchant account with your email address.">
   <div class="account-panel">
     <p class="eyebrow">Merchant account</p>
     <h1>Create your account</h1>
-    <p class="lead">Use both contacts to create a merchant account. Either verified contact can qualify you; this is separate from the website editor.</p>
-    <p class="account-note">Dedicated phone delivery is not available yet. Signup verification currently uses the email link; phone remains a required contact record.</p>
-    {error ? <p class="account-error" role="alert">Complete the required contact, service, and agreement fields.</p> : null}
+    <p class="lead">We email you a link to finish signing up. This account is for store owners and their staff, separate from the website editor.</p>
+    {error ? <p class="account-error" role="alert">Enter your email, a phone number with + and country code if you give one, and accept the terms.</p> : null}
     <form method="post" action="/account/signup" class="account-form">
       {callbackURL ? <input type="hidden" name="callbackURL" value={callbackURL} /> : null}
       <label for="email">Email</label>
       <input id="email" name="email" type="email" autocomplete="email" required maxlength="200" />
-      <label for="phone">Phone</label>
-      <input id="phone" name="phone" type="tel" autocomplete="tel" required maxlength="16" placeholder="+15555550123" pattern={String.raw`\+[1-9][0-9]{6,14}`} aria-describedby="phone-format" />
-      <small id="phone-format">Include + and country code, with no spaces.</small>
-      <label for="service_channel">Required service/contact channel</label>
-      <select id="service_channel" name="service_channel" required>
-        <option value="">Choose one</option>
-        <option value="email">Email</option>
-        <option value="phone">Phone</option>
-      </select>
-      <label><input name="promotional_email" type="checkbox" /> Optional promotional email</label>
-      <label><input name="promotional_sms" type="checkbox" /> Optional promotional SMS</label>
+      <label for="phone">Phone (optional)</label>
+      <input id="phone" name="phone" type="tel" autocomplete="tel" maxlength="16" placeholder="+15555550123" pattern={String.raw`\+[1-9][0-9]{6,14}`} aria-describedby="phone-format" />
+      <small id="phone-format">Include + and country code, with no spaces. We do not send texts yet.</small>
+      <div class="phone-only">
+        <label for="service_channel">Contact me by</label>
+        <select id="service_channel" name="service_channel">
+          <option value="email" selected>Email</option>
+          <option value="phone">Phone</option>
+        </select>
+      </div>
+      <label><input name="promotional_email" type="checkbox" /> Send me occasional news by email</label>
+      <label class="phone-only"><input name="promotional_sms" type="checkbox" /> Send me occasional news by text</label>
       <label><input name="agreement" type="checkbox" required /> I agree to the account terms</label>
       <button type="submit">Email me a signup link</button>
     </form>
     <p><a href={signinHref}>Already have an account? Sign in</a></p>
   </div>
 </Site>
+<style>
+  /* Phone choices only appear once a phone number is typed; the server enforces the same rule. */
+  .account-form:has(#phone:placeholder-shown) .phone-only { display: none; }
+  div.phone-only { display: grid; gap: .7rem; }
+</style>

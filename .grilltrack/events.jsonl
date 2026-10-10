@@ -229,3 +229,9 @@
 {"action": "shared_understanding_confirmed", "at": "2026-10-10T17:20:38+00:00", "data": {"summary": "Ronald agreed on 2026-10-10 17:09 UTC (project thread 'DinkusKit website status'): fix the deploy prep from PR 24, then turn on store Connect, so one test DinkusKit.com and one long-lived test store give an end-to-end test; the local account playground is dropped."}, "event_id": "3d277948-a0be-47e9-9b43-60097b015806"}
 {"action": "decision_proposed", "at": "2026-10-10T17:20:38+00:00", "data": {"decision_id": "website-test-mode-deploy-031"}, "event_id": "faa62ac2-ac1b-40c9-9858-d129453604db"}
 {"action": "decision_proposed", "at": "2026-10-10T17:20:38+00:00", "data": {"decision_id": "website-production-store-connect-032"}, "event_id": "c1ddcf63-7029-4980-8e5b-34c462a8b121"}
+{"action": "decision_locked", "at": "2026-10-10T18:03:50+00:00", "data": {"decision_id": "website-test-mode-deploy-031"}, "event_id": "a94a6f3b-f807-49d0-8d7e-7949dadaaf12"}
+{"action": "decision_implemented", "at": "2026-10-10T18:03:50+00:00", "data": {"decision_id": "website-test-mode-deploy-031"}, "event_id": "0272af4c-0a25-48fa-b26d-b687273dc7b4"}
+{"action": "decision_verified", "at": "2026-10-10T18:03:50+00:00", "data": {"decision_id": "website-test-mode-deploy-031"}, "event_id": "fa61e894-2901-4522-9c20-c15f92d00304"}
+{"action": "decision_locked", "at": "2026-10-10T18:03:50+00:00", "data": {"decision_id": "website-production-store-connect-032"}, "event_id": "9f93be71-a878-4db9-969e-ad5c26ae91a6"}
+{"action": "decision_implemented", "at": "2026-10-10T18:03:50+00:00", "data": {"decision_id": "website-production-store-connect-032"}, "event_id": "8849723f-470d-4b2a-91dd-5c992c858f0d"}
+{"action": "decision_verified", "at": "2026-10-10T18:03:51+00:00", "data": {"decision_id": "website-production-store-connect-032"}, "event_id": "961d33de-4462-4764-ac46-7334a43c51eb"}

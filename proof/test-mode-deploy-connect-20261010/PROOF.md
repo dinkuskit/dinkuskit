@@ -1,7 +1,7 @@
 # Test-mode deploy and production store Connect
 
 Base: main f97f4b3 plus PR 24's commit b12278b (deploy prep), carried here unchanged.
-Decisions: website-test-mode-deploy-031 and website-production-store-connect-032.
+Decisions: website-test-mode-deploy-031 and website-production-store-connect-032, approved by Ronald 2026-10-10 18:03 UTC and locked.
 
 ## Why Connect never worked online
 

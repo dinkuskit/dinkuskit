@@ -230,7 +230,7 @@ test('cleanup result requires same-run service safety and absence, independent o
     assert.equal(assessRun(manifest(), result({cleanup: {...result().cleanup, evidence}})).status, 'incomplete', service);
   }
   const wrongRun = cleanupEvidence().map((entry) => ({...entry, run_id: 'run-other'}));
-  assert.equal(assessRun(manifest(), result({cleanup: {...result().cleanup, evidence: wrongRun}})).status, 'incomplete');
+  assert.equal(assessRun(manifest(), result({cleanup: {...result().cleanup, evidence: wrongRun}})).status, 'blocked');
   assert.equal(assessRun(manifest(), result({cleanup: {...result().cleanup, resource_state: 'active'}})).status, 'incomplete');
   assert.throws(() => validateResult(result({cleanup: {...result().cleanup, retry_suppressed: true}})), /undeclared/);
 });
@@ -1038,4 +1038,147 @@ test('FakeLifecycle.restore enforces event chronological ordering, time bounds a
   const restoredValid = FakeLifecycle.restore(snapValid);
   assert.equal(restoredValid.record('run-events-check').state, 'active');
   assert.equal(restoredValid.events.length, snapValid.events.length);
+});
+
+test("assessRun blocks when valid required journey or cleanup evidence is accompanied by foreign-run, foreign-environment, or foreign-target extras across target dimensions while preserving valid supplementary evidence", () => {
+  const dimensions = ["run_id", "environment", "target_ref", "site_ref", "release_ref", "deployment_ref", "provenance_class", "source_ref", "account_ref", "site_origin"];
+  for (const field of dimensions) {
+    const foreign = receipt({
+      receipt_ref: `receipt-foreign-${field.replaceAll("_", "-")}`,
+      [field]: field === "environment" ? "hosted-a" : field === "provenance_class" ? "test-build" : field === "run_id" ? "run-foreign" : field === "site_origin" ? "http://127.0.0.1:8788/" : field === "source_ref" ? "ref-wrong-source" : `foreign-${field.replaceAll("_", "-")}`,
+    });
+    if (field === "environment") {
+      foreign.provenance_class = "test-build";
+      foreign.deployment_ref = "deployment-a";
+      foreign.site_origin = "https://foreign.example.invalid/";
+    }
+    if (field === "provenance_class") {
+      foreign.environment = "hosted-a";
+      foreign.deployment_ref = "deployment-a";
+      foreign.site_origin = "https://foreign.example.invalid/";
+    }
+    if (field === "deployment_ref") {
+      foreign.environment = "hosted-a";
+      foreign.provenance_class = "test-build";
+      foreign.deployment_ref = "deployment-a";
+      foreign.site_origin = "https://foreign.example.invalid/";
+    }
+    // Journey evidence contains valid required receipt AND foreign extra
+    const journeyWithExtra = result({
+      journey: { ...result().journey, evidence: [receipt(), foreign] },
+    });
+    const assessedJourney = assessRun(manifest(), journeyWithExtra);
+    assert.equal(assessedJourney.status, "blocked", `journey foreign extra on ${field} must block`);
+
+    // Cleanup evidence contains valid required cleanup evidence AND foreign extra
+    const cleanupWithExtra = result({
+      cleanup: {
+        ...result().cleanup,
+        evidence: [...cleanupEvidence(), foreign],
+      },
+    });
+    const assessedCleanup = assessRun(manifest(), cleanupWithExtra);
+    assert.equal(assessedCleanup.status, "blocked", `cleanup foreign extra on ${field} must block`);
+  }
+
+  // Preserve valid same-target supplementary evidence (e.g. screenshot, agent-assertion)
+  const validSupplementary = receipt({
+    receipt_ref: "receipt-supplementary",
+    oracle_kind: "screenshot",
+    provider_ref: "provider-screen",
+    state_ref: "state-screen",
+  });
+  const journeyWithSupp = result({
+    journey: { ...result().journey, evidence: [receipt(), validSupplementary] },
+  });
+  assert.equal(assessRun(manifest(), journeyWithSupp).status, "passed");
+
+  // Preserve independent cross-product stage ownership
+  const crossManifest = manifest({
+    oracles: [
+      ...manifestBase.oracles,
+      {
+        stage_id: "plugin-stage",
+        owner_repo: "registry-plugin",
+        allowed_environments: ["local", "hosted-a"],
+        required: [{ kind: "state", provider_ref: "provider-plugin", state_ref: "state-plugin-ready" }],
+      },
+    ],
+  });
+  const crossReceipt = receipt({
+    receipt_ref: "receipt-cross",
+    stage_id: "plugin-stage",
+    owner_repo: "registry-plugin",
+    oracle_kind: "state",
+    provider_ref: "provider-plugin",
+    state_ref: "state-plugin-ready",
+  });
+  const crossResult = result({
+    journey: { ...result().journey, evidence: [receipt(), crossReceipt] },
+  });
+  assert.equal(assessRun(crossManifest, crossResult).status, "passed");
+});
+
+test("nonlocal targets and receipts reject unspecified and wildcard address forms while preserving hosted HTTPS and local loopback", () => {
+  const hostedManifest = (site_origin) => manifest({
+    environment: "hosted-a",
+    target: { ...target, target_ref: "target-a", deployment_ref: "deployment-a", provenance_class: "test-build", source_ref: "ref-a-build", site_origin },
+    oracles: [{ stage_id: "local-account", owner_repo: "account-service", allowed_environments: ["hosted-a"], required: [{ kind: "state", provider_ref: "provider-local", state_ref: "state-account-ready" }] }],
+  });
+  const deployedManifest = (site_origin) => manifest({
+    environment: "deployed-b",
+    target: { ...target, target_ref: "target-b", deployment_ref: "deployment-b", provenance_class: "public-release", source_ref: "sha256:" + "b".repeat(64), site_origin },
+    oracles: [{ stage_id: "local-account", owner_repo: "account-service", allowed_environments: ["deployed-b"], required: [{ kind: "state", provider_ref: "provider-local", state_ref: "state-account-ready" }] }],
+  });
+
+  const unspecifiedOrigins = [
+    "https://0.0.0.0/",
+    "https://0.0.0.0:8443/",
+    "https://[::]/",
+    "https://[::]:8443/",
+    "https://[::ffff:0.0.0.0]/",
+    "https://[::ffff:0:0]/",
+    "https://[::ffff:0.0.0.0]:8443/",
+    "https://[::0.0.0.0]/",
+    "https://[0:0:0:0:0:0:0:0]/",
+    "https://[0:0:0:0:0:ffff:0:0]/",
+  ];
+
+  for (const origin of unspecifiedOrigins) {
+    // 1. Rejected on hosted-a and deployed-b manifests
+    assert.throws(() => validateManifest(hostedManifest(origin)), /unspecified/);
+    assert.throws(() => validateManifest(deployedManifest(origin)), /unspecified/);
+
+    // 2. Rejected on hosted-a and deployed-b journey receipts
+    assert.throws(() => validateResult(result({
+      journey: {
+        ...result().journey,
+        evidence: [receipt({ environment: "hosted-a", provenance_class: "test-build", deployment_ref: "deployment-a", site_origin: origin })],
+      },
+    })), /unspecified/);
+    assert.throws(() => validateResult(result({
+      journey: {
+        ...result().journey,
+        evidence: [receipt({ environment: "deployed-b", provenance_class: "public-release", deployment_ref: "deployment-b", site_origin: origin })],
+      },
+    })), /unspecified/);
+
+    // 3. Rejected on cleanup receipts
+    assert.throws(() => validateResult(result({
+      cleanup: {
+        ...result().cleanup,
+        evidence: cleanupEvidence({ environment: "hosted-a", provenance_class: "test-build", deployment_ref: "deployment-a", site_origin: origin }),
+      },
+    })), /unspecified/);
+  }
+
+  // Preserve valid canonical hosted HTTPS
+  assert.equal(validateManifest(hostedManifest("https://a.example.invalid/")).target.site_origin, "https://a.example.invalid/");
+  assert.equal(validateManifest(deployedManifest("https://b.example.invalid/")).target.site_origin, "https://b.example.invalid/");
+
+  // Preserve existing local loopback behavior
+  for (const local of ["http://127.0.0.1:8787/", "http://localhost:8787/", "http://[::1]:8787/"]) {
+    assert.equal(validateManifest(manifest({ target: { ...target, site_origin: local } })).target.site_origin, local);
+    assert.equal(validateResult(result({ journey: { ...result().journey, evidence: [receipt({ site_origin: local })] } })).journey.evidence[0].site_origin, local);
+  }
 });

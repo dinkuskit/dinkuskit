@@ -2,19 +2,19 @@
   "schema_version": 1,
   "repository": "dinkuskit/dinkuskit",
   "base_commit": "771d91245918f321afbd55f495ec34741e6f09df",
-  "initial_head": "69384a095af1a9d3166e7da2b2024264ad2242b6",
+  "initial_head": "7356a84012ce0c69f62fc6909d8b0ddb6e2dc527",
   "runtime": "Node v22.23.2",
   "source_sha256": {
-    "tests/e2e/run-contract.mjs": "7d6d2c2b89fd641c6268187a823ad113109087d8b42fa89fcdb98d106036c040",
-    "tests/e2e/run-contract.test.mjs": "993c27c7a731b88dea929b18fb16f322fa089284801a15aca195e3509a20ca19",
-    "docs/e2e-run-contract.md": "99083654d380829cbc74ed6387b95567360b683a2df3d87496f76001a10c8898",
+    "tests/e2e/run-contract.mjs": "07cde8eef2507e7c14fdf1e42ea2302b7720df27a2e1a36c8212be33944e7dcb",
+    "tests/e2e/run-contract.test.mjs": "5c7de83c6a60dab78705ccfb5eca13b6ef6e4b2451e276a1f658bb664f7c6896",
+    "docs/e2e-run-contract.md": "d16c51c3af636f3a9aabd0ca8e89e7ac4ad89337e6fb75f7ca78e22aa0fdb389",
     "package.json": "7edc505656659e256235c5740d150584b6482212cbe57669b673385ec1fc436b"
   },
   "checks": [
     {
       "command": "node --test tests/e2e/run-contract.test.mjs",
       "exit_code": 0,
-      "tests": 34,
+      "tests": 36,
       "status": "passed"
     },
     {
@@ -34,9 +34,10 @@
     },
     {
       "command": "npm run verify",
-      "status": "blocked-external-font-download",
-      "exit_code": 1,
+      "status": "passed",
+      "exit_code": 0,
       "completed_commands": [
+        "verify",
         "audit:repo",
         "setup",
         "types:wrangler",
@@ -58,7 +59,9 @@
         "test:cms-operation-helpers",
         "test:access-gate",
         "test:safe-http-url",
-        "test:cms-operation"
+        "test:cms-operation",
+        "test:emdash-upgrade",
+        "test:cloudflare-candidate"
       ],
       "native_test_groups": [
         {
@@ -67,7 +70,7 @@
         },
         {
           "command": "test:e2e-contract",
-          "tests": 34
+          "tests": 36
         },
         {
           "command": "test:agent-routes",
@@ -101,15 +104,14 @@
           "command": "test:operator-admin",
           "tests": 8
         }
-      ],
-      "note": "All preceding commands passed including134 native tests. Upgrade fixture build failed CannotFetchFontFile from fonts.gstatic.com; final test:cloudflare-candidate was not reached. Current-head CI full verification required."
+      ]
     }
   ],
   "claims": {
-    "local_contract": "verified-focused-34-tests",
+    "local_contract": "verified-focused-36-tests",
     "hosted_a": "not-run",
     "deployed_b": "not-run",
-    "full_verification": "blocked-local-font-download-current-head-CI-required",
+    "full_verification": "passed",
     "independent_review": "pending"
   },
   "historical_verification": {
@@ -209,7 +211,7 @@
       }
     ]
   },
-  "verified_at": "2026-10-11T22:52:45.389626+00:00",
+  "verified_at": "2026-10-11T23:23:37.607135+00:00",
   "historical_cycle6": {
     "head": "69384a095af1a9d3166e7da2b2024264ad2242b6",
     "source_sha256": {
@@ -325,6 +327,115 @@
       "attempt": 2,
       "conclusion": "success",
       "url": "https://github.com/dinkuskit/dinkuskit/actions/runs/38180462397"
+    }
+  },
+  "historical_cycle7": {
+    "head": "7356a84012ce0c69f62fc6909d8b0ddb6e2dc527",
+    "source_sha256": {
+      "tests/e2e/run-contract.mjs": "7d6d2c2b89fd641c6268187a823ad113109087d8b42fa89fcdb98d106036c040",
+      "tests/e2e/run-contract.test.mjs": "993c27c7a731b88dea929b18fb16f322fa089284801a15aca195e3509a20ca19",
+      "docs/e2e-run-contract.md": "99083654d380829cbc74ed6387b95567360b683a2df3d87496f76001a10c8898",
+      "package.json": "7edc505656659e256235c5740d150584b6482212cbe57669b673385ec1fc436b"
+    },
+    "checks": [
+      {
+        "command": "node --test tests/e2e/run-contract.test.mjs",
+        "exit_code": 0,
+        "tests": 34,
+        "status": "passed"
+      },
+      {
+        "command": "git diff --check",
+        "exit_code": 0,
+        "status": "passed"
+      },
+      {
+        "command": "node scripts/audit-repo.mjs",
+        "exit_code": 0,
+        "status": "passed"
+      },
+      {
+        "command": "./scripts/grilltrack --project . validate",
+        "status": "passed",
+        "exit_code": 0
+      },
+      {
+        "command": "npm run verify",
+        "status": "blocked-external-font-download",
+        "exit_code": 1,
+        "completed_commands": [
+          "audit:repo",
+          "setup",
+          "types:wrangler",
+          "typecheck",
+          "test:account",
+          "test:e2e-contract",
+          "build",
+          "test:agent-routes",
+          "test:inventory-runner",
+          "test:merchant",
+          "test:shared-store",
+          "test:foundation",
+          "test:inventory-overview",
+          "test:organization-approvals",
+          "test:operator-admin",
+          "test:smoke",
+          "test:dev-cms",
+          "test:public-release-reuse",
+          "test:cms-operation-helpers",
+          "test:access-gate",
+          "test:safe-http-url",
+          "test:cms-operation"
+        ],
+        "native_test_groups": [
+          {
+            "command": "test:account",
+            "tests": 10
+          },
+          {
+            "command": "test:e2e-contract",
+            "tests": 34
+          },
+          {
+            "command": "test:agent-routes",
+            "tests": 5
+          },
+          {
+            "command": "test:inventory-runner",
+            "tests": 9
+          },
+          {
+            "command": "test:merchant",
+            "tests": 20
+          },
+          {
+            "command": "test:shared-store",
+            "tests": 27
+          },
+          {
+            "command": "test:foundation",
+            "tests": 8
+          },
+          {
+            "command": "test:inventory-overview",
+            "tests": 8
+          },
+          {
+            "command": "test:organization-approvals",
+            "tests": 5
+          },
+          {
+            "command": "test:operator-admin",
+            "tests": 8
+          }
+        ],
+        "note": "All preceding commands passed including134 native tests. Upgrade fixture build failed CannotFetchFontFile from fonts.gstatic.com; final test:cloudflare-candidate was not reached. Current-head CI full verification required."
+      }
+    ],
+    "ci": {
+      "run_id": 38182169287,
+      "conclusion": "success",
+      "url": "https://github.com/dinkuskit/dinkuskit/actions/runs/38182169287"
     }
   }
 }

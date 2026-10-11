@@ -48,6 +48,14 @@ function isLoopback(hostname) {
   return false;
 }
 
+function isUnspecified(hostname) {
+  const name = hostname.replace(/\.$/, "");
+  if (name === "0.0.0.0" || name === "[::]") return true;
+  if (name === "[::ffff:0:0]" || name === "[::ffff:0.0.0.0]") return true;
+  if (/^0(?:\.0){3}$/.test(name)) return true;
+  return false;
+}
+
 function origin(value, name) {
   assert.equal(typeof value, 'string', `${name} must be a canonical HTTPS origin`);
   const parsed = new URL(value);
@@ -57,8 +65,9 @@ function origin(value, name) {
   assert.equal(parsed.hash, '', `${name} must not contain a fragment`);
   assert.equal(parsed.username, '', `${name} must not contain userinfo`);
   assert.equal(parsed.password, '', `${name} must not contain userinfo`);
-  assert.equal(value, parsed.origin + '/', `${name} must be canonical`);
   assert.ok(!isLoopback(parsed.hostname), `${name} cannot use loopback origin`);
+  assert.ok(!isUnspecified(parsed.hostname), `${name} cannot use unspecified origin`);
+  assert.equal(value, parsed.origin + '/', `${name} must be canonical`);
   return value;
 }
 function localOrigin(value, name) {
@@ -209,11 +218,45 @@ function sameTarget(manifest, receipt) {
   return receipt.run_id === manifest.run_id && receipt.environment === manifest.environment &&
     Object.keys(manifest.target).every((key) => receipt[key] === manifest.target[key]);
 }
+function targetCorrelationMismatch(manifest, receipt) {
+  if (receipt.run_id !== manifest.run_id) return { expected: manifest.run_id, observed: receipt.run_id };
+  if (receipt.environment !== manifest.environment) return { expected: manifest.environment, observed: receipt.environment };
+  for (const key of Object.keys(manifest.target)) {
+    if (receipt[key] !== manifest.target[key]) return { expected: manifest.target[key], observed: receipt[key] };
+  }
+  return null;
+}
 export function assessRun(manifestInput, resultInput, assessedAt = manifestInput.timestamps.heartbeat_at) {
   const manifest = validateManifest(manifestInput);
   const result = validateResult(resultInput, manifest);
   time(assessedAt, 'assessment time');
   const failures = [];
+  for (const entry of result.journey.evidence) {
+    const mismatch = targetCorrelationMismatch(manifest, entry);
+    if (mismatch) {
+      failures.push({
+        code: 'evidence-correlation-mismatch',
+        stage_id: entry.stage_id,
+        owner_repo: entry.owner_repo,
+        expected: mismatch.expected,
+        observed: mismatch.observed,
+        next_action: 'isolate-target-evidence',
+      });
+    }
+  }
+  for (const entry of result.cleanup.evidence) {
+    const mismatch = targetCorrelationMismatch(manifest, entry);
+    if (mismatch) {
+      failures.push({
+        code: 'evidence-correlation-mismatch',
+        stage_id: entry.stage_id,
+        owner_repo: entry.owner_repo,
+        expected: mismatch.expected,
+        observed: mismatch.observed,
+        next_action: 'isolate-target-evidence',
+      });
+    }
+  }
   const accepted = [];
   for (const stage of manifest.oracles) {
     const permitted = stage.allowed_environments.includes(manifest.environment);
@@ -248,7 +291,8 @@ export function assessRun(manifestInput, resultInput, assessedAt = manifestInput
       || (entry.state_ref === 'authority-expired' && entry.authority_expires_at !== null && Date.parse(entry.authority_expires_at) <= Date.parse(assessedAt));
     return entry.state_ref === (req.service === 'retry-suppression' ? 'retries-suppressed' : 'resource-absent') && entry.authority_expires_at === null;
   }));
-  const cleanupComplete = result.cleanup.status === 'passed' && result.cleanup.resource_state === 'removed' && cleanupMissing.length === 0;
+  const cleanupCorrelation = result.cleanup.evidence.every((entry) => sameTarget(manifest, entry));
+  const cleanupComplete = result.cleanup.status === 'passed' && result.cleanup.resource_state === 'removed' && cleanupCorrelation && cleanupMissing.length === 0;
   let status = result.journey.status;
   if (status === 'passed') status = failures.length ? 'blocked' : cleanupComplete ? 'passed' : 'incomplete';
   if (!cleanupComplete) failures.push({code: 'cleanup-incomplete', owner_repo: manifest.owner_repo,

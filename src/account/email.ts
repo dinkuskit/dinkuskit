@@ -28,9 +28,16 @@ export function createInProcessEmailSink(): MerchantEmailSink {
 
 function intentFromSubject(subject: string): MerchantMailIntent {
   if (subject.startsWith('Recover')) return 'recovery';
-  if (subject.startsWith('Confirm')) return 'signup';
+  if (subject.startsWith('Finish')) return 'signup';
   return 'signin';
 }
+
+// Each email names what the link does; the link is the only URL in the text part.
+const MAIL: Record<MerchantMailIntent, { subject: string; action: string; button: string }> = {
+  signup: { subject: 'Finish creating your DinkusKit account', action: 'finish creating your DinkusKit account', button: 'Finish creating your account' },
+  signin: { subject: 'Sign in to DinkusKit', action: 'sign in to DinkusKit', button: 'Sign in to DinkusKit' },
+  recovery: { subject: 'Recover your DinkusKit account', action: 'recover your DinkusKit account', button: 'Recover your account' },
+};
 
 function urlFromMessage(message: { text?: string; html?: string }): string {
   const text = `${message.text ?? ''}\n${message.html ?? ''}`;
@@ -64,17 +71,14 @@ export function createMerchantEmailDelivery(options: {
         return { delivered: 'test-sink' as const };
       }
       if (!options.sendEmail) throw new Error('email_unavailable');
-      const subject = input.intent === 'recovery'
-        ? 'Recover your DinkusKit account'
-        : input.intent === 'signup'
-          ? 'Confirm your DinkusKit account'
-          : 'Sign in to DinkusKit';
+      const mail = MAIL[input.intent] ?? MAIL.signin;
+      const note = 'The link works once and expires in 5 minutes. If you didn\'t ask for this, you can ignore this email.';
       await options.sendEmail.send({
         to: input.email,
         from: { email: options.fromEmail ?? 'accounts@dinkuskit.com', name: 'DinkusKit' },
-        subject,
-        text: `Use this link to continue. It expires soon.\n${input.url}\n`,
-        html: `<p>Use this link to continue. It expires soon.</p><p><a href="${input.url}">Continue</a></p>`,
+        subject: mail.subject,
+        text: `Use this link to ${mail.action}:\n${input.url}\n\n${note}\n`,
+        html: `<p>Use this link to ${mail.action}.</p><p><a href="${input.url}">${mail.button}</a></p><p>${note}</p>`,
       });
       return { delivered: 'cloudflare-email' as const };
     },

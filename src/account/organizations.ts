@@ -13,6 +13,9 @@ export type Membership = Organization & {
   permissions: string[];
 };
 
+/** Sign-up names the first business this; the owner's account page asks for a real name. */
+export const DEFAULT_ORGANIZATION_NAME = 'My organization';
+
 const now = () => Math.floor(Date.now() / 1000);
 const id = () => `org_${crypto.randomUUID()}`;
 
@@ -175,7 +178,7 @@ export async function consumeSignupAttempt(db: D1Database, userId: string, email
   if (!eligible) return false;
   // A legacy account keeps its existing organization and lifetime record.
   const first = await db.prepare('SELECT first_organization_id FROM dinkuskit_admission WHERE user_id = ?').bind(userId).first();
-  if (!first) await createOrganization(db, userId, 'My organization');
+  if (!first) await createOrganization(db, userId, DEFAULT_ORGANIZATION_NAME);
   return true;
 }
 
@@ -264,6 +267,40 @@ export async function removeMember(db: D1Database, actorId: string, organization
       AND EXISTS (${MANAGER})`)
     .bind(now(), organizationId, targetUserId, organizationId, actorId, organizationId, actorId, '[]').run();
   return changed(result) ? 'ok' : 'forbidden';
+}
+
+export type StaffMember = { email: string; role: OrganizationRole; permissions: string[]; self: boolean };
+
+/** Current staff for the account page; callers check owner or membership:view first. */
+export async function listStaff(db: D1Database, organizationId: string, viewerUserId: string): Promise<StaffMember[]> {
+  const rows = await db.prepare(`SELECT u.id, u.email, m.role, m.permissions
+    FROM dinkuskit_membership m JOIN "user" u ON u.id = m.user_id
+    WHERE m.organization_id = ? AND m.status = 'active'
+    ORDER BY CASE m.role WHEN 'owner' THEN 0 WHEN 'administrator' THEN 1 ELSE 2 END, lower(u.email)`)
+    .bind(organizationId).all<{ id: string; email: string; role: string; permissions: string }>();
+  return (rows.results ?? []).map(row => ({
+    email: row.email,
+    role: row.role as OrganizationRole,
+    permissions: JSON.parse(row.permissions || '[]') as string[],
+    self: row.id === viewerUserId,
+  }));
+}
+
+export async function isActiveMember(db: D1Database, organizationId: string, userId: string): Promise<boolean> {
+  return Boolean(await db.prepare(`SELECT 1 FROM dinkuskit_membership WHERE organization_id = ? AND user_id = ? AND status = 'active'`)
+    .bind(organizationId, userId).first());
+}
+
+/** Only the current owner renames, with the same name rule as creating a business. */
+export async function renameOrganization(db: D1Database, userId: string, organizationId: string, name: string): Promise<boolean> {
+  const clean = name.trim().replace(/\s+/g, ' ');
+  if (!clean || clean.length > 120) throw new Error('invalid_organization_name');
+  const result = await db.prepare(`UPDATE dinkuskit_organization SET name = ?, updated_at = ?
+    WHERE organization_id = ? AND owner_user_id = ? AND status IN ('active', 'pending_operator')
+      AND EXISTS (SELECT 1 FROM dinkuskit_membership m JOIN dinkuskit_account a ON a.user_id = m.user_id
+        WHERE m.organization_id = ? AND m.user_id = ? AND m.role = 'owner' AND m.status = 'active' AND a.disabled = 0)`)
+    .bind(clean, now(), organizationId, userId, organizationId, userId).run();
+  return changed(result);
 }
 
 export async function deletionGuard(db: D1Database, userId: string): Promise<{ allowed: false; reason: 'owned_organizations' } | { allowed: true }> {

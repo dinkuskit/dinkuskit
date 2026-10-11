@@ -99,13 +99,11 @@ const organizationId = Astro.url.searchParams.get('organization_id') ?? merchant
 if (organizationId !== merchant.organizationId) return new Response(JSON.stringify({ error: 'stale_organization' }), { status: 409 });
 if (!await authorizeOrganization(env.MERCHANT_DB, merchant.userId, organizationId)) return new Response(JSON.stringify({ error: 'organization_forbidden' }), { status: 403 });
 ---
-<Site title="Connected sites" description="Explicit service grants for this merchant.">
+<Site title="Your stores" description="The EmDash stores connected to your business and the DinkusKit services they use.">
   <div class="account-panel">
-    <p class="eyebrow">Site consent</p>
-    <h1>Connected sites</h1>
-    <p class="lead">Connect services from your EmDash site. Each service requires separate approval.</p>
-    <p>Organization: {organizationId}</p>
-    {bindings.length === 0 ? <p>No sites are connected yet.</p> : (
+    <p class="eyebrow">{readMembership.name}</p>
+    <h1>Your stores</h1>
+    {bindings.length === 0 ? <p>No store is connected yet. Install the DinkusKit Payments plugin in your EmDash store, open its setup page and press Connect. You'll come back here to approve it.</p> : (
       <ul>
         {bindings.map(binding => (
           <li>

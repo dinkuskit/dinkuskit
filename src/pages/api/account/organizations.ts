@@ -3,7 +3,7 @@ import { MerchantUnavailableError, unavailableResponse } from '../../../account/
 import { getMerchantEnv } from '../../../account/bindings.ts';
 import { rejectCrossOriginMutation } from '../../../account/origin.ts';
 import { resolveLogin, resolveMerchant } from '../../../account/session.ts';
-import { createAdditionalOrganization, listMemberships, selectOrganization } from '../../../account/organizations.ts';
+import { createAdditionalOrganization, listMemberships, renameOrganization, selectOrganization } from '../../../account/organizations.ts';
 import { createMerchantRuntime } from '../../../account/auth.ts';
 
 export const prerender = false;
@@ -41,6 +41,11 @@ export const POST: APIRoute = async (context) => {
         if (!selected) return new Response(JSON.stringify({ error: 'organization_forbidden' }), { status: 403 });
       }
       return new Response(null, { status: 303, headers: { location: '/account' } });
+    }
+    if (form.get('action') === 'rename') {
+      const renamed = await renameOrganization(env.MERCHANT_DB, login.userId, String(form.get('organization_id') ?? ''), String(form.get('name') ?? ''));
+      if (!renamed) return new Response(JSON.stringify({ error: 'organization_forbidden' }), { status: 403 });
+      return new Response(null, { status: 303, headers: { location: '/account?named=1' } });
     }
     const organization = await createAdditionalOrganization(env.MERCHANT_DB, login.userId, String(form.get('name') ?? ''));
     return new Response(null, { status: 303, headers: { location: `/account?organization_id=${encodeURIComponent(organization.organizationId)}` } });

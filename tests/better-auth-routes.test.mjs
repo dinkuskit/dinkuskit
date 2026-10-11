@@ -35,7 +35,7 @@ test('built workerd Astro routes: signup, isolation, persistence, CSRF, disable'
     const aliceAccount = await request(first, aliceJar, '/account');
     assert.equal(aliceAccount.status, 200);
     const aliceHtml = await aliceAccount.text();
-    assert.match(aliceHtml, /Your DinkusKit account/);
+    assert.match(aliceHtml, /Signed in as alice@merchant\.example/);
     assert.match(aliceHtml, /alice@merchant\.example/);
     assert.doesNotMatch(aliceHtml, /Account:/);
 

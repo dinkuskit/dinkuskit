@@ -4,8 +4,9 @@ import { submitAccountPost } from '../../account/actions.ts';
 import { seeOther } from '../../account/config.ts';
 import { MerchantUnavailableError, unavailableResponse } from '../../account/config.ts';
 import { getMerchantEnv } from '../../account/bindings.ts';
-import { listMemberships, deletionGuard } from '../../account/organizations.ts';
+import { ADMIN_PERMISSIONS, DEFAULT_ORGANIZATION_NAME, EMPLOYEE_PERMISSIONS, listMemberships, listStaff, deletionGuard, type Membership } from '../../account/organizations.ts';
 import { listMerchantAdmissionStatuses } from '../../account/merchant-admission-status.ts';
+import { listStoreSetup } from '../../account/store-passes.ts';
 
 export const prerender = false;
 Astro.response.headers.set('cache-control', 'private, no-store');
@@ -13,7 +14,6 @@ if (Astro.request.method === 'POST') return submitAccountPost(Astro);
 const merchant = Astro.locals.merchant;
 const login = Astro.locals.login;
 if (!login) return seeOther('/account/sign-in');
-const error = Astro.url.searchParams.get('error');
 let env;
 try {
   env = await getMerchantEnv();
@@ -23,106 +23,273 @@ try {
 }
 const organizations = await listMemberships(env.MERCHANT_DB, login.userId);
 const admissionStatuses = await listMerchantAdmissionStatuses(env.MERCHANT_DB, login.userId);
-const selectedOrganization = organizations.find(org => org.organizationId === merchant?.organizationId) ?? null;
-const selectableOrganizations = organizations.filter(org => org.status !== 'denied');
-const canManage = selectedOrganization?.role === 'owner' || (selectedOrganization?.role === 'administrator' && selectedOrganization.permissions.includes('membership:manage'));
+const selected = organizations.find(org => org.organizationId === merchant?.organizationId) ?? null;
+const selectable = organizations.filter(org => org.status !== 'denied');
+const others = organizations.filter(org => org !== selected);
+const isOwner = selected?.role === 'owner';
+const canManage = isOwner || (selected?.role === 'administrator' && selected.permissions.includes('membership:manage'));
+const canViewStaff = isOwner || Boolean(selected?.permissions.includes('membership:view'));
+const canViewStores = isOwner || Boolean(selected?.permissions.includes('site:view'));
+const staff = selected && canViewStaff ? await listStaff(env.MERCHANT_DB, selected.organizationId, login.userId) : [];
+const selectedStatus = selected ? admissionStatuses.get(selected.organizationId) : undefined;
+const stores = merchant && selected && canViewStores && selectedStatus?.admission === 'admitted' ? await listStoreSetup(env.MERCHANT_DB, merchant.subject) : [];
 const loginDeletion = await deletionGuard(env.MERCHANT_DB, login.userId);
+const showBusinesses = organizations.length > 1 || (!selected && organizations.length > 0);
+
+const ROLE: Record<string, string> = { owner: 'Owner', administrator: 'Administrator', member: 'Staff' };
+const PERMISSION: Record<string, string> = {
+  'membership:manage': 'Add, change and remove staff',
+  'membership:view': 'See the staff list',
+  'site:view': 'See connected stores',
+  'ship:labels': 'Print shipping labels in Ship',
+};
+const APPROVAL = { pending: 'Waiting for approval', admitted: 'Approved', denied: 'Not approved' } as const;
+const approval = (org: Membership) => APPROVAL[admissionStatuses.get(org.organizationId)?.admission ?? 'pending'];
+// What a person can do, in plain words. Owners and Administrators can always print shipping labels.
+const abilities = (role: string, permissions: string[]) => role === 'owner'
+  ? ['Everything, including store keys and checkout settings']
+  : [...permissions.filter(p => PERMISSION[p]).map(p => PERMISSION[p]), ...(role === 'administrator' && !permissions.includes('ship:labels') ? [PERMISSION['ship:labels']] : [])];
+// An Administrator can only hand out what they hold themselves.
+const grantable = (permission: string) => isOwner || Boolean(selected?.permissions.includes(permission));
+
+const STAFF_DONE: Record<string, string> = {
+  added: "Staff member added. They can't do anything yet; choose what they can do in the list below.",
+  saved: 'Saved what they can do.',
+  admin: "They're now an Administrator.",
+  removed: 'Removed. They can no longer see this business.',
+};
+const STAFF_ERROR: Record<string, string> = {
+  no_login: "There's no DinkusKit login for that email yet. Ask them to create one at dinkuskit.com/account/signup, then add them.",
+  already_staff: 'That person is already on your staff.',
+  not_staff: "That email isn't on your staff.",
+  not_allowed: "You can't make that change.",
+  stale: 'You switched business in another tab. Check which business this is and try again.',
+};
+const ERROR: Record<string, string> = {
+  owned_organizations: "You can't disable your login while you own a business.",
+  invalid_organization_name: 'Enter a business name of up to 120 characters.',
+};
+const staffDone = STAFF_DONE[Astro.url.searchParams.get('staff') ?? ''];
+const staffError = STAFF_ERROR[Astro.url.searchParams.get('staff_error') ?? ''];
+const error = ERROR[Astro.url.searchParams.get('error') ?? ''];
+const named = Astro.url.searchParams.get('named') === '1';
 ---
-<Site title="Account" description="Your DinkusKit merchant account.">
+<Site title="Account" description="Your DinkusKit account.">
   <div class="account-panel">
-    <p class="eyebrow">Signed in</p>
-    <h1>Your DinkusKit account</h1>
-    <p>Email: {login.email}</p>
-    {error === 'owned_organizations' ? <p class="account-error" role="alert">Your login cannot be deleted while you own an organization. Transfer ownership or individually confirm closure first.</p> : null}
-    <p class="lead">This identity is separate from anyone who edits this website. Connect an Inventory site only after explicit consent.</p>
-    <section aria-labelledby="org-heading">
-      <h2 id="org-heading">Organizations</h2>
-      <p>Admission does not connect sites or activate services.</p>
-      {organizations.map(org => {
-        const status = admissionStatuses.get(org.organizationId);
-        return <section aria-labelledby={`admission-${org.organizationId}`}>
-          <h3 id={`admission-${org.organizationId}`}>{org.name}</h3>
-          <p role="status">Admission: {status?.admission === 'pending' ? 'Pending' : status?.admission === 'denied' ? 'Denied' : status?.admission === 'admitted' ? 'Admitted' : 'Status unavailable'}.</p>
-          {status?.admission === 'pending' ? <p>This organization is waiting for operator approval. Service connections are unavailable until approval.</p> : null}
-          {status?.admission === 'denied' ? <p>Admission was denied. Service connections are unavailable.</p> : null}
-          {status?.admission === 'admitted' ? <p>Admission is complete. This does not connect sites or activate services.</p> : null}
-          {status?.notification ? <><p role="status">{status.notification}</p><p>Notification availability does not change this admission decision.</p></> : null}
-        </section>;
-      })}
-      {organizations.length === 0 ? <p><a href="/account/signup">Complete signup to create your first organization</a>.</p> : (
-        <>
-          {selectableOrganizations.length > 0 ? <form id="organization-switcher-form" method="post" action="/api/account/organizations" class="account-form">
-          <input type="hidden" name="action" value="select" />
-          <label for="organization-switcher">Current organization</label>
-          <select id="organization-switcher" name="organization_id">
-            {!selectedOrganization ? <option value="">Choose an organization</option> : null}
-            {selectableOrganizations.map(org => <option value={org.organizationId} selected={selectedOrganization?.organizationId === org.organizationId}>{org.name} ({org.role}){org.admissionStatus === 'pending_operator' ? ' — admission pending' : ''}</option>)}
-          </select>
-          </form> : <p role="status">No organization is currently selectable. Denied organizations cannot be selected.</p>}
-          {selectableOrganizations.length > 0 ? <button type="submit" form="organization-switcher-form">Switch organization</button> : null}
-          {canManage && selectedOrganization ? (
-            <section aria-labelledby="members-heading">
-              <h3 id="members-heading">Employee access</h3>
-              <p>Use an employee’s existing DinkusKit login email. New members start with no permissions.</p>
-              <form method="post" action="/api/account/memberships" class="account-form">
-                <input type="hidden" name="action" value="add_member" />
-                <input type="hidden" name="organization_id" value={selectedOrganization.organizationId} />
-                <label for="add-email">Employee email</label>
-                <input id="add-email" name="email" type="email" required />
-                <button type="submit">Add employee</button>
-              </form>
-              <form method="post" action="/api/account/memberships" class="account-form">
-                <input type="hidden" name="action" value="set_permissions" />
-                <input type="hidden" name="organization_id" value={selectedOrganization.organizationId} />
-                <label for="permissions-email">Employee email</label>
-                <input id="permissions-email" name="email" type="email" required />
-                {selectedOrganization.role === 'owner' || selectedOrganization.permissions.includes('membership:view') ? <label><input name="permission" value="membership:view" type="checkbox" /> View this organization’s members</label> : null}
-                {selectedOrganization.role === 'owner' || selectedOrganization.permissions.includes('site:view') ? <label><input name="permission" value="site:view" type="checkbox" /> View connected sites</label> : null}
-                {selectedOrganization.role === 'owner' || selectedOrganization.permissions.includes('ship:labels') ? <label><input name="permission" value="ship:labels" type="checkbox" /> Print shipping labels in Ship</label> : null}
-                <button type="submit">Set employee permissions</button>
-              </form>
-              {selectedOrganization.role === 'owner' ? (
-                <form method="post" action="/api/account/memberships" class="account-form">
-                  <input type="hidden" name="action" value="grant_admin" />
-                  <input type="hidden" name="organization_id" value={selectedOrganization.organizationId} />
-                  <label for="admin-email">Existing member email</label>
-                  <input id="admin-email" name="email" type="email" required />
-                  <label><input name="permission" value="membership:manage" type="checkbox" required /> Allow managing employees</label>
-                  <label><input name="permission" value="membership:view" type="checkbox" /> Allow viewing and granting member visibility</label>
-                  <label><input name="permission" value="site:view" type="checkbox" /> Allow viewing and granting site visibility</label>
-                  <label><input name="permission" value="ship:labels" type="checkbox" /> Allow letting employees print shipping labels</label>
-                  <button type="submit">Grant Administrator permissions</button>
-                  <small>Owners and Administrators can always print shipping labels in Ship.</small>
-                </form>
-              ) : null}
-              <form method="post" action="/api/account/memberships" class="account-form">
-                <input type="hidden" name="action" value="remove_member" />
-                <input type="hidden" name="organization_id" value={selectedOrganization.organizationId} />
-                <label for="remove-email">Remove an employee</label>
-                <input id="remove-email" name="email" type="email" required aria-describedby="remove-note" />
-                <small id="remove-note">{selectedOrganization.role === 'owner' ? 'They lose access to this organization right away and keep their own DinkusKit login. You can add them again later.' : 'You can remove employees. Only the owner can remove an Administrator.'}</small>
-                <button type="submit">Remove employee</button>
-              </form>
-            </section>
-          ) : null}
-        </>
-      )}
-      <form method="post" action="/api/account/organizations" class="account-form">
-        <label for="organization-name">Create organization</label>
-        <input id="organization-name" name="name" required maxlength="120" />
-        <button type="submit">Create organization</button>
-      </form>
-    </section>
-    <section aria-labelledby="account-safety-heading">
-      <h2 id="account-safety-heading">Account safety</h2>
-      <p>Closing an organization and disabling your login are separate actions. Organization closure and ownership transfer are not available yet.</p>
-      {loginDeletion.allowed ? <p>Disabling this login ends its sessions; it does not delete organizations or employer data.</p> : <p role="status">Login disabling is blocked while you own an organization. Transfer or individually confirmed closure is required; employer organizations are never deleted.</p>}
-    </section>
-    <form method="post" action="/account/logout"><button type="submit">Log out</button></form>
-    <form method="post" action="/account" class="account-form">
-      <input type="hidden" name="action" value="disable" />
-      <button type="submit">Disable my login</button>
-    </form>
-    <p><a href="/account/inventory">Inventory overview</a> · <a href="/account/sites">Connected sites</a></p>
+    <p class="eyebrow">Signed in as {login.email}</p>
+    <div class="account-top">
+      <h1>{selected ? selected.name : 'Your DinkusKit account'}</h1>
+      <form method="post" action="/account/logout"><button type="submit">Log out</button></form>
+    </div>
+    {error ? <p class="account-error" role="alert">{error}</p> : null}
+    {named ? <p role="status">Saved your business name.</p> : null}
+
+    {selected && isOwner && selected.name === DEFAULT_ORGANIZATION_NAME ? (
+      <div class="account-card">
+        <h2>Name your business</h2>
+        <p>What's your business called? Shoppers won't see this; it's how DinkusKit and your staff know it.</p>
+        <form method="post" action="/api/account/organizations" class="account-form">
+          <input type="hidden" name="action" value="rename" />
+          <input type="hidden" name="organization_id" value={selected.organizationId} />
+          <label for="business-name">Business name</label>
+          <input id="business-name" name="name" required maxlength="120" />
+          <button type="submit">Save name</button>
+        </form>
+      </div>
+    ) : null}
+
+    {organizations.length === 0 ? (
+      <div class="account-card">
+        <h2>Finish creating your account</h2>
+        <p>Your account isn't finished. <a href="/account/signup">Create your account</a> again with the same email to finish.</p>
+      </div>
+    ) : null}
+
+    {selected ? (
+      <section aria-labelledby={`admission-${selected.organizationId}`} class="account-card">
+        <h2 id={`admission-${selected.organizationId}`}>
+          {selectedStatus?.admission === 'pending' ? 'Waiting for approval'
+            : !isOwner ? `You're on the staff of ${selected.name}`
+            : stores.length > 0 ? 'Your store is connected' : 'Connect your store'}
+        </h2>
+        <p role="status">Status: {approval(selected)}</p>
+        {selectedStatus?.admission === 'pending' ? <p>We're reviewing this business. We'll email the owner when it's approved. A store can connect after that.</p> : null}
+        {selectedStatus?.admission === 'admitted' && isOwner && stores.length === 0 ? (
+          <p>Install the DinkusKit Payments plugin in your EmDash store, open its setup page and press Connect. You'll come back here to approve it.</p>
+        ) : null}
+        {selectedStatus?.admission === 'admitted' && stores.length > 0 ? (
+          <>
+            <ul>{stores.map(store => <li>{store.siteOrigin}</li>)}</ul>
+            <p><a href="/account/sites">{isOwner ? 'Set up your store' : 'See your stores'}</a></p>
+          </>
+        ) : null}
+        {!isOwner ? (
+          <>
+            <p>The owner decides what you can do. You can:</p>
+            <ul>{(abilities(selected.role, selected.permissions).length ? abilities(selected.role, selected.permissions) : ['Nothing yet']).map(item => <li>{item}</li>)}</ul>
+          </>
+        ) : null}
+        {isOwner && selectedStatus?.notification ? <p>{selectedStatus.notification} Whether or not the email arrives, the decision stands.</p> : null}
+      </section>
+    ) : null}
+
+    {selected && (canViewStaff || canManage) ? (
+      <div class="account-card" id="staff">
+        <h2 id="staff-heading">Staff</h2>
+        {staffDone ? <p role="status">{staffDone}</p> : null}
+        {staffError ? <p class="account-error" role="alert">{staffError}</p> : null}
+        {canViewStaff ? (
+          <ul class="staff-list">
+            {staff.map(person => (
+              <li>
+                <p><strong>{person.email}</strong>{person.self ? ' (you)' : ''} · {ROLE[person.role] ?? 'Staff'}</p>
+                <p class="staff-can">{(abilities(person.role, person.permissions).length ? abilities(person.role, person.permissions) : ["Can't do anything yet"]).join(' · ')}</p>
+                {canManage && !person.self && person.role === 'member' ? (
+                  <details>
+                    <summary>Change what they can do</summary>
+                    <form method="post" action="/api/account/memberships" class="account-form">
+                      <input type="hidden" name="action" value="set_permissions" />
+                      <input type="hidden" name="organization_id" value={selected.organizationId} />
+                      <input type="hidden" name="email" value={person.email} />
+                      {EMPLOYEE_PERMISSIONS.filter(grantable).map(permission => (
+                        <label><input name="permission" value={permission} type="checkbox" checked={person.permissions.includes(permission)} /> {PERMISSION[permission]}</label>
+                      ))}
+                      <button type="submit">Save</button>
+                    </form>
+                  </details>
+                ) : null}
+                {isOwner && !person.self && person.role !== 'owner' ? (
+                  <details>
+                    <summary>{person.role === 'administrator' ? 'Change Administrator permissions' : 'Make administrator'}</summary>
+                    <form method="post" action="/api/account/memberships" class="account-form">
+                      <input type="hidden" name="action" value="grant_admin" />
+                      <input type="hidden" name="organization_id" value={selected.organizationId} />
+                      <input type="hidden" name="email" value={person.email} />
+                      {ADMIN_PERMISSIONS.map(permission => (
+                        <label><input name="permission" value={permission} type="checkbox" checked={permission === 'membership:manage' || person.permissions.includes(permission)} required={permission === 'membership:manage'} /> {PERMISSION[permission]}{permission === 'ship:labels' ? ' (and let staff do it)' : ''}</label>
+                      ))}
+                      <small>Administrators can always print shipping labels in Ship.</small>
+                      <button type="submit">{person.role === 'administrator' ? 'Save' : 'Make administrator'}</button>
+                    </form>
+                  </details>
+                ) : null}
+                {canManage && !person.self && (person.role === 'member' || (isOwner && person.role === 'administrator')) ? (
+                  <form method="post" action="/api/account/memberships">
+                    <input type="hidden" name="action" value="remove_member" />
+                    <input type="hidden" name="organization_id" value={selected.organizationId} />
+                    <input type="hidden" name="email" value={person.email} />
+                    <button type="submit" class="button-quiet">Remove {person.email}</button>
+                  </form>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        ) : null}
+        {canManage && !canViewStaff ? (
+          <details>
+            <summary>Change or remove someone by email</summary>
+            <form method="post" action="/api/account/memberships" class="account-form">
+              <input type="hidden" name="action" value="set_permissions" />
+              <input type="hidden" name="organization_id" value={selected.organizationId} />
+              <label for="permissions-email">Staff member's email</label>
+              <input id="permissions-email" name="email" type="email" required />
+              {EMPLOYEE_PERMISSIONS.filter(grantable).map(permission => <label><input name="permission" value={permission} type="checkbox" /> {PERMISSION[permission]}</label>)}
+              <button type="submit">Save what they can do</button>
+            </form>
+            <form method="post" action="/api/account/memberships" class="account-form">
+              <input type="hidden" name="action" value="remove_member" />
+              <input type="hidden" name="organization_id" value={selected.organizationId} />
+              <label for="remove-email">Remove a staff member</label>
+              <input id="remove-email" name="email" type="email" required />
+              <button type="submit">Remove</button>
+            </form>
+          </details>
+        ) : null}
+        {canManage ? (
+          <form method="post" action="/api/account/memberships" class="account-form">
+            <input type="hidden" name="action" value="add_member" />
+            <input type="hidden" name="organization_id" value={selected.organizationId} />
+            <label for="add-email">Add a staff member</label>
+            <input id="add-email" name="email" type="email" required aria-describedby="add-note" />
+            <small id="add-note">They need their own DinkusKit login first. They start with no permissions.</small>
+            <button type="submit">Add staff member</button>
+          </form>
+        ) : null}
+        {isOwner ? <p><small>Removing someone ends their access to this business right away. They keep their own DinkusKit login, and you can add them again later.</small></p> : null}
+      </div>
+    ) : null}
+
+    {showBusinesses ? (
+      <div class="account-card">
+        <h2>Your businesses</h2>
+        {others.map(org => {
+          const status = admissionStatuses.get(org.organizationId);
+          return <section aria-labelledby={`admission-${org.organizationId}`}>
+            <h3 id={`admission-${org.organizationId}`}>{org.name}</h3>
+            <p role="status">{ROLE[org.role] ?? 'Staff'} · Status: {approval(org)}</p>
+            {status?.admission === 'denied' ? <p>This business wasn't approved, so it can't connect a store.</p> : null}
+            {org.role === 'owner' && status?.notification ? <p>{status.notification} Whether or not the email arrives, the decision stands.</p> : null}
+          </section>;
+        })}
+        {selectable.length > 0 ? (
+          <>
+            <form id="organization-switcher-form" method="post" action="/api/account/organizations" class="account-form">
+              <input type="hidden" name="action" value="select" />
+              <label for="organization-switcher">Switch business</label>
+              <select id="organization-switcher" name="organization_id">
+                {!selected ? <option value="">Choose a business</option> : null}
+                {selectable.map(org => <option value={org.organizationId} selected={selected?.organizationId === org.organizationId}>{org.name} ({ROLE[org.role] ?? 'Staff'}){org.admissionStatus === 'pending_operator' ? ', waiting for approval' : ''}</option>)}
+              </select>
+            </form>
+            <button type="submit" form="organization-switcher-form">Switch</button>
+          </>
+        ) : <p role="status">None of your businesses can be opened right now. A business that wasn't approved can't be opened.</p>}
+      </div>
+    ) : null}
+
+    {organizations.length > 0 ? (
+      <details class="account-card">
+        <summary>Create another business</summary>
+        <p>A new business waits for DinkusKit to approve it.</p>
+        <form method="post" action="/api/account/organizations" class="account-form">
+          <label for="organization-name">Business name</label>
+          <input id="organization-name" name="name" required maxlength="120" />
+          <button type="submit">Create business</button>
+        </form>
+      </details>
+    ) : null}
+
+    <details class="account-card">
+      <summary>Account settings</summary>
+      {selected && isOwner && selected.name !== DEFAULT_ORGANIZATION_NAME ? (
+        <form method="post" action="/api/account/organizations" class="account-form">
+          <input type="hidden" name="action" value="rename" />
+          <input type="hidden" name="organization_id" value={selected.organizationId} />
+          <label for="rename-business">Rename {selected.name}</label>
+          <input id="rename-business" name="name" required maxlength="120" value={selected.name} />
+          <button type="submit">Save name</button>
+        </form>
+      ) : null}
+      <h3>Disable my login</h3>
+      <p>Disabling your login signs you out everywhere. It doesn't delete any business. Closing a business and handing it to a new owner aren't available yet.</p>
+      {loginDeletion.allowed ? (
+        <form method="post" action="/account" class="account-form">
+          <input type="hidden" name="action" value="disable" />
+          <button type="submit">Disable my login</button>
+        </form>
+      ) : <p role="status">You can't disable your login while you own a business.</p>}
+    </details>
   </div>
 </Site>
+<style>
+  .account-top { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+  .account-top h1 { overflow-wrap: anywhere; }
+  .account-card { border: 1px solid #d4ddd3; background: white; padding: 1.25rem; margin: 1.25rem 0; }
+  .account-card h2 { margin-top: 0; }
+  .account-card summary { cursor: pointer; font-weight: 600; }
+  .staff-list { list-style: none; margin: 0; padding: 0; }
+  .staff-list li { padding: .75rem 0; border-top: 1px solid #e6ece4; overflow-wrap: anywhere; }
+  .staff-list p { margin: .2rem 0; }
+  .staff-can { color: #42594b; font-size: .9rem; }
+  .account-panel .button-quiet { background: transparent; color: #8a1f1f; padding: .3rem 0; text-decoration: underline; }
+</style>

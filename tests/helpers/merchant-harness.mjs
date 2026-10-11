@@ -38,10 +38,14 @@ async function emitProofFetch() {
   );
 }
 
-async function prepareBuiltTestConfig({ persistTo, secret, origin, jwt, cmsProof = false }) {
+async function prepareBuiltTestConfig({ persistTo, secret, origin, jwt, cmsProof = false, agentTest = null }) {
   const built = JSON.parse(await readFile('dist/server/wrangler.json', 'utf8'));
-  const main = cmsProof ? 'cms-test-entry.mjs' : 'test-entry.mjs';
+  const main = agentTest ? 'agent-test-entry.mjs' : cmsProof ? 'cms-test-entry.mjs' : 'test-entry.mjs';
   await copyFile('tests/fixtures/built-test-entry.mjs', 'dist/server/test-entry.mjs');
+  if (agentTest) {
+    await copyFile('tests/fixtures/built-agent-test-entry.mjs', 'dist/server/agent-test-entry.mjs');
+    await copyFile('tests/fixtures/agent-test-policy.mjs', 'dist/server/agent-test-policy.mjs');
+  }
   if (cmsProof) {
     await copyFile('tests/fixtures/cms-proof-als.mjs', 'dist/server/cms-proof-als.mjs');
     await copyFile('tests/fixtures/built-cms-test-entry.mjs', 'dist/server/cms-test-entry.mjs');
@@ -71,10 +75,18 @@ async function prepareBuiltTestConfig({ persistTo, secret, origin, jwt, cmsProof
       MERCHANT_AUTH_SECRET: secret,
       MERCHANT_BASE_URL: origin,
       ...(jwt === false ? {} : { MERCHANT_JWT_PRIVATE_JWK: jwt }),
+      ...(agentTest ? { AGENT_TEST_KEY: agentTest.key, AGENT_TEST_EXPIRES_AT: String(agentTest.expiresAt) } : {}),
     },
   };
+  // Agent runs have synthetic transports and no email binding or inherited remote resources.
+  if (agentTest) {
+    delete config.send_email;
+    delete config.services;
+    delete config.dispatch_namespaces;
+    for (const resource of [...(config.d1_databases ?? []), ...(config.kv_namespaces ?? []), ...(config.r2_buckets ?? [])]) resource.remote = false;
+  }
   const path = join('dist/server', `wrangler.test.${randomBytes(8).toString('hex')}.json`);
-  await writeFile(path, JSON.stringify(config, null, 2));
+  await writeFile(path, JSON.stringify(config, null, 2), { mode: 0o600 });
   return path;
 }
 
@@ -92,9 +104,12 @@ export async function startMerchantTestRuntime(options = {}) {
     origin: configuredBaseURL,
     jwt,
     cmsProof: options.cmsProof === true,
+    agentTest: options.agentTest ?? null,
   });
-  const entry = options.cmsProof === true ? 'dist/server/cms-test-entry.mjs' : 'dist/server/test-entry.mjs';
-  const worker = await unstable_dev(entry, {
+  const entry = options.agentTest ? 'dist/server/agent-test-entry.mjs' : options.cmsProof === true ? 'dist/server/cms-test-entry.mjs' : 'dist/server/test-entry.mjs';
+  let worker;
+  try {
+    worker = await unstable_dev(entry, {
     config,
     ip: '127.0.0.1',
     port,
@@ -104,9 +119,14 @@ export async function startMerchantTestRuntime(options = {}) {
     experimental: { disableExperimentalWarning: true, forceLocal: true },
     logLevel: 'error',
   });
+  } catch (error) {
+    if (options.agentTest) await rm(config, { force: true });
+    throw error;
+  }
   const actual = `http://${worker.address}:${worker.port}`;
   if (actual !== origin) {
     await worker.stop();
+    if (options.agentTest) await rm(config, { force: true });
     const nextConfigured = options.configuredBaseURL
       ?? (options.trailingSlashBaseURL ? `${actual}/` : actual);
     return startMerchantTestRuntime({
@@ -167,7 +187,7 @@ export async function startProductionWorker(options = {}) {
     },
   };
   const path = join('dist/server', `wrangler.prodprobe.${randomBytes(8).toString('hex')}.json`);
-  await writeFile(path, JSON.stringify(config, null, 2));
+  await writeFile(path, JSON.stringify(config, null, 2), { mode: 0o600 });
   const worker = await unstable_dev('dist/server/entry.mjs', {
     config: path,
     ip: '127.0.0.1',

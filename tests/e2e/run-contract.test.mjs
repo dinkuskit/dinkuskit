@@ -56,7 +56,6 @@ function life(run = 'run-life', resource = 'resource-life', options = {}) {
 function safeCleanup(fixture, run) {
   fixture.recordCleanupReceipt(run, { service: 'retry-suppression', receipt_ref: 'receipt-retry' });
   fixture.recordCleanupReceipt(run, { service: 'authority', receipt_ref: 'receipt-authority' });
-
 }
 
 test('all public manifest/result boundaries are allowlisted and hashes are exact', () => {
@@ -182,8 +181,10 @@ test('failure cleanup is just-before/at expiry, success is immediate, and histor
   failed.advance(1);
   assert.equal(failed.cleanup('run-expiry').state, 'removed');
   const success = life('run-success', 'resource-success');
-  success.allocate('run-success', 'resource-success'); success.sealEvidence('run-success'); safeCleanup(success, 'run-success');
-  assert.equal(success.complete('run-success').state, 'removed');
+  success.allocate('run-success', 'resource-success'); success.sealEvidence('run-success');
+  assert.equal(success.complete('run-success').state, 'cleanup-pending');
+  safeCleanup(success, 'run-success');
+  assert.equal(success.cleanup('run-success').state, 'removed');
   const terminal = success.record('run-success').terminal_at;
   assert.equal(success.history[0].expires_at, new Date(Date.parse(terminal) + HISTORY_WINDOW_MS).toISOString());
   success.advance(HISTORY_WINDOW_MS); success.purgeHistory(); assert.equal(success.history.length, 0);
@@ -303,8 +304,10 @@ test('failure history anchors to first terminal time and cleanup ownership survi
 
 test('absent store alone is unresolved; suppression and authority plus exact absence resolve it', () => {
   const fixture = life('run-absent', 'resource-absent'); fixture.allocate('run-absent', 'resource-absent');
+  assert.throws(() => fixture.recordCleanupReceipt('run-absent', {service: 'resource-absence', receipt_ref: 'receipt-absent'}), /pending or failed/);
+  fixture.sealEvidence('run-absent'); fixture.complete('run-absent');
   assert.throws(() => fixture.recordCleanupReceipt('run-absent', {service: 'resource-absence', receipt_ref: 'receipt-absent'}), /precede removal/);
-  fixture.sealEvidence('run-absent'); fixture.loseResource('resource-absent'); fixture.complete('run-absent');
+  fixture.loseResource('resource-absent');
   assert.equal(fixture.record('run-absent').cleanup_status, 'unknown');
   fixture.recordCleanupReceipt('run-absent', {service: 'resource-absence', receipt_ref: 'receipt-absent'});
   assert.equal(fixture.cleanup('run-absent').state, 'cleanup-pending');
@@ -315,8 +318,10 @@ test('admission is blocked by active runs, budget pause and unknown or ambiguous
   const fixture = life('run-budget', 'resource-budget');
   const reservation = {run_id: 'run-new', account_ref: 'account-one', ownership_ref: 'ownership-new', resource_refs: ['resource-new']};
   assert.throws(() => fixture.reserve(reservation), /admission/);
-  fixture.allocate('run-budget', 'resource-budget'); fixture.sealEvidence('run-budget'); safeCleanup(fixture, 'run-budget');
-  fixture.setOperationOutcome('cleanup', 'ambiguous'); assert.equal(fixture.complete('run-budget').cleanup_status, 'failed');
+  fixture.allocate('run-budget', 'resource-budget'); fixture.sealEvidence('run-budget');
+  assert.equal(fixture.complete('run-budget').state, 'cleanup-pending');
+  safeCleanup(fixture, 'run-budget');
+  fixture.setOperationOutcome('cleanup', 'ambiguous'); assert.equal(fixture.cleanup('run-budget').cleanup_status, 'failed');
   assert.throws(() => fixture.reserve(reservation), /admission/);
   fixture.setBudgetPaused('run-budget', true); fixture.setOperationOutcome('cleanup', 'success');
   assert.equal(fixture.cleanup('run-budget').state, 'removed'); assert.equal(fixture.canAdmit(), false);
@@ -343,4 +348,134 @@ test('strict restart boundary rejects extra fields and expiry/deadline tampering
   ]) { const snapshot = fixture.snapshot(); mutate(snapshot); assert.throws(() => FakeLifecycle.restore(snapshot)); }
   assert.throws(() => fixture.recordCleanupReceipt('run-strict', {service: 'authority', receipt_ref: 'receipt-safe', token: 'nope'}), /undeclared/);
   assert.throws(() => validateManifest({...manifest(), timestamps: {...manifest().timestamps, created_at: '2026-02-30T00:00:00.000Z'}}), /canonical/);
+});
+
+test('cleanup receipts are refused in reserved and active states, requiring cleanup-pending or failed', () => {
+  const f = life('run-receipt-state', 'resource-receipt-state');
+  assert.throws(() => f.recordCleanupReceipt('run-receipt-state', { service: 'retry-suppression', receipt_ref: 'receipt-stale' }), /pending or failed/);
+  f.allocate('run-receipt-state', 'resource-receipt-state');
+  assert.throws(() => f.recordCleanupReceipt('run-receipt-state', { service: 'retry-suppression', receipt_ref: 'receipt-stale' }), /pending or failed/);
+  f.sealEvidence('run-receipt-state');
+  const pending = f.complete('run-receipt-state');
+  assert.equal(pending.state, 'cleanup-pending');
+  assert.equal(f.canAdmit(), false);
+  f.recordCleanupReceipt('run-receipt-state', { service: 'retry-suppression', receipt_ref: 'receipt-retry' });
+  f.recordCleanupReceipt('run-receipt-state', { service: 'authority', receipt_ref: 'receipt-authority' });
+  const cleaned = f.cleanup('run-receipt-state');
+  assert.equal(cleaned.cleanup_status, 'passed');
+  assert.equal(cleaned.state, 'removed');
+  assert.equal(f.canAdmit(), true);
+
+  const failed = life('run-receipt-fail', 'resource-receipt-fail');
+  failed.allocate('run-receipt-fail', 'resource-receipt-fail');
+  failed.fail('run-receipt-fail', 'explicit-fail');
+  assert.equal(failed.record('run-receipt-fail').state, 'failed');
+  failed.recordCleanupReceipt('run-receipt-fail', { service: 'retry-suppression', receipt_ref: 'receipt-retry-fail' });
+  failed.recordCleanupReceipt('run-receipt-fail', { service: 'authority', receipt_ref: 'receipt-authority-fail' });
+  assert.equal(failed.cleanup('run-receipt-fail').state, 'failed');
+  failed.advance(FAILURE_WINDOW_MS);
+  const failCleaned = failed.cleanup('run-receipt-fail');
+  assert.equal(failCleaned.cleanup_status, 'passed');
+  assert.equal(failCleaned.state, 'removed');
+  assert.equal(failed.canAdmit(), true);
+});
+
+test('validateResult requires descriptor when journey fails, preserving unknown and other outcomes', () => {
+  const failedNoDescriptor = {
+    version: CONTRACT_VERSION,
+    run_id: 'run-fail-desc',
+    journey: { status: 'failed', admission: 'automatic', assistance_refs: [], human_checkpoint_ref: null, evidence: [] },
+    cleanup: { status: 'unknown', resource_state: 'failed', evidence: [] },
+    failure: null,
+  };
+  assert.throws(() => validateResult(failedNoDescriptor), /failure descriptor|descriptor/);
+
+  const validFailure = {
+    code: 'provider-timeout',
+    failure_at: '2026-01-01T00:20:00.000Z',
+    expected: 'provider-ready',
+    observed: 'provider-timeout',
+    proof_ref: 'proof-fixture',
+    owner_repo: 'test-repo',
+    next_action: 'retry-operation',
+    last_accepted_receipt_ref: null,
+    owning_stage_repo: 'test-repo',
+  };
+  const failedWithDescriptor = { ...failedNoDescriptor, failure: validFailure };
+  assert.equal(validateResult(failedWithDescriptor).failure.code, 'provider-timeout');
+
+  const unknownNull = {
+    version: CONTRACT_VERSION,
+    run_id: 'run-unknown',
+    journey: { status: 'unknown', admission: 'automatic', assistance_refs: [], human_checkpoint_ref: null, evidence: [] },
+    cleanup: { status: 'unknown', resource_state: 'failed', evidence: [] },
+    failure: null,
+  };
+  assert.equal(validateResult(unknownNull).failure, null);
+
+  const unknownWithDesc = { ...unknownNull, failure: validFailure };
+  assert.equal(validateResult(unknownWithDesc).failure.code, 'provider-timeout');
+
+  const passedNull = {
+    version: CONTRACT_VERSION,
+    run_id: 'run-pass',
+    journey: { status: 'passed', admission: 'manual', assistance_refs: [], human_checkpoint_ref: 'checkpoint-human', evidence: [receipt()] },
+    cleanup: { status: 'passed', resource_state: 'removed', evidence: cleanupEvidence() },
+    failure: null,
+  };
+  assert.equal(validateResult(passedNull).failure, null);
+});
+
+test('targetShape rejects deployment-local for all nonlocal provenance including public-release', () => {
+  const deployedBManifest = {
+    version: CONTRACT_VERSION,
+    run_id: 'run-deployed-b',
+    owner_repo: 'website',
+    environment: 'deployed-b',
+    admission_required: 'any',
+    required_assistance_refs: [],
+    suite: 'first',
+    role: 'merchant',
+    cohort_ref: 'cohort-fixture',
+    subject_ref: 'subject-fixture',
+    target: {
+      target_ref: 'target-fixture',
+      site_ref: 'site-fixture',
+      release_ref: 'release-fixture',
+      deployment_ref: 'deployment-local',
+      provenance_class: 'public-release',
+      source_ref: 'sha256:' + 'b'.repeat(64),
+      account_ref: 'account-fixture',
+      site_origin: 'https://fixture.example.invalid/',
+    },
+    selectors: { resource_refs: ['resource-fixture'], recipient_refs: ['recipient-fixture'], capability_refs: ['capability-fixture'] },
+    timestamps: { created_at: '2026-01-01T00:00:00.000Z', heartbeat_at: '2026-01-01T00:01:00.000Z', deadline_at: '2026-01-01T00:45:00.000Z' },
+    oracles: [{ stage_id: 'stage-fixture', owner_repo: 'website', allowed_environments: ['deployed-b'], required: [{ kind: 'state', provider_ref: 'provider-fixture', state_ref: 'state-fixture' }] }],
+    cleanup_oracles: [
+      { service: 'retry-suppression', owner_repo: 'website', provider_ref: 'provider-fixture' },
+      { service: 'authority', owner_repo: 'website', provider_ref: 'provider-fixture' },
+      { service: 'resource-absence', owner_repo: 'website', provider_ref: 'provider-fixture' },
+    ],
+  };
+  assert.throws(() => validateManifest(deployedBManifest), /deployment is invalid/);
+
+  const validDeployedB = {
+    ...deployedBManifest,
+    target: { ...deployedBManifest.target, deployment_ref: 'deployment-b' },
+  };
+  assert.equal(validateManifest(validDeployedB).target.deployment_ref, 'deployment-b');
+
+  const validLocal = {
+    ...deployedBManifest,
+    environment: 'local',
+    target: {
+      ...deployedBManifest.target,
+      deployment_ref: 'deployment-local',
+      provenance_class: 'local-fixture',
+      source_ref: 'ref-local-fixture',
+      site_origin: 'http://127.0.0.1:8787/',
+    },
+    oracles: [{ stage_id: 'stage-fixture', owner_repo: 'website', allowed_environments: ['local'], required: [{ kind: 'state', provider_ref: 'provider-fixture', state_ref: 'state-fixture' }] }],
+  };
+  assert.equal(validateManifest(validLocal).target.deployment_ref, 'deployment-local');
 });

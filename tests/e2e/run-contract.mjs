@@ -79,8 +79,11 @@ function targetShape(target, name) {
   if (target.provenance_class === 'local-fixture') {
     localOrigin(target.site_origin, `${name}.site_origin`);
   } else origin(target.site_origin, `${name}.site_origin`);
-  if (target.provenance_class === 'local-fixture') assert.equal(target.deployment_ref, 'deployment-local', 'local deployment is invalid');
-  if (target.provenance_class === 'test-build') assert.notEqual(target.deployment_ref, 'deployment-local', 'test-build deployment is invalid');
+  if (target.provenance_class === 'local-fixture') {
+    assert.equal(target.deployment_ref, 'deployment-local', 'local deployment is invalid');
+  } else {
+    assert.notEqual(target.deployment_ref, 'deployment-local', `${target.provenance_class} deployment is invalid`);
+  }
   return target;
 }
 function requirement(value, name) {
@@ -169,6 +172,9 @@ export function validateResult(input, manifest = null) {
   assert.ok(['reserved', 'provisioning', 'active', 'evidence-sealed', 'cleanup-pending', 'removed', 'failed'].includes(result.cleanup.resource_state), 'cleanup.resource_state is invalid');
   assert.ok(Array.isArray(result.cleanup.evidence), 'cleanup.evidence must be a list');
   result.cleanup.evidence.forEach((entry, i) => validateReceipt(entry, `cleanup.evidence[${i}]`));
+  if (result.journey.status === 'failed') {
+    assert.ok(result.failure !== null, 'failure descriptor required when journey failed');
+  }
   if (result.failure !== null) {
     exact(result.failure, ['code', 'failure_at', 'expected', 'observed', 'proof_ref', 'owner_repo', 'next_action', 'last_accepted_receipt_ref', 'owning_stage_repo'], 'result.failure');
     id(result.failure.code, 'failure.code'); time(result.failure.failure_at, 'failure.failure_at');
@@ -363,6 +369,7 @@ export class FakeLifecycle {
     assert.ok(Object.keys(input).every((key) => ['service', 'receipt_ref', 'status', 'authority_expires_at'].includes(key)), 'cleanup receipt has undeclared fields');
     const {service, receipt_ref, status = 'safe', authority_expires_at = null} = input;
     const r = this.#record(run_id); assert.notEqual(r.state, 'removed', 'removed run is immutable');
+    assert.ok(['cleanup-pending', 'failed'].includes(r.state), 'cleanup receipt requires pending or failed state');
     assert.ok(CLEANUP_SERVICES.has(service), 'cleanup service invalid'); id(receipt_ref, 'receipt_ref'); assert.equal(status, 'safe', 'unsafe receipt');
     if (authority_expires_at !== null) {
       assert.equal(service, 'authority', 'only authority receipt has expiry'); time(authority_expires_at, 'authority expiry');

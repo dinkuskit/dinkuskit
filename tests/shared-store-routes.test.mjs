@@ -49,13 +49,15 @@ test('shared service routes require separate consent and display processor setup
     const issued=await pass.json(); assert.equal(issued.token_type,'Bearer'); assert.equal(issued.expires_in,300);
     const claims=JSON.parse(Buffer.from(issued.access_token.split('.')[1],'base64url').toString());
     assert.equal(claims.aud,'dinkus-payments'); assert.equal(claims.scope,'payments:checkout'); assert.equal(claims.site_id,siteId); assert.equal(claims.iss,'https://dinkuskit.com/account');
+    assert.equal(claims.site_origin,origin,'the pass carries the store address Connect checked, for Payments return pages');
     assert.equal((await post(outsider,{action:'service',site_id:siteId,service:'ship',on:'1'})).status,303);
     assert.equal((await post(outsider,{action:'store_key',site_id:siteId})).status,303,'another business cannot make a key for this store');
     assert.deepEqual(await (await trade(key,'ship:orders','dinkus-ship')).json(),{error:'service_not_enabled'},'another business cannot turn on Ship for this store');
     assert.equal((await post(owner,{action:'service',site_id:siteId,service:'coupons',on:'1'})).status,303);
     assert.deepEqual(await (await trade(key,'coupons:checkout','dinkus-coupons')).json(),{error:'service_not_enabled'},'Coupons cannot be turned on while it is coming soon');
     assert.equal((await post(owner,{action:'service',site_id:siteId,service:'ship',on:'1'})).status,303);
-    assert.equal((await trade(key,'ship:orders','dinkus-ship')).status,200);
+    const shipPass=await trade(key,'ship:orders','dinkus-ship'); assert.equal(shipPass.status,200);
+    assert.equal(JSON.parse(Buffer.from((await shipPass.json()).access_token.split('.')[1],'base64url').toString()).site_origin,origin);
     assert.match(await (await request(runtime,owner,'/account/sites')).text(),/Turn off Ship/);
     const replaced=await createKey(); assert.notEqual(replaced,key);
     assert.deepEqual(await (await trade(key,'payments:checkout','dinkus-payments')).json(),{error:'invalid_store_key'},'Replace key stops the old key');

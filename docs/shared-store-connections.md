@@ -163,7 +163,11 @@ The allowed pairs are `payments:checkout` with `dinkus-payments`,
 `coupons:checkout` with `dinkus-coupons`, and `ship:orders` with `dinkus-ship`.
 The answer is `{"access_token", "token_type": "Bearer", "expires_in": 300}`: an
 ES256 pass from the same issuer and keys as Connect passes, with `sub` the
-business's subject, `site_id`, `scope`, `iat` and `exp`. `iat` is dated two
+business's subject, `site_id`, `site_origin` (the store's web address exactly as
+Connect checked and stored it), `scope`, `iat` and `exp`. Payments builds each
+store's own checkout return pages, `/checkout/success` and `/cart`, from
+`site_origin` and refuses to start a checkout without it, so DinkusKit.com must be
+deployed with this claim before Payments. `iat` is dated two
 seconds back so a verifier never sees it in the future; the pass lasts 300
 seconds from it. Commerce may reuse one pass until it expires. The route never
 redirects. Every trade checks, in this order:

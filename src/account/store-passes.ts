@@ -130,7 +130,7 @@ export async function issueStorePass(input: {
   if (used.window_count > STORE_PASS_LIMIT_PER_MINUTE) return json(429, { error: 'rate_limited' });
   if (used.site_id !== fields.site_id) return json(403, { error: 'site_mismatch' });
 
-  const store = await input.db.prepare(`SELECT i.account_subject, g.revoked, g.revoked_by,
+  const store = await input.db.prepare(`SELECT i.account_subject, i.site_origin, g.revoked, g.revoked_by,
       EXISTS (SELECT 1 FROM dinkuskit_organization o JOIN dinkuskit_account a ON a.user_id = o.owner_user_id
         JOIN dinkuskit_membership m ON m.organization_id = o.organization_id AND m.user_id = o.owner_user_id
         WHERE o.authority_subject = i.account_subject AND o.status = 'active' AND o.admission_status <> 'pending_operator'
@@ -138,14 +138,15 @@ export async function issueStorePass(input: {
     FROM dinkuskit_store_identity i
     LEFT JOIN dinkuskit_service_grant g ON g.site_id = i.site_id AND g.service = ?
     WHERE i.site_id = ?`).bind(service.service, used.site_id)
-    .first<{ account_subject: string; revoked: number | null; revoked_by: string | null; store_active: number }>();
+    .first<{ account_subject: string; site_origin: string; revoked: number | null; revoked_by: string | null; store_active: number }>();
   if (!store || Number(store.store_active) !== 1) return json(403, { error: 'store_suspended' });
   if (store.revoked === 1 && store.revoked_by === 'operator') return json(403, { error: 'service_cut_off' });
   if (store.revoked !== 0) return json(403, { error: 'service_not_enabled' });
 
   const signed = await signServicePass({
     subject: store.account_subject, siteId: used.site_id, audience: service.audience, scope: service.scope, privateJwkJson: input.privateJwkJson,
-    backdateSeconds: 2,
+    // The store's web address as Connect checked it, so Payments can send shoppers back to the store.
+    claims: { site_origin: store.site_origin }, backdateSeconds: 2,
   });
   if (!signed.ok) return json(503, { error: 'signing_unavailable' });
   await persistPublicJwk(input.db, signed.kid, signed.publicJwk);

@@ -293,8 +293,13 @@ export function assessRun(manifestInput, resultInput, assessedAt = manifestInput
   }));
   const cleanupCorrelation = result.cleanup.evidence.every((entry) => sameTarget(manifest, entry));
   const cleanupComplete = result.cleanup.status === 'passed' && result.cleanup.resource_state === 'removed' && cleanupCorrelation && cleanupMissing.length === 0;
+  const hasCorrelationMismatch = failures.some((entry) => entry.code === 'evidence-correlation-mismatch');
   let status = result.journey.status;
-  if (status === 'passed') status = failures.length ? 'blocked' : cleanupComplete ? 'passed' : 'incomplete';
+  if (hasCorrelationMismatch) {
+    status = 'blocked';
+  } else if (status === 'passed') {
+    status = failures.length ? 'blocked' : cleanupComplete ? 'passed' : 'incomplete';
+  }
   if (!cleanupComplete) failures.push({code: 'cleanup-incomplete', owner_repo: manifest.owner_repo,
     expected: 'resource-absence-and-service-safety', observed: 'cleanup-unresolved', next_action: 'resolve-cleanup'});
   return {run_id: manifest.run_id, environment: manifest.environment, target: manifest.target, status, journey: result.journey.status, cleanup: cleanupComplete ? 'passed' : result.cleanup.status === 'failed' ? 'failed' : 'unknown',

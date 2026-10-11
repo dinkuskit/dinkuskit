@@ -1182,3 +1182,192 @@ test("nonlocal targets and receipts reject unspecified and wildcard address form
     assert.equal(validateResult(result({ journey: { ...result().journey, evidence: [receipt({ site_origin: local })] } })).journey.evidence[0].site_origin, local);
   }
 });
+
+test('assessRun forces overall status blocked on evidence correlation mismatch across passed, failed, and unknown outcomes while preserving separate journey, failure, and cleanup semantics', () => {
+  const failure = {
+    code: 'stage-failed',
+    failure_at: '2026-01-01T00:20:00.000Z',
+    expected: 'state-account-ready',
+    observed: 'provider-error',
+    proof_ref: 'proof-err',
+    owner_repo: 'account-service',
+    next_action: 'inspect-error',
+    last_accepted_receipt_ref: 'receipt-local',
+    owning_stage_repo: 'account-service',
+  };
+  const foreign = receipt({
+    receipt_ref: 'receipt-foreign-run',
+    run_id: 'run-foreign',
+  });
+
+  const outcomes = ['passed', 'failed', 'unknown'];
+
+  for (const outcome of outcomes) {
+    // 1. Foreign receipt in journey.evidence
+    const journeyWithForeign = result({
+      journey: {
+        ...result().journey,
+        status: outcome,
+        evidence: [receipt(), foreign],
+      },
+      failure: outcome === 'failed' ? failure : null,
+    });
+    const assessedJourney = assessRun(manifest(), journeyWithForeign);
+    assert.equal(assessedJourney.status, 'blocked', `journey foreign receipt with journey status ${outcome} must force overall status blocked`);
+    assert.equal(assessedJourney.journey, outcome, `separate journey outcome must be preserved for ${outcome}`);
+    if (outcome === 'failed') {
+      assert.deepEqual(assessedJourney.failure, failure, 'legitimate failure descriptor must be preserved');
+      assert.equal(assessedJourney.last_accepted_receipt.receipt_ref, 'receipt-local', 'accepted receipt semantics must be preserved');
+      assert.equal(assessedJourney.owning_stage_repo, 'account-service', 'owning stage repo must be preserved');
+    }
+    assert.ok(
+      assessedJourney.failures.some((f) => f.code === 'evidence-correlation-mismatch'),
+      'evidence-correlation-mismatch failure must be recorded',
+    );
+
+    // 2. Foreign receipt in cleanup.evidence
+    const cleanupWithForeign = result({
+      journey: {
+        ...result().journey,
+        status: outcome,
+        evidence: [receipt()],
+      },
+      cleanup: {
+        ...result().cleanup,
+        evidence: [...cleanupEvidence(), foreign],
+      },
+      failure: outcome === 'failed' ? failure : null,
+    });
+    const assessedCleanup = assessRun(manifest(), cleanupWithForeign);
+    assert.equal(assessedCleanup.status, 'blocked', `cleanup foreign receipt with journey status ${outcome} must force overall status blocked`);
+    assert.equal(assessedCleanup.journey, outcome, `separate journey outcome must be preserved for ${outcome}`);
+    if (outcome === 'failed') {
+      assert.deepEqual(assessedCleanup.failure, failure, 'legitimate failure descriptor must be preserved');
+      assert.equal(assessedCleanup.last_accepted_receipt.receipt_ref, 'receipt-local', 'accepted receipt semantics must be preserved');
+      assert.equal(assessedCleanup.owning_stage_repo, 'account-service', 'owning stage repo must be preserved');
+    }
+    assert.ok(
+      assessedCleanup.failures.some((f) => f.code === 'evidence-correlation-mismatch'),
+      'evidence-correlation-mismatch failure must be recorded',
+    );
+    assert.notEqual(assessedCleanup.cleanup, 'passed', 'cleanup semantics must be preserved when cleanup evidence is corrupted');
+  }
+
+  // Valid failed control (no foreign evidence)
+  const validFailed = result({
+    journey: { ...result().journey, status: 'failed', evidence: [receipt()] },
+    failure,
+  });
+  const assessedValidFailed = assessRun(manifest(), validFailed);
+  assert.equal(assessedValidFailed.status, 'failed', 'valid failed control must retain overall status failed');
+  assert.equal(assessedValidFailed.journey, 'failed', 'valid failed control must retain journey status failed');
+  assert.deepEqual(assessedValidFailed.failure, failure, 'valid failed control must retain failure descriptor');
+  assert.equal(assessedValidFailed.last_accepted_receipt.receipt_ref, 'receipt-local', 'valid failed control must retain last accepted receipt');
+  assert.equal(assessedValidFailed.owning_stage_repo, 'account-service', 'valid failed control must retain owning stage repo');
+
+  // Valid unknown control (no foreign evidence)
+  const validUnknown = result({
+    journey: { ...result().journey, status: 'unknown', evidence: [receipt()] },
+  });
+  const assessedValidUnknown = assessRun(manifest(), validUnknown);
+  assert.equal(assessedValidUnknown.status, 'unknown', 'valid unknown control must retain overall status unknown');
+  assert.equal(assessedValidUnknown.journey, 'unknown', 'valid unknown control must retain journey status unknown');
+});
+
+test('isolated hosted deployment_ref mismatch with matching environment and provenance blocks assessment', () => {
+  const hostedTarget = {
+    ...target,
+    target_ref: 'target-a',
+    deployment_ref: 'deployment-a',
+    provenance_class: 'test-build',
+    source_ref: 'ref-a-build',
+    site_origin: 'https://a.example.invalid/',
+  };
+  const hostedManifest = manifest({
+    environment: 'hosted-a',
+    target: hostedTarget,
+    oracles: [
+      {
+        stage_id: 'local-account',
+        owner_repo: 'account-service',
+        allowed_environments: ['hosted-a'],
+        required: [{ kind: 'state', provider_ref: 'provider-local', state_ref: 'state-account-ready' }],
+      },
+    ],
+  });
+
+  const validHostedReceipt = receipt({
+    ...hostedTarget,
+    environment: 'hosted-a',
+  });
+
+  // Isolated mismatch: same environment ('hosted-a'), same provenance_class ('test-build'),
+  // same site_origin, same target_ref, site_ref, release_ref, source_ref, account_ref, run_id,
+  // differing ONLY in deployment_ref
+  const foreignDeploymentReceipt = receipt({
+    ...hostedTarget,
+    environment: 'hosted-a',
+    receipt_ref: 'receipt-foreign-deployment',
+    deployment_ref: 'deployment-other',
+  });
+
+  assert.equal(foreignDeploymentReceipt.environment, hostedManifest.environment, 'environment must match in isolated test');
+  assert.equal(foreignDeploymentReceipt.provenance_class, hostedManifest.target.provenance_class, 'provenance_class must match in isolated test');
+  assert.equal(foreignDeploymentReceipt.site_origin, hostedManifest.target.site_origin, 'site_origin must match in isolated test');
+  assert.notEqual(foreignDeploymentReceipt.deployment_ref, hostedManifest.target.deployment_ref, 'deployment_ref must differ');
+
+  // 1. Foreign deployment receipt in journey.evidence
+  const journeyRes = result({
+    journey: {
+      ...result().journey,
+      evidence: [validHostedReceipt, foreignDeploymentReceipt],
+    },
+    cleanup: {
+      ...result().cleanup,
+      evidence: cleanupEvidence({ ...hostedTarget, environment: 'hosted-a' }),
+    },
+  });
+  const assessedJourney = assessRun(hostedManifest, journeyRes);
+  assert.equal(assessedJourney.status, 'blocked', 'isolated deployment_ref mismatch in journey evidence must block');
+  const journeyMismatch = assessedJourney.failures.find(
+    (f) => f.code === 'evidence-correlation-mismatch' && f.expected === 'deployment-a',
+  );
+  assert.ok(journeyMismatch, 'must record evidence-correlation-mismatch expecting deployment-a');
+  assert.equal(journeyMismatch.observed, 'deployment-other');
+
+  // 2. Foreign deployment receipt in cleanup.evidence
+  const cleanupRes = result({
+    journey: {
+      ...result().journey,
+      evidence: [validHostedReceipt],
+    },
+    cleanup: {
+      ...result().cleanup,
+      evidence: [
+        ...cleanupEvidence({ ...hostedTarget, environment: 'hosted-a' }),
+        foreignDeploymentReceipt,
+      ],
+    },
+  });
+  const assessedCleanup = assessRun(hostedManifest, cleanupRes);
+  assert.equal(assessedCleanup.status, 'blocked', 'isolated deployment_ref mismatch in cleanup evidence must block');
+  const cleanupMismatch = assessedCleanup.failures.find(
+    (f) => f.code === 'evidence-correlation-mismatch' && f.expected === 'deployment-a',
+  );
+  assert.ok(cleanupMismatch, 'must record evidence-correlation-mismatch expecting deployment-a');
+  assert.equal(cleanupMismatch.observed, 'deployment-other');
+
+  // 3. Valid matching hosted control
+  const validRes = result({
+    journey: {
+      ...result().journey,
+      evidence: [validHostedReceipt],
+    },
+    cleanup: {
+      ...result().cleanup,
+      evidence: cleanupEvidence({ ...hostedTarget, environment: 'hosted-a' }),
+    },
+  });
+  const assessedValid = assessRun(hostedManifest, validRes);
+  assert.equal(assessedValid.status, 'passed', 'valid hosted control must pass');
+});

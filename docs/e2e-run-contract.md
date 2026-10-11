@@ -65,7 +65,7 @@ gates are deliberately not implemented here.
 
 ## Source API and proof limits
 
-Run `npm run test:e2e-contract` for the 36 native `node:test` cases; `npm run
+Run `npm run test:e2e-contract` for the 38 native `node:test` cases; `npm run
 verify` includes them. The contract module is `tests/e2e/run-contract.mjs`.
 `validateManifest` and `validateResult` validate declared shapes.
 `assessRun(manifest, result, assessedAt)` reduces evidence and returns the run,

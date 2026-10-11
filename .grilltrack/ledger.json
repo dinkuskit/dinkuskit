@@ -3803,6 +3803,20 @@
           "note": "fork composition invalidates prior current proof",
           "source_snapshot_ref": ".grilltrack/lineage/7769d874ad28c3b4cfb163f45ea9118384b3c9d3d286d4e7160d34665d96d3f1",
           "to": "needs_reverification"
+        },
+        {
+          "at": "2026-10-11T23:54:00+00:00",
+          "choice": "DinkusKit owns one versioned non-secret manifest/result contract and deterministic fake-resource lifecycle tests; local/A/B provenance, manual/assisted truth, exact ownership, fixed failure expiry and separate history retention. No live adapters or runtime changes.",
+          "from": "needs_reverification",
+          "implementation_ref": "file:tests/e2e/run-contract.mjs;file:tests/e2e/run-contract.test.mjs;file:docs/e2e-run-contract.md",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": null
         }
       ],
       "id": "website-e2e-run-contract-049",
@@ -3822,10 +3836,10 @@
       "review_ref": null,
       "review_result": null,
       "review_source_identity": null,
-      "status": "needs_reverification",
+      "status": "verified",
       "superseded_by": null,
-      "updated_at": "2026-10-11T18:02:56+00:00",
-      "verification_ref": null
+      "updated_at": "2026-10-11T23:54:00+00:00",
+      "verification_ref": "file:proof/e2e-run-contract/PROOF.md;file:proof/e2e-run-contract/verification.json"
     },
     {
       "baseline_ref": null,
@@ -7468,5 +7482,5 @@
   "status": "active",
   "title": "Composed integration",
   "track_id": "gt-join-7769d874ad28c3b4cfb163f45ea91183",
-  "updated_at": "2026-10-11T18:02:56+00:00"
+  "updated_at": "2026-10-11T23:54:00+00:00"
 }

@@ -36,9 +36,10 @@ npx wrangler d1 create dinkuskit-merchant-production
 npx wrangler r2 bucket create dinkuskit-website-candidate-media
 ```
 
-Each `d1 create` prints a `database_id`. Add it to the matching entry in
-`cloudflare/wrangler.jsonc` through a PR. Database IDs are not secrets. Skip any
-resource that already exists.
+Each `d1 create` prints a `database_id`. Keep it out of the repository: Wrangler
+finds each database by its `database_name` in `cloudflare/wrangler.jsonc`, and
+`npm run test:cloudflare-candidate` refuses a real ID there. Skip any resource
+that already exists.
 
 ### 2. Email sending
 
@@ -80,12 +81,23 @@ loaded through the EmDash setup screen, which only opens behind Access; until
 then `/` says "Content is not available yet". See
 [Load the site's pages](#load-the-sites-pages-new-website-database-only).
 
-Build the Cloudflare candidate and deploy it with its production config:
+Build the Cloudflare candidate and deploy the Wrangler config that the build
+writes:
 
 ```sh
 npm run build:cloudflare
-npx wrangler deploy --config cloudflare/wrangler.jsonc
+npx wrangler deploy --config .grilltrack/work/cloudflare-candidate-20260930/dist/server/wrangler.json
 ```
+
+That path is the build output (`outDir` in `astro.cloudflare.config.mjs`).
+Do not deploy with `--config cloudflare/wrangler.jsonc`: that file is the
+build's input, and Wrangler cannot bundle the site from it. Do not drop
+`--config` either: a bare `npx wrangler deploy` follows whichever build ran
+last, which can be the local `npm run build`.
+
+The built config keeps the bindings above and adds a `SESSION` KV binding with
+no ID. Wrangler creates that namespace on the Worker's first deploy and keeps the
+existing one after that. It finds both D1 databases by name the same way.
 
 Once Access is set up, always build with `EMDASH_ACCESS_TEAM_DOMAIN` (step 3
 below); a build without it closes `/_emdash` again. The editor area (`/_emdash`)
@@ -116,7 +128,7 @@ Access (decision `website-operator-admin-emdash-access-035`). Owner-only, once:
 
    ```sh
    EMDASH_ACCESS_TEAM_DOMAIN=<team>.cloudflareaccess.com npm run build:cloudflare
-   npx wrangler deploy --config cloudflare/wrangler.jsonc
+   npx wrangler deploy --config .grilltrack/work/cloudflare-candidate-20260930/dist/server/wrangler.json
    ```
 
 4. Open `https://dinkuskit.com/_emdash/admin`. The first person Access lets in

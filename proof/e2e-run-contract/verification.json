@@ -1,0 +1,101 @@
+{
+  "schema_version": 1,
+  "repository": "dinkuskit/dinkuskit",
+  "base_commit": "4c8fdcc30e141075ee39edb017f193622840ac8c",
+  "runtime": "Node v22.23.2",
+  "source_sha256": {
+    "tests/e2e/run-contract.mjs": "da6898307997f95f182f671f42d2d9f15b81b2641398055752ce4e8a14c5f1d5",
+    "tests/e2e/run-contract.test.mjs": "84d3bba255304db3771f9b2d27f98607258560043b5d8337d8913000deaaf26c",
+    "docs/e2e-run-contract.md": "8cbebdc3ae118e25f784fe97c6f64787599b566e7548e96d3f1f727be1a44470",
+    "package.json": "6631098a7fcde695d44c5630b190f126f706d725ffd21f403bf8d1b26f91a973"
+  },
+  "checks": [
+    {
+      "command": "npm ci",
+      "exit_code": 0
+    },
+    {
+      "command": "npm run test:e2e-contract",
+      "exit_code": 0,
+      "tests": 23
+    },
+    {
+      "command": "npm run verify",
+      "exit_code": 0,
+      "completed_commands": [
+        "verify",
+        "audit:repo",
+        "setup",
+        "types:wrangler",
+        "typecheck",
+        "test:account",
+        "test:e2e-contract",
+        "build",
+        "test:inventory-runner",
+        "test:merchant",
+        "test:shared-store",
+        "test:foundation",
+        "test:inventory-overview",
+        "test:organization-approvals",
+        "test:operator-admin",
+        "test:smoke",
+        "test:dev-cms",
+        "test:public-release-reuse",
+        "test:cms-operation-helpers",
+        "test:access-gate",
+        "test:safe-http-url",
+        "test:cms-operation",
+        "test:emdash-upgrade",
+        "test:cloudflare-candidate"
+      ],
+      "native_test_groups": [
+        {
+          "command": "test:account",
+          "tests": 10
+        },
+        {
+          "command": "test:e2e-contract",
+          "tests": 23
+        },
+        {
+          "command": "test:inventory-runner",
+          "tests": 9
+        },
+        {
+          "command": "test:merchant",
+          "tests": 20
+        },
+        {
+          "command": "test:shared-store",
+          "tests": 27
+        },
+        {
+          "command": "test:foundation",
+          "tests": 7
+        },
+        {
+          "command": "test:inventory-overview",
+          "tests": 8
+        },
+        {
+          "command": "test:organization-approvals",
+          "tests": 5
+        },
+        {
+          "command": "test:operator-admin",
+          "tests": 8
+        }
+      ]
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    }
+  ],
+  "claims": {
+    "local_contract": "verified",
+    "hosted_a": "not-run",
+    "deployed_b": "not-run",
+    "independent_review": "pending"
+  }
+}

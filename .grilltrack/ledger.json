@@ -2,13 +2,13 @@
   "closeout": null,
   "created_at": "2026-10-01T08:46:55+00:00",
   "current_focus": {
-    "cadence": "frontier-batch",
+    "cadence": "sequential",
     "confirmed": true,
-    "confirmed_at": "2026-10-10T19:28:31+00:00",
-    "domain": "Accounts and operator admin for v1",
-    "started_at": "2026-10-10T19:28:05+00:00",
+    "confirmed_at": "2026-10-11T17:40:44+00:00",
+    "domain": "E2E manifest, evidence and fake lifecycle",
+    "started_at": "2026-10-11T17:40:43+00:00",
     "status": "confirmed",
-    "summary": "Ronald confirmed the ordered plan and answered all seven questions on 2026-10-10 19:23-19:24 UTC."
+    "summary": "User confirmed source-only slice 1: manifest/result validation and fake lifecycle tests with public-safe proof; commit, non-force push and draft PR authorized. Coordinator owns independent review and human merge gate."
   },
   "decisions": [
     {
@@ -6065,6 +6065,75 @@
       "superseded_by": null,
       "updated_at": "2026-10-11T12:58:16+00:00",
       "verification_ref": "file:tests/shared-store-routes.test.mjs"
+    },
+    {
+      "baseline_ref": "git:4c8fdcc30e141075ee39edb017f193622840ac8c",
+      "candidate_refs": [],
+      "choice": "DinkusKit owns one versioned non-secret manifest/result contract and deterministic fake-resource lifecycle tests; local/A/B provenance, manual/assisted truth, exact ownership, fixed failure expiry and separate history retention. No live adapters or runtime changes.",
+      "context_ref": "file:docs/e2e-run-contract.md",
+      "created_at": "2026-10-11T17:40:43+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [],
+      "domain": "E2E manifest, evidence and fake lifecycle",
+      "history": [
+        {
+          "at": "2026-10-11T17:40:43+00:00",
+          "choice": "DinkusKit owns one versioned non-secret manifest/result contract and deterministic fake-resource lifecycle tests; local/A/B provenance, manual/assisted truth, exact ownership, fixed failure expiry and separate history retention. No live adapters or runtime changes.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-11T17:56:33+00:00",
+          "choice": "DinkusKit owns one versioned non-secret manifest/result contract and deterministic fake-resource lifecycle tests; local/A/B provenance, manual/assisted truth, exact ownership, fixed failure expiry and separate history retention. No live adapters or runtime changes.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-11T17:58:00+00:00",
+          "choice": "DinkusKit owns one versioned non-secret manifest/result contract and deterministic fake-resource lifecycle tests; local/A/B provenance, manual/assisted truth, exact ownership, fixed failure expiry and separate history retention. No live adapters or runtime changes.",
+          "from": "implemented",
+          "implementation_ref": "file:tests/e2e/run-contract.mjs;file:tests/e2e/run-contract.test.mjs;file:docs/e2e-run-contract.md",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": null
+        }
+      ],
+      "id": "website-e2e-run-contract-049",
+      "implementation_ref": "file:tests/e2e/run-contract.mjs;file:tests/e2e/run-contract.test.mjs;file:docs/e2e-run-contract.md",
+      "question": "Which product owns the fresh merchant E2E manifest/result and lifecycle policy?",
+      "rationale": "User-authorized accepted slice 1; bounded source implementation and draft PR delivery.",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [],
+      "review_ref": null,
+      "review_result": null,
+      "review_source_identity": null,
+      "status": "verified",
+      "superseded_by": null,
+      "updated_at": "2026-10-11T17:58:00+00:00",
+      "verification_ref": "file:proof/e2e-run-contract/PROOF.md;file:proof/e2e-run-contract/verification.json"
     }
   ],
   "last_activation": {
@@ -6092,5 +6161,5 @@
   "status": "active",
   "title": "Website PR9 current-main reconciliation",
   "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca",
-  "updated_at": "2026-10-11T12:58:16+00:00"
+  "updated_at": "2026-10-11T17:58:00+00:00"
 }

@@ -306,3 +306,9 @@
 {"action": "decision_locked", "at": "2026-10-11T12:46:41+00:00", "data": {"decision_id": "website-store-pass-site-origin-048"}, "event_id": "262c3a46-1b90-466b-89e7-76c433d64262"}
 {"action": "decision_implemented", "at": "2026-10-11T12:46:42+00:00", "data": {"decision_id": "website-store-pass-site-origin-048"}, "event_id": "38e26da9-0958-4151-8013-4abc1324c5b0"}
 {"action": "decision_verified", "at": "2026-10-11T12:58:16+00:00", "data": {"decision_id": "website-store-pass-site-origin-048"}, "event_id": "b7e2c4ba-6ae6-4c98-b63b-5eb913df3eaa"}
+{"action": "focus_started", "at": "2026-10-11T17:40:43+00:00", "data": {"cadence": "sequential", "domain": "E2E manifest, evidence and fake lifecycle"}, "event_id": "851775b3-16cb-41c9-bc20-219944b3e2c7"}
+{"action": "decision_proposed", "at": "2026-10-11T17:40:43+00:00", "data": {"decision_id": "website-e2e-run-contract-049"}, "event_id": "7f58c354-21f6-4ce6-80a8-8625cd3669b1"}
+{"action": "decision_locked", "at": "2026-10-11T17:40:43+00:00", "data": {"decision_id": "website-e2e-run-contract-049"}, "event_id": "deeab12f-e714-4d8a-8761-aa6f0636e7d9"}
+{"action": "shared_understanding_confirmed", "at": "2026-10-11T17:40:44+00:00", "data": {"summary": "User confirmed source-only slice 1: manifest/result validation and fake lifecycle tests with public-safe proof; commit, non-force push and draft PR authorized. Coordinator owns independent review and human merge gate."}, "event_id": "d3b5c121-73cd-4411-8fdb-485720b5a9cb"}
+{"action": "decision_implemented", "at": "2026-10-11T17:56:33+00:00", "data": {"decision_id": "website-e2e-run-contract-049"}, "event_id": "ee649a11-f8f0-4895-8ab1-171f859fef53"}
+{"action": "decision_verified", "at": "2026-10-11T17:58:00+00:00", "data": {"decision_id": "website-e2e-run-contract-049"}, "event_id": "f0e0a873-634b-461c-bb10-130ed1abff04"}

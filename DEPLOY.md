@@ -74,6 +74,12 @@ npx wrangler d1 migrations apply dinkuskit-merchant-production --remote \
 
 ## Deploy
 
+On a new website database (`DB`), set up the operator admin (Cloudflare Access,
+below) before the first deploy. The homepage and Getting started page are
+loaded through the EmDash setup screen, which only opens behind Access; until
+then `/` says "Content is not available yet". See
+[Load the site's pages](#load-the-sites-pages-new-website-database-only).
+
 Build the Cloudflare candidate and deploy it with its production config:
 
 ```sh
@@ -84,8 +90,9 @@ npx wrangler deploy
 The Cloudflare build output includes a generated Wrangler config with a `SESSION`
 KV binding. The first deploy provisions that KV namespace.
 
-The editor area (`/_emdash`) stays fully denied until the Cloudflare Access lane
-below is configured. The operator pages (business approvals, people, stores and
+Once Access is set up, always build with `EMDASH_ACCESS_TEAM_DOMAIN` (step 3
+below); a build without it closes `/_emdash` again. The editor area (`/_emdash`)
+stays fully denied until the Cloudflare Access lane below is configured. The operator pages (business approvals, people, stores and
 services) live inside it, so they stay unreachable until then too; the first 50
 organizations are still admitted automatically.
 
@@ -121,18 +128,47 @@ Access (decision `website-operator-admin-emdash-access-035`). Owner-only, once:
    `/_emdash/admin/plugins/dinkuskit-operator/approvals`, `/people` and
    `/stores`. The old `/account/organization-approvals` address redirects there.
 
+## Load the site's pages (new website database only)
+
+The homepage and Getting started page are content in the website database
+(`DB`), not files in the build. On a new database the Worker creates the empty
+`pages` collection on its first request but not the pages, so `/` answers HTTP
+503 with "Content is not available yet". Load them once, right after the first
+deploy with Access:
+
+1. The owner opens `https://dinkuskit.com/_emdash/admin` and signs in through
+   Access with an allow-listed email. Whoever finishes this step becomes the
+   site's Admin, so an agent does not do it.
+2. EmDash shows its setup screen. Enter the site title `DinkusKit`, choose
+   **Sample content** under "How do you want to start?", and finish. Here
+   "Sample content" is this repository's `seed/seed.json`: the homepage and the
+   Getting started page.
+3. Check that `https://dinkuskit.com/` shows "Commerce that belongs in EmDash."
+   and `https://dinkuskit.com/getting-started` shows "Your site. One connected
+   experience."
+
+Setup runs once. Later deploys keep the pages, and later edits to
+`seed/seed.json` do not change a database that already has them; edit the pages
+in the EmDash admin instead. Nothing needs to move from the earlier static site:
+it was a frozen copy of the same two pages from the same seed.
+
 ## Post-deploy checks
 
 ```sh
 curl --fail --silent --show-error https://dinkuskit.com/health
+curl --fail --silent --show-error https://dinkuskit.com/ | grep -c 'Commerce that belongs in EmDash'
 curl --fail --silent --show-error \
   https://dinkuskit.com/account/.well-known/jwks.json
 curl --include --silent https://dinkuskit.com/_emdash
 ```
 
 - `/health` must answer HTTP 200 with `{"status":"ok"}`.
+- `/` must answer HTTP 200 and the count must be at least 1. HTTP 503 with
+  "Content is not available yet" means the site's pages were never loaded (see
+  above).
 - The JWKS must answer HTTP 200. It lists no keys until the first pass is issued.
-- `/_emdash` must be denied (normally HTTP 404) and never show CMS setup or login.
+- `/_emdash` must be denied and never show CMS setup or login: HTTP 404 from the
+  site, or a redirect to the Access sign-in page once Access is set up.
 
 Then click through once by hand:
 

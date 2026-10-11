@@ -339,6 +339,7 @@ export class FakeLifecycle {
   }
   reconcileInterrupted(input) {
     const {run_id, account_ref, ownership_ref, resource_ref} = exact(input, ['run_id', 'account_ref', 'ownership_ref', 'resource_ref'], 'reconciliation');
+    this.checkDeadline(run_id);
     const r = this.#record(run_id);
     assert.equal(r.account_ref, account_ref, 'account ownership mismatch');
     assert.equal(r.ownership_ref, ownership_ref, 'cleanup ownership mismatch');
@@ -458,6 +459,30 @@ export class FakeLifecycle {
       assert.ok(Date.parse(r.heartbeat_at) >= Date.parse(r.created_at) && Date.parse(r.heartbeat_at) <= Date.parse(snapshot.now), 'heartbeat invalid');
       assert.equal(r.cleanup_intent, true, 'cleanup intent missing');
       for (const key of ['history_retained', 'retry_suppression_required']) assert.equal(typeof r[key], 'boolean', key);
+      if (r.state === 'failed') {
+        assert.ok(r.failure_at !== null, 'failed state requires failure metadata');
+        assert.equal(r.retry_suppression_required, true, 'failed state requires retry suppression');
+      } else if (r.state === 'cleanup-pending') {
+        assert.equal(r.failure_at, null, 'cleanup-pending cannot have failure metadata');
+        assert.ok(r.terminal_at !== null, 'cleanup-pending requires terminal metadata');
+        assert.equal(r.retry_suppression_required, true, 'cleanup-pending requires retry suppression');
+        assert.ok(r.resource_ref !== null, 'cleanup-pending requires allocated resource');
+      } else if (r.state === 'removed') {
+        assert.equal(r.retry_suppression_required, true, 'removed state requires retry suppression');
+        if (r.failure_at !== null) {
+          assert.ok(Date.parse(snapshot.now) >= Date.parse(r.expiry_at), 'removed failed run before failure expiry');
+        }
+      } else {
+        assert.equal(r.failure_at, null, 'live state cannot have failure metadata');
+        assert.equal(r.terminal_at, null, 'live state cannot have terminal metadata');
+        assert.equal(r.retry_suppression_required, false, 'live state cannot require retry suppression');
+        assert.deepEqual(r.receipts, [], 'live state cannot have cleanup receipts');
+        if (r.state === 'reserved') {
+          assert.equal(r.resource_ref, null, 'reserved state cannot have allocated resource');
+        } else if (['active', 'evidence-sealed'].includes(r.state)) {
+          assert.ok(r.resource_ref !== null, 'active state requires allocated resource');
+        }
+      }
       if (r.failure_at !== null) {
         time(r.failure_at, 'failure_at'); id(r.failure_reason, 'failure_reason'); time(r.expiry_at, 'expiry_at');
         assert.equal(Date.parse(r.expiry_at), Date.parse(r.failure_at) + FAILURE_WINDOW_MS, 'failure expiry changed');

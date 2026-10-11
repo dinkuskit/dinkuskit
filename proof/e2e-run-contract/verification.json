@@ -2,25 +2,35 @@
   "schema_version": 1,
   "repository": "dinkuskit/dinkuskit",
   "base_commit": "771d91245918f321afbd55f495ec34741e6f09df",
-  "initial_head": "1470df4d0d9414610fe899ad6f8c28b6e1aaf7f6",
+  "initial_head": "e101f6e0e196c0c21e0c8aaf41644a8aa363d099",
   "runtime": "Node v22.23.2",
   "source_sha256": {
-    "tests/e2e/run-contract.mjs": "35b33dbc93b36c662c99730b09eddba82883b542cb51f566fb92ae9927ea75d7",
-    "tests/e2e/run-contract.test.mjs": "eb657ee07404ab07f60184d4c0724d035abb9ad74c00632f2f57ac83ae4a5d4a",
-    "docs/e2e-run-contract.md": "0f25ae8c9dd739a1cac9483d655ad1015f14b405a90a5f83fb2b15cd76cf1b1e",
+    "tests/e2e/run-contract.mjs": "4fa1a8369168223e68e52cba2bd33514e7807762fe2274e0103ea285a51e22ff",
+    "tests/e2e/run-contract.test.mjs": "4adabe198925dbde375518cfa9c5e29eed8056d431c25d6cfed9f75c22734993",
+    "docs/e2e-run-contract.md": "271a014ff0a9ebcbcd68c7768790d641f4aa7824e243634a71237a1173614e05",
     "package.json": "7edc505656659e256235c5740d150584b6482212cbe57669b673385ec1fc436b"
   },
   "checks": [
     {
       "command": "node --test tests/e2e/run-contract.test.mjs",
       "exit_code": 0,
-      "tests": 28,
+      "tests": 30,
       "status": "passed"
     },
     {
       "command": "git diff --check",
       "exit_code": 0,
       "status": "passed"
+    },
+    {
+      "command": "node scripts/audit-repo.mjs",
+      "exit_code": 0,
+      "status": "passed"
+    },
+    {
+      "command": "./scripts/grilltrack --project . validate",
+      "status": "passed",
+      "exit_code": 0
     },
     {
       "command": "npm run verify",
@@ -60,7 +70,7 @@
         },
         {
           "command": "test:e2e-contract",
-          "tests": 28
+          "tests": 30
         },
         {
           "command": "test:agent-routes",
@@ -95,15 +105,10 @@
           "tests": 8
         }
       ]
-    },
-    {
-      "command": "./scripts/grilltrack --project . validate",
-      "status": "passed",
-      "exit_code": 0
     }
   ],
   "claims": {
-    "local_contract": "verified-focused-28-tests",
+    "local_contract": "verified-focused-30-tests",
     "hosted_a": "not-run",
     "deployed_b": "not-run",
     "full_verification": "passed",
@@ -180,7 +185,7 @@
           },
           {
             "command": "test:foundation",
-            "tests": 7
+            "tests": 8
           },
           {
             "command": "test:inventory-overview",
@@ -192,15 +197,19 @@
           },
           {
             "command": "test:operator-admin",
-            "tests": 8
+            "tests": 7
           }
         ]
       },
       {
         "command": "git diff --check",
         "exit_code": 0
+      },
+      {
+        "command": "grilltrack validate",
+        "exit_code": 0
       }
     ]
   },
-  "verified_at": "2026-10-11T20:04:39.493197+00:00"
+  "verified_at": "2026-10-11T20:29:20.790222+00:00"
 }

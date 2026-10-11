@@ -65,7 +65,7 @@ gates are deliberately not implemented here.
 
 ## Source API and proof limits
 
-Run `npm run test:e2e-contract` for the 28 native `node:test` cases; `npm run
+Run `npm run test:e2e-contract` for the 30 native `node:test` cases; `npm run
 verify` includes them. The contract module is `tests/e2e/run-contract.mjs`.
 `validateManifest` and `validateResult` validate declared shapes.
 `assessRun(manifest, result, assessedAt)` reduces evidence and returns the run,
@@ -79,7 +79,7 @@ cleanup success.
 `FakeLifecycle` admits one exact fake resource per run. Its default clock is
 controlled by `advance`; a `clock` function may inject external time.
 `reserve` records ownership and cleanup intent; `allocate` can simulate a crash
-before saving the ID. `reconcileInterrupted` preserves an existing failure.
+before saving the ID. `reconcileInterrupted` enforces deadlines before reconciliation, preserving failure while recovering owned resource identity for cleanup and preserving first failure time/expiry across timely or prior failure.
 `fail` immediately requires retry suppression and stops new run actions;
 service-safe receipts are required to resolve that requirement. `cleanup`
 observes fake resource absence after exact deletion, or requires an explicit
@@ -87,8 +87,9 @@ absence receipt when the fake resource disappeared independently. Unavailable
 or ambiguous operations stay unresolved and may be retried without extending
 failure expiry. Budget pause affects admission, while cleanup remains enabled.
 
-Snapshot restoration checks declared fields and internal chronology, not
-storage authenticity. The fixture retains the cleanup ownership tombstone when
+Snapshot restoration checks declared fields, complete failure and terminal
+metadata consistency for failed and cleanup-pending states, and internal
+chronology, not storage authenticity. The fixture retains the cleanup ownership tombstone when
 inactive history expires; it does not implement a provider's data purge or
 revocation. Receipt refs, source refs and hashes are correlation declarations;
 a qualified future adapter must independently resolve and authenticate them.

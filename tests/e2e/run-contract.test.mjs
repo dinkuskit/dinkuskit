@@ -555,3 +555,162 @@ test('failed result attribution binds owning_stage_repo and last_accepted_receip
   assert.equal(assessedAfter.last_accepted_receipt.receipt_ref, 'receipt-local');
   assert.equal(assessedAfter.owning_stage_repo, 'account-service');
 });
+
+test("FakeLifecycle.restore rejects malformed restart states and preserves valid restoration", () => {
+  // 1. Repro: reserve+allocate active resource, snapshot, change state to failed (with null failure/terminal metadata).
+  // In buggy code, this was accepted; cleanup immediately returned removed/passed with zero history and canAdmit true.
+  const activeLife = life("run-repro-fail", "resource-repro-fail");
+  activeLife.allocate("run-repro-fail", "resource-repro-fail");
+  const malformedFailed = activeLife.snapshot();
+  malformedFailed.records[0].state = "failed";
+  assert.throws(() => FakeLifecycle.restore(malformedFailed), /failed state requires failure metadata/);
+
+  // 2. Snapshot in cleanup-pending state requires terminal metadata and rejects failure metadata
+  const liveForPending = life("run-pending", "resource-pending");
+  liveForPending.allocate("run-pending", "resource-pending");
+  liveForPending.sealEvidence("run-pending");
+  liveForPending.complete("run-pending");
+  const pendingSnap = liveForPending.snapshot();
+  assert.equal(pendingSnap.records[0].state, "cleanup-pending");
+
+  const missingTerminal = structuredClone(pendingSnap);
+  missingTerminal.records[0].terminal_at = null;
+  missingTerminal.records[0].history_expires_at = null;
+  assert.throws(() => FakeLifecycle.restore(missingTerminal), /cleanup-pending requires terminal metadata/);
+
+  const pendingWithFailure = structuredClone(pendingSnap);
+  pendingWithFailure.records[0].failure_at = "2026-01-01T00:00:00.000Z";
+  assert.throws(() => FakeLifecycle.restore(pendingWithFailure), /cleanup-pending cannot have failure metadata/);
+
+  // 3. Obvious state consistency at this same boundary: live runs cannot have failure or terminal metadata
+  const liveSnap = activeLife.snapshot();
+  const liveWithCleanupReceipts = structuredClone(liveSnap);
+  liveWithCleanupReceipts.records[0].receipts = [
+    { service: 'retry-suppression', receipt_ref: 'receipt-early-retry', authority_expires_at: null },
+    { service: 'authority', receipt_ref: 'receipt-early-authority', authority_expires_at: null },
+  ];
+  assert.throws(() => FakeLifecycle.restore(liveWithCleanupReceipts), /live state cannot have cleanup receipts/);
+  assert.equal(FakeLifecycle.restore(liveSnap).record('run-repro-fail').state, 'active');
+  const liveWithFailure = structuredClone(liveSnap);
+  liveWithFailure.records[0].failure_at = "2026-01-01T00:00:00.000Z";
+  assert.throws(() => FakeLifecycle.restore(liveWithFailure), /live state cannot have failure metadata/);
+
+  const liveWithTerminal = structuredClone(liveSnap);
+  liveWithTerminal.records[0].terminal_at = "2026-01-01T00:00:00.000Z";
+  assert.throws(() => FakeLifecycle.restore(liveWithTerminal), /live state cannot have terminal metadata/);
+
+  const reservedLife = life("run-reserved", "resource-reserved");
+  const reservedSnap = reservedLife.snapshot();
+  const reservedWithAlloc = structuredClone(reservedSnap);
+  reservedWithAlloc.records[0].resource_ref = "resource-reserved";
+  assert.throws(() => FakeLifecycle.restore(reservedWithAlloc), /reserved state cannot have allocated resource/);
+
+  // 4. Failed state requires retry suppression
+  const validFailedLife = life("run-valid-fail", "resource-valid-fail");
+  validFailedLife.allocate("run-valid-fail", "resource-valid-fail");
+  validFailedLife.fail("run-valid-fail", "explicit-failure");
+  const validFailedSnap = validFailedLife.snapshot();
+  const failedNoRetry = structuredClone(validFailedSnap);
+  failedNoRetry.records[0].retry_suppression_required = false;
+  assert.throws(() => FakeLifecycle.restore(failedNoRetry), /failed state requires retry suppression/);
+
+  // 5. Valid restoration of failed run preserves failure window and terminal history
+  const restoredFailed = FakeLifecycle.restore(validFailedSnap);
+  safeCleanup(restoredFailed, "run-valid-fail");
+  assert.equal(restoredFailed.cleanup("run-valid-fail").state, "failed");
+  assert.equal(restoredFailed.canAdmit(), false);
+  restoredFailed.advance(FAILURE_WINDOW_MS);
+  const cleanedFailed = restoredFailed.cleanup("run-valid-fail");
+  assert.equal(cleanedFailed.state, "removed");
+  assert.equal(cleanedFailed.cleanup_status, "passed");
+  assert.equal(restoredFailed.canAdmit(), true);
+  assert.equal(restoredFailed.history.length, 1);
+  assert.equal(restoredFailed.history[0].run_id, "run-valid-fail");
+
+  // 6. Valid restoration of cleanup-pending run
+  const restoredPending = FakeLifecycle.restore(pendingSnap);
+  safeCleanup(restoredPending, "run-pending");
+  const cleanedPending = restoredPending.cleanup("run-pending");
+  assert.equal(cleanedPending.state, "removed");
+  assert.equal(cleanedPending.cleanup_status, "passed");
+  assert.equal(restoredPending.canAdmit(), true);
+  assert.equal(restoredPending.history.length, 1);
+  assert.equal(restoredPending.history[0].run_id, "run-pending");
+});
+
+test("reconcileInterrupted enforces deadlines before reconciliation, preserving failure and owned identity", () => {
+  // 1. Late heartbeat reconciliation: advance 16 min (past default 15 min heartbeat)
+  const fixtureHb = life("run-interrupted-hb", "resource-interrupted-hb");
+  fixtureHb.allocate("run-interrupted-hb", "resource-interrupted-hb", { interrupted: true });
+  fixtureHb.advance(16 * 60 * 1000);
+  const recHb = fixtureHb.reconcileInterrupted({
+    run_id: "run-interrupted-hb", account_ref: "account-one",
+    ownership_ref: "ownership-run-interrupted-hb", resource_ref: "resource-interrupted-hb",
+  });
+  assert.equal(recHb.resource_ref, "resource-interrupted-hb");
+  const rHb = fixtureHb.record("run-interrupted-hb");
+  assert.equal(rHb.state, "failed");
+  assert.equal(rHb.failure_reason, "heartbeat-missing");
+  assert.equal(rHb.failure_at, "2026-01-01T00:15:00.000Z");
+  assert.equal(rHb.resource_ref, "resource-interrupted-hb");
+  safeCleanup(fixtureHb, "run-interrupted-hb");
+  fixtureHb.advance(FAILURE_WINDOW_MS);
+  const cleanedHb = fixtureHb.cleanup("run-interrupted-hb");
+  assert.equal(cleanedHb.state, "removed");
+  assert.equal(cleanedHb.cleanup_status, "passed");
+
+  // 2. Late hard deadline reconciliation: keep heartbeat alive, advance 46 min (past 45 min hard deadline)
+  const fixtureHard = life("run-interrupted-hard", "resource-interrupted-hard");
+  fixtureHard.allocate("run-interrupted-hard", "resource-interrupted-hard", { interrupted: true });
+  fixtureHard.advance(14 * 60 * 1000); fixtureHard.heartbeat("run-interrupted-hard");
+  fixtureHard.advance(14 * 60 * 1000); fixtureHard.heartbeat("run-interrupted-hard");
+  fixtureHard.advance(14 * 60 * 1000); fixtureHard.heartbeat("run-interrupted-hard");
+  fixtureHard.advance(4 * 60 * 1000); // 46 minutes total
+  const recHard = fixtureHard.reconcileInterrupted({
+    run_id: "run-interrupted-hard", account_ref: "account-one",
+    ownership_ref: "ownership-run-interrupted-hard", resource_ref: "resource-interrupted-hard",
+  });
+  assert.equal(recHard.resource_ref, "resource-interrupted-hard");
+  const rHard = fixtureHard.record("run-interrupted-hard");
+  assert.equal(rHard.state, "failed");
+  assert.equal(rHard.failure_reason, "hard-deadline");
+  assert.equal(rHard.failure_at, "2026-01-01T00:45:00.000Z");
+  assert.equal(rHard.resource_ref, "resource-interrupted-hard");
+  safeCleanup(fixtureHard, "run-interrupted-hard");
+  fixtureHard.advance(FAILURE_WINDOW_MS);
+  assert.equal(fixtureHard.cleanup("run-interrupted-hard").state, "removed");
+
+  // 3. Timely reconciliation: advance 5 min (within heartbeat)
+  const fixtureTimely = life("run-timely", "resource-timely");
+  fixtureTimely.allocate("run-timely", "resource-timely", { interrupted: true });
+  fixtureTimely.advance(5 * 60 * 1000);
+  const recTimely = fixtureTimely.reconcileInterrupted({
+    run_id: "run-timely", account_ref: "account-one",
+    ownership_ref: "ownership-run-timely", resource_ref: "resource-timely",
+  });
+  assert.equal(recTimely.resource_ref, "resource-timely");
+  const rTimely = fixtureTimely.record("run-timely");
+  assert.equal(rTimely.state, "active");
+  assert.equal(rTimely.failure_at, null);
+
+  // 4. Previously failed recovery: first failure time/expiry must not be reset
+  const fixturePrev = life("run-prev-fail", "resource-prev-fail");
+  fixturePrev.allocate("run-prev-fail", "resource-prev-fail", { interrupted: true });
+  fixturePrev.advance(5 * 60 * 1000);
+  const tFail = "2026-01-01T00:05:00.000Z";
+  fixturePrev.fail("run-prev-fail", "early-fault", tFail);
+  const firstFail = fixturePrev.record("run-prev-fail");
+  assert.equal(firstFail.failure_at, tFail);
+  assert.equal(firstFail.failure_reason, "early-fault");
+  fixturePrev.advance(50 * 60 * 1000); // advance past both heartbeat and hard deadline
+  const recPrev = fixturePrev.reconcileInterrupted({
+    run_id: "run-prev-fail", account_ref: "account-one",
+    ownership_ref: "ownership-run-prev-fail", resource_ref: "resource-prev-fail",
+  });
+  assert.equal(recPrev.resource_ref, "resource-prev-fail");
+  const rPrev = fixturePrev.record("run-prev-fail");
+  assert.equal(rPrev.state, "failed");
+  assert.equal(rPrev.failure_at, tFail);
+  assert.equal(rPrev.failure_reason, "early-fault");
+  assert.equal(rPrev.expiry_at, firstFail.expiry_at);
+});

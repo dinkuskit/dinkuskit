@@ -1,52 +1,59 @@
 # E2E run contract source proof
 
 Repository: dinkuskit/dinkuskit. Base: `771d91245918f321afbd55f495ec34741e6f09df`.
-Reviewed input before this repair: `1470df4d0d9414610fe899ad6f8c28b6e1aaf7f6`.
+Reviewed input before this repair: `e101f6e0e196c0c21e0c8aaf41644a8aa363d099`.
 Decision: `website-e2e-run-contract-049`, recorded through the pinned GrillTrack CLI.
 Executable candidate identity: Current SHA-256 values in `verification.json`.
 
 ## Outcome
 
-One strict manifest/result vocabulary in `tests/e2e/run-contract.mjs`, with 28
+One strict manifest/result vocabulary in `tests/e2e/run-contract.mjs`, with 30
 native behavioral tests in `tests/e2e/run-contract.test.mjs`. The manifest binds
 run/environment/target provenance, required independent stage evidence, admission
 and assistance requirements, resource/recipient/capability references, and deadlines.
 Result reduction keeps journey, cleanup, and assistance separate.
 
-Cycle 4 repairs:
-1. Nonlocal loopback origin rejection: `hosted-a` / `test-build` and `deployed-b` /
-   `public-release` cannot use loopback origins (canonical `localhost`, IPv4 loopback
-   `127.0.0.0/8`, IPv6 loopback `[::1]`, and mapped IPv4 loopbacks); valid local fixtures (`127.0.0.1`, `localhost`,
-   `[::1]`) and synthetic HTTPS hosted `.invalid` origins are preserved.
-2. Failed result attribution binding: `owning_stage_repo` binds strictly to declared
-   manifest stage ownership (`manifest.oracles`), and `last_accepted_receipt_ref` binds
-   to actual accepted stage evidence; arbitrary owners and nonexistent receipt references
-   are rejected. Explicit `null` last receipt reference is preserved for failures occurring
-   before any successful stage.
-3. Updated proof tracking: Current focused source hashes, 28 tests, exit 0 documented;
-   historical 23-test verification preserved as historical; full repository verification
-   passes on the current source.
+Cycle 5 repairs:
+1. Complete consistent failure and terminal metadata enforcement on snapshot restoration:
+   `FakeLifecycle.restore` requires complete consistent failure and terminal metadata
+   (`failure_at`, `failure_reason`, `expiry_at`, `terminal_at`, `history_expires_at`,
+   `retry_suppression_required: true`) for `failed` runs, and terminal metadata with
+   `retry_suppression_required: true` and allocated resource for `cleanup-pending` runs.
+   Live states (`reserved`, `provisioning`, `active`, `evidence-sealed`) reject failure
+   and terminal metadata and cleanup receipts that cannot yet have been observed. Valid restoration preserves the 1-hour failure window before
+   cleanup and retains terminal history.
+2. Deadline enforcement before interrupted allocation reconciliation:
+   `FakeLifecycle.reconcileInterrupted` applies `checkDeadline(run_id)` before reading internal
+   records. Interrupted allocations exceeding heartbeat or hard deadlines are marked failed
+   (`heartbeat-missing` or `hard-deadline`) and their failed state is preserved while still
+   recovering owned resource identity (`resource_ref`) for cleanup. Timely reconciliations
+   and previously failed runs recover cleanly without resetting the first failure timestamp,
+   reason, or expiry window.
+3. Updated proof tracking: Current focused source hashes, 30 tests, exit 0 documented;
+   full repository verification (`npm run verify`) passed on the current source;
+   historical evidence preserved.
 
 The in-memory lifecycle demonstrates ownership/cleanup intent before allocation,
 exact reconciliation, bounded failure retention, safe cleanup receipts, and separate
 inactive-history expiry. No runtime source files changed.
 
-## Current Verification (Repair Cycle 4)
+## Current Verification (Repair Cycle 5)
 
 Node v22.23.2, matching the repository `.nvmrc`:
 
-- `node --test tests/e2e/run-contract.test.mjs`: 28 passed, 0 failed, exit code 0.
+- `node --test tests/e2e/run-contract.test.mjs`: 30 passed, 0 failed, exit code 0.
 - `git diff --check`: exit 0.
-- `npm run verify`: exit 0; all current commands completed, including
-  `test:agent-routes`. Native test groups total 128 passing tests.
+- `node scripts/audit-repo.mjs`: exit 0.
 - `./scripts/grilltrack --project . validate`: valid.
-- The current 28-test suite run against the pre-repair source passes 26 and
-  fails the two new regressions; the repaired source passes all 28.
+- `npm run verify`: exit 0; all 25 current commands completed, including
+  `test:agent-routes`. Native test groups total 130 passing tests.
+- The current 30-test suite run against the pre-repair source passes 28 and
+  fails the two new regressions; the repaired source passes all 30.
 
 Current focused source SHA-256 digests:
-- `tests/e2e/run-contract.mjs`: `35b33dbc93b36c662c99730b09eddba82883b542cb51f566fb92ae9927ea75d7`
-- `tests/e2e/run-contract.test.mjs`: `eb657ee07404ab07f60184d4c0724d035abb9ad74c00632f2f57ac83ae4a5d4a`
-- `docs/e2e-run-contract.md`: `0f25ae8c9dd739a1cac9483d655ad1015f14b405a90a5f83fb2b15cd76cf1b1e`
+- `tests/e2e/run-contract.mjs`: `4fa1a8369168223e68e52cba2bd33514e7807762fe2274e0103ea285a51e22ff`
+- `tests/e2e/run-contract.test.mjs`: `4adabe198925dbde375518cfa9c5e29eed8056d431c25d6cfed9f75c22734993`
+- `docs/e2e-run-contract.md`: `271a014ff0a9ebcbcd68c7768790d641f4aa7824e243634a71237a1173614e05`
 - `package.json`: `7edc505656659e256235c5740d150584b6482212cbe57669b673385ec1fc436b`
 
 ## Historical Verification (Pre-integration Snapshot)
@@ -68,20 +75,10 @@ Historical source SHA-256 digests at that baseline are preserved in `verificatio
 ACP implementation was inspected independently by the source owner after
 observed terminal writer cleanup. Accepted required fixes across repair cycles:
 - Manual admission and assistance requirements;
-- Explicit provenance/stage-owner binding;
-- Cleanup receipt verification rather than status/boolean trust;
-- Correctly directed issued-authority expiry;
-- Fixed first-failure/heartbeat clocks;
-- Failure cleanup at expiry;
-- Interrupted reconciliation preserving failure;
-- Exact resource ownership;
-- Budget/active admission gates;
-- Strict restart shape and chronology;
-- Cleanup receipts refused in reserved and active states (cycle 3);
-- Required failure descriptor on failed journey (cycle 3);
-- Rejection of deployment-local for nonlocal provenance (cycle 3);
-- Nonlocal loopback origin rejection and local IPv6 fixture preservation (cycle 4);
-- Failed result attribution binding owning stage repo to manifest and last receipt to accepted evidence (cycle 4).
+- Provenance/target origin allowlists and loopback prohibitions;
+- Exact stage evidence attribution and failed descriptor validation;
+- Strict state consistency on snapshot restoration for failed and cleanup-pending runs;
+- Timely deadline enforcement on interrupted allocation reconciliation.
 
 ## Limits and next gate
 

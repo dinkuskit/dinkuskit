@@ -182,6 +182,54 @@ redirects. Every trade checks, in this order:
 A store that has no store ID cannot get a key: the store ID still comes only
 from pressing Connect in the Payments or Inventory plugin.
 
+### Checkout settings to paste
+
+Commerce also needs its `installedCheckout` setting: one JSON text in
+Commerce's `dinkuskit.commerce.registry-checkout/v1` shape, which refuses any
+missing, extra or malformed key. Under **Set up Commerce** the owner picks a
+shipping charge (free, or a flat amount in dollars) and Test or Live, then
+presses **Show checkout settings**. The page then:
+
+1. saves the choices in `dinkuskit_commerce_settings` (one row per store). The
+   shipping `revision` starts at 1 and goes up only when the charge changes,
+   and `configurationId` stays `shipping-<store ID>`;
+2. asks Payments for the store's account with `GET
+   https://payments.dinkuskit.com/v1/status`, sending a `payments:admin` pass it
+   signs for that store and `X-Dinkus-Site: <store ID>`, never following a
+   redirect, waiting at most 5 seconds and reading at most 16 KB. `bindingRef`,
+   `connectionEvidence.provider` and, for Stripe, `connectionEvidence.accountRef`
+   come from that answer. It is only asked while the store's Payments grant is
+   active;
+3. shows the JSON with keys in this order: `schema`, `enabled`,
+   `commerceOrigin` (the store's origin from Connect), `siteId`, `issuer`,
+   `paymentsOrigin`, `audience` (`dinkus-payments`), `bindingRef`,
+   `providerId` (`stripe` or `authorize_net`), `stripeAccountId` (Stripe only),
+   `mode`, `pricingSchema`, `shipping`, then `coupons` and `ship`, each only
+   while that service is on.
+
+`mode` is `test` unless the owner picks Live, and a store takes real money only
+when Payments says live too. Turning Coupons or Ship on or off after settings
+were shown leads back to the page with a note to show and paste them again,
+because Commerce only calls the services its settings name. The page names the
+problem instead of showing settings when Payments is not connected, has not
+finished setting up the account, or cannot be reached.
+
+The answer is read as Payments' hosted status: `state`, `mode`, `bindingRef`
+once a connection has started, and `connectionEvidence` (`provider`, `mode`,
+`result`, and `accountRef` for Stripe) once an account exists. `disconnected`,
+`connecting` and `recovery_required` give no settings; `setup_required`,
+`checking` and `action_required` give settings with a note that Payments still
+needs attention; `ready` gives settings with no note.
+
+Payments is on the same Cloudflare zone as this site. Without
+`global_fetch_strictly_public`, a Worker's fetch to its own zone goes straight
+to the origin and skips any Worker on a route there, so the deployed site sets
+that flag in `cloudflare/wrangler.jsonc`. Its call to `payments.dinkuskit.com`
+then enters Cloudflare the same way a store's call does, whether Payments runs
+on a route or a Custom Domain. The tests use a stand-in for Payments' status,
+so the first live proof is showing checkout settings for a connected store
+after deploy.
+
 ## Production proof fetch
 
 The deployed site reads the store's registered proof route itself with

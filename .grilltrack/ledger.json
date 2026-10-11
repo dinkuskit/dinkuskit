@@ -5569,10 +5569,38 @@
           "review_source_identity": null,
           "to": "locked",
           "verification_ref": null
+        },
+        {
+          "at": "2026-10-10T22:35:34+00:00",
+          "choice": "Set up Commerce on DinkusKit.com also shows the checkout settings to paste into Commerce: store ID, which Payments account, shipping charge, and test or live. A setup page inside Commerce comes after v1, when there is room.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-10T22:35:34+00:00",
+          "choice": "Set up Commerce on DinkusKit.com also shows the checkout settings to paste into Commerce: store ID, which Payments account, shipping charge, and test or live. A setup page inside Commerce comes after v1, when there is room.",
+          "from": "implemented",
+          "implementation_ref": "file:migrations/merchant/0011_commerce_settings.sql;file:src/account/commerce-settings.ts;file:src/pages/account/sites.astro;file:docs/shared-store-connections.md",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": null
         }
       ],
       "id": "website-commerce-checkout-settings-044",
-      "implementation_ref": null,
+      "implementation_ref": "file:migrations/merchant/0011_commerce_settings.sql;file:src/account/commerce-settings.ts;file:src/pages/account/sites.astro;file:docs/shared-store-connections.md",
       "question": "Where does a store owner get Commerce's checkout settings for v1?",
       "rationale": "Ronald answered the numbered questions 8 to 11 in the project thread 'Buildout status and next steps' on 2026-10-10 at 21:50 UTC: '8 yes ; 9 yes ; 10 yes, I think the same key should cover all three although it should likely be possible to opt in to 1/3 2/3 or 3/3 ; by that i mean some people may not want to use the coupons plugin; or another example, maybe they built their own shipping or payments plugin to attatch to our commerce plugin that they want to use instead; they should be able to turn on 1 or 3 up to them; 11 yes'. The questions were asked in that thread at 21:47 UTC.",
       "repair_required": false,
@@ -5581,10 +5609,10 @@
       "review_ref": null,
       "review_result": null,
       "review_source_identity": null,
-      "status": "locked",
+      "status": "verified",
       "superseded_by": null,
-      "updated_at": "2026-10-10T21:59:54+00:00",
-      "verification_ref": null
+      "updated_at": "2026-10-10T22:35:34+00:00",
+      "verification_ref": "file:tests/shared-store-isolation.test.mjs;file:tests/shared-store-routes.test.mjs;file:tests/merchant-migrations.test.mjs"
     },
     {
       "baseline_ref": null,
@@ -5754,5 +5782,5 @@
   "status": "active",
   "title": "Website PR9 current-main reconciliation",
   "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca",
-  "updated_at": "2026-10-10T22:34:24+00:00"
+  "updated_at": "2026-10-10T22:35:34+00:00"
 }

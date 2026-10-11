@@ -9,6 +9,7 @@ import { createLocalTestKeys } from '../src/account/jwt.ts';
 import { revokeServiceGrant } from '../src/account/store.ts';
 import { cutOffStore, restoreStore } from '../src/account/operator-admin.ts';
 import { issueStorePass, listStoreSetup, replaceStoreKey, setOwnerService } from '../src/account/store-passes.ts';
+import { checkoutSettingsJson, dollarsToMinor, loadCommerceSettings, readPaymentsBinding, saveCommerceSettings } from '../src/account/commerce-settings.ts';
 import { PAYMENTS_CALLBACK_PATH, PAYMENTS_PROOF_PATH, PAYMENTS_REGISTRY_IDENTITY } from '../src/account/config.ts';
 import { stripTypeScriptTypes } from 'node:module';
 
@@ -351,5 +352,108 @@ test('store passes: suspension, operator cut-off and restore are enforced at eve
     assert.deepEqual(await pass('payments:checkout', 'dinkus-payments'), { status: 403, body: { error: 'store_suspended' } });
     f.sqlite.prepare("UPDATE dinkuskit_organization SET status = 'active', admission_status = 'pending_operator' WHERE organization_id = 'a'").run();
     assert.deepEqual(await pass('payments:checkout', 'dinkus-payments'), { status: 403, body: { error: 'store_suspended' } });
+  } finally { f.close(); }
+});
+
+const stripeStatus = { state: 'ready', bindingRef: 'bind_test_1', connectionEvidence: { provider: 'stripe', accountRef: 'acct_1TestAccount' } };
+function statusFrom(f, answer) {
+  const calls = [];
+  const fetchStatus = async (call) => { calls.push(call); if (answer instanceof Error) throw answer; return answer; };
+  return { calls, fetchStatus };
+}
+
+test('checkout settings: the exact JSON Commerce takes, with Coupons and Ship only while on', async () => {
+  const f = await fixture(); try {
+    const { siteId, owner } = await storeWithKey(f);
+    const settings = await saveCommerceSettings(f.db, { ...owner, choices: { shippingMode: 'flat', shippingMinor: 500, live: false } });
+    assert.deepEqual(settings, { shippingMode: 'flat', shippingMinor: 500, shippingRevision: 1, live: false });
+    const status = statusFrom(f, { status: 200, body: stripeStatus });
+    const payments = await readPaymentsBinding({ db: f.db, subject: 'org-a', siteId, privateJwkJson: JSON.stringify(f.keys.privateJwk), fetchStatus: status.fetchStatus });
+    assert.deepEqual(payments, { ok: true, binding: { providerId: 'stripe', bindingRef: 'bind_test_1', stripeAccountId: 'acct_1TestAccount', ready: true } });
+    assert.equal(status.calls.length, 1);
+    assert.equal(status.calls[0].url, 'https://payments.dinkuskit.com/v1/status'); assert.equal(status.calls[0].siteId, siteId);
+    const { payload } = await jwtVerify(status.calls[0].token, createLocalJWKSet({ keys: [f.keys.publicJwk] }), { issuer: 'https://dinkuskit.com/account', audience: 'dinkus-payments' });
+    assert.deepEqual([payload.sub, payload.site_id, payload.scope], ['org-a', siteId, 'payments:admin'], 'the status call carries an admin pass for this store only');
+    const base = {
+      schema: 'dinkuskit.commerce.registry-checkout/v1', enabled: true, commerceOrigin: 'https://store.example.test', siteId,
+      issuer: 'https://dinkuskit.com/account', paymentsOrigin: 'https://payments.dinkuskit.com', audience: 'dinkus-payments',
+      bindingRef: 'bind_test_1', providerId: 'stripe', stripeAccountId: 'acct_1TestAccount', mode: 'test',
+      pricingSchema: 'dinkuskit.commerce.checkout-pricing/v1',
+      shipping: { configurationId: `shipping-${siteId}`, revision: 1, mode: 'flat', amount: { currency: 'USD', minor: '500' } },
+    };
+    const text = checkoutSettingsJson({ siteId, siteOrigin: 'https://store.example.test', binding: payments.binding, settings, coupons: false, ship: false });
+    assert.deepEqual(JSON.parse(text), base);
+    assert.deepEqual(Object.keys(JSON.parse(text)), Object.keys(base), 'keys come in the order Commerce documents');
+    const both = JSON.parse(checkoutSettingsJson({ siteId, siteOrigin: 'https://store.example.test', binding: payments.binding, settings, coupons: true, ship: true }));
+    assert.deepEqual(both, { ...base, coupons: { origin: 'https://coupons.dinkuskit.com', audience: 'dinkus-coupons' }, ship: { origin: 'https://ship.dinkuskit.com', audience: 'dinkus-ship' } });
+    const shipOnly = JSON.parse(checkoutSettingsJson({ siteId, siteOrigin: 'https://store.example.test', binding: payments.binding, settings, coupons: false, ship: true }));
+    assert.equal('coupons' in shipOnly, false); assert.deepEqual(shipOnly.ship, { origin: 'https://ship.dinkuskit.com', audience: 'dinkus-ship' });
+
+    // The shipping revision goes up only when the charge changes.
+    const save = choices => saveCommerceSettings(f.db, { ...owner, choices });
+    assert.equal((await save({ shippingMode: 'flat', shippingMinor: 500, live: false })).shippingRevision, 1);
+    assert.deepEqual(await save({ shippingMode: 'flat', shippingMinor: 500, live: true }), { shippingMode: 'flat', shippingMinor: 500, shippingRevision: 1, live: true });
+    assert.equal((await save({ shippingMode: 'flat', shippingMinor: 650, live: true })).shippingRevision, 2);
+    const free = await save({ shippingMode: 'free', shippingMinor: 650, live: true });
+    assert.deepEqual(free, { shippingMode: 'free', shippingMinor: 0, shippingRevision: 3, live: true }, 'free shipping keeps no amount');
+    const live = JSON.parse(checkoutSettingsJson({ siteId, siteOrigin: 'https://store.example.test', binding: payments.binding, settings: free, coupons: false, ship: false }));
+    assert.equal(live.mode, 'live'); assert.deepEqual(live.shipping, { configurationId: `shipping-${siteId}`, revision: 3, mode: 'free' });
+    assert.deepEqual(await loadCommerceSettings(f.db, siteId), free);
+
+    const authorizeNet = await readPaymentsBinding({ db: f.db, subject: 'org-a', siteId, privateJwkJson: JSON.stringify(f.keys.privateJwk),
+      fetchStatus: statusFrom(f, { status: 200, body: { state: 'pending', bindingRef: 'bind_test_2', connectionEvidence: { provider: 'authorize_net', accountRef: 'ignored' } } }).fetchStatus });
+    assert.deepEqual(authorizeNet, { ok: true, binding: { providerId: 'authorize_net', bindingRef: 'bind_test_2', ready: false } });
+    const anet = JSON.parse(checkoutSettingsJson({ siteId, siteOrigin: 'https://store.example.test', binding: authorizeNet.binding, settings: free, coupons: false, ship: false }));
+    assert.equal(anet.providerId, 'authorize_net'); assert.equal('stripeAccountId' in anet, false);
+  } finally { f.close(); }
+});
+
+test('checkout settings: only the owner saves them, and Payments problems are named', async () => {
+  const f = await fixture(); try {
+    const { siteId, owner } = await storeWithKey(f);
+    const choices = { shippingMode: 'flat', shippingMinor: 500, live: false };
+    assert.equal(await saveCommerceSettings(f.db, { ...owner, actorUserId: 'staff', choices }), null, 'a member who is not the owner');
+    assert.equal(await saveCommerceSettings(f.db, { ...owner, subject: 'org-b', organizationId: 'b', actorUserId: 'bob', choices }), null, 'another business');
+    for (const bad of [{ ...choices, shippingMinor: -1 }, { ...choices, shippingMinor: 1.5 }, { ...choices, shippingMinor: 100_000_01 }, { ...choices, shippingMode: 'weight' }]) {
+      assert.equal(await saveCommerceSettings(f.db, { ...owner, choices: bad }), null, JSON.stringify(bad));
+    }
+    assert.equal(await loadCommerceSettings(f.db, siteId), null);
+
+    const read = (answer, extra = {}) => readPaymentsBinding({ db: f.db, subject: 'org-a', siteId, privateJwkJson: JSON.stringify(f.keys.privateJwk), fetchStatus: statusFrom(f, answer).fetchStatus, ...extra });
+    assert.deepEqual(await read(new Error('offline')), { ok: false, reason: 'payments_unreachable' });
+    assert.deepEqual(await read({ status: 401, body: { error: 'unauthorized' } }), { ok: false, reason: 'payments_unreachable' });
+    assert.deepEqual(await read({ status: 200, body: { state: 'not_connected' } }), { ok: false, reason: 'payments_not_set_up' });
+    assert.deepEqual(await read({ status: 200, body: { ...stripeStatus, connectionEvidence: { provider: 'stripe', accountRef: 'not-an-account' } } }), { ok: false, reason: 'payments_not_set_up' });
+    assert.deepEqual(await read({ status: 200, body: { ...stripeStatus, bindingRef: 'has spaces' } }), { ok: false, reason: 'payments_not_set_up' });
+    assert.deepEqual(await read({ status: 200, body: stripeStatus }, { privateJwkJson: undefined }), { ok: false, reason: 'signing_unavailable' });
+    assert.deepEqual(await read({ status: 200, body: stripeStatus }, { subject: 'org-b' }), { ok: false, reason: 'payments_not_connected' }, 'another business cannot read this store');
+    await revokeServiceGrant(f.db, 'org-a', siteId, 'payments', 'alice', 'a');
+    const status = statusFrom(f, { status: 200, body: stripeStatus });
+    assert.deepEqual(await read(null, { fetchStatus: status.fetchStatus }), { ok: false, reason: 'payments_not_connected' });
+    assert.equal(status.calls.length, 0, 'no pass is made for a store whose Payments is off');
+
+    assert.equal(dollarsToMinor('5'), 500); assert.equal(dollarsToMinor('5.5'), 550); assert.equal(dollarsToMinor(' $5.05 '), 505); assert.equal(dollarsToMinor('0'), 0);
+    for (const bad of ['', '5.123', '-1', '1,000', 'five', '1e3']) assert.equal(dollarsToMinor(bad), null, bad);
+  } finally { f.close(); }
+});
+
+test('checkout settings: every state in Payments\' status answer maps to settings or a named reason', async () => {
+  const f = await fixture(); try {
+    const { siteId } = await storeWithKey(f);
+    const read = body => readPaymentsBinding({ db: f.db, subject: 'org-a', siteId, privateJwkJson: JSON.stringify(f.keys.privateJwk), fetchStatus: async () => ({ status: 200, body }) });
+    const stripe = (result, extra = {}) => ({ provider: 'stripe', mode: 'test', result, accountRef: 'acct_1StateTest', ...extra });
+    // Payments' hosted Status: state, mode, bindingRef (once connecting), connectionEvidence (once an account exists).
+    assert.deepEqual(await read({ state: 'disconnected', mode: 'test' }), { ok: false, reason: 'payments_not_set_up' });
+    for (const state of ['connecting', 'recovery_required']) {
+      assert.deepEqual(await read({ state, mode: 'test', bindingRef: 'bind_state' }), { ok: false, reason: 'payments_not_set_up' }, state);
+    }
+    for (const [state, result] of [['setup_required', 'unknown'], ['checking', 'unknown'], ['action_required', 'action_required']]) {
+      assert.deepEqual(await read({ state, mode: 'test', bindingRef: 'bind_state', connectionEvidence: stripe(result) }),
+        { ok: true, binding: { providerId: 'stripe', bindingRef: 'bind_state', stripeAccountId: 'acct_1StateTest', ready: false } }, state);
+    }
+    assert.deepEqual(await read({ state: 'ready', mode: 'live', bindingRef: 'bind_state', connectionEvidence: stripe('verified', { mode: 'live' }) }),
+      { ok: true, binding: { providerId: 'stripe', bindingRef: 'bind_state', stripeAccountId: 'acct_1StateTest', ready: true } });
+    assert.deepEqual(await read({ state: 'ready', mode: 'test', bindingRef: 'bind_state', connectionEvidence: { provider: 'authorize_net', mode: 'test', result: 'unsupported' } }),
+      { ok: true, binding: { providerId: 'authorize_net', bindingRef: 'bind_state', ready: true } });
   } finally { f.close(); }
 });

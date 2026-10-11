@@ -18,6 +18,11 @@ The production candidate is configured for account
 `MERCHANT_DB` is separate from the CMS database. Its migration source is
 `migrations/merchant`.
 
+The Worker sets the `global_fetch_strictly_public` compatibility flag. Set up
+Commerce reads each store's Payments account from `payments.dinkuskit.com`,
+which is on the same zone; without the flag that call would skip the Payments
+Worker and go to the zone's origin.
+
 ## Owner-only setup
 
 Run these from the repository root after `npx wrangler login` for the DinkusKit

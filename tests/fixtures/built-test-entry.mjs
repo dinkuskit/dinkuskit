@@ -46,6 +46,16 @@ function simulationFetch(kv, db) {
   };
 }
 
+/** Answers Payments' status from a stored fixture and records the pass it was sent. */
+function paymentsStatusFetch(kv) {
+  return async ({ url, token, siteId }) => {
+    await kv.put(`payments-status-call:${siteId}`, JSON.stringify({ url, token }));
+    const raw = await kv.get(`payments-status:${siteId}`);
+    if (!raw) throw new Error('payments_unreachable');
+    return JSON.parse(raw);
+  };
+}
+
 async function testTransports(env) {
   const fixture = JSON.parse(await env.MERCHANT_INVENTORY_OVERVIEW.get('operator-directory') ?? '{}');
   const mail = env.MERCHANT_MAIL_CAPTURE;
@@ -55,6 +65,7 @@ async function testTransports(env) {
     operatorDirectory: fixture.use_persisted ? undefined : operatorDirectoryRuntime(env),
     emailDelivery: mail ? emailDeliveryFromCapture(mail) : undefined,
     proofFetch: proof ? simulationFetch(proof, env.MERCHANT_DB) : undefined,
+    paymentsStatusFetch: proof ? paymentsStatusFetch(proof) : undefined,
   };
 }
 
@@ -253,6 +264,18 @@ async function proofRoutes(request, env, ctx) {
     if (!body?.connection_id) return json(400, { error: 'invalid_receipt' });
     await env.MERCHANT_PROOF_SIMULATION.put(body.connection_id, JSON.stringify(body));
     return json(200, { stored: true, transport: 'simulation' });
+  }
+
+  if (request.method === 'POST' && url.pathname === '/__proof/payments-status') {
+    const body = await request.json();
+    if (!body?.site_id) return json(400, { error: 'invalid_site' });
+    await env.MERCHANT_PROOF_SIMULATION.put(`payments-status:${body.site_id}`, JSON.stringify({ status: body.status ?? 200, body: body.body }));
+    return json(200, { stored: true });
+  }
+
+  if (request.method === 'GET' && url.pathname === '/__proof/payments-status-call') {
+    const raw = await env.MERCHANT_PROOF_SIMULATION.get(`payments-status-call:${url.searchParams.get('site_id') ?? ''}`);
+    return json(raw ? 200 : 404, raw ? JSON.parse(raw) : { error: 'not_called' });
   }
 
   if (request.method === 'GET' && url.pathname === '/__proof/grant') {

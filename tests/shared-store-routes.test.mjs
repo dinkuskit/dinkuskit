@@ -61,5 +61,28 @@ test('shared service routes require separate consent and display processor setup
     assert.deepEqual(await (await trade(key,'payments:checkout','dinkus-payments')).json(),{error:'invalid_store_key'},'Replace key stops the old key');
     assert.equal((await trade(replaced,'payments:checkout','dinkus-payments')).status,200);
     assert.doesNotMatch(await (await request(runtime,outsider,'/account/sites')).text(),/Set up Commerce/);
+
+    // Checkout settings: read from Payments' own status and shown to paste into Commerce.
+    const unescape=text=>text.replace(/&quot;/g,'"').replace(/&#39;/g,"'").replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&');
+    const showSettings=async (jar,fields={})=>{ const page=await post(jar,{action:'checkout_settings',site_id:siteId,shipping_mode:'flat',shipping_amount:'5.00',payments_mode:'test',...fields}); return {status:page.status,html:await page.text()}; };
+    assert.match((await showSettings(owner)).html,/could not reach Payments/,'Payments did not answer');
+    assert.match((await showSettings(owner,{shipping_amount:'five'})).html,/Enter the flat shipping charge in dollars/);
+    assert.equal((await request(runtime,new Map(),'/__proof/payments-status',{method:'POST',body:JSON.stringify({site_id:siteId,body:{state:'ready',bindingRef:'bind_route_1',connectionEvidence:{provider:'stripe',accountRef:'acct_1RouteTest'}}})})).status,200);
+    const shown=await showSettings(owner); assert.equal(shown.status,200);
+    const settings=JSON.parse(unescape(shown.html.match(/<pre><code>([\s\S]*?)<\/code><\/pre>/)[1]));
+    assert.equal(settings.schema,'dinkuskit.commerce.registry-checkout/v1'); assert.equal(settings.commerceOrigin,origin); assert.equal(settings.siteId,siteId);
+    assert.deepEqual([settings.bindingRef,settings.providerId,settings.stripeAccountId,settings.mode],['bind_route_1','stripe','acct_1RouteTest','test']);
+    assert.deepEqual(settings.shipping,{configurationId:`shipping-${siteId}`,revision:1,mode:'flat',amount:{currency:'USD',minor:'500'}});
+    assert.deepEqual(settings.ship,{origin:'https://ship.dinkuskit.com',audience:'dinkus-ship'}); assert.equal('coupons' in settings,false,'Coupons is coming soon');
+    const call=await (await request(runtime,new Map(),`/__proof/payments-status-call?site_id=${encodeURIComponent(siteId)}`)).json();
+    const statusClaims=JSON.parse(Buffer.from(call.token.split('.')[1],'base64url').toString());
+    assert.deepEqual([statusClaims.aud,statusClaims.scope,statusClaims.site_id],['dinkus-payments','payments:admin',siteId]);
+    const outside=await showSettings(outsider,{shipping_amount:'9.00'}); assert.doesNotMatch(outside.html,/bind_route_1/,'another business sees no settings for this store');
+    assert.match(await (await request(runtime,owner,'/account/sites')).text(),/value="5\.00"/,'the saved charge is kept, not the outsider\'s');
+    const turnOffShip=await post(owner,{action:'service',site_id:siteId,service:'ship',on:'0'});
+    assert.equal(turnOffShip.headers.get('location'),`/account/sites?changed=${siteId}`);
+    assert.match(await (await request(runtime,owner,`/account/sites?changed=${siteId}`)).text(),/paste them into Commerce/);
+    const withoutShip=JSON.parse(unescape((await showSettings(owner)).html.match(/<pre><code>([\s\S]*?)<\/code><\/pre>/)[1]));
+    assert.equal('ship' in withoutShip,false,'Ship is left out once it is off'); assert.equal(withoutShip.shipping.revision,1,'the charge did not change');
   } finally { await stopRuntime(runtime); }
 });

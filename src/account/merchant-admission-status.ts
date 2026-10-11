@@ -3,13 +3,13 @@ export type MerchantAdmissionStatus = {
   notification: string | null;
 };
 
+// Sent is not delivered: these never claim the email reached the inbox.
 function notificationSummary(channel: string, status: string): string {
-  if (channel === 'sms') return 'SMS notifications are unavailable.';
-  if (channel !== 'email') return 'Decision notification is unavailable.';
-  if (status === 'delivered') return 'Email accepted for sending. This does not confirm delivery to the recipient.';
-  if (status === 'unavailable') return 'Email notification is unavailable.';
-  if (status === 'processing') return 'Email notification is being processed. This does not confirm delivery to the recipient.';
-  return 'Email notification is pending. This does not confirm delivery to the recipient.';
+  if (channel === 'sms') return 'We do not send text messages yet, so we could not tell you about this decision by text.';
+  if (channel !== 'email') return 'We could not tell you about this decision.';
+  if (status === 'delivered') return 'We sent you an email about this decision.';
+  if (status === 'unavailable') return 'We could not email you about this decision.';
+  return 'We are sending you an email about this decision.';
 }
 
 /** Current membership-scoped read; only current owners can join notification state. */

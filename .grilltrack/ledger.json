@@ -2,13 +2,13 @@
   "closeout": null,
   "created_at": "2026-10-01T08:46:55+00:00",
   "current_focus": {
-    "cadence": "sequential",
+    "cadence": "frontier-batch",
     "confirmed": true,
-    "confirmed_at": "2026-10-11T16:09:16+00:00",
-    "domain": "Isolated agent account testing",
-    "started_at": "2026-10-11T16:09:16+00:00",
+    "confirmed_at": "2026-10-11T18:02:54+00:00",
+    "domain": "Accounts and operator admin for v1",
+    "started_at": "2026-10-11T18:02:54+00:00",
     "status": "confirmed",
-    "summary": "The user explicitly requested building the previously recommended isolated agent testing route, restricted to test accounts and without deployment. This local implementation narrows the proposal to the existing disposable test runtime; no production authentication change is authorized."
+    "summary": "Ronald agreed on all five account page answers at 16:14 UTC on 2026-10-11."
   },
   "decisions": [
     {
@@ -4562,6 +4562,20 @@
           "review_source_identity": null,
           "to": "verified",
           "verification_ref": "proof/merchant-admission-status/PROOF.md"
+        },
+        {
+          "at": "2026-10-11T18:02:55+00:00",
+          "choice": "Show current membership-scoped Pending, Admitted or Denied status on the private no-store account page. Owners alone see a sanitized notification summary; transport acceptance is not recipient delivery. Explain that admission never activates services and persists despite notification failure. Preserve selection, automatic admission, authority and existing workflows.",
+          "from": "verified",
+          "implementation_ref": "src/account/merchant-admission-status.ts",
+          "note": "Ronald agreed at 16:14 UTC on 2026-10-11 to show approval in plain words with a next step; the statuses, owner-only notification summary and automatic approval carry over into 049.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "superseded",
+          "verification_ref": "file:tests/organization-approvals.test.mjs;file:tests/account-foundation.test.mjs;proof/merchant-admission-status/PROOF.md"
         }
       ],
       "id": "website-merchant-admission-status-029",
@@ -4582,9 +4596,9 @@
       "review_ref": null,
       "review_result": null,
       "review_source_identity": null,
-      "status": "verified",
-      "superseded_by": null,
-      "updated_at": "2026-10-11T01:04:02+00:00",
+      "status": "superseded",
+      "superseded_by": "website-account-pages-plain-words-049",
+      "updated_at": "2026-10-11T18:02:55+00:00",
       "verification_ref": "file:tests/organization-approvals.test.mjs;file:tests/account-foundation.test.mjs;proof/merchant-admission-status/PROOF.md"
     },
     {
@@ -4741,6 +4755,34 @@
           "review_source_identity": null,
           "to": "verified",
           "verification_ref": "proof/registry-store-paths/PROOF.md"
+        },
+        {
+          "at": "2026-10-11T18:02:55+00:00",
+          "choice": "One canonical organization-owned store identity with separate explicit Inventory and Payments grants. All clients use shared protocol version2 with server-generated/resolved identity and authenticated origin proof plus current Owner consent. Existing Inventory connections are disposable dev/test: no v1 compatibility or migration required. Add clean identity and service-grant tables without deleting old data; reject old protocol and document explicit consumer upgrade/reconnect. Keep per-service audience, scope and headers; no Ship, live activation, silent identity rewriting, cascading revocation or refresh lifecycle.",
+          "from": "verified",
+          "implementation_ref": "src/account/config.ts",
+          "note": "dependency website-merchant-admission-status-029 changed: Ronald agreed at 16:14 UTC on 2026-10-11 to show approval in plain words with a next step; the statuses, owner-only notification summary and automatic approval carry over into 049.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "needs_reverification",
+          "verification_ref": "file:tests/shared-store-isolation.test.mjs;file:tests/shared-store-routes.test.mjs;proof/registry-store-paths/PROOF.md"
+        },
+        {
+          "at": "2026-10-11T18:02:56+00:00",
+          "choice": "One canonical organization-owned store identity with separate explicit Inventory and Payments grants. All clients use shared protocol version2 with server-generated/resolved identity and authenticated origin proof plus current Owner consent. Existing Inventory connections are disposable dev/test: no v1 compatibility or migration required. Add clean identity and service-grant tables without deleting old data; reject old protocol and document explicit consumer upgrade/reconnect. Keep per-service audience, scope and headers; no Ship, live activation, silent identity rewriting, cascading revocation or refresh lifecycle.",
+          "from": "needs_reverification",
+          "implementation_ref": "src/account/config.ts",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": "file:tests/shared-store-isolation.test.mjs;file:tests/shared-store-routes.test.mjs;proof/registry-store-paths/PROOF.md"
         }
       ],
       "id": "website-shared-store-service-grants-030",
@@ -4779,7 +4821,7 @@
       "review_source_identity": null,
       "status": "verified",
       "superseded_by": null,
-      "updated_at": "2026-10-11T01:04:02+00:00",
+      "updated_at": "2026-10-11T18:02:56+00:00",
       "verification_ref": "file:tests/shared-store-isolation.test.mjs;file:tests/shared-store-routes.test.mjs;proof/registry-store-paths/PROOF.md"
     },
     {
@@ -4933,6 +4975,34 @@
           "review_source_identity": null,
           "to": "verified",
           "verification_ref": "file:proof/test-mode-deploy-connect-20261010/PROOF.md"
+        },
+        {
+          "at": "2026-10-11T18:02:55+00:00",
+          "choice": "Production consent uses the existing fetchStoreProofReceipt against the registered proof route instead of failing closed with integration_unavailable. It fetches with redirect manual (Workers reject redirect error) and refuses any 3xx or opaque redirect; https public origins, fixed path, single connection_id query, size and time limits and field-for-field receipt comparison stay. Test entries may still inject the simulation transport. Inventory still lacks a Registry publisher identity, so only Payments can connect from a Registry install. The first real Registry store connection after deploy is the live proof.",
+          "from": "verified",
+          "implementation_ref": "git:be0f48729bc8de13c03111aaaf779dbbda65532b",
+          "note": "dependency website-merchant-admission-status-029 changed: Ronald agreed at 16:14 UTC on 2026-10-11 to show approval in plain words with a next step; the statuses, owner-only notification summary and automatic approval carry over into 049.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "needs_reverification",
+          "verification_ref": "file:tests/store-connections.test.mjs;file:proof/test-mode-deploy-connect-20261010/PROOF.md"
+        },
+        {
+          "at": "2026-10-11T18:02:56+00:00",
+          "choice": "Production consent uses the existing fetchStoreProofReceipt against the registered proof route instead of failing closed with integration_unavailable. It fetches with redirect manual (Workers reject redirect error) and refuses any 3xx or opaque redirect; https public origins, fixed path, single connection_id query, size and time limits and field-for-field receipt comparison stay. Test entries may still inject the simulation transport. Inventory still lacks a Registry publisher identity, so only Payments can connect from a Registry install. The first real Registry store connection after deploy is the live proof.",
+          "from": "needs_reverification",
+          "implementation_ref": "git:be0f48729bc8de13c03111aaaf779dbbda65532b",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": "file:tests/store-connections.test.mjs;file:proof/test-mode-deploy-connect-20261010/PROOF.md"
         }
       ],
       "id": "website-production-store-connect-032",
@@ -4947,7 +5017,7 @@
       "review_source_identity": null,
       "status": "verified",
       "superseded_by": null,
-      "updated_at": "2026-10-11T01:04:02+00:00",
+      "updated_at": "2026-10-11T18:02:56+00:00",
       "verification_ref": "file:tests/store-connections.test.mjs;file:proof/test-mode-deploy-connect-20261010/PROOF.md"
     },
     {
@@ -6134,6 +6204,148 @@
       "superseded_by": null,
       "updated_at": "2026-10-11T16:19:44+00:00",
       "verification_ref": "file:proof/agent-testing/PROOF.md"
+    },
+    {
+      "baseline_ref": null,
+      "candidate_refs": [],
+      "choice": "Plain shop words: business, approval (Waiting for approval, Approved, Not approved), Owner, Administrator, Staff. /account opens with the business name and Log out, then one next-step card for the selected business (waiting for approval; not approved; approved with no store: connect from the DinkusKit Payments plugin; store connected: Set up your store; staff: what they can do), then a staff list with role and permissions and per-person change, make administrator (owner) and remove, then Your businesses with each approval only for someone in several businesses, then Disable my login folded under Account settings. Owners still see the approval email notice. Every staff change and every failed browser staff form returns to /account with a plain message; non-form requests keep JSON errors. Connected sites becomes Your stores with the business name and a connect-from-Payments empty state. Sign-up, sign-in, recovery and approval emails name the action and the business, never an ID; check-email stays non-enumerating. Sign-up explains the phone format and links the account terms at /terms. The Inventory overview link leaves the account page for v1; its page stays. Actions, permission checks, selection and automatic approval are unchanged.",
+      "context_ref": "file:docs/account-pages.md",
+      "created_at": "2026-10-11T18:02:54+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [
+        "website-organization-approvals-028"
+      ],
+      "domain": "Accounts and operator admin for v1",
+      "history": [
+        {
+          "at": "2026-10-11T18:02:55+00:00",
+          "choice": "Plain shop words: business, approval (Waiting for approval, Approved, Not approved), Owner, Administrator, Staff. /account opens with the business name and Log out, then one next-step card for the selected business (waiting for approval; not approved; approved with no store: connect from the DinkusKit Payments plugin; store connected: Set up your store; staff: what they can do), then a staff list with role and permissions and per-person change, make administrator (owner) and remove, then Your businesses with each approval only for someone in several businesses, then Disable my login folded under Account settings. Owners still see the approval email notice. Every staff change and every failed browser staff form returns to /account with a plain message; non-form requests keep JSON errors. Connected sites becomes Your stores with the business name and a connect-from-Payments empty state. Sign-up, sign-in, recovery and approval emails name the action and the business, never an ID; check-email stays non-enumerating. Sign-up explains the phone format and links the account terms at /terms. The Inventory overview link leaves the account page for v1; its page stays. Actions, permission checks, selection and automatic approval are unchanged.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-11T18:02:55+00:00",
+          "choice": "Plain shop words: business, approval (Waiting for approval, Approved, Not approved), Owner, Administrator, Staff. /account opens with the business name and Log out, then one next-step card for the selected business (waiting for approval; not approved; approved with no store: connect from the DinkusKit Payments plugin; store connected: Set up your store; staff: what they can do), then a staff list with role and permissions and per-person change, make administrator (owner) and remove, then Your businesses with each approval only for someone in several businesses, then Disable my login folded under Account settings. Owners still see the approval email notice. Every staff change and every failed browser staff form returns to /account with a plain message; non-form requests keep JSON errors. Connected sites becomes Your stores with the business name and a connect-from-Payments empty state. Sign-up, sign-in, recovery and approval emails name the action and the business, never an ID; check-email stays non-enumerating. Sign-up explains the phone format and links the account terms at /terms. The Inventory overview link leaves the account page for v1; its page stays. Actions, permission checks, selection and automatic approval are unchanged.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-11T18:02:55+00:00",
+          "choice": "Plain shop words: business, approval (Waiting for approval, Approved, Not approved), Owner, Administrator, Staff. /account opens with the business name and Log out, then one next-step card for the selected business (waiting for approval; not approved; approved with no store: connect from the DinkusKit Payments plugin; store connected: Set up your store; staff: what they can do), then a staff list with role and permissions and per-person change, make administrator (owner) and remove, then Your businesses with each approval only for someone in several businesses, then Disable my login folded under Account settings. Owners still see the approval email notice. Every staff change and every failed browser staff form returns to /account with a plain message; non-form requests keep JSON errors. Connected sites becomes Your stores with the business name and a connect-from-Payments empty state. Sign-up, sign-in, recovery and approval emails name the action and the business, never an ID; check-email stays non-enumerating. Sign-up explains the phone format and links the account terms at /terms. The Inventory overview link leaves the account page for v1; its page stays. Actions, permission checks, selection and automatic approval are unchanged.",
+          "from": "implemented",
+          "implementation_ref": "file:src/pages/account/index.astro;file:src/pages/api/account/memberships.ts;file:src/account/merchant-admission-status.ts;file:src/account/email.ts;file:src/account/organization-approvals.ts;file:src/pages/account/sites.astro",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": null
+        }
+      ],
+      "id": "website-account-pages-plain-words-049",
+      "implementation_ref": "file:src/pages/account/index.astro;file:src/pages/api/account/memberships.ts;file:src/account/merchant-admission-status.ts;file:src/account/email.ts;file:src/account/organization-approvals.ts;file:src/pages/account/sites.astro",
+      "question": "What does a signed-in owner or staff member see on the account pages, the account emails and sign-up?",
+      "rationale": "Ronald answered 'agreed on all' at 16:14 UTC on 2026-10-11 in the project thread 'DinkusKit.com sign-up and operator admin', accepting all five recommended answers on the account page write-up made from the owner test report he shared at 16:09 UTC (layout and words: yes; rename: owner only; staff list with change, remove and messages: yes; terms page at /terms kept by him in the EmDash admin: yes; Inventory overview link off the account page for v1: yes).",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [],
+      "review_ref": null,
+      "review_result": null,
+      "review_source_identity": null,
+      "status": "verified",
+      "superseded_by": null,
+      "updated_at": "2026-10-11T18:02:55+00:00",
+      "verification_ref": "file:tests/account-pages.test.mjs;file:tests/organization-approvals.test.mjs;file:tests/account-foundation.test.mjs;file:tests/better-auth-routes.test.mjs"
+    },
+    {
+      "baseline_ref": null,
+      "candidate_refs": [],
+      "choice": "Only the business owner can rename it, with the same 1 to 120 character rule as creating one. While the name is still the sign-up default 'My organization', the owner's account page asks for a name first. The owner, staff and the DinkusKit operator see the name; shoppers never do. Renaming changes nothing else.",
+      "context_ref": "file:docs/account-pages.md",
+      "created_at": "2026-10-11T18:02:55+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [
+        "merchant-owner-privileges-015"
+      ],
+      "domain": "Accounts and operator admin for v1",
+      "history": [
+        {
+          "at": "2026-10-11T18:02:55+00:00",
+          "choice": "Only the business owner can rename it, with the same 1 to 120 character rule as creating one. While the name is still the sign-up default 'My organization', the owner's account page asks for a name first. The owner, staff and the DinkusKit operator see the name; shoppers never do. Renaming changes nothing else.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-11T18:02:55+00:00",
+          "choice": "Only the business owner can rename it, with the same 1 to 120 character rule as creating one. While the name is still the sign-up default 'My organization', the owner's account page asks for a name first. The owner, staff and the DinkusKit operator see the name; shoppers never do. Renaming changes nothing else.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-11T18:02:56+00:00",
+          "choice": "Only the business owner can rename it, with the same 1 to 120 character rule as creating one. While the name is still the sign-up default 'My organization', the owner's account page asks for a name first. The owner, staff and the DinkusKit operator see the name; shoppers never do. Renaming changes nothing else.",
+          "from": "implemented",
+          "implementation_ref": "file:src/account/organizations.ts;file:src/pages/api/account/organizations.ts;file:src/pages/account/index.astro",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": null
+        }
+      ],
+      "id": "website-owner-renames-business-050",
+      "implementation_ref": "file:src/account/organizations.ts;file:src/pages/api/account/organizations.ts;file:src/pages/account/index.astro",
+      "question": "Who can rename a business, and when are they asked?",
+      "rationale": "Ronald answered 'agreed on all' at 16:14 UTC on 2026-10-11 in the project thread 'DinkusKit.com sign-up and operator admin', accepting all five recommended answers on the account page write-up made from the owner test report he shared at 16:09 UTC (layout and words: yes; rename: owner only; staff list with change, remove and messages: yes; terms page at /terms kept by him in the EmDash admin: yes; Inventory overview link off the account page for v1: yes).",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [],
+      "review_ref": null,
+      "review_result": null,
+      "review_source_identity": null,
+      "status": "verified",
+      "superseded_by": null,
+      "updated_at": "2026-10-11T18:02:56+00:00",
+      "verification_ref": "file:tests/account-pages.test.mjs"
     }
   ],
   "last_activation": {
@@ -6161,5 +6373,5 @@
   "status": "active",
   "title": "Website PR9 current-main reconciliation",
   "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca",
-  "updated_at": "2026-10-11T16:19:44+00:00"
+  "updated_at": "2026-10-11T18:02:56+00:00"
 }

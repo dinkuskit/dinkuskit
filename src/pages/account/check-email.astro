@@ -2,10 +2,11 @@
 import Site from '../../layouts/Site.astro';
 export const prerender = false;
 ---
-<Site title="Check your email" description="Continue from the email we sent if an account action is possible.">
+<Site title="Check your email" description="Open the link we emailed you to continue.">
   <div class="account-panel">
-    <p class="eyebrow">Merchant account</p>
+    <p class="eyebrow">DinkusKit account</p>
     <h1>Check your email</h1>
-    <p class="lead">If an account action is possible, a single-use link was sent. The link expires in five minutes.</p>
+    <p class="lead">If we can use that address for this, we've sent you a link. It works once and expires in 5 minutes.</p>
+    <p>Nothing there? Check your spam folder, or go back and send a new one.</p>
   </div>
 </Site>

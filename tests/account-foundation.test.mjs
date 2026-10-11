@@ -106,7 +106,7 @@ test('pending selection persists and Owner/Admin employee routes enforce current
     assert.equal(pending.admissionStatus, 'pending_operator');
     assert.equal(second.selectedOrganizationId, pending.organizationId);
     assert.equal((await organizations(runtime, owner)).selectedOrganizationId, pending.organizationId);
-    assert.match(await (await request(runtime, owner, '/account')).text(), /waiting for operator approval/);
+    assert.match(await (await request(runtime, owner, '/account')).text(), /reviewing this business/);
     await select(runtime, owner, org);
     assert.equal((await manage(runtime, owner, pending.organizationId, 'admin@example.com', 'add_member')).status, 409);
     const slots = (await state(runtime, 'owner@example.com')).stats.slots;

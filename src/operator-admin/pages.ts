@@ -208,7 +208,7 @@ async function storesPage(ctx: PageContext, v: View, note?: PageResponse['toast'
   return {
     blocks: [
       { type: 'header', text: 'Stores and services' },
-      { type: 'context', text: 'Every store that has pressed Connect, and which DinkusKit services it uses. The owner turns Payments and Inventory on by pressing Connect in those plugins, and Coupons and Ship under Set up Commerce on their Connected sites page. Disconnected means the owner turned it off or you restored it; the owner can turn it on again. Cut off means only you can let it back, with Restore.' },
+      { type: 'context', text: 'Every store that has pressed Connect, and which DinkusKit services it uses. The owner turns Payments and Inventory on by pressing Connect in those plugins, and Coupons and Ship under Set up Commerce on their Your stores page. Disconnected means the owner turned it off or you restored it; the owner can turn it on again. Cut off means only you can let it back, with Restore.' },
       ...confirmBlocks,
       search('stores', 'Search by store address, business or owner email', v.q),
       {

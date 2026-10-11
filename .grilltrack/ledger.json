@@ -5755,6 +5755,77 @@
       "superseded_by": null,
       "updated_at": "2026-10-10T22:34:24+00:00",
       "verification_ref": "file:tests/shared-store-routes.test.mjs"
+    },
+    {
+      "baseline_ref": null,
+      "candidate_refs": [],
+      "choice": "Sign in with DinkusKit.com, per Ship's contract (ship-owner-signin-001 in dinkuskit/ship). DinkusKit.com adds GET /account/ship-sign-in, which checks the signed-in person and sends the browser back to the one fixed address https://ship.dinkuskit.com/auth/callback with a one-time, 60-second, PKCE-bound code. It also adds POST /api/ship-sign-in/token, which trades the code for a 5-minute ship:labels pass (aud dinkus-ship, uid and email) and a rotating refresh token bound to the person's DinkusKit.com sign-in. Owners and Administrators may always print. A plain employee may print once the owner ticks Print shipping labels in Ship (ship:labels). A refresh is refused once the person signs out of DinkusKit.com, their email changes, they are removed or suspended or lose the permission, the business is suspended or unapproved, the operator cuts Ship off, the owner turns Ship off, or an old refresh token comes back. A refresh extends the DinkusKit.com sign-in the way a visit would. The pass carries no store name or reply-to: Commerce sends the EmDash Site title with each order, and Ship keeps its own reply-to setting.",
+      "context_ref": "file:docs/shared-store-connections.md",
+      "created_at": "2026-10-11T00:17:54+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [
+        "website-store-services-opt-in-043"
+      ],
+      "domain": "Accounts and operator admin for v1",
+      "history": [
+        {
+          "at": "2026-10-11T00:17:59+00:00",
+          "choice": "Sign in with DinkusKit.com, per Ship's contract (ship-owner-signin-001 in dinkuskit/ship). DinkusKit.com adds GET /account/ship-sign-in, which checks the signed-in person and sends the browser back to the one fixed address https://ship.dinkuskit.com/auth/callback with a one-time, 60-second, PKCE-bound code. It also adds POST /api/ship-sign-in/token, which trades the code for a 5-minute ship:labels pass (aud dinkus-ship, uid and email) and a rotating refresh token bound to the person's DinkusKit.com sign-in. Owners and Administrators may always print. A plain employee may print once the owner ticks Print shipping labels in Ship (ship:labels). A refresh is refused once the person signs out of DinkusKit.com, their email changes, they are removed or suspended or lose the permission, the business is suspended or unapproved, the operator cuts Ship off, the owner turns Ship off, or an old refresh token comes back. A refresh extends the DinkusKit.com sign-in the way a visit would. The pass carries no store name or reply-to: Commerce sends the EmDash Site title with each order, and Ship keeps its own reply-to setting.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-11T00:31:27+00:00",
+          "choice": "Sign in with DinkusKit.com, per Ship's contract (ship-owner-signin-001 in dinkuskit/ship). DinkusKit.com adds GET /account/ship-sign-in, which checks the signed-in person and sends the browser back to the one fixed address https://ship.dinkuskit.com/auth/callback with a one-time, 60-second, PKCE-bound code. It also adds POST /api/ship-sign-in/token, which trades the code for a 5-minute ship:labels pass (aud dinkus-ship, uid and email) and a rotating refresh token bound to the person's DinkusKit.com sign-in. Owners and Administrators may always print. A plain employee may print once the owner ticks Print shipping labels in Ship (ship:labels). A refresh is refused once the person signs out of DinkusKit.com, their email changes, they are removed or suspended or lose the permission, the business is suspended or unapproved, the operator cuts Ship off, the owner turns Ship off, or an old refresh token comes back. A refresh extends the DinkusKit.com sign-in the way a visit would. The pass carries no store name or reply-to: Commerce sends the EmDash Site title with each order, and Ship keeps its own reply-to setting.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-11T00:31:27+00:00",
+          "choice": "Sign in with DinkusKit.com, per Ship's contract (ship-owner-signin-001 in dinkuskit/ship). DinkusKit.com adds GET /account/ship-sign-in, which checks the signed-in person and sends the browser back to the one fixed address https://ship.dinkuskit.com/auth/callback with a one-time, 60-second, PKCE-bound code. It also adds POST /api/ship-sign-in/token, which trades the code for a 5-minute ship:labels pass (aud dinkus-ship, uid and email) and a rotating refresh token bound to the person's DinkusKit.com sign-in. Owners and Administrators may always print. A plain employee may print once the owner ticks Print shipping labels in Ship (ship:labels). A refresh is refused once the person signs out of DinkusKit.com, their email changes, they are removed or suspended or lose the permission, the business is suspended or unapproved, the operator cuts Ship off, the owner turns Ship off, or an old refresh token comes back. A refresh extends the DinkusKit.com sign-in the way a visit would. The pass carries no store name or reply-to: Commerce sends the EmDash Site title with each order, and Ship keeps its own reply-to setting.",
+          "from": "implemented",
+          "implementation_ref": "file:src/account/ship-sign-in.ts;file:src/pages/account/ship-sign-in.astro;file:src/pages/api/ship-sign-in/token.ts;file:migrations/merchant/0012_ship_sign_in.sql;file:src/account/config.ts;file:src/account/organizations.ts;file:src/pages/account/index.astro;file:docs/shared-store-connections.md",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": null
+        }
+      ],
+      "id": "website-ship-signin-047",
+      "implementation_ref": "file:src/account/ship-sign-in.ts;file:src/pages/account/ship-sign-in.astro;file:src/pages/api/ship-sign-in/token.ts;file:migrations/merchant/0012_ship_sign_in.sql;file:src/account/config.ts;file:src/account/organizations.ts;file:src/pages/account/index.astro;file:docs/shared-store-connections.md",
+      "question": "How does a store owner or employee sign in to Ship's label page, and who may print labels?",
+      "rationale": "Ronald's answers in the Ship thread: 1a at 23:20 UTC 2026-10-10; 1 yes and 4 at 00:03 UTC and yes yes at 00:11 UTC on 2026-10-11.",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [],
+      "review_ref": null,
+      "review_result": null,
+      "review_source_identity": null,
+      "status": "verified",
+      "superseded_by": null,
+      "updated_at": "2026-10-11T00:31:27+00:00",
+      "verification_ref": "file:tests/ship-sign-in.test.mjs;file:tests/shared-store-routes.test.mjs;file:tests/merchant-migrations.test.mjs"
     }
   ],
   "last_activation": {
@@ -5782,5 +5853,5 @@
   "status": "active",
   "title": "Website PR9 current-main reconciliation",
   "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca",
-  "updated_at": "2026-10-10T22:35:34+00:00"
+  "updated_at": "2026-10-11T00:31:27+00:00"
 }

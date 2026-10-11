@@ -495,6 +495,10 @@ export class FakeLifecycle {
         assert.ok(Date.parse(r.terminal_at) >= Date.parse(r.created_at) && Date.parse(r.terminal_at) <= Date.parse(snapshot.now), 'terminal outside run');
         assert.equal(Date.parse(r.history_expires_at), Date.parse(r.terminal_at) + HISTORY_WINDOW_MS, 'history expiry changed');
       } else assert.equal(r.history_expires_at, null);
+      if (!r.history_retained) {
+        assert.equal(r.state, "removed", "unresolved run must retain history");
+        assert.ok(Date.parse(snapshot.now) >= Date.parse(r.history_expires_at), "history dropped before expiry");
+      }
       assert.ok(Array.isArray(r.receipts), 'receipts required');
       for (const receipt of r.receipts) {
         exact(receipt, ['service', 'receipt_ref', 'authority_expires_at'], 'snapshot receipt');
@@ -515,6 +519,13 @@ export class FakeLifecycle {
       exact(resource, ['resource_ref', 'run_id', 'account_ref', 'ownership_ref'], 'snapshot resource');
       for (const value of Object.values(resource)) id(value, 'resource reference');
       assert.equal(life.#resources.has(resource.resource_ref), false, 'duplicate resource');
+      const owner = life.#records.get(resource.run_id);
+      if (owner) {
+        assert.equal(resource.account_ref, owner.account_ref, "resource account mismatch");
+        assert.equal(resource.ownership_ref, owner.ownership_ref, "resource ownership mismatch");
+        assert.ok(owner.resource_refs.includes(resource.resource_ref), "resource outside admitted selector");
+        assert.notEqual(owner.state, "removed", "removed run cannot retain resources");
+      }
       // Foreign fake resources may be injected to exercise refusal; they grant no ownership.
       life.#resources.set(resource.resource_ref, clone(resource));
     }

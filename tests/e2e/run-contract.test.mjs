@@ -714,3 +714,124 @@ test("reconcileInterrupted enforces deadlines before reconciliation, preserving 
   assert.equal(rPrev.failure_reason, "early-fault");
   assert.equal(rPrev.expiry_at, firstFail.expiry_at);
 });
+
+test("FakeLifecycle.restore validates known-owner resource/selector consistency and excludes removed-run resources while preserving foreign refusal", () => {
+  // 1. Resource attributed to an exact known run/account/ownership outside that run's admitted selector must be rejected
+  const activeFixture = life("run-selector-check", "resource-admitted");
+  activeFixture.allocate("run-selector-check", "resource-admitted");
+  const snapOutsideSelector = activeFixture.snapshot();
+  snapOutsideSelector.resources[0].resource_ref = "resource-unadmitted";
+  assert.throws(() => FakeLifecycle.restore(snapOutsideSelector), /resource outside admitted selector/);
+
+  // 2. Removed run leaving owned resource outside or within selector must be rejected, preventing owned resources when canAdmit is true
+  const removedFixture = life("run-removed-owned", "resource-removed-owned");
+  removedFixture.allocate("run-removed-owned", "resource-removed-owned");
+  removedFixture.sealEvidence("run-removed-owned");
+  removedFixture.complete("run-removed-owned");
+  safeCleanup(removedFixture, "run-removed-owned");
+  const cleaned = removedFixture.cleanup("run-removed-owned");
+  assert.equal(cleaned.state, "removed");
+  assert.equal(removedFixture.canAdmit(), true);
+  const snapRemoved = removedFixture.snapshot();
+  assert.equal(snapRemoved.resources.length, 0);
+
+  // 2a. Attempt to restore with resource attributed to removed run outside selector
+  const snapRemovedOutside = structuredClone(snapRemoved);
+  snapRemovedOutside.resources.push({
+    resource_ref: "resource-outside-removed",
+    run_id: "run-removed-owned",
+    account_ref: "account-one",
+    ownership_ref: "ownership-run-removed-owned",
+  });
+  assert.throws(() => FakeLifecycle.restore(snapRemovedOutside), /resource outside admitted selector|removed run cannot retain resources/);
+
+  // 2b. Attempt to restore with resource attributed to removed run within selector
+  const snapRemovedInside = structuredClone(snapRemoved);
+  snapRemovedInside.resources.push({
+    resource_ref: "resource-removed-owned",
+    run_id: "run-removed-owned",
+    account_ref: "account-one",
+    ownership_ref: "ownership-run-removed-owned",
+  });
+  assert.throws(() => FakeLifecycle.restore(snapRemovedInside), /removed run cannot retain resources|removed resource still present/);
+
+  // 3. Known-owner consistency: resource account_ref or ownership_ref mismatch for known run must be rejected
+  const snapAccountMismatch = activeFixture.snapshot();
+  snapAccountMismatch.resources[0].account_ref = "account-mismatched";
+  assert.throws(() => FakeLifecycle.restore(snapAccountMismatch), /resource account mismatch/);
+
+  const snapOwnershipMismatch = activeFixture.snapshot();
+  snapOwnershipMismatch.resources[0].ownership_ref = "ownership-mismatched";
+  assert.throws(() => FakeLifecycle.restore(snapOwnershipMismatch), /resource ownership mismatch/);
+
+  // 4. Valid restore of active run with matching selector and ownership
+  const restoredValid = FakeLifecycle.restore(activeFixture.snapshot());
+  assert.equal(restoredValid.record("run-selector-check").state, "active");
+  assert.equal(restoredValid.snapshot().resources[0].resource_ref, "resource-admitted");
+
+  // 5. Preserve documented deliberately FOREIGN fake resource injection for refusal tests
+  const snapForeign = activeFixture.snapshot();
+  snapForeign.resources.push({
+    resource_ref: "resource-foreign-fixture",
+    run_id: "run-foreign-unknown",
+    account_ref: "account-foreign",
+    ownership_ref: "ownership-foreign",
+  });
+  const restoredForeign = FakeLifecycle.restore(snapForeign);
+  assert.equal(restoredForeign.snapshot().resources.length, 2);
+  assert.ok(restoredForeign.snapshot().resources.some((r) => r.run_id === "run-foreign-unknown"));
+});
+
+test("FakeLifecycle.restore requires retained history for unresolved runs and unexpired removed runs, preserving expired tombstones", () => {
+  // 1. Unresolved runs (failed) require history_retained === true
+  const failedFixture = life("run-history-fail", "resource-history-fail");
+  failedFixture.allocate("run-history-fail", "resource-history-fail");
+  failedFixture.fail("run-history-fail", "test-history-fail");
+  const snapFailed = failedFixture.snapshot();
+  const snapFailedNoHistory = structuredClone(snapFailed);
+  snapFailedNoHistory.records[0].history_retained = false;
+  assert.throws(() => FakeLifecycle.restore(snapFailedNoHistory), /unresolved run must retain history/);
+
+  // 2. Unresolved runs (cleanup-pending) require history_retained === true
+  const pendingFixture = life("run-history-pending", "resource-history-pending");
+  pendingFixture.allocate("run-history-pending", "resource-history-pending");
+  pendingFixture.sealEvidence("run-history-pending");
+  pendingFixture.complete("run-history-pending");
+  const snapPending = pendingFixture.snapshot();
+  const snapPendingNoHistory = structuredClone(snapPending);
+  snapPendingNoHistory.records[0].history_retained = false;
+  assert.throws(() => FakeLifecycle.restore(snapPendingNoHistory), /unresolved run must retain history/);
+
+  // 3. Live unresolved runs require history_retained === true
+  const liveFixture = life("run-history-live", "resource-history-live");
+  liveFixture.allocate("run-history-live", "resource-history-live");
+  const snapLive = liveFixture.snapshot();
+  const snapLiveNoHistory = structuredClone(snapLive);
+  snapLiveNoHistory.records[0].history_retained = false;
+  assert.throws(() => FakeLifecycle.restore(snapLiveNoHistory), /unresolved run must retain history/);
+
+  // 4. Newly removed run before history_expires_at requires history_retained === true
+  safeCleanup(pendingFixture, "run-history-pending");
+  const cleanedPending = pendingFixture.cleanup("run-history-pending");
+  assert.equal(cleanedPending.state, "removed");
+  const snapNewlyRemoved = pendingFixture.snapshot();
+  const snapNewlyRemovedNoHistory = structuredClone(snapNewlyRemoved);
+  snapNewlyRemovedNoHistory.records[0].history_retained = false;
+  assert.throws(() => FakeLifecycle.restore(snapNewlyRemovedNoHistory), /history dropped before expiry/);
+
+  // 5. Valid restore of unexpired removed run with history_retained === true
+  const restoredNewlyRemoved = FakeLifecycle.restore(snapNewlyRemoved);
+  assert.equal(restoredNewlyRemoved.history.length, 1);
+  assert.equal(restoredNewlyRemoved.history[0].run_id, "run-history-pending");
+
+  // 6. Legitimate expired removed tombstone at or after history_expires_at preserves history_retained === false
+  pendingFixture.advance(HISTORY_WINDOW_MS);
+  pendingFixture.purgeHistory();
+  assert.equal(pendingFixture.history.length, 0);
+  assert.equal(pendingFixture.record("run-history-pending").history_retained, false);
+  const snapExpiredTombstone = pendingFixture.snapshot();
+  const restoredTombstone = FakeLifecycle.restore(snapExpiredTombstone);
+  assert.equal(restoredTombstone.record("run-history-pending").history_retained, false);
+  assert.equal(restoredTombstone.history.length, 0);
+  assert.equal(restoredTombstone.canAdmit(), true);
+});

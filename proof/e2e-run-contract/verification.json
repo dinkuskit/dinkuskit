@@ -2,11 +2,11 @@
   "schema_version": 1,
   "repository": "dinkuskit/dinkuskit",
   "base_commit": "771d91245918f321afbd55f495ec34741e6f09df",
-  "initial_head": "e101f6e0e196c0c21e0c8aaf41644a8aa363d099",
+  "initial_head": "3fb3ab02e631aab7ac173e0655ea1aceb2b7fd41",
   "runtime": "Node v22.23.2",
   "source_sha256": {
-    "tests/e2e/run-contract.mjs": "4fa1a8369168223e68e52cba2bd33514e7807762fe2274e0103ea285a51e22ff",
-    "tests/e2e/run-contract.test.mjs": "4adabe198925dbde375518cfa9c5e29eed8056d431c25d6cfed9f75c22734993",
+    "tests/e2e/run-contract.mjs": "fb5ce409ef4b5e7ca97eede745d1907041653ddfc8907dc4d562424a7dbed9ba",
+    "tests/e2e/run-contract.test.mjs": "2468e8dd84519cff69dc6ec3e482363aaf9af5a2e428e5ceb855e6040c962398",
     "docs/e2e-run-contract.md": "271a014ff0a9ebcbcd68c7768790d641f4aa7824e243634a71237a1173614e05",
     "package.json": "7edc505656659e256235c5740d150584b6482212cbe57669b673385ec1fc436b"
   },
@@ -14,7 +14,7 @@
     {
       "command": "node --test tests/e2e/run-contract.test.mjs",
       "exit_code": 0,
-      "tests": 30,
+      "tests": 32,
       "status": "passed"
     },
     {
@@ -34,10 +34,9 @@
     },
     {
       "command": "npm run verify",
-      "status": "passed",
-      "exit_code": 0,
+      "status": "blocked-external-font-download",
+      "exit_code": 1,
       "completed_commands": [
-        "verify",
         "audit:repo",
         "setup",
         "types:wrangler",
@@ -60,8 +59,7 @@
         "test:access-gate",
         "test:safe-http-url",
         "test:cms-operation",
-        "test:emdash-upgrade",
-        "test:cloudflare-candidate"
+        "test:emdash-upgrade"
       ],
       "native_test_groups": [
         {
@@ -70,7 +68,7 @@
         },
         {
           "command": "test:e2e-contract",
-          "tests": 30
+          "tests": 32
         },
         {
           "command": "test:agent-routes",
@@ -104,14 +102,21 @@
           "command": "test:operator-admin",
           "tests": 8
         }
-      ]
+      ],
+      "note": "All preceding checks passed; final test:cloudflare-candidate build failed CannotFetchFontFile from fonts.gstatic.com. Two isolated retries also failed. No source assertion failed; current-head CI remains required."
+    },
+    {
+      "command": "npm run test:cloudflare-candidate",
+      "status": "blocked-external-font-download",
+      "exit_code": 1,
+      "attempts": 2
     }
   ],
   "claims": {
-    "local_contract": "verified-focused-30-tests",
+    "local_contract": "verified-focused-32-tests",
     "hosted_a": "not-run",
     "deployed_b": "not-run",
-    "full_verification": "passed",
+    "full_verification": "blocked-local-font-download-current-head-CI-required",
     "independent_review": "pending"
   },
   "historical_verification": {
@@ -211,5 +216,5 @@
       }
     ]
   },
-  "verified_at": "2026-10-11T20:29:20.790222+00:00"
+  "verified_at": "2026-10-11T22:26:22.115903+00:00"
 }

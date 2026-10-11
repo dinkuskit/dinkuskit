@@ -120,7 +120,8 @@ test('local signup cannot satisfy Registry or Stripe; A and B require exact prov
 
 test('failed stage returns public-safe failure, last proof and owning repository', () => {
   const failure = { code: 'provider-timeout', failure_at: '2026-01-01T00:20:00.000Z', expected: 'provider-ready', observed: 'provider-timeout', proof_ref: 'proof-last', owner_repo: 'merchant-auth', next_action: 'retry-provider', last_accepted_receipt_ref: 'receipt-local', owning_stage_repo: 'merchant-auth' };
-  const assessed = assessRun(manifest(), result({ journey: { ...result().journey, status: 'failed', evidence: [receipt()] }, failure }));
+  const failureOracle = { stage_id: 'merchant-stage', owner_repo: 'merchant-auth', allowed_environments: ['local', 'hosted-a', 'deployed-b'], required: [{ kind: 'state', provider_ref: 'provider-auth', state_ref: 'state-auth-ready' }] };
+  const assessed = assessRun(manifest({ oracles: [...manifestBase.oracles, failureOracle] }), result({ journey: { ...result().journey, status: 'failed', evidence: [receipt()] }, failure }));
   assert.equal(assessed.status, 'failed');
   assert.deepEqual(assessed.failure, failure);
   assert.equal(assessed.last_accepted_receipt.receipt_ref, 'receipt-local');
@@ -264,7 +265,8 @@ test('failed stages keep independent evidence, excluding a later screenshot or w
   const failure = {code: 'provider-timeout', failure_at: '2026-01-01T00:20:00.000Z', expected: 'provider-ready', observed: 'provider-timeout',
     proof_ref: 'proof-last', owner_repo: 'ship-service', next_action: 'inspect-provider', last_accepted_receipt_ref: 'receipt-local', owning_stage_repo: 'ship-service'};
   const output = result({journey: {...result().journey, status: 'failed', evidence: [receipt(), receipt({receipt_ref: 'receipt-screen', oracle_kind: 'screenshot'}), receipt({receipt_ref: 'receipt-wrong', state_ref: 'state-other'})]}, failure});
-  const assessed = assessRun(manifest(), output);
+  const failureOracle = { stage_id: 'ship-stage', owner_repo: 'ship-service', allowed_environments: ['local', 'hosted-a', 'deployed-b'], required: [{ kind: 'state', provider_ref: 'provider-ship', state_ref: 'state-ship' }] };
+  const assessed = assessRun(manifest({ oracles: [...manifestBase.oracles, failureOracle] }), output);
   assert.equal(assessed.last_accepted_receipt.receipt_ref, 'receipt-local'); assert.equal(assessed.owning_stage_repo, 'ship-service');
   assert.deepEqual(assessed.failure, failure);
 });
@@ -478,4 +480,78 @@ test('targetShape rejects deployment-local for all nonlocal provenance including
     oracles: [{ stage_id: 'stage-fixture', owner_repo: 'website', allowed_environments: ['local'], required: [{ kind: 'state', provider_ref: 'provider-fixture', state_ref: 'state-fixture' }] }],
   };
   assert.equal(validateManifest(validLocal).target.deployment_ref, 'deployment-local');
+});
+
+test('hosted-a and deployed-b reject loopback origins while preserving local fixtures and synthetic https', () => {
+  const hostedManifest = (site_origin) => manifest({
+    environment: 'hosted-a',
+    target: { ...target, target_ref: 'target-a', deployment_ref: 'deployment-a', provenance_class: 'test-build', source_ref: 'ref-a-build', site_origin },
+    oracles: [{ stage_id: 'local-account', owner_repo: 'account-service', allowed_environments: ['hosted-a'], required: [{ kind: 'state', provider_ref: 'provider-local', state_ref: 'state-account-ready' }] }],
+  });
+  const deployedManifest = (site_origin) => manifest({
+    environment: 'deployed-b',
+    target: { ...target, target_ref: 'target-b', deployment_ref: 'deployment-b', provenance_class: 'public-release', source_ref: 'sha256:' + 'b'.repeat(64), site_origin },
+    oracles: [{ stage_id: 'local-account', owner_repo: 'account-service', allowed_environments: ['deployed-b'], required: [{ kind: 'state', provider_ref: 'provider-local', state_ref: 'state-account-ready' }] }],
+  });
+
+  for (const origin of ['https://localhost/', 'https://localhost./', 'https://test.localhost/', 'https://127.0.0.1/', 'https://127.2.3.4/', 'https://[::1]/', 'https://[::ffff:7f00:1]/']) {
+    assert.throws(() => validateManifest(hostedManifest(origin)), /loopback origin/);
+    assert.throws(() => validateManifest(deployedManifest(origin)), /loopback origin/);
+    assert.throws(() => validateResult(result({ journey: { ...result().journey, evidence: [receipt({ environment: 'hosted-a', provenance_class: 'test-build', site_origin: origin })] } })), /loopback origin/);
+    assert.throws(() => validateResult(result({ journey: { ...result().journey, evidence: [receipt({ environment: 'deployed-b', provenance_class: 'public-release', site_origin: origin })] } })), /loopback origin/);
+  }
+
+  // Preserves valid local fixtures
+  for (const local of ['http://127.0.0.1:8787/', 'http://localhost:8787/', 'http://[::1]:8787/']) {
+    assert.equal(validateManifest(manifest({ target: { ...target, site_origin: local } })).target.site_origin, local);
+    assert.equal(validateResult(result({ journey: { ...result().journey, evidence: [receipt({ site_origin: local })] } })).journey.evidence[0].site_origin, local);
+  }
+
+  // Preserves synthetic HTTPS hosted .invalid origins
+  assert.equal(validateManifest(hostedManifest('https://a.example.invalid/')).target.site_origin, 'https://a.example.invalid/');
+  assert.equal(validateManifest(deployedManifest('https://b.example.invalid/')).target.site_origin, 'https://b.example.invalid/');
+});
+
+test('failed result attribution binds owning_stage_repo and last_accepted_receipt_ref to declared manifest stage evidence', () => {
+  const validFailure = {
+    code: 'provider-timeout', failure_at: '2026-01-01T00:20:00.000Z', expected: 'provider-ready', observed: 'provider-timeout',
+    proof_ref: 'proof-fixture', owner_repo: 'account-service', next_action: 'retry-provider',
+    last_accepted_receipt_ref: null, owning_stage_repo: 'account-service',
+  };
+
+  // 1. Arbitrary owning_stage_repo not declared in manifest.oracles must be rejected
+  assert.throws(() => assessRun(manifest(), result({
+    journey: { ...result().journey, status: 'failed', evidence: [receipt()] },
+    failure: { ...validFailure, owning_stage_repo: 'untrusted-arbitrary-repo', last_accepted_receipt_ref: 'receipt-local' },
+  })), /stage ownership|owning_stage_repo/);
+
+  // 2. Nonexistent last_accepted_receipt_ref when failure occurs before successful stages must be rejected
+  assert.throws(() => assessRun(manifest(), result({
+    journey: { ...result().journey, status: 'failed', evidence: [] },
+    failure: { ...validFailure, owning_stage_repo: 'account-service', last_accepted_receipt_ref: 'nonexistent-receipt' },
+  })), /accepted stage evidence|last_accepted_receipt_ref/);
+
+  // 3. Nonexistent / mismatching last_accepted_receipt_ref when failure occurs after successful stage must be rejected
+  assert.throws(() => assessRun(manifest(), result({
+    journey: { ...result().journey, status: 'failed', evidence: [receipt()] },
+    failure: { ...validFailure, owning_stage_repo: 'account-service', last_accepted_receipt_ref: 'receipt-fabricated' },
+  })), /accepted stage evidence|last_accepted_receipt_ref/);
+
+  // 4. Preserve explicit null last receipt for failure before successful stages
+  const assessedBefore = assessRun(manifest(), result({
+    journey: { ...result().journey, status: 'failed', evidence: [] },
+    failure: { ...validFailure, owning_stage_repo: 'account-service', last_accepted_receipt_ref: null },
+  }));
+  assert.equal(assessedBefore.status, 'failed');
+  assert.equal(assessedBefore.last_accepted_receipt, null);
+  assert.equal(assessedBefore.owning_stage_repo, 'account-service');
+
+  // 5. Preserve consistent valid failure descriptor after successful stages
+  const assessedAfter = assessRun(manifest(), result({
+    journey: { ...result().journey, status: 'failed', evidence: [receipt()] },
+    failure: { ...validFailure, owning_stage_repo: 'account-service', last_accepted_receipt_ref: 'receipt-local' },
+  }));
+  assert.equal(assessedAfter.status, 'failed');
+  assert.equal(assessedAfter.last_accepted_receipt.receipt_ref, 'receipt-local');
+  assert.equal(assessedAfter.owning_stage_repo, 'account-service');
 });

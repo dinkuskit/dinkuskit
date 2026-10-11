@@ -1,4 +1,7 @@
-# Run-contract review repair
+# Historical run-contract repair (cycle 3)
+
+This records the repair delivered in `1470df4d0d9414610fe899ad6f8c28b6e1aaf7f6`.
+See `PROOF.md` and `verification.json` for current-source verification.
 
 Reviewed input: `5d7c9691bc0bff3ba6d013f0c5d57d88391e97a5`, against
 `771d91245918f321afbd55f495ec34741e6f09df`.

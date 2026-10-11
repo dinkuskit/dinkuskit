@@ -40,6 +40,14 @@ function time(value, name) {
   assert.equal(new Date(value).toISOString(), value, `${name} must be a canonical timestamp`);
   return value;
 }
+function isLoopback(hostname) {
+  const name = hostname.replace(/\.$/, '');
+  if (name === 'localhost' || name.endsWith('.localhost') || name === '[::1]') return true;
+  if (/^\[::ffff:7f[0-9a-f]{2}:[0-9a-f]{1,4}\]$/.test(name)) return true;
+  if (/^127(?:\.(?:25[0-5]|2[0-4]\d|1\d\d|[0-9]{1,2})){3}$/.test(hostname)) return true;
+  return false;
+}
+
 function origin(value, name) {
   assert.equal(typeof value, 'string', `${name} must be a canonical HTTPS origin`);
   const parsed = new URL(value);
@@ -50,13 +58,14 @@ function origin(value, name) {
   assert.equal(parsed.username, '', `${name} must not contain userinfo`);
   assert.equal(parsed.password, '', `${name} must not contain userinfo`);
   assert.equal(value, parsed.origin + '/', `${name} must be canonical`);
+  assert.ok(!isLoopback(parsed.hostname), `${name} cannot use loopback origin`);
   return value;
 }
 function localOrigin(value, name) {
   assert.equal(typeof value, 'string', `${name} must be a canonical loopback origin`);
   const parsed = new URL(value);
   assert.ok(['http:', 'https:'].includes(parsed.protocol), `${name} must use HTTP(S)`);
-  assert.ok(['127.0.0.1', 'localhost'].includes(parsed.hostname), `${name} must be loopback`);
+  assert.ok(isLoopback(parsed.hostname), `${name} must be loopback`);
   assert.equal(parsed.pathname, '/', `${name} must not contain a path`);
   assert.equal(parsed.search, '', `${name} must not contain a query`);
   assert.equal(parsed.hash, '', `${name} must not contain a fragment`);
@@ -176,6 +185,10 @@ export function validateResult(input, manifest = null) {
     assert.ok(result.failure !== null, 'failure descriptor required when journey failed');
   }
   if (result.failure !== null) {
+    if (manifest) {
+      const stageOwners = new Set(manifest.oracles.map((stage) => stage.owner_repo));
+      assert.ok(stageOwners.has(result.failure.owning_stage_repo), 'failure owning_stage_repo must match declared manifest stage ownership');
+    }
     exact(result.failure, ['code', 'failure_at', 'expected', 'observed', 'proof_ref', 'owner_repo', 'next_action', 'last_accepted_receipt_ref', 'owning_stage_repo'], 'result.failure');
     id(result.failure.code, 'failure.code'); time(result.failure.failure_at, 'failure.failure_at');
     for (const key of ['expected', 'observed', 'next_action']) id(result.failure[key], `failure.${key}`);
@@ -218,6 +231,11 @@ export function assessRun(manifestInput, resultInput, assessedAt = manifestInput
   if (result.journey.status === 'passed' && result.failure !== null) failures.push({code: 'contradictory-journey', owner_repo: manifest.owner_repo, expected: 'consistent-outcome', observed: 'failure-present', next_action: 'resolve-failure'});
   const assistance = result.journey.assistance_refs.length > 0 ? 'assisted' : 'unassisted';
   const last = result.journey.evidence.filter((entry) => accepted.includes(entry)).at(-1) ?? null;
+  if (result.failure !== null) {
+    const stageOwners = new Set(manifest.oracles.map((stage) => stage.owner_repo));
+    assert.ok(stageOwners.has(result.failure.owning_stage_repo), 'failure owning_stage_repo must match declared manifest stage ownership');
+    assert.equal(result.failure.last_accepted_receipt_ref, last ? last.receipt_ref : null, 'failure last_accepted_receipt_ref must match actual accepted stage evidence');
+  }
   const cleanupMissing = manifest.cleanup_oracles.filter((req) => !result.cleanup.evidence.some((entry) => {
     if (!sameTarget(manifest, entry) || entry.stage_id !== `cleanup-${req.service}` || entry.owner_repo !== req.owner_repo
         || entry.provider_ref !== req.provider_ref || entry.oracle_kind !== 'state') return false;

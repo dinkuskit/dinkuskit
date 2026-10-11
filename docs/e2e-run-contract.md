@@ -10,8 +10,11 @@ contact Stripe, or prove a hosted deployment.
 Every manifest declares `admission_required` (`manual` or `any`), required
 assistance references, environment, and a target containing account, canonical
 site origin, exact source revision/digest, deployment and provenance class:
-`local-fixture`, `test-build`, or `public-release`. Local origins are loopback;
-hosted origins are bare HTTPS origins. A receipt repeats every target field plus
+`local-fixture`, `test-build`, or `public-release`. Local origins are loopback
+(`127.0.0.1`, `localhost`, `[::1]`); nonlocal targets (`hosted-a` / `test-build`
+and `deployed-b` / `public-release`) cannot use loopback origins and require
+non-loopback canonical HTTPS origins (synthetic HTTPS hosted `.invalid` origins
+are permitted). A receipt repeats every target field plus
 stage ID and owning repository. Required provider/state/Registry/Stripe
 receipts are separate from supplementary screenshots and agent assertions.
 Receipt hashes are bounded `sha256:` references. Cross-product stage ownership
@@ -21,8 +24,10 @@ Assessment reports actual assistance and blocks automatic admission for a
 manual run, omitted checkpoints, helper seeding without a record, local claims
 of hosted provider success, every provenance/identity mismatch, and incomplete
 cleanup. A passed journey with failed, unknown or inconsistent cleanup is
-incomplete. Failed stages preserve the public-safe failure descriptor, last
-accepted independent receipt and owning stage repository.
+incomplete. Failed stages preserve the public-safe failure descriptor,
+binding owning stage repository to declared manifest stage ownership and any
+last accepted receipt reference to actual accepted stage evidence (explicitly
+null when failing before successful stages).
 
 ## Lifecycle
 
@@ -60,7 +65,7 @@ gates are deliberately not implemented here.
 
 ## Source API and proof limits
 
-Run `npm run test:e2e-contract` for the 23 native `node:test` cases; `npm run
+Run `npm run test:e2e-contract` for the 28 native `node:test` cases; `npm run
 verify` includes them. The contract module is `tests/e2e/run-contract.mjs`.
 `validateManifest` and `validateResult` validate declared shapes.
 `assessRun(manifest, result, assessedAt)` reduces evidence and returns the run,

@@ -4,11 +4,11 @@
   "current_focus": {
     "cadence": "sequential",
     "confirmed": true,
-    "confirmed_at": "2026-10-11T17:40:44+00:00",
-    "domain": "E2E manifest, evidence and fake lifecycle",
-    "started_at": "2026-10-11T17:40:43+00:00",
+    "confirmed_at": "2026-10-11T18:08:23+00:00",
+    "domain": "Offline E2E mailbox correlation and opaque handoff",
+    "started_at": "2026-10-11T18:08:22+00:00",
     "status": "confirmed",
-    "summary": "User confirmed source-only slice 1: manifest/result validation and fake lifecycle tests with public-safe proof; commit, non-force push and draft PR authorized. Coordinator owns independent review and human merge gate."
+    "summary": "Existing source-only authorization remains in force for bounded acceptance repairs: genuine match binding, manifest context binding, expiry validation, sanitized errors and meaningful tests; no product decision or runtime scope expansion."
   },
   "decisions": [
     {
@@ -6134,10 +6134,137 @@
       "superseded_by": null,
       "updated_at": "2026-10-11T17:58:00+00:00",
       "verification_ref": "file:proof/e2e-run-contract/PROOF.md;file:proof/e2e-run-contract/verification.json"
+    },
+    {
+      "baseline_ref": "git:c9062f843615ba1eb6ec94204e4583f5927f2fdf",
+      "candidate_refs": [],
+      "choice": "Consume the frozen run manifest; bound exact mailbox recipient intent environment receive window and origin/path; reject stale ambiguous foreign matches; report delivery placement separately; use one-use expiring in-process handoff and explicit blocked or assisted outcomes. Fixtures prove only offline behavior.",
+      "context_ref": "file:docs/e2e-mailbox-contract.md",
+      "created_at": "2026-10-11T18:01:04+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [
+        "website-e2e-run-contract-049"
+      ],
+      "domain": "Offline E2E mailbox correlation and opaque handoff",
+      "history": [
+        {
+          "at": "2026-10-11T18:01:04+00:00",
+          "choice": "Consume the frozen run manifest; bound exact mailbox recipient intent environment receive window and origin/path; reject stale ambiguous foreign matches; report delivery placement separately; use one-use expiring in-process handoff and explicit blocked or assisted outcomes. Fixtures prove only offline behavior.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-11T18:03:25+00:00",
+          "choice": "Consume the frozen run manifest; bound exact mailbox recipient intent environment receive window and origin/path; reject stale ambiguous foreign matches; report delivery placement separately; use one-use expiring in-process handoff and explicit blocked or assisted outcomes. Fixtures prove only offline behavior.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-11T18:05:14+00:00",
+          "choice": "Consume the frozen run manifest; bound exact mailbox recipient intent environment receive window and origin/path; reject stale ambiguous foreign matches; report delivery placement separately; use one-use expiring in-process handoff and explicit blocked or assisted outcomes. Fixtures prove only offline behavior.",
+          "from": "implemented",
+          "implementation_ref": "file:tests/e2e/mailbox-contract.mjs,tests/e2e/mailbox-contract.test.mjs,docs/e2e-mailbox-contract.md",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-11T18:08:22+00:00",
+          "choice": "Consume the frozen run manifest; bound exact mailbox recipient intent environment receive window and origin/path; reject stale ambiguous foreign matches; report delivery placement separately; use one-use expiring in-process handoff and explicit blocked or assisted outcomes. Fixtures prove only offline behavior.",
+          "from": "verified",
+          "implementation_ref": "file:tests/e2e/mailbox-contract.mjs,tests/e2e/mailbox-contract.test.mjs,docs/e2e-mailbox-contract.md",
+          "note": "Source acceptance found missing match-to-handoff binding, expiry validation and sanitized error coverage; repair remains within the confirmed source-only contract.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "reopened",
+          "verification_ref": "file:tests/e2e/mailbox-contract.test.mjs;tests:31-passed;limit:full-verify-blocked-inventory-port"
+        },
+        {
+          "at": "2026-10-11T18:08:22+00:00",
+          "choice": "Consume the frozen run manifest; bound exact mailbox recipient intent environment receive window and origin/path; reject stale ambiguous foreign matches; report delivery placement separately; use one-use expiring in-process handoff and explicit blocked or assisted outcomes. Fixtures prove only offline behavior.",
+          "from": "reopened",
+          "implementation_ref": "file:tests/e2e/mailbox-contract.mjs,tests/e2e/mailbox-contract.test.mjs,docs/e2e-mailbox-contract.md",
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": "file:tests/e2e/mailbox-contract.test.mjs;tests:31-passed;limit:full-verify-blocked-inventory-port"
+        },
+        {
+          "at": "2026-10-11T18:08:23+00:00",
+          "choice": "Consume the frozen run manifest; bound exact mailbox recipient intent environment receive window and origin/path; reject stale ambiguous foreign matches; report delivery placement separately; use one-use expiring in-process handoff and explicit blocked or assisted outcomes. Fixtures prove only offline behavior.",
+          "from": "locked",
+          "implementation_ref": "file:tests/e2e/mailbox-contract.mjs,tests/e2e/mailbox-contract.test.mjs,docs/e2e-mailbox-contract.md",
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": "file:tests/e2e/mailbox-contract.test.mjs;tests:31-passed;limit:full-verify-blocked-inventory-port"
+        },
+        {
+          "at": "2026-10-11T18:08:23+00:00",
+          "choice": "Consume the frozen run manifest; bound exact mailbox recipient intent environment receive window and origin/path; reject stale ambiguous foreign matches; report delivery placement separately; use one-use expiring in-process handoff and explicit blocked or assisted outcomes. Fixtures prove only offline behavior.",
+          "from": "implemented",
+          "implementation_ref": "file:tests/e2e/mailbox-contract.mjs;file:tests/e2e/mailbox-contract.test.mjs;file:docs/e2e-mailbox-contract.md;file:proof/e2e-mailbox-contract/PROOF.md",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": "file:tests/e2e/mailbox-contract.test.mjs;tests:31-passed;limit:full-verify-blocked-inventory-port"
+        }
+      ],
+      "id": "website-e2e-mailbox-contract-050",
+      "implementation_ref": "file:tests/e2e/mailbox-contract.mjs;file:tests/e2e/mailbox-contract.test.mjs;file:docs/e2e-mailbox-contract.md;file:proof/e2e-mailbox-contract/PROOF.md",
+      "question": "How does offline identity execution correlate mail and preserve original context without claiming a live browser primitive?",
+      "rationale": "",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [],
+      "review_ref": null,
+      "review_result": null,
+      "review_source_identity": null,
+      "status": "verified",
+      "superseded_by": null,
+      "updated_at": "2026-10-11T18:08:23+00:00",
+      "verification_ref": "file:proof/e2e-mailbox-contract/PROOF.md;tests:36-passed;limit:full-verify-pending-runtime-slot"
     }
   ],
   "last_activation": {
-    "at": "2026-10-10T00:35:41+00:00",
+    "at": "2026-10-11T18:08:22+00:00",
     "mechanism": "implicit"
   },
   "last_pause": null,
@@ -6161,5 +6288,5 @@
   "status": "active",
   "title": "Website PR9 current-main reconciliation",
   "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca",
-  "updated_at": "2026-10-11T17:58:00+00:00"
+  "updated_at": "2026-10-11T18:08:23+00:00"
 }

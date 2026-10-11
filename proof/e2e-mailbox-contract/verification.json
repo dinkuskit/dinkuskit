@@ -1,0 +1,19 @@
+{
+  "dependency_sha": "c9062f843615ba1eb6ec94204e4583f5927f2fdf",
+  "node": "22.23.2",
+  "focused": {
+    "tests": 36,
+    "passed": 36,
+    "failed": 0
+  },
+  "audit": "passed",
+  "ledger": "valid",
+  "full_local_verify": "blocked-shared-port-runtime-slot-held",
+  "runtime_opaque_transfer": "unqualified",
+  "files": {
+    "tests/e2e/mailbox-contract.mjs": "sha256:0527b7bc1a9f6decd09b0000300c3659ec66a357dcd9418486c189f1acce643f",
+    "tests/e2e/mailbox-contract.test.mjs": "sha256:02d0735980b1f457389c7bb86057cf21874f748245f7b4029234191bbf61bfa5",
+    "docs/e2e-mailbox-contract.md": "sha256:5a6eba14f1b2853b51f5531efae079fee6a1e2eee7ceddd2e32028aaa6d6c158",
+    "package.json": "sha256:53ec37ebce80636ec4663188804aaab810ba6cbbccb09fceaec221f9ca462263"
+  }
+}

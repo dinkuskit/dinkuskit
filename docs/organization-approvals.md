@@ -4,8 +4,7 @@ Decision `website-organization-approvals-028` records the approved scope.
 Current EmDash CMS Admins on dinkuskit.com alone may approve or deny pending
 organizations. Initially the sole maintainer is the only CMS Admin; future local
 Admins inherit this authority. This replaces the proposed separate approval
-role. Merchant-store Admins have no such authority. The separate read-only
-operator directory grant remains unchanged.
+role. Merchant-store Admins have no such authority.
 
 Since decision `website-operator-approvals-in-admin-039` the queue lives in
 the EmDash admin as the **Business approvals** page of the site-local operator

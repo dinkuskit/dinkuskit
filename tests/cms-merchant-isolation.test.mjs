@@ -40,7 +40,7 @@ test('CMS admin and merchant sessions stay isolated on workerd', async () => {
     assert.equal(editorOnMerchant.status, 303);
     assert.equal(editorOnMerchant.headers.get('location'), '/account/sign-in');
 
-    const editorOnOperator = await request(runtime, cmsJar, '/account/operator', { redirect: 'manual' });
+    const editorOnOperator = await request(runtime, cmsJar, '/account/operator/inventory?organization_id=synthetic', { redirect: 'manual' });
     assert.equal(editorOnOperator.status, 303, 'CMS editor session confers no operator identity');
     assert.equal(new URL(editorOnOperator.headers.get('location'), runtime.origin).pathname, '/account/sign-in');
 

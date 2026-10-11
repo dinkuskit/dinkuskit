@@ -25,7 +25,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
   if (context.url.pathname === '/account/ship-sign-in') return next();
   if (isProtectedAccountPath(context.url.pathname) && !context.locals.merchant) {
     if (context.locals.login) {
-      if (context.url.pathname === '/account' || context.url.pathname === '/account/logout' || (context.url.pathname === '/account/operator' || context.url.pathname.startsWith('/account/operator/'))) return next();
+      if (context.url.pathname === '/account' || context.url.pathname === '/account/logout' || context.url.pathname === '/account/operator/inventory') return next();
       return seeOther('/account?error=organization_required');
     }
     const candidate = context.url.pathname + context.url.search;

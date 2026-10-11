@@ -57,38 +57,13 @@ function paymentsStatusFetch(kv) {
 }
 
 async function testTransports(env) {
-  const fixture = JSON.parse(await env.MERCHANT_INVENTORY_OVERVIEW.get('operator-directory') ?? '{}');
   const mail = env.MERCHANT_MAIL_CAPTURE;
   const proof = env.MERCHANT_PROOF_SIMULATION;
   return {
     inventoryOverview: inventoryOverviewRuntime(env),
-    operatorDirectory: fixture.use_persisted ? undefined : operatorDirectoryRuntime(env),
     emailDelivery: mail ? emailDeliveryFromCapture(mail) : undefined,
     proofFetch: proof ? simulationFetch(proof, env.MERCHANT_DB) : undefined,
     paymentsStatusFetch: proof ? paymentsStatusFetch(proof) : undefined,
-  };
-}
-
-function operatorDirectoryRuntime(env) {
-  let calls = 0;
-  return {
-    async authorize({ userId, resource }) {
-      const fixture = JSON.parse(await env.MERCHANT_INVENTORY_OVERVIEW.get('operator-directory') ?? '{}');
-      const grant = (fixture.grants ?? []).find(item => item.userId === userId
-        && item.resourceType === resource.type
-        && item.resourceId === resource.id);
-      if (!grant) return false;
-      if (++calls === (fixture.change_at_call ?? 1) && fixture.change_during_read) {
-        await new Promise(resolve => setTimeout(resolve, Number(fixture.delay_ms ?? 10)));
-        const change = fixture.change_during_read;
-        if (change === 'disable_login') await env.MERCHANT_DB.prepare('UPDATE dinkuskit_account SET disabled = 1 WHERE user_id = ?').bind(userId).run();
-        if (change === 'revoke_grant') await env.MERCHANT_INVENTORY_OVERVIEW.put('operator-directory', JSON.stringify({ ...fixture, grants: [] }));
-        if (change === 'change_subject') await env.MERCHANT_DB.prepare('UPDATE dinkuskit_account SET subject = ? WHERE user_id = ?').bind('synthetic-changed-subject', userId).run();
-        if (change === 'remove_member') await env.MERCHANT_DB.prepare(`UPDATE dinkuskit_membership SET status = 'removed' WHERE user_id = ?`).bind(userId).run();
-      }
-      const current = JSON.parse(await env.MERCHANT_INVENTORY_OVERVIEW.get('operator-directory') ?? '{}');
-      return (current.grants ?? []).some(item => item.userId === userId && item.resourceType === resource.type && item.resourceId === resource.id);
-    },
   };
 }
 
@@ -172,47 +147,6 @@ async function proofRoutes(request, env, ctx) {
         await env.MERCHANT_DB.prepare(`INSERT OR REPLACE INTO dinkuskit_service_grant (site_id,service,revoked,granted_at) VALUES (?, 'inventory', ?, 1)`).bind(siteId, revoked).run();
       }
     }
-    return json(200, { syntheticOnly: true });
-  }
-
-  if (url.pathname === '/__proof/operator-directory' && request.method === 'POST') {
-    const fixture = await request.json();
-    if (fixture.persisted_grants) {
-      for (const grant of fixture.persisted_grants) {
-        const accountId = grant.accountId ?? (grant.userId
-          ? JSON.stringify(['https://dinkuskit.com/account', (await env.MERCHANT_DB.prepare('SELECT subject FROM dinkuskit_account WHERE user_id = ?').bind(grant.userId).first())?.subject ?? ''])
-          : '');
-        await env.MERCHANT_DB.prepare(`INSERT INTO dinkuskit_operator_grant
-          (account_id, scope, granted_by, granted_at, grant_reference, revoked_by, revoked_at, revoke_reference)
-          VALUES (?, 'operator:directory:read', ?, ?, ?, NULL, NULL, NULL)
-          ON CONFLICT(account_id, scope) DO UPDATE SET
-            granted_by = excluded.granted_by, granted_at = excluded.granted_at,
-            grant_reference = excluded.grant_reference, revoked_by = NULL,
-            revoked_at = NULL, revoke_reference = NULL`)
-          .bind(accountId, grant.grantedBy ?? 'fixture-operator', grant.grantedAt ?? 1, grant.reference ?? 'synthetic-fixture')
-          .run();
-      }
-    }
-    if (fixture.revoke_persisted) {
-      for (const grant of fixture.revoke_persisted) {
-        await env.MERCHANT_DB.prepare(`UPDATE dinkuskit_operator_grant
-          SET revoked_by = ?, revoked_at = ?, revoke_reference = ?
-          WHERE account_id = ? AND scope = 'operator:directory:read'`)
-          .bind(grant.revokedBy ?? 'fixture-operator', grant.revokedAt ?? Math.floor(Date.now() / 1000), grant.reference ?? 'synthetic-fixture-revoke', grant.accountId ?? JSON.stringify(['https://dinkuskit.com/account', (await env.MERCHANT_DB.prepare('SELECT subject FROM dinkuskit_account WHERE user_id = ?').bind(grant.userId).first())?.subject ?? '']))
-          .run();
-      }
-    }
-    for (const item of fixture.account_states ?? []) {
-      await env.MERCHANT_DB.prepare('UPDATE dinkuskit_account SET disabled = ? WHERE user_id = ?').bind(item.disabled ? 1 : 0, item.userId).run();
-    }
-    if (fixture.detach_user) {
-      await env.MERCHANT_DB.prepare('DELETE FROM dinkuskit_user_selection WHERE user_id = ?').bind(fixture.detach_user).run();
-      await env.MERCHANT_DB.prepare('DELETE FROM dinkuskit_membership WHERE user_id = ?').bind(fixture.detach_user).run();
-    }
-    for (const item of fixture.organization_names ?? []) {
-      await env.MERCHANT_DB.prepare('UPDATE dinkuskit_organization SET name = ? WHERE organization_id = ?').bind(item.name, item.organizationId).run();
-    }
-    await env.MERCHANT_INVENTORY_OVERVIEW.put('operator-directory', JSON.stringify(fixture));
     return json(200, { syntheticOnly: true });
   }
 

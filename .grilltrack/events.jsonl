@@ -306,3 +306,9 @@
 {"action": "decision_locked", "at": "2026-10-11T12:46:41+00:00", "data": {"decision_id": "website-store-pass-site-origin-048"}, "event_id": "262c3a46-1b90-466b-89e7-76c433d64262"}
 {"action": "decision_implemented", "at": "2026-10-11T12:46:42+00:00", "data": {"decision_id": "website-store-pass-site-origin-048"}, "event_id": "38e26da9-0958-4151-8013-4abc1324c5b0"}
 {"action": "decision_verified", "at": "2026-10-11T12:58:16+00:00", "data": {"decision_id": "website-store-pass-site-origin-048"}, "event_id": "b7e2c4ba-6ae6-4c98-b63b-5eb913df3eaa"}
+{"action": "focus_started", "at": "2026-10-11T16:09:16+00:00", "data": {"cadence": "sequential", "domain": "Isolated agent account testing"}, "event_id": "0aabeded-21bb-4e35-93d0-ed11247d78d6"}
+{"action": "decision_proposed", "at": "2026-10-11T16:09:16+00:00", "data": {"decision_id": "website-agent-testing-032"}, "event_id": "0a5d8879-f221-43f0-b481-e58e8accea15"}
+{"action": "decision_locked", "at": "2026-10-11T16:09:16+00:00", "data": {"decision_id": "website-agent-testing-032"}, "event_id": "38b5fc98-b57b-42d7-8c2f-5f224f6df291"}
+{"action": "shared_understanding_confirmed", "at": "2026-10-11T16:09:16+00:00", "data": {"summary": "The user explicitly requested building the previously recommended isolated agent testing route, restricted to test accounts and without deployment. This local implementation narrows the proposal to the existing disposable test runtime; no production authentication change is authorized."}, "event_id": "c2671742-a053-4916-9e85-921e39e60dc8"}
+{"action": "decision_implemented", "at": "2026-10-11T16:10:52+00:00", "data": {"decision_id": "website-agent-testing-032"}, "event_id": "ced3e768-bb95-4f2a-960c-702b41f3cba8"}
+{"action": "decision_verified", "at": "2026-10-11T16:19:44+00:00", "data": {"decision_id": "website-agent-testing-032"}, "event_id": "21cbc083-348b-4c9d-881c-f10e85b2d4cf"}

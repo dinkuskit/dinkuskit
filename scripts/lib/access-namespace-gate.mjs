@@ -19,6 +19,8 @@ export const INSTALLED_EDITOR_ROLE = 40;
 export const ACCESS_AUDIENCE_ENV = 'CF_ACCESS_AUDIENCE';
 export const ACCESS_TEAM_DOMAIN_ENV = 'EMDASH_ACCESS_TEAM_DOMAIN';
 export const OPERATOR_ALLOWLIST_ENV = 'EMDASH_OPERATOR_ALLOWLIST';
+export const OPERATOR_SERVICE_TOKENS_ENV = 'EMDASH_OPERATOR_SERVICE_TOKENS';
+export const SERVICE_TOKEN_EMAIL_DOMAIN = 'tokens.invalid';
 
 const MAX_DECODE_ITERATIONS = 10;
 
@@ -138,16 +140,36 @@ export function parseOperatorAllowlist(value) {
   return [...new Set(raw.split(/[,\n]+/).map((entry) => entry.trim().toLowerCase()).filter(Boolean))];
 }
 
+/**
+ * Service token common names (`<client_id>.access`), comma or newline
+ * separated. Unset or empty means no service token is admitted.
+ */
+export function parseServiceTokenList(value) {
+  return parseOperatorAllowlist(value);
+}
+
+/** Stable placeholder EmDash identity for an allowlisted service token. */
+export function serviceTokenEmail(commonName) {
+  const clientId = String(commonName).trim().toLowerCase().replace(/\.access$/, '');
+  return `service+${clientId}@${SERVICE_TOKEN_EMAIL_DOMAIN}`;
+}
+
 export function readAccessGateConfig(env = {}) {
   return {
     teamDomain: trimEnv(env[ACCESS_TEAM_DOMAIN_ENV]),
     audience: trimEnv(env[ACCESS_AUDIENCE_ENV]),
     allowlist: parseOperatorAllowlist(env[OPERATOR_ALLOWLIST_ENV]),
+    serviceTokens: parseServiceTokenList(env[OPERATOR_SERVICE_TOKENS_ENV]),
   };
 }
 
 export function accessConfigMissing(config) {
-  return !config.teamDomain || !config.audience || config.allowlist.length === 0;
+  const serviceTokens = config.serviceTokens ?? [];
+  return (
+    !config.teamDomain
+    || !config.audience
+    || (config.allowlist.length === 0 && serviceTokens.length === 0)
+  );
 }
 
 export function officialAccessConfig(config) {
@@ -156,6 +178,7 @@ export function officialAccessConfig(config) {
     audience: config.audience,
     audienceEnvVar: ACCESS_AUDIENCE_ENV,
     defaultRole: INSTALLED_EDITOR_ROLE,
+    serviceTokens: config.serviceTokens ?? [],
   };
 }
 
@@ -181,7 +204,7 @@ export function deniedNamespaceResponse() {
  * @param {string} input.pathname
  * @param {Request} input.request
  * @param {Record<string, string | undefined>} [input.env]
- * @param {(request: Request, config: unknown) => Promise<{ email?: string }>} [input.authenticate]
+ * @param {(request: Request, config: unknown) => Promise<{ email?: string, serviceToken?: string }>} [input.authenticate]
  */
 export async function evaluateAccessGate({ pathname, request, env = {}, authenticate }) {
   const resolved = resolveNamespacePathname(pathname);
@@ -208,6 +231,20 @@ export async function evaluateAccessGate({ pathname, request, env = {}, authenti
     return { allow: false, status: 404, reason: 'unauthenticated' };
   }
   const email = typeof identity?.email === 'string' ? identity.email.trim().toLowerCase() : '';
+  if (typeof identity?.serviceToken === 'string') {
+    // Set only by the service-token branch of the Access authenticate,
+    // after signature, audience and issuer verification.
+    const commonName = identity.serviceToken.trim().toLowerCase();
+    const serviceTokens = config.serviceTokens ?? [];
+    if (
+      !commonName
+      || !serviceTokens.includes(commonName)
+      || email !== serviceTokenEmail(commonName)
+    ) {
+      return { allow: false, status: 404, reason: 'unknown-identity' };
+    }
+    return { allow: true, reason: 'service-token', email };
+  }
   if (!email || !config.allowlist.includes(email)) {
     return { allow: false, status: 404, reason: 'unknown-identity' };
   }

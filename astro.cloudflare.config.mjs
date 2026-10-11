@@ -26,11 +26,16 @@ export default defineConfig({
       database: d1({ binding: 'DB' }),
       storage: r2({ binding: 'MEDIA' }),
       plugins: [operatorAdminPlugin()],
-      auth: access({
-        teamDomain,
-        audienceEnvVar: 'CF_ACCESS_AUDIENCE',
-        defaultRole: INSTALLED_EDITOR_ROLE,
-      }),
+      // Official Access provider, with the entrypoint swapped for a wrapper
+      // that also admits allowlisted Access service tokens as Editors.
+      auth: {
+        ...access({
+          teamDomain,
+          audienceEnvVar: 'CF_ACCESS_AUDIENCE',
+          defaultRole: INSTALLED_EDITOR_ROLE,
+        }),
+        entrypoint: fileURLToPath(new URL('./scripts/lib/access-auth-entry.mjs', import.meta.url)),
+      },
       middleware: {
         outer: './src/access-namespace-guard.ts',
       },

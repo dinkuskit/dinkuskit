@@ -354,4 +354,178 @@ assert.equal(publicRes.status, 200);
 assert.equal(await publicRes.text(), 'public-content');
 record('Public route passes through to downstream next with adapter locals');
 
+// --- Access service tokens (synthetic local keys; not hosted Access proof) ---
+{
+  const { SignJWT, createLocalJWKSet, exportJWK, generateKeyPair } = await import('jose');
+  const { createAccessAuthenticate } = await import('./lib/access-service-token-auth.mjs');
+
+  const team = 'team.fixture.invalid';
+  const audience = 'fixture-audience-not-production';
+  const tokenCn = '0123456789abcdef0123456789abcdef.access';
+  const otherCn = 'fedcba9876543210fedcba9876543210.access';
+  const { privateKey, publicKey } = await generateKeyPair('RS256');
+  const { privateKey: strangerKey } = await generateKeyPair('RS256');
+  const jwk = { ...(await exportJWK(publicKey)), kid: 'fixture-kid', alg: 'RS256' };
+  const localJwks = createLocalJWKSet({ keys: [jwk] });
+  const getKey = (domain) => {
+    assert.equal(domain, team, 'JWKS must be resolved for the configured team domain');
+    return localJwks;
+  };
+  const sign = (claims, { aud = audience, iss = `https://${team}`, key = privateKey } = {}) =>
+    new SignJWT(claims)
+      .setProtectedHeader({ alg: 'RS256', kid: 'fixture-kid' })
+      .setIssuer(iss)
+      .setAudience(aud)
+      .setIssuedAt()
+      .setExpirationTime('5m')
+      .sign(key);
+
+  let officialCalls = 0;
+  const officialStub = async () => {
+    officialCalls++;
+    return { email: 'owner@fixture.invalid', name: 'Owner', role: INSTALLED_EDITOR_ROLE };
+  };
+  const svcAuthenticate = createAccessAuthenticate({ officialAuthenticate: officialStub, getKey, env: {} });
+  const svcEnv = {
+    [ACCESS_TEAM_DOMAIN_ENV]: team,
+    [ACCESS_AUDIENCE_ENV]: audience,
+    [OPERATOR_ALLOWLIST_ENV]: 'owner@fixture.invalid',
+    EMDASH_OPERATOR_SERVICE_TOKENS: ` ${tokenCn.toUpperCase()} , other.example.access`,
+  };
+  const reqWith = (jwt) => new Request('http://127.0.0.1/_emdash/api/content/posts', {
+    headers: { 'cf-access-jwt-assertion': jwt },
+  });
+  const gate = (jwt, env = svcEnv) => evaluateAccessGate({
+    pathname: '/_emdash/api/content/posts',
+    request: reqWith(jwt),
+    env,
+    authenticate: svcAuthenticate,
+  });
+  const serviceClaims = { common_name: tokenCn, sub: '', type: 'app' };
+
+  officialCalls = 0;
+  const allowedToken = await gate(await sign(serviceClaims));
+  assert.deepEqual(allowedToken, {
+    allow: true,
+    reason: 'service-token',
+    email: 'service+0123456789abcdef0123456789abcdef@tokens.invalid',
+  });
+  assert.equal(officialCalls, 0, 'Service tokens must skip the Access identity lookup');
+  const identity = await svcAuthenticate(reqWith(await sign(serviceClaims)), {
+    teamDomain: team,
+    audience,
+    serviceTokens: [tokenCn],
+  });
+  assert.equal(identity.role, INSTALLED_EDITOR_ROLE, 'Service token maps to Editor (40), not Admin');
+  assert.equal(identity.email, 'service+0123456789abcdef0123456789abcdef@tokens.invalid');
+  record('Verified, listed service token is allowed as a stable Editor placeholder without identity lookup');
+
+  const unlisted = await gate(await sign({ ...serviceClaims, common_name: otherCn }));
+  assert.deepEqual(unlisted, { allow: false, status: 404, reason: 'unauthenticated' });
+  record('Verified but unlisted service token is denied with the generic 404');
+
+  const noVarEnv = { ...svcEnv };
+  delete noVarEnv.EMDASH_OPERATOR_SERVICE_TOKENS;
+  assert.deepEqual(await gate(await sign(serviceClaims), noVarEnv), {
+    allow: false, status: 404, reason: 'unauthenticated',
+  });
+  assert.deepEqual(await gate(await sign(serviceClaims), { ...svcEnv, EMDASH_OPERATOR_SERVICE_TOKENS: ' ' }), {
+    allow: false, status: 404, reason: 'unauthenticated',
+  });
+  const neitherEnv = { ...noVarEnv };
+  delete neitherEnv[OPERATOR_ALLOWLIST_ENV];
+  assert.deepEqual(await gate(await sign(serviceClaims), neitherEnv), {
+    allow: false, status: 404, reason: 'missing-config',
+  });
+  await assert.rejects(
+    () => svcAuthenticate(reqWith('x'), { teamDomain: team, audience }),
+  );
+  const runtimeNoVar = createAccessAuthenticate({ officialAuthenticate: officialStub, getKey, env: {} });
+  await assert.rejects(
+    () => runtimeNoVar(reqWith('not-a-jwt'), { teamDomain: team, audience }),
+  );
+  await assert.rejects(
+    async () => runtimeNoVar(reqWith(await sign(serviceClaims)), { teamDomain: team, audience }),
+    /Service token not allowed/,
+  );
+  const runtimeWithVar = createAccessAuthenticate({
+    officialAuthenticate: officialStub,
+    getKey,
+    env: { EMDASH_OPERATOR_SERVICE_TOKENS: tokenCn },
+  });
+  assert.equal(
+    (await runtimeWithVar(reqWith(await sign(serviceClaims)), { teamDomain: team, audienceEnvVar: 'X' }).catch((e) => e)).message,
+    'Access audience not configured',
+  );
+  assert.equal(
+    (await runtimeWithVar(reqWith(await sign(serviceClaims)), { teamDomain: team, audience })).role,
+    INSTALLED_EDITOR_ROLE,
+  );
+  record('Missing or empty EMDASH_OPERATOR_SERVICE_TOKENS denies every service token (default deny)');
+
+  officialCalls = 0;
+  assert.deepEqual(await gate(await sign(serviceClaims, { aud: 'some-other-app' })), {
+    allow: false, status: 404, reason: 'unauthenticated',
+  });
+  assert.deepEqual(await gate(await sign(serviceClaims, { iss: 'https://evil.fixture.invalid' })), {
+    allow: false, status: 404, reason: 'unauthenticated',
+  });
+  assert.deepEqual(await gate(await sign(serviceClaims, { key: strangerKey })), {
+    allow: false, status: 404, reason: 'unauthenticated',
+  });
+  const forged = (await sign(serviceClaims)).split('.');
+  forged[1] = Buffer.from(JSON.stringify({ ...serviceClaims, aud: audience, iss: `https://${team}`, exp: 4102444800 })).toString('base64url');
+  assert.deepEqual(await gate(forged.join('.')), { allow: false, status: 404, reason: 'unauthenticated' });
+  assert.equal(officialCalls, 0, 'Rejected tokens never reach the identity lookup');
+  record('Listed service token with bad aud, bad iss, foreign key or tampered payload is denied');
+
+  officialCalls = 0;
+  const userJwt = await sign({ email: 'owner@fixture.invalid', sub: 'user-sub', type: 'app' });
+  assert.deepEqual(await gate(userJwt), { allow: true, reason: 'allowlisted', email: 'owner@fixture.invalid' });
+  assert.equal(officialCalls, 1, 'Email users still go through official authenticate');
+  const strangerUser = createAccessAuthenticate({
+    officialAuthenticate: async () => ({ email: 'stranger@fixture.invalid', name: 'S', role: 40 }),
+    getKey,
+    env: {},
+  });
+  assert.deepEqual(await evaluateAccessGate({
+    pathname: '/_emdash/admin',
+    request: reqWith(userJwt),
+    env: svcEnv,
+    authenticate: strangerUser,
+  }), { allow: false, status: 404, reason: 'unknown-identity' });
+  officialCalls = 0;
+  const bothClaims = await sign({ email: 'owner@fixture.invalid', common_name: tokenCn, sub: 'user-sub' });
+  assert.deepEqual(await gate(bothClaims), { allow: true, reason: 'allowlisted', email: 'owner@fixture.invalid' });
+  assert.equal(officialCalls, 1, 'A JWT with an email is a user, never a service token');
+  assert.deepEqual(await evaluateAccessGate({
+    pathname: '/_emdash/admin',
+    request: reqWith(userJwt),
+    env: svcEnv,
+    authenticate: async () => ({ email: 'service+0123456789abcdef0123456789abcdef@tokens.invalid' }),
+  }), { allow: false, status: 404, reason: 'unknown-identity' });
+  record('Email users are unchanged: official lookup, email allowlist, and no service-token shortcut');
+
+  const svcMiddleware = createAccessNamespaceGuard({ authenticate: svcAuthenticate });
+  process.env.EMDASH_OPERATOR_SERVICE_TOKENS = tokenCn;
+  process.env[ACCESS_TEAM_DOMAIN_ENV] = team;
+  const mwCtx = async (jwt) => ({
+    request: reqWith(jwt),
+    url: new URL('http://127.0.0.1/_emdash/api/content/posts'),
+    locals: adapterLocals,
+  });
+  const okRes = await svcMiddleware(await mwCtx(await sign(serviceClaims)), () => new Response('ok'));
+  assert.equal(await okRes.text(), 'ok');
+  const denyRes = await svcMiddleware(
+    await mwCtx(await sign({ ...serviceClaims, common_name: otherCn })),
+    () => new Response('ok'),
+  );
+  assert.equal(denyRes.status, 404);
+  assert.equal(await denyRes.text(), 'Not Found');
+  delete process.env.EMDASH_OPERATOR_SERVICE_TOKENS;
+  const unsetRes = await svcMiddleware(await mwCtx(await sign(serviceClaims)), () => new Response('ok'));
+  assert.equal(unsetRes.status, 404);
+  record('Guard middleware reads EMDASH_OPERATOR_SERVICE_TOKENS at runtime and keeps the same 404 body');
+}
+
 console.log(checks.map((check) => `PASS ${check}`).join('\n'));

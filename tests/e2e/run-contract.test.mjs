@@ -84,13 +84,18 @@ test('every target identity dimension and stage owner are bound, while supplemen
     if (field === 'environment') {
       altered.provenance_class = 'test-build';
       altered.site_origin = 'https://different.example.invalid/';
+      altered.deployment_ref = 'deployment-a';
     }
     if (field === 'provenance_class') {
       altered.environment = 'hosted-a';
       altered.site_origin = 'https://different.example.invalid/';
+      altered.deployment_ref = 'deployment-a';
     }
-    if (field === 'provenance_class') {
+    if (field === 'deployment_ref') {
+      altered.environment = 'hosted-a';
+      altered.provenance_class = 'test-build';
       altered.site_origin = 'https://different.example.invalid/';
+      altered.deployment_ref = 'deployment-a';
     }
     const attempt = () => assessRun(manifest(), result({ journey: { ...result().journey, evidence: [altered] } }));
     assert.equal(attempt().status, 'blocked', field);
@@ -834,4 +839,203 @@ test("FakeLifecycle.restore requires retained history for unresolved runs and un
   assert.equal(restoredTombstone.record("run-history-pending").history_retained, false);
   assert.equal(restoredTombstone.history.length, 0);
   assert.equal(restoredTombstone.canAdmit(), true);
+});
+
+test('standalone validateResult enforces deployment provenance on journey and cleanup receipts while accepting valid local, test-build, and public-release', () => {
+  const localReceipt = receipt({
+    environment: 'local',
+    provenance_class: 'local-fixture',
+    deployment_ref: 'deployment-local',
+    site_origin: 'http://127.0.0.1:8787/',
+  });
+  const hostedReceipt = receipt({
+    environment: 'hosted-a',
+    provenance_class: 'test-build',
+    deployment_ref: 'deployment-a',
+    site_origin: 'https://a.example.invalid/',
+  });
+  const publicReceipt = receipt({
+    environment: 'deployed-b',
+    provenance_class: 'public-release',
+    deployment_ref: 'deployment-b',
+    site_origin: 'https://b.example.invalid/',
+  });
+
+  // 2. Standalone validateResult rejects public-release/deployment-local in journey evidence
+  assert.throws(
+    () => validateResult(result({
+      journey: { ...result().journey, evidence: [{ ...publicReceipt, deployment_ref: 'deployment-local' }] },
+    })),
+    /deployment is invalid/
+  );
+
+  // 3. Standalone validateResult rejects local-fixture with arbitrary hosted deployment in journey evidence
+  assert.throws(
+    () => validateResult(result({
+      journey: { ...result().journey, evidence: [{ ...localReceipt, deployment_ref: 'deployment-arbitrary' }] },
+    })),
+    /deployment is invalid/
+  );
+
+  // 4. Standalone validateResult rejects test-build with deployment-local in journey evidence
+  assert.throws(
+    () => validateResult(result({
+      journey: { ...result().journey, evidence: [{ ...hostedReceipt, deployment_ref: 'deployment-local' }] },
+    })),
+    /deployment is invalid/
+  );
+
+  // 5. Standalone validateResult rejects public-release/deployment-local in cleanup evidence
+  const badCleanupPublic = result({
+    cleanup: {
+      ...result().cleanup,
+      evidence: cleanupEvidence({
+        environment: 'deployed-b',
+        provenance_class: 'public-release',
+        deployment_ref: 'deployment-local',
+        site_origin: 'https://b.example.invalid/',
+      }),
+    },
+  });
+  assert.throws(() => validateResult(badCleanupPublic), /deployment is invalid/);
+
+  // 6. Standalone validateResult rejects local-fixture/arbitrary-hosted-deployment in cleanup evidence
+  const badCleanupLocal = result({
+    cleanup: {
+      ...result().cleanup,
+      evidence: cleanupEvidence({
+        environment: 'local',
+        provenance_class: 'local-fixture',
+        deployment_ref: 'deployment-arbitrary',
+        site_origin: 'http://127.0.0.1:8787/',
+      }),
+    },
+  });
+  assert.throws(() => validateResult(badCleanupLocal), /deployment is invalid/);
+
+  // 7. Regression valid local, test-build, and public-release receipts validate cleanly in journey and cleanup
+  const validLocalResult = validateResult(result({
+    journey: { ...result().journey, evidence: [localReceipt] },
+    cleanup: {
+      ...result().cleanup,
+      evidence: cleanupEvidence({
+        environment: 'local',
+        provenance_class: 'local-fixture',
+        deployment_ref: 'deployment-local',
+        site_origin: 'http://127.0.0.1:8787/',
+      }),
+    },
+  }));
+  assert.equal(validLocalResult.journey.evidence[0].deployment_ref, 'deployment-local');
+  assert.equal(validLocalResult.cleanup.evidence[0].deployment_ref, 'deployment-local');
+
+  const validHostedResult = validateResult(result({
+    journey: { ...result().journey, evidence: [hostedReceipt] },
+    cleanup: {
+      ...result().cleanup,
+      evidence: cleanupEvidence({
+        environment: 'hosted-a',
+        provenance_class: 'test-build',
+        deployment_ref: 'deployment-a',
+        site_origin: 'https://a.example.invalid/',
+      }),
+    },
+  }));
+  assert.equal(validHostedResult.journey.evidence[0].deployment_ref, 'deployment-a');
+
+  const validPublicResult = validateResult(result({
+    journey: { ...result().journey, evidence: [publicReceipt] },
+    cleanup: {
+      ...result().cleanup,
+      evidence: cleanupEvidence({
+        environment: 'deployed-b',
+        provenance_class: 'public-release',
+        deployment_ref: 'deployment-b',
+        site_origin: 'https://b.example.invalid/',
+      }),
+    },
+  }));
+  assert.equal(validPublicResult.journey.evidence[0].deployment_ref, 'deployment-b');
+});
+
+test('FakeLifecycle.restore enforces event chronological ordering, time bounds against snapshot and run creation, and run association while preserving foreign refusal', () => {
+  const activeFixture = life('run-events-check', 'resource-events-check');
+  activeFixture.allocate('run-events-check', 'resource-events-check');
+  const snapValid = activeFixture.snapshot();
+
+  // 1. Future event relative to snapshot.now must be rejected
+  const snapFuture = structuredClone(snapValid);
+  snapFuture.events.push({
+    type: 'budget-updated',
+    at: new Date(Date.parse(snapFuture.now) + 60000).toISOString(),
+    run_id: 'run-events-check',
+  });
+  assert.throws(() => FakeLifecycle.restore(snapFuture), /future/);
+
+  // 2. Event before run creation must be rejected
+  const snapBeforeCreation = structuredClone(snapValid);
+  const runCreated = Date.parse(snapBeforeCreation.records[0].created_at);
+  snapBeforeCreation.events.unshift({
+    type: 'heartbeat-renewed',
+    at: new Date(runCreated - 60000).toISOString(),
+    run_id: 'run-events-check',
+  });
+  assert.throws(() => FakeLifecycle.restore(snapBeforeCreation), /precedes run creation/);
+
+  // 3. Reordered events (not in internal chronological order) must be rejected
+  const orderFixture = life('run-order-check', 'resource-order-check');
+  orderFixture.advance(10000);
+  orderFixture.allocate('run-order-check', 'resource-order-check');
+  orderFixture.advance(10000);
+  const snapReordered = orderFixture.snapshot();
+  // Swap the first event (at 00:00:00) with the last event (at 00:00:10)
+  const lastIdx = snapReordered.events.length - 1;
+  const temp = snapReordered.events[0];
+  snapReordered.events[0] = snapReordered.events[lastIdx];
+  snapReordered.events[lastIdx] = temp;
+  assert.throws(() => FakeLifecycle.restore(snapReordered), /chronological order/);
+
+  // 4. Fabricated ownership/lifecycle event for a nonexistent run must be rejected
+  const snapUnknownRun = structuredClone(snapValid);
+  snapUnknownRun.events.push({
+    type: 'cleanup-ownership-registered',
+    at: snapUnknownRun.now,
+    run_id: 'run-nonexistent',
+  });
+  assert.throws(() => FakeLifecycle.restore(snapUnknownRun), /unknown run/);
+
+  // 5. IMPORTANT: Preserve documented foreign-resource refusal fixtures:
+  // loseResource can emit resource-unavailable for injected foreign resource
+  const snapForeign = structuredClone(snapValid);
+  snapForeign.resources.push({
+    resource_ref: 'resource-foreign-injected',
+    run_id: 'run-foreign-refusal',
+    account_ref: 'account-foreign',
+    ownership_ref: 'ownership-foreign',
+  });
+  const restoredForeign = FakeLifecycle.restore(snapForeign);
+  restoredForeign.loseResource('resource-foreign-injected');
+  const snapAfterLose = restoredForeign.snapshot();
+  assert.ok(snapAfterLose.events.some((e) => e.type === 'resource-unavailable' && e.run_id === 'run-foreign-refusal'));
+  const restoredAfterLose = FakeLifecycle.restore(snapAfterLose);
+  assert.ok(restoredAfterLose.events.some((e) => e.type === 'resource-unavailable' && e.run_id === 'run-foreign-refusal'));
+
+  // 6. Event timestamps occurring after terminal/expiry due to cleanup receipts are accepted (not blocked by false terminal upper bound)
+  const failFixture = life('run-late-events', 'resource-late-events');
+  failFixture.allocate('run-late-events', 'resource-late-events');
+  failFixture.fail('run-late-events', 'test-late-events');
+  failFixture.advance(FAILURE_WINDOW_MS + 10000);
+  failFixture.recordCleanupReceipt('run-late-events', { service: 'retry-suppression', receipt_ref: 'receipt-rs' });
+  failFixture.recordCleanupReceipt('run-late-events', { service: 'authority', receipt_ref: 'receipt-auth' });
+  const snapLate = failFixture.snapshot();
+  const lateReceiptEvent = snapLate.events.find((e) => e.type === 'cleanup-receipt-recorded');
+  assert.ok(lateReceiptEvent, 'cleanup receipt event should exist');
+  assert.ok(Date.parse(lateReceiptEvent.at) > Date.parse(snapLate.records[0].expiry_at), 'event occurs after expiry');
+  const restoredLate = FakeLifecycle.restore(snapLate);
+  assert.equal(restoredLate.record('run-late-events').state, 'failed');
+
+  // 7. Valid snapshot restores cleanly
+  const restoredValid = FakeLifecycle.restore(snapValid);
+  assert.equal(restoredValid.record('run-events-check').state, 'active');
+  assert.equal(restoredValid.events.length, snapValid.events.length);
 });

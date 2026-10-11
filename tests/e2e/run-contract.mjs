@@ -124,6 +124,11 @@ function validateReceipt(value, name = 'receipt') {
   source(value.source_ref, `${name}.source_ref`);
   if (value.provenance_class === 'local-fixture') localOrigin(value.site_origin, `${name}.site_origin`);
   else origin(value.site_origin, `${name}.site_origin`);
+  if (value.provenance_class === 'local-fixture') {
+    assert.equal(value.deployment_ref, 'deployment-local', `${name} local deployment is invalid`);
+  } else {
+    assert.notEqual(value.deployment_ref, 'deployment-local', `${name} ${value.provenance_class} deployment is invalid`);
+  }
   assert.ok(ORACLE_KINDS.has(value.oracle_kind) || SUPPLEMENTARY.has(value.oracle_kind), `${name}.oracle_kind is invalid`);
   if (value.authority_expires_at !== null) time(value.authority_expires_at, `${name}.authority_expires_at`);
   assert.match(value.evidence_hash, HASH, `${name}.evidence_hash must be an exact hash`);
@@ -535,9 +540,22 @@ export class FakeLifecycle {
     const eventTypes = new Set(['cleanup-ownership-registered', 'cleanup-intent-recorded', 'budget-updated', 'heartbeat-renewed',
       'allocation-started', 'allocation-interrupted', 'allocation-recorded', 'allocation-reconciled', 'resource-unavailable',
       'evidence-sealed', 'retry-suppression-required', 'failure-classified', 'cleanup-receipt-recorded', 'cleanup-pending', 'cleanup-unresolved', 'resource-removed']);
+    let prevAt = -Infinity;
     for (const entry of snapshot.events) {
       exact(entry, ['type', 'at', 'run_id'], 'snapshot event');
-      assert.ok(eventTypes.has(entry.type), 'event type invalid'); time(entry.at, 'event time'); id(entry.run_id, 'event run');
+      assert.ok(eventTypes.has(entry.type), 'event type invalid');
+      time(entry.at, 'event time');
+      id(entry.run_id, 'event run');
+      const eventTime = Date.parse(entry.at);
+      assert.ok(eventTime >= prevAt, 'events out of chronological order');
+      assert.ok(eventTime <= Date.parse(snapshot.now), 'event in the future');
+      prevAt = eventTime;
+      const owner = life.#records.get(entry.run_id);
+      if (!owner) {
+        assert.equal(entry.type, 'resource-unavailable', 'fabricated ownership event for unknown run');
+      } else {
+        assert.ok(eventTime >= Date.parse(owner.created_at), 'event precedes run creation');
+      }
     }
     life.#events = clone(snapshot.events);
     return life;

@@ -2,13 +2,13 @@
   "closeout": null,
   "created_at": "2026-10-01T08:46:55+00:00",
   "current_focus": {
-    "cadence": "frontier-batch",
+    "cadence": "sequential",
     "confirmed": true,
-    "confirmed_at": "2026-10-10T19:28:31+00:00",
-    "domain": "Accounts and operator admin for v1",
-    "started_at": "2026-10-10T19:28:05+00:00",
+    "confirmed_at": "2026-10-11T16:09:16+00:00",
+    "domain": "Isolated agent account testing",
+    "started_at": "2026-10-11T16:09:16+00:00",
     "status": "confirmed",
-    "summary": "Ronald confirmed the ordered plan and answered all seven questions on 2026-10-10 19:23-19:24 UTC."
+    "summary": "The user explicitly requested building the previously recommended isolated agent testing route, restricted to test accounts and without deployment. This local implementation narrows the proposal to the existing disposable test runtime; no production authentication change is authorized."
   },
   "decisions": [
     {
@@ -6065,6 +6065,75 @@
       "superseded_by": null,
       "updated_at": "2026-10-11T12:58:16+00:00",
       "verification_ref": "file:tests/shared-store-routes.test.mjs"
+    },
+    {
+      "baseline_ref": "git:4c8fdcc",
+      "candidate_refs": [],
+      "choice": "Add an authenticated loopback-only agent test entry and runner for fixed synthetic owner and staff identities on disposable local storage. Reuse normal Better Auth and account routes with the existing simulated mail transport, preserve production authorization, keep agent endpoints absent from the production build, and prove grant/revoke including an already signed-in staff session. No production or hosted deployment; no real email, payments, or customer data.",
+      "context_ref": "file:docs/agent-testing.md",
+      "created_at": "2026-10-11T16:09:16+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [],
+      "domain": "Isolated agent account testing",
+      "history": [
+        {
+          "at": "2026-10-11T16:09:16+00:00",
+          "choice": "Add an authenticated loopback-only agent test entry and runner for fixed synthetic owner and staff identities on disposable local storage. Reuse normal Better Auth and account routes with the existing simulated mail transport, preserve production authorization, keep agent endpoints absent from the production build, and prove grant/revoke including an already signed-in staff session. No production or hosted deployment; no real email, payments, or customer data.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-11T16:10:52+00:00",
+          "choice": "Add an authenticated loopback-only agent test entry and runner for fixed synthetic owner and staff identities on disposable local storage. Reuse normal Better Auth and account routes with the existing simulated mail transport, preserve production authorization, keep agent endpoints absent from the production build, and prove grant/revoke including an already signed-in staff session. No production or hosted deployment; no real email, payments, or customer data.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-11T16:19:44+00:00",
+          "choice": "Add an authenticated loopback-only agent test entry and runner for fixed synthetic owner and staff identities on disposable local storage. Reuse normal Better Auth and account routes with the existing simulated mail transport, preserve production authorization, keep agent endpoints absent from the production build, and prove grant/revoke including an already signed-in staff session. No production or hosted deployment; no real email, payments, or customer data.",
+          "from": "implemented",
+          "implementation_ref": "file:tests/fixtures/agent-test-policy.mjs;file:tests/helpers/agent-test-harness.mjs;file:scripts/agent-test-runner.mjs;file:docs/agent-testing.md",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": null
+        }
+      ],
+      "id": "website-agent-testing-032",
+      "implementation_ref": "file:tests/fixtures/agent-test-policy.mjs;file:tests/helpers/agent-test-harness.mjs;file:scripts/agent-test-runner.mjs;file:docs/agent-testing.md",
+      "question": "How can an agent test merchant flows without human email clicks?",
+      "rationale": "User explicitly requested building the agent-testing recommendation with test-account isolation and no deployment.",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [],
+      "review_ref": null,
+      "review_result": null,
+      "review_source_identity": null,
+      "status": "verified",
+      "superseded_by": null,
+      "updated_at": "2026-10-11T16:19:44+00:00",
+      "verification_ref": "file:proof/agent-testing/PROOF.md"
     }
   ],
   "last_activation": {
@@ -6092,5 +6161,5 @@
   "status": "active",
   "title": "Website PR9 current-main reconciliation",
   "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca",
-  "updated_at": "2026-10-11T12:58:16+00:00"
+  "updated_at": "2026-10-11T16:19:44+00:00"
 }

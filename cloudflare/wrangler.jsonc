@@ -20,13 +20,11 @@
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "dinkuskit-website-candidate",
-      "database_id": "c3b20710-a7f4-49c5-bfd9-eff97d9903d9"
+      "database_name": "dinkuskit-website-candidate"
     },
     {
       "binding": "MERCHANT_DB",
       "database_name": "dinkuskit-merchant-production",
-      "database_id": "54aeb445-14ce-4ed9-a949-3d3d1c17451c",
       "migrations_dir": "../migrations/merchant"
     }
   ],

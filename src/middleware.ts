@@ -21,6 +21,8 @@ export const onRequest = defineMiddleware(async (context, next) => {
     if (error instanceof MerchantUnavailableError) return unavailableResponse('merchant_unavailable', context.request);
     throw error;
   }
+  // Ship's sign-in answers Ship itself, signed in or not, and needs no selected business.
+  if (context.url.pathname === '/account/ship-sign-in') return next();
   if (isProtectedAccountPath(context.url.pathname) && !context.locals.merchant) {
     if (context.locals.login) {
       if (context.url.pathname === '/account' || context.url.pathname === '/account/logout' || (context.url.pathname === '/account/operator' || context.url.pathname.startsWith('/account/operator/'))) return next();

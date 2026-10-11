@@ -1,0 +1,40 @@
+---
+import Site from '../../layouts/Site.astro';
+import { MerchantUnavailableError, seeOther, shipSignInPath, shipSignInRequest, unavailableResponse } from '../../account/config.ts';
+import { getMerchantEnv } from '../../account/bindings.ts';
+import { shipCallbackUrl, startShipSignIn } from '../../account/ship-sign-in.ts';
+
+// Sign in with DinkusKit.com for Ship's label page. Ship sends the browser here; this
+// page always answers by sending it back to Ship's one fixed address, unless the
+// request has no usable state, when it shows its own error instead.
+export const prerender = false;
+Astro.response.headers.set('cache-control', 'private, no-store');
+const request = shipSignInRequest(Astro.url.searchParams);
+const login = Astro.locals.login;
+let target: string | null = null;
+if (request.ok && !login) return seeOther(`/account/sign-in?callbackURL=${encodeURIComponent(shipSignInPath(request))}`);
+if (request.ok && login) {
+  try {
+    const env = await getMerchantEnv();
+    target = await startShipSignIn(env.MERCHANT_DB, request, login);
+  } catch (error) {
+    if (error instanceof MerchantUnavailableError) return unavailableResponse();
+    throw error;
+  }
+} else if (!request.ok && request.state) {
+  target = shipCallbackUrl(request.state, { error: 'invalid_request' });
+}
+if (target) {
+  const response = seeOther(target);
+  response.headers.set('referrer-policy', 'no-referrer');
+  return response;
+}
+Astro.response.status = 400;
+---
+<Site title="Sign in to Ship" description="Ship's sign-in link was not complete.">
+  <div class="account-panel">
+    <p class="eyebrow">Ship</p>
+    <h1>This sign-in link is not complete</h1>
+    <p class="lead">Go back to your store's orders and press Create shipping label again.</p>
+  </div>
+</Site>

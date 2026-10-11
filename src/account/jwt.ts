@@ -67,6 +67,8 @@ export async function signServicePass(input: {
   subject: string; siteId: string; audience: string; scope: string; privateJwkJson?: string; ttlSeconds?: number;
   /** Seconds to date iat back, so a verifier whose clock runs slightly behind never sees it in the future. */
   backdateSeconds?: number;
+  /** Extra claims, such as the signed-in person on a Ship sign-in pass; never site_id or scope. */
+  claims?: Record<string, string>;
 }): Promise<
   | { ok: true; token: string; expiresIn: number; kid: string; publicJwk: JsonWebKey }
   | { ok: false; reason: 'missing' | 'invalid' }
@@ -79,7 +81,7 @@ export async function signServicePass(input: {
     const privateKey = await importJWK(privateJwk, 'ES256');
     const ttlSeconds = Math.min(input.ttlSeconds ?? TOKEN_TTL_SECONDS, TOKEN_TTL_MAX_SECONDS);
     const issuedAt = Math.floor(Date.now() / 1000) - (input.backdateSeconds ?? 0);
-    const token = await new SignJWT({ site_id: input.siteId, scope: input.scope })
+    const token = await new SignJWT({ ...input.claims, site_id: input.siteId, scope: input.scope })
       .setProtectedHeader({ alg: 'ES256', kid: fields.kid })
       .setIssuer(ACCOUNT_ISSUER)
       .setAudience(input.audience)

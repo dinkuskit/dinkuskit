@@ -78,6 +78,7 @@ const loginDeletion = await deletionGuard(env.MERCHANT_DB, login.userId);
                 <input id="permissions-email" name="email" type="email" required />
                 {selectedOrganization.role === 'owner' || selectedOrganization.permissions.includes('membership:view') ? <label><input name="permission" value="membership:view" type="checkbox" /> View this organization’s members</label> : null}
                 {selectedOrganization.role === 'owner' || selectedOrganization.permissions.includes('site:view') ? <label><input name="permission" value="site:view" type="checkbox" /> View connected sites</label> : null}
+                {selectedOrganization.role === 'owner' || selectedOrganization.permissions.includes('ship:labels') ? <label><input name="permission" value="ship:labels" type="checkbox" /> Print shipping labels in Ship</label> : null}
                 <button type="submit">Set employee permissions</button>
               </form>
               {selectedOrganization.role === 'owner' ? (
@@ -89,7 +90,9 @@ const loginDeletion = await deletionGuard(env.MERCHANT_DB, login.userId);
                   <label><input name="permission" value="membership:manage" type="checkbox" required /> Allow managing employees</label>
                   <label><input name="permission" value="membership:view" type="checkbox" /> Allow viewing and granting member visibility</label>
                   <label><input name="permission" value="site:view" type="checkbox" /> Allow viewing and granting site visibility</label>
+                  <label><input name="permission" value="ship:labels" type="checkbox" /> Allow letting employees print shipping labels</label>
                   <button type="submit">Grant Administrator permissions</button>
+                  <small>Owners and Administrators can always print shipping labels in Ship.</small>
                 </form>
               ) : null}
               <form method="post" action="/api/account/memberships" class="account-form">

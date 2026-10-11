@@ -78,8 +78,11 @@ Build the Cloudflare candidate and deploy it with its production config:
 
 ```sh
 npm run build:cloudflare
-npx wrangler deploy --config cloudflare/wrangler.jsonc
+npx wrangler deploy
 ```
+
+The Cloudflare build output includes a generated Wrangler config with a `SESSION`
+KV binding. The first deploy provisions that KV namespace.
 
 The editor area (`/_emdash`) stays fully denied until the Cloudflare Access lane
 below is configured. The operator pages (business approvals, people, stores and
@@ -109,7 +112,7 @@ Access (decision `website-operator-admin-emdash-access-035`). Owner-only, once:
 
    ```sh
    EMDASH_ACCESS_TEAM_DOMAIN=<team>.cloudflareaccess.com npm run build:cloudflare
-   npx wrangler deploy --config cloudflare/wrangler.jsonc
+   npx wrangler deploy
    ```
 
 4. Open `https://dinkuskit.com/_emdash/admin`. The first person Access lets in

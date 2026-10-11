@@ -1,6 +1,6 @@
 import { betterAuth } from 'better-auth';
 import { magicLink } from 'better-auth/plugins';
-import { ACCOUNT_BASE_PATH, ACCOUNT_COOKIE_PREFIX, SIGNUP_ATTEMPT_COOKIE, type MerchantEnv, type MerchantMailIntent } from './config.ts';
+import { ACCOUNT_BASE_PATH, ACCOUNT_COOKIE_PREFIX, SESSION_EXPIRES_IN_SECONDS, SESSION_UPDATE_AGE_SECONDS, SIGNUP_ATTEMPT_COOKIE, type MerchantEnv, type MerchantMailIntent } from './config.ts';
 import { createMerchantEmailDelivery, type MerchantEmailDelivery } from './email.ts';
 import { fetchStoreProofReceipt } from './proof-fetch.ts';
 import { getInjectedTransports } from './transports.ts';
@@ -20,6 +20,8 @@ export function createMerchantAuth(env: MerchantEnv, email: MerchantEmailDeliver
     emailAndPassword: { enabled: false },
     session: {
       cookieCache: { enabled: false },
+      expiresIn: SESSION_EXPIRES_IN_SECONDS,
+      updateAge: SESSION_UPDATE_AGE_SECONDS,
     },
     advanced: {
       cookiePrefix: ACCOUNT_COOKIE_PREFIX,

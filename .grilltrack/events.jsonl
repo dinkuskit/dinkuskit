@@ -291,3 +291,7 @@
 {"action": "decision_verified", "at": "2026-10-10T22:34:24+00:00", "data": {"decision_id": "website-coupons-coming-soon-046"}, "event_id": "708a65a5-dead-483c-9bae-2bacbc7fbcc1"}
 {"action": "decision_implemented", "at": "2026-10-10T22:35:34+00:00", "data": {"decision_id": "website-commerce-checkout-settings-044"}, "event_id": "7867693b-e7b3-4d45-90cc-2df8dd75846e"}
 {"action": "decision_verified", "at": "2026-10-10T22:35:34+00:00", "data": {"decision_id": "website-commerce-checkout-settings-044"}, "event_id": "86e072f7-2def-4f71-9415-fc5e72ad84ff"}
+{"action": "decision_proposed", "at": "2026-10-11T00:17:54+00:00", "data": {"decision_id": "website-ship-signin-047"}, "event_id": "f47376a0-9ed0-4bde-827e-ec248e59c1b1"}
+{"action": "decision_locked", "at": "2026-10-11T00:17:59+00:00", "data": {"decision_id": "website-ship-signin-047"}, "event_id": "ea4d364a-8536-4dc7-8d33-fbf3f57d53b3"}
+{"action": "decision_implemented", "at": "2026-10-11T00:31:27+00:00", "data": {"decision_id": "website-ship-signin-047"}, "event_id": "80f9a9b7-5c08-4c06-b69e-862f1c235d8d"}
+{"action": "decision_verified", "at": "2026-10-11T00:31:27+00:00", "data": {"decision_id": "website-ship-signin-047"}, "event_id": "96f7f873-c53b-4361-9b90-d969c67e420b"}

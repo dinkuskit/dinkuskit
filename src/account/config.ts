@@ -61,6 +61,17 @@ export const STORE_KEY_PREFIX = 'dk_store_';
 export const PAYMENTS_ORIGIN = 'https://payments.dinkuskit.com';
 export const COUPONS_ORIGIN = 'https://coupons.dinkuskit.com';
 export const SHIP_ORIGIN = 'https://ship.dinkuskit.com';
+/**
+ * Sign in with DinkusKit.com for Ship's label page. DinkusKit.com only ever sends the
+ * browser back to this one address; nothing in the request can change it.
+ */
+export const SHIP_SIGN_IN_CALLBACK = `${SHIP_ORIGIN}/auth/callback`;
+export const SHIP_LABELS_SCOPE = 'ship:labels';
+export const SHIP_AUDIENCE = 'dinkus-ship';
+export const SHIP_SIGN_IN_CODE_SECONDS = 60;
+/** Better Auth's sign-in length and how often use extends it; set here so a Ship refresh extends it the same way. */
+export const SESSION_EXPIRES_IN_SECONDS = 7 * 24 * 60 * 60;
+export const SESSION_UPDATE_AGE_SECONDS = 24 * 60 * 60;
 /** Commerce trades once per request that needs a service, including a shopper's payment status checks. */
 export const STORE_PASS_LIMIT_PER_MINUTE = 1200;
 export const CONNECTION_MAX_LIFETIME_MS = 600_000;
@@ -68,7 +79,7 @@ export const TOKEN_TTL_SECONDS = 300;
 export const TOKEN_TTL_MAX_SECONDS = 600;
 export const PROOF_FETCH_TIMEOUT_MS = 3_000;
 export const PROOF_FETCH_MAX_BYTES = 8_192;
-export const CURRENT_MERCHANT_SCHEMA_VERSION = 11;
+export const CURRENT_MERCHANT_SCHEMA_VERSION = 12;
 
 export const PUBLIC_ACCOUNT_PATHS = [
   '/account/signup',
@@ -114,11 +125,45 @@ export function safeAccountPath(candidate: string | null | undefined, fallback =
       return `/account/connect?connection_id=${encodeURIComponent(connId)}`;
     }
 
+    if (url.pathname === '/account/ship-sign-in') {
+      const request = shipSignInRequest(url.searchParams);
+      return request.ok ? shipSignInPath(request) : fallback;
+    }
+
     if (url.search) return fallback;
     return url.pathname;
   } catch {
     return fallback;
   }
+}
+
+export type ShipSignInRequest = { siteId: string; state: string; codeChallenge: string };
+const SHIP_SIGN_IN_KEYS = 'code_challenge,code_challenge_method,site_id,state';
+const SHIP_STATE_PATTERN = /^[A-Za-z0-9._~-]{32,256}$/;
+
+/**
+ * Reads Ship's sign-in request: exactly site_id, state, code_challenge and
+ * code_challenge_method=S256, each once. A usable state alone lets DinkusKit.com send
+ * an error back to Ship; without one it shows its own error page.
+ */
+export function shipSignInRequest(params: URLSearchParams):
+  | ({ ok: true } & ShipSignInRequest)
+  | { ok: false; state: string | null } {
+  const states = params.getAll('state');
+  const state = states.length === 1 && SHIP_STATE_PATTERN.test(states[0]) ? states[0] : null;
+  const keys = [...params.keys()];
+  if (keys.length !== 4 || [...keys].sort().join(',') !== SHIP_SIGN_IN_KEYS || !state) return { ok: false, state };
+  const siteId = params.get('site_id') ?? '';
+  const codeChallenge = params.get('code_challenge') ?? '';
+  if (!/^[A-Za-z0-9_-]{1,128}$/.test(siteId) || !/^[A-Za-z0-9_-]{43}$/.test(codeChallenge) || params.get('code_challenge_method') !== 'S256') {
+    return { ok: false, state };
+  }
+  return { ok: true, siteId, state, codeChallenge };
+}
+
+export function shipSignInPath(request: ShipSignInRequest): string {
+  const query = new URLSearchParams({ site_id: request.siteId, state: request.state, code_challenge: request.codeChallenge, code_challenge_method: 'S256' });
+  return `/account/ship-sign-in?${query.toString()}`;
 }
 
 export type MerchantMailIntent = 'signup' | 'signin' | 'recovery';

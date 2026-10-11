@@ -230,6 +230,50 @@ on a route or a Custom Domain. The tests use a stand-in for Payments' status,
 so the first live proof is showing checkout settings for a connected store
 after deploy.
 
+## Sign in with DinkusKit.com for Ship
+
+Ship's label page on `https://ship.dinkuskit.com` asks DinkusKit.com who the person
+in the browser is. The contract is Ship's (`ship-owner-signin-001` in
+dinkuskit/ship); this site's side is:
+
+- `GET /account/ship-sign-in?site_id=…&state=…&code_challenge=…&code_challenge_method=S256`,
+  exactly those four parameters. Someone not signed in signs in first and comes
+  back to the same request. A signed-in person may print labels for the store when
+  they are an active member of the business that owns it: the owner, an
+  Administrator, or an employee the owner ticked **Print shipping labels in Ship**
+  for (`ship:labels` on the account page). The answer is always a 303 to the one
+  fixed address `https://ship.dinkuskit.com/auth/callback` (`SHIP_SIGN_IN_CALLBACK`)
+  with `code` and `state`, or with `error` and `state`:
+  - `access_denied`: not an active member, suspended, or no label permission;
+  - `store_unavailable`: the business is not active and approved, or the operator
+    cut Ship off (the same rule as `/api/store-passes`);
+  - `ship_not_enabled`: the owner has Ship off;
+  - `invalid_request`: any other parameter is wrong.
+
+  A request with no usable `state` gets a page here instead. The code works once,
+  for 60 seconds, and is bound to the store, the person, their DinkusKit.com
+  sign-in and the PKCE challenge. Only its SHA-256 is kept.
+- `POST /api/ship-sign-in/token`, server to server, never redirects. The body is
+  either `{code, code_verifier}` or `{grant_type: "refresh_token", refresh_token}`.
+  A `200` is `{access_token, token_type: "Bearer", expires_in: 300, refresh_token}`.
+  The pass is signed like store passes, with `aud` `dinkus-ship`, `scope`
+  `ship:labels` (never minted by `/api/store-passes`), `site_id`, `sub` (the
+  business), `uid` and `email`.
+
+  Each refresh returns a new refresh token, and the one before stops working.
+  Presenting it again ends that Ship sign-in, because it means someone holds a copy.
+  Every refresh checks everything again. It is refused with `400 invalid_grant`
+  once the person signed out of DinkusKit.com, or their DinkusKit.com sign-in
+  expired, or their email changed, or anything the first check covers changed. A
+  refresh counts as using DinkusKit.com, so it extends that sign-in the way a visit
+  would (Better Auth's rule: once a day, to a week from now). Someone who only uses
+  Ship stays signed in until they sign out. A missing signing key answers `503`.
+
+Migration 0012 adds `dinkuskit_ship_sign_in_code` and `dinkuskit_ship_sign_in`.
+Ship's sender name and reply-to address are not part of this sign-in: Commerce
+sends the store's EmDash Site title with each order, and Ship has its own reply-to
+setting.
+
 ## Production proof fetch
 
 The deployed site reads the store's registered proof route itself with

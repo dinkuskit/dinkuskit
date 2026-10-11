@@ -14,14 +14,15 @@ export type ResolvedMerchant = {
   organizationId: string;
 };
 
-export type AuthenticatedLogin = { userId: string; email: string };
+/** sessionId is the Better Auth sign-in session; Ship's sign-in is bound to it. */
+export type AuthenticatedLogin = { userId: string; email: string; sessionId: string };
 
 export async function resolveLogin(auth: MerchantAuth, db: D1Database, request: Request): Promise<AuthenticatedLogin | null> {
   const result = await auth.api.getSession({ headers: request.headers });
   if (!result?.user?.id) return null;
   const account = await loadMerchantAccountByUserId(db, result.user.id);
   if (!account || account.disabled) return null;
-  return { userId: result.user.id, email: result.user.email };
+  return { userId: result.user.id, email: result.user.email, sessionId: result.session.id };
 }
 
 /** Login authenticates the person; selected current membership authorizes the business. */

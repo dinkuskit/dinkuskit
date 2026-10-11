@@ -84,5 +84,29 @@ test('shared service routes require separate consent and display processor setup
     assert.match(await (await request(runtime,owner,`/account/sites?changed=${siteId}`)).text(),/paste them into Commerce/);
     const withoutShip=JSON.parse(unescape((await showSettings(owner)).html.match(/<pre><code>([\s\S]*?)<\/code><\/pre>/)[1]));
     assert.equal('ship' in withoutShip,false,'Ship is left out once it is off'); assert.equal(withoutShip.shipping.revision,1,'the charge did not change');
+
+    // Sign in with DinkusKit.com for Ship's label page.
+    const pkce=()=>{ const verifier=randomBytes(32).toString('base64url'); return {verifier,challenge:createHash('sha256').update(verifier).digest('base64url')}; };
+    const shipState=`route-state-${'s'.repeat(32)}`;
+    const shipPath=challenge=>`/account/ship-sign-in?${new URLSearchParams({site_id:siteId,state:shipState,code_challenge:challenge,code_challenge_method:'S256'})}`;
+    const shipBack=async (jar,path)=>{ const page=await request(runtime,jar,path); assert.equal(page.status,303); assert.equal(page.headers.get('referrer-policy'),'no-referrer'); const url=new URL(page.headers.get('location')); assert.equal(`${url.origin}${url.pathname}`,'https://ship.dinkuskit.com/auth/callback'); assert.equal(url.searchParams.get('state'),shipState); return url; };
+    const shipToken=body=>request(runtime,new Map(),'/api/ship-sign-in/token',{method:'POST',body:JSON.stringify(body)});
+    const first=pkce();
+    const signedOut=await request(runtime,new Map(),shipPath(first.challenge));
+    assert.equal(signedOut.headers.get('location'),`/account/sign-in?callbackURL=${encodeURIComponent(shipPath(first.challenge))}`,'sign-in first, then back to the same request');
+    assert.equal((await shipBack(owner,shipPath(first.challenge))).searchParams.get('error'),'ship_not_enabled','Ship is off');
+    assert.equal((await post(owner,{action:'service',site_id:siteId,service:'ship',on:'1'})).status,303);
+    const back=await shipBack(owner,shipPath(first.challenge));
+    const signed=await shipToken({code:back.searchParams.get('code'),code_verifier:first.verifier}); assert.equal(signed.status,200);
+    const signedBody=await signed.json();
+    const shipClaims=JSON.parse(Buffer.from(signedBody.access_token.split('.')[1],'base64url').toString());
+    assert.deepEqual([shipClaims.aud,shipClaims.scope,shipClaims.site_id,shipClaims.email,shipClaims.iss],['dinkus-ship','ship:labels',siteId,'shared-owner@example.test','https://dinkuskit.com/account']);
+    assert.equal((await shipToken({code:back.searchParams.get('code'),code_verifier:first.verifier})).status,400,'a code works once');
+    const refreshed=await shipToken({grant_type:'refresh_token',refresh_token:signedBody.refresh_token}); assert.equal(refreshed.status,200);
+    assert.equal((await shipBack(outsider,shipPath(pkce().challenge))).searchParams.get('error'),'access_denied','another business');
+    assert.equal((await shipBack(owner,`${shipPath(first.challenge)}&redirect_uri=${encodeURIComponent('https://evil.example.test/')}`)).searchParams.get('error'),'invalid_request','the return address cannot be changed');
+    const noState=await request(runtime,owner,`/account/ship-sign-in?site_id=${siteId}`); assert.equal(noState.status,400); assert.match(await noState.text(),/not complete/);
+    assert.equal((await request(runtime,owner,'/account/logout',{method:'POST'})).status,303);
+    assert.deepEqual(await (await shipToken({grant_type:'refresh_token',refresh_token:(await refreshed.json()).refresh_token})).json(),{error:'invalid_grant'},'signing out of DinkusKit.com ends Ship\'s sign-in');
   } finally { await stopRuntime(runtime); }
 });

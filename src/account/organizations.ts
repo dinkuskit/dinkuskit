@@ -184,7 +184,8 @@ export async function canManageMembership(db: D1Database, userId: string, organi
   return Boolean(membership && (membership.role === 'owner' || (membership.role === 'administrator' && membership.permissions.includes('membership:manage'))));
 }
 
-export const EMPLOYEE_PERMISSIONS = ['membership:view', 'site:view'] as const;
+/** ship:labels lets a plain employee print shipping labels; owners and administrators always can. */
+export const EMPLOYEE_PERMISSIONS = ['membership:view', 'site:view', 'ship:labels'] as const;
 export const ADMIN_PERMISSIONS = ['membership:manage', ...EMPLOYEE_PERMISSIONS] as const;
 type ManagementResult = 'ok' | 'forbidden' | 'not_found';
 

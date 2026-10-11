@@ -6035,6 +6035,20 @@
           "review_source_identity": null,
           "to": "implemented",
           "verification_ref": null
+        },
+        {
+          "at": "2026-10-11T12:58:16+00:00",
+          "choice": "Every pass from POST /api/store-passes also carries site_origin: the store's web address exactly as Connect checked and stored it in dinkuskit_store_identity. Nothing in the trade request can change it. Payments builds each store's checkout return pages (/checkout/success and /cart) from it and refuses to start a checkout without it, so DinkusKit.com is deployed with the claim before Payments.",
+          "from": "implemented",
+          "implementation_ref": "file:src/account/store-passes.ts;file:docs/shared-store-connections.md",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": null
         }
       ],
       "id": "website-store-pass-site-origin-048",
@@ -6047,10 +6061,10 @@
       "review_ref": null,
       "review_result": null,
       "review_source_identity": null,
-      "status": "implemented",
+      "status": "verified",
       "superseded_by": null,
-      "updated_at": "2026-10-11T12:46:42+00:00",
-      "verification_ref": null
+      "updated_at": "2026-10-11T12:58:16+00:00",
+      "verification_ref": "file:tests/shared-store-routes.test.mjs"
     }
   ],
   "last_activation": {
@@ -6078,5 +6092,5 @@
   "status": "active",
   "title": "Website PR9 current-main reconciliation",
   "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca",
-  "updated_at": "2026-10-11T12:46:42+00:00"
+  "updated_at": "2026-10-11T12:58:16+00:00"
 }

@@ -4441,6 +4441,20 @@
           "review_source_identity": "sha256:2078efda95f08c6b0ab0a226ec982d08223e85d14430119e26b2fdacbf1e2eff",
           "to": "needs_reverification",
           "verification_ref": "proof/organization-approvals/PROOF.md"
+        },
+        {
+          "at": "2026-10-11T01:04:02+00:00",
+          "choice": "Current EmDash CMS Admins on dinkuskit.com alone inherit organization approve/deny authority; initially the sole maintainer, future local Admins inherit it. This replaces the proposed separate organization-approval role, without abolishing or expanding the separate read-only directory grant. Use supported current local CMS session/user/permission interfaces with disabled-user, demotion, CSRF and host/site provenance checks, independent of merchant identity or selected organization. Compose only narrow approval queue/detail access. Approval grants admission only; denial moves Pending to Denied. Preserve first-50 lifetime allocation history and all organization/account/service ownership boundaries. Atomically persist actor/decision audit and durable notification intent; decision survives delivery failure, with separately tracked safely retried notification status and duplicate/concurrency protection. Both decisions use only selected verified service contact regardless of promotional consent. Never fallback to an unchosen channel. SMS remains unavailable; unverified selected contact remains explicitly unavailable/pending with reason. Use supported email boundary and local synthetic sink/failure proof only. No live sends, grants, provisioning, activation, appeals, reversals, suspensions, deletion, new quotas, required rejection reasons or bulk decisions.",
+          "from": "needs_reverification",
+          "implementation_ref": "src/account/organization-approvals.ts;src/account/cms-approval-authorization.ts;migrations/merchant/0006_organization_approvals.sql;docs/organization-approvals.md",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": "proof/organization-approvals/PROOF.md"
         }
       ],
       "id": "website-organization-approvals-028",
@@ -4461,10 +4475,10 @@
       "review_ref": null,
       "review_result": null,
       "review_source_identity": null,
-      "status": "needs_reverification",
+      "status": "verified",
       "superseded_by": null,
-      "updated_at": "2026-10-11T00:51:19+00:00",
-      "verification_ref": "proof/organization-approvals/PROOF.md"
+      "updated_at": "2026-10-11T01:04:02+00:00",
+      "verification_ref": "file:tests/organization-approvals-unit.test.mjs;file:tests/organization-approvals.test.mjs;proof/organization-approvals/PROOF.md"
     },
     {
       "baseline_ref": "git:775236b61e2a5f1a417b44f4f6e2dea630c4749c",
@@ -4534,6 +4548,20 @@
           "review_source_identity": "sha256:e008d372e9a0dbe9a9abd089db0e736b2cfe793d6454a3247c16d1f410947ab3",
           "to": "needs_reverification",
           "verification_ref": "proof/merchant-admission-status/PROOF.md"
+        },
+        {
+          "at": "2026-10-11T01:04:02+00:00",
+          "choice": "Show current membership-scoped Pending, Admitted or Denied status on the private no-store account page. Owners alone see a sanitized notification summary; transport acceptance is not recipient delivery. Explain that admission never activates services and persists despite notification failure. Preserve selection, automatic admission, authority and existing workflows.",
+          "from": "needs_reverification",
+          "implementation_ref": "src/account/merchant-admission-status.ts",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": "proof/merchant-admission-status/PROOF.md"
         }
       ],
       "id": "website-merchant-admission-status-029",
@@ -4554,10 +4582,10 @@
       "review_ref": null,
       "review_result": null,
       "review_source_identity": null,
-      "status": "needs_reverification",
+      "status": "verified",
       "superseded_by": null,
-      "updated_at": "2026-10-11T00:51:19+00:00",
-      "verification_ref": "proof/merchant-admission-status/PROOF.md"
+      "updated_at": "2026-10-11T01:04:02+00:00",
+      "verification_ref": "file:tests/organization-approvals.test.mjs;file:tests/account-foundation.test.mjs;proof/merchant-admission-status/PROOF.md"
     },
     {
       "baseline_ref": "git:d148a87211abcee6ac72614465a5bb0273e79be8",
@@ -4699,6 +4727,20 @@
           "review_source_identity": "sha256:469e2539b58eb10c8de304957ec5c279a46b74f5bdfb402626409508bdfee397",
           "to": "needs_reverification",
           "verification_ref": "proof/registry-store-paths/PROOF.md"
+        },
+        {
+          "at": "2026-10-11T01:04:02+00:00",
+          "choice": "One canonical organization-owned store identity with separate explicit Inventory and Payments grants. All clients use shared protocol version2 with server-generated/resolved identity and authenticated origin proof plus current Owner consent. Existing Inventory connections are disposable dev/test: no v1 compatibility or migration required. Add clean identity and service-grant tables without deleting old data; reject old protocol and document explicit consumer upgrade/reconnect. Keep per-service audience, scope and headers; no Ship, live activation, silent identity rewriting, cascading revocation or refresh lifecycle.",
+          "from": "needs_reverification",
+          "implementation_ref": "src/account/config.ts",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": "proof/registry-store-paths/PROOF.md"
         }
       ],
       "id": "website-shared-store-service-grants-030",
@@ -4735,10 +4777,10 @@
       "review_ref": null,
       "review_result": null,
       "review_source_identity": null,
-      "status": "needs_reverification",
+      "status": "verified",
       "superseded_by": null,
-      "updated_at": "2026-10-11T00:51:19+00:00",
-      "verification_ref": "proof/registry-store-paths/PROOF.md"
+      "updated_at": "2026-10-11T01:04:02+00:00",
+      "verification_ref": "file:tests/shared-store-isolation.test.mjs;file:tests/shared-store-routes.test.mjs;proof/registry-store-paths/PROOF.md"
     },
     {
       "baseline_ref": null,
@@ -4877,6 +4919,20 @@
           "review_source_identity": null,
           "to": "needs_reverification",
           "verification_ref": "file:proof/test-mode-deploy-connect-20261010/PROOF.md"
+        },
+        {
+          "at": "2026-10-11T01:04:02+00:00",
+          "choice": "Production consent uses the existing fetchStoreProofReceipt against the registered proof route instead of failing closed with integration_unavailable. It fetches with redirect manual (Workers reject redirect error) and refuses any 3xx or opaque redirect; https public origins, fixed path, single connection_id query, size and time limits and field-for-field receipt comparison stay. Test entries may still inject the simulation transport. Inventory still lacks a Registry publisher identity, so only Payments can connect from a Registry install. The first real Registry store connection after deploy is the live proof.",
+          "from": "needs_reverification",
+          "implementation_ref": "git:be0f48729bc8de13c03111aaaf779dbbda65532b",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": "file:proof/test-mode-deploy-connect-20261010/PROOF.md"
         }
       ],
       "id": "website-production-store-connect-032",
@@ -4889,10 +4945,10 @@
       "review_ref": null,
       "review_result": null,
       "review_source_identity": null,
-      "status": "needs_reverification",
+      "status": "verified",
       "superseded_by": null,
-      "updated_at": "2026-10-11T00:51:19+00:00",
-      "verification_ref": "file:proof/test-mode-deploy-connect-20261010/PROOF.md"
+      "updated_at": "2026-10-11T01:04:02+00:00",
+      "verification_ref": "file:tests/store-connections.test.mjs;file:proof/test-mode-deploy-connect-20261010/PROOF.md"
     },
     {
       "baseline_ref": null,
@@ -5965,5 +6021,5 @@
   "status": "active",
   "title": "Website PR9 current-main reconciliation",
   "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca",
-  "updated_at": "2026-10-11T00:51:20+00:00"
+  "updated_at": "2026-10-11T01:04:02+00:00"
 }

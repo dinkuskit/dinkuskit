@@ -34,4 +34,5 @@ maintainer access and an immutable commit pin are supplied.
 - Match verification to the change. Runnable site changes need build/type checks and actual route smoke proof; visual claims need browser evidence.
 - Record source identity, commands and limits in proof. Do not equate a stub or fixture with live authentication, registry installation or hosted service availability.
 - Automated review is evidence, not merge authority.
+- The `/_emdash` gate admits only Access-verified emails on `EMDASH_OPERATOR_ALLOWLIST` and Access-verified service tokens whose common name is on `EMDASH_OPERATOR_SERVICE_TOKENS` (as Editor, never Admin, and only once the CMS already has an enabled Admin). Both are runtime secrets; never commit their values. Agents use a service token, never an operator's identity.
 - Publishing, merges, deployment, live account changes, billing, secrets/permissions changes and external messages require explicit user authorization. Authorization for one action does not grant authority for another.

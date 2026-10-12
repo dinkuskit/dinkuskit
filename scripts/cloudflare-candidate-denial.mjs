@@ -108,6 +108,7 @@ async function main() {
   const candidateConfig = readFileSync(join(root, 'astro.cloudflare.config.mjs'), 'utf8');
   const productionGuard = readFileSync(join(root, 'src/emdash-namespace-guard.ts'), 'utf8');
   const accessGuard = readFileSync(join(root, 'src/access-namespace-guard.ts'), 'utf8');
+  const accessAuthEntry = readFileSync(join(root, 'scripts/lib/access-auth-entry.mjs'), 'utf8');
   assert.match(productionConfig, /@astrojs\/cloudflare/);
   assert.match(productionConfig, /emdash-namespace-guard/);
   assert.doesNotMatch(productionConfig, /access\(|access-namespace-guard/);
@@ -116,8 +117,10 @@ async function main() {
   assert.match(candidateConfig, /@emdash-cms\/cloudflare/);
   assert.match(candidateConfig, /access\(/);
   assert.match(candidateConfig, /audienceEnvVar: 'CF_ACCESS_AUDIENCE'/);
-  assert.match(accessGuard, /@emdash-cms\/cloudflare\/auth/);
-  assert.match(accessGuard, /officialAuthenticate/);
+  assert.match(accessGuard, /access-auth-entry\.mjs/);
+  assert.match(candidateConfig, /access-auth-entry\.mjs/);
+  assert.match(accessAuthEntry, /@emdash-cms\/cloudflare\/auth/);
+  assert.match(accessAuthEntry, /officialAuthenticate/);
   assert.match(accessGuard, /requestPathname/);
   assert.doesNotMatch(productionGuard, /requestPathname|decodeRoutingPathname/);
   record('Production worker uses Cloudflare + deny-all guard; Access-gated CMS candidate stays a separate build');

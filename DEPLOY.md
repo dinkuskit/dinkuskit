@@ -124,6 +124,24 @@ Access (decision `website-operator-admin-emdash-access-035`). Owner-only, once:
    `EMDASH_OPERATOR_ALLOWLIST` is the operator email, or several separated by
    commas. The admin opens only when the team domain, the audience and this list
    are all set, and only for a listed email that Access has verified.
+
+   Optional, for an automation agent: create a Cloudflare Access service token,
+   add a Service Auth policy for it to the same Access application, and list its
+   common name (`<client_id>.access`; the client ID, never the secret) in a
+   separate secret:
+
+   ```sh
+   npx wrangler secret put EMDASH_OPERATOR_SERVICE_TOKENS --config cloudflare/wrangler.jsonc
+   ```
+
+   Several are separated by commas. A service token is admitted only when its
+   Access JWT verifies (signature, audience and issuer against the team's keys)
+   and its common name is listed; it then acts as an EmDash **Editor** named
+   `service+<client_id>@tokens.invalid`, created on first use. Unset means no
+   service token gets in. Add tokens only after the operator has become the
+   first Admin: EmDash makes whoever arrives first on an empty site the Admin.
+   The gate also enforces this: until the CMS `DB` has an enabled Admin
+   (role 50), every service token gets the same 404.
 3. Rebuild with the team domain and deploy:
 
    ```sh

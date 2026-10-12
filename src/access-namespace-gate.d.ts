@@ -4,6 +4,10 @@ declare module '../scripts/lib/access-namespace-gate.mjs' {
   export const ACCESS_AUDIENCE_ENV: string;
   export const ACCESS_TEAM_DOMAIN_ENV: string;
   export const OPERATOR_ALLOWLIST_ENV: string;
+  export const OPERATOR_SERVICE_TOKENS_ENV: string;
+  export const SERVICE_TOKEN_EMAIL_DOMAIN: string;
+  export function parseServiceTokenList(value: unknown): string[];
+  export function serviceTokenEmail(commonName: string): string;
   export function decodeRoutingPathname(pathname: string): string;
   export function resolveNamespacePathname(pathname: string): {
     kind: 'public' | 'protected' | 'malformed-protected';
@@ -18,26 +22,40 @@ declare module '../scripts/lib/access-namespace-gate.mjs' {
     teamDomain: string;
     audience: string;
     allowlist: string[];
+    serviceTokens: string[];
   };
   export function accessConfigMissing(config: {
     teamDomain: string;
     audience: string;
     allowlist: string[];
+    serviceTokens?: string[];
   }): boolean;
   export function officialAccessConfig(config: {
     teamDomain: string;
     audience: string;
+    serviceTokens?: string[];
   }): {
     teamDomain: string;
     audience: string;
     audienceEnvVar: string;
     defaultRole: number;
+    serviceTokens: string[];
   };
   export function deniedNamespaceResponse(): Response;
+  export const EMDASH_ADMIN_ROLE: number;
+  export function cmsHasActiveAdmin(db: unknown): Promise<boolean>;
   export function evaluateAccessGate(input: {
     pathname: string;
     request: Request;
     env?: Record<string, string | undefined>;
-    authenticate?: (request: Request, config: unknown) => Promise<{ email?: string }>;
+    authenticate?: (request: Request, config: unknown) => Promise<{ email?: string; serviceToken?: string }>;
+    hasActiveAdmin?: () => Promise<boolean>;
   }): Promise<{ allow: boolean; status?: number; reason: string; email?: string }>;
+}
+
+declare module '../scripts/lib/access-auth-entry.mjs' {
+  export function authenticate(
+    request: Request,
+    config: unknown,
+  ): Promise<{ email: string; name: string; role: number; subject?: string; serviceToken?: string }>;
 }

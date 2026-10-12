@@ -20,6 +20,7 @@ Set these only in ignored operator input (Wrangler secrets, `cloudflare/.dev.var
 - `EMDASH_ACCESS_TEAM_DOMAIN` — build input for the official `access()` factory; may also be a Worker var.
 - `CF_ACCESS_AUDIENCE` — runtime Access audience.
 - `EMDASH_OPERATOR_ALLOWLIST` — runtime comma-separated operator emails.
+- `EMDASH_OPERATOR_SERVICE_TOKENS` — optional runtime comma-separated Access service token common names (`<client_id>.access`). A listed token whose Access JWT verifies is admitted as Editor (40) `service+<client_id>@tokens.invalid`, without the Access identity lookup. Unset denies all service tokens. Add only after setup is closed; the gate denies every service token until the CMS `DB` has an enabled Admin.
 
 Do not commit team domains, audiences, account IDs, host bindings, or real mailbox addresses.
 

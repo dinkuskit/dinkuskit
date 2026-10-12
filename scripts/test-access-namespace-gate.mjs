@@ -6,6 +6,7 @@ import {
   ACCESS_TEAM_DOMAIN_ENV,
   INSTALLED_EDITOR_ROLE,
   OPERATOR_ALLOWLIST_ENV,
+  cmsHasActiveAdmin,
   decodeRoutingPathname,
   evaluateAccessGate,
   isEmdashNamespace,
@@ -353,5 +354,225 @@ assert.equal(publicNextCalled, true, 'Public route passes through to downstream 
 assert.equal(publicRes.status, 200);
 assert.equal(await publicRes.text(), 'public-content');
 record('Public route passes through to downstream next with adapter locals');
+
+// --- Access service tokens (synthetic local keys; not hosted Access proof) ---
+{
+  const { SignJWT, createLocalJWKSet, exportJWK, generateKeyPair } = await import('jose');
+  const { createAccessAuthenticate } = await import('./lib/access-service-token-auth.mjs');
+
+  const team = 'team.fixture.invalid';
+  const audience = 'fixture-audience-not-production';
+  const tokenCn = '0123456789abcdef0123456789abcdef.access';
+  const otherCn = 'fedcba9876543210fedcba9876543210.access';
+  const { privateKey, publicKey } = await generateKeyPair('RS256');
+  const { privateKey: strangerKey } = await generateKeyPair('RS256');
+  const jwk = { ...(await exportJWK(publicKey)), kid: 'fixture-kid', alg: 'RS256' };
+  const localJwks = createLocalJWKSet({ keys: [jwk] });
+  const getKey = (domain) => {
+    assert.equal(domain, team, 'JWKS must be resolved for the configured team domain');
+    return localJwks;
+  };
+  const sign = (claims, { aud = audience, iss = `https://${team}`, key = privateKey } = {}) =>
+    new SignJWT(claims)
+      .setProtectedHeader({ alg: 'RS256', kid: 'fixture-kid' })
+      .setIssuer(iss)
+      .setAudience(aud)
+      .setIssuedAt()
+      .setExpirationTime('5m')
+      .sign(key);
+
+  let officialCalls = 0;
+  const officialStub = async () => {
+    officialCalls++;
+    return { email: 'owner@fixture.invalid', name: 'Owner', role: INSTALLED_EDITOR_ROLE };
+  };
+  const svcAuthenticate = createAccessAuthenticate({ officialAuthenticate: officialStub, getKey, env: {} });
+  const svcEnv = {
+    [ACCESS_TEAM_DOMAIN_ENV]: team,
+    [ACCESS_AUDIENCE_ENV]: audience,
+    [OPERATOR_ALLOWLIST_ENV]: 'owner@fixture.invalid',
+    EMDASH_OPERATOR_SERVICE_TOKENS: ` ${tokenCn.toUpperCase()} , other.example.access`,
+  };
+  const reqWith = (jwt) => new Request('http://127.0.0.1/_emdash/api/content/posts', {
+    headers: { 'cf-access-jwt-assertion': jwt },
+  });
+  const adminPresent = async () => true;
+  const gate = (jwt, env = svcEnv, hasActiveAdmin = adminPresent, pathname = '/_emdash/api/content/posts') => evaluateAccessGate({
+    pathname,
+    request: reqWith(jwt),
+    env,
+    authenticate: svcAuthenticate,
+    hasActiveAdmin,
+  });
+  const serviceClaims = { common_name: tokenCn, sub: '', type: 'app' };
+
+  officialCalls = 0;
+  const allowedToken = await gate(await sign(serviceClaims));
+  assert.deepEqual(allowedToken, {
+    allow: true,
+    reason: 'service-token',
+    email: 'service+0123456789abcdef0123456789abcdef@tokens.invalid',
+  });
+  assert.equal(officialCalls, 0, 'Service tokens must skip the Access identity lookup');
+  const identity = await svcAuthenticate(reqWith(await sign(serviceClaims)), {
+    teamDomain: team,
+    audience,
+    serviceTokens: [tokenCn],
+  });
+  assert.equal(identity.role, INSTALLED_EDITOR_ROLE, 'Service token maps to Editor (40), not Admin');
+  assert.equal(identity.email, 'service+0123456789abcdef0123456789abcdef@tokens.invalid');
+  record('Verified, listed service token is allowed as a stable Editor placeholder without identity lookup');
+
+  // Bootstrap boundary: a listed, verified token is denied until a human Admin exists.
+  const noAdminCases = [undefined, async () => false, async () => { throw new Error('db down'); }, async () => 'yes'];
+  for (const hasActiveAdmin of noAdminCases) {
+    for (const path of ['/_emdash/api/content/posts', '/_emdash/admin/setup', '/_emdash/api/setup/status', '/_emdash/admin']) {
+      assert.deepEqual(await evaluateAccessGate({
+        pathname: path,
+        request: reqWith(await sign(serviceClaims)),
+        env: svcEnv,
+        authenticate: svcAuthenticate,
+        hasActiveAdmin,
+      }), { allow: false, status: 404, reason: 'service-token-before-admin' }, path);
+    }
+  }
+  assert.deepEqual(
+    await evaluateAccessGate({ pathname: '/_emdash/admin/setup', request: reqWith(await sign({ email: 'owner@fixture.invalid', sub: 'u' })), env: svcEnv, authenticate: svcAuthenticate }),
+    { allow: true, reason: 'allowlisted', email: 'owner@fixture.invalid' },
+    'Allowlisted humans can still bootstrap without an existing Admin',
+  );
+  const fakeD1 = (rows, { fail = false } = {}) => ({
+    prepare(sql) {
+      assert.match(sql, /FROM users WHERE role >= \? AND \(disabled IS NULL OR disabled = 0\)/);
+      return {
+        bind(role) {
+          assert.equal(role, 50);
+          return { first: async () => { if (fail) throw new Error('no such table: users'); return rows.find((r) => r.role >= role && !r.disabled) ? { ok: 1 } : null; } };
+        },
+      };
+    },
+  });
+  assert.equal(await cmsHasActiveAdmin(undefined), false);
+  assert.equal(await cmsHasActiveAdmin(fakeD1([])), false);
+  assert.equal(await cmsHasActiveAdmin(fakeD1([{ role: 40, disabled: 0 }])), false);
+  assert.equal(await cmsHasActiveAdmin(fakeD1([{ role: 50, disabled: 1 }])), false);
+  assert.equal(await cmsHasActiveAdmin(fakeD1([{ role: 50 }], { fail: true })), false);
+  assert.equal(await cmsHasActiveAdmin(fakeD1([{ role: 40 }, { role: 50, disabled: 0 }])), true);
+  record('Service tokens are denied (404, before EmDash) until the CMS has an enabled Admin; empty, Editor-only, disabled-Admin or unreadable DB all fail closed');
+
+  const unlisted = await gate(await sign({ ...serviceClaims, common_name: otherCn }));
+  assert.deepEqual(unlisted, { allow: false, status: 404, reason: 'unauthenticated' });
+  record('Verified but unlisted service token is denied with the generic 404');
+
+  const noVarEnv = { ...svcEnv };
+  delete noVarEnv.EMDASH_OPERATOR_SERVICE_TOKENS;
+  assert.deepEqual(await gate(await sign(serviceClaims), noVarEnv), {
+    allow: false, status: 404, reason: 'unauthenticated',
+  });
+  assert.deepEqual(await gate(await sign(serviceClaims), { ...svcEnv, EMDASH_OPERATOR_SERVICE_TOKENS: ' ' }), {
+    allow: false, status: 404, reason: 'unauthenticated',
+  });
+  const neitherEnv = { ...noVarEnv };
+  delete neitherEnv[OPERATOR_ALLOWLIST_ENV];
+  assert.deepEqual(await gate(await sign(serviceClaims), neitherEnv), {
+    allow: false, status: 404, reason: 'missing-config',
+  });
+  await assert.rejects(
+    () => svcAuthenticate(reqWith('x'), { teamDomain: team, audience }),
+  );
+  const runtimeNoVar = createAccessAuthenticate({ officialAuthenticate: officialStub, getKey, env: {} });
+  await assert.rejects(
+    () => runtimeNoVar(reqWith('not-a-jwt'), { teamDomain: team, audience }),
+  );
+  await assert.rejects(
+    async () => runtimeNoVar(reqWith(await sign(serviceClaims)), { teamDomain: team, audience }),
+    /Service token not allowed/,
+  );
+  const runtimeWithVar = createAccessAuthenticate({
+    officialAuthenticate: officialStub,
+    getKey,
+    env: { EMDASH_OPERATOR_SERVICE_TOKENS: tokenCn },
+  });
+  assert.equal(
+    (await runtimeWithVar(reqWith(await sign(serviceClaims)), { teamDomain: team, audienceEnvVar: 'X' }).catch((e) => e)).message,
+    'Access audience not configured',
+  );
+  assert.equal(
+    (await runtimeWithVar(reqWith(await sign(serviceClaims)), { teamDomain: team, audience })).role,
+    INSTALLED_EDITOR_ROLE,
+  );
+  record('Missing or empty EMDASH_OPERATOR_SERVICE_TOKENS denies every service token (default deny)');
+
+  officialCalls = 0;
+  assert.deepEqual(await gate(await sign(serviceClaims, { aud: 'some-other-app' })), {
+    allow: false, status: 404, reason: 'unauthenticated',
+  });
+  assert.deepEqual(await gate(await sign(serviceClaims, { iss: 'https://evil.fixture.invalid' })), {
+    allow: false, status: 404, reason: 'unauthenticated',
+  });
+  assert.deepEqual(await gate(await sign(serviceClaims, { key: strangerKey })), {
+    allow: false, status: 404, reason: 'unauthenticated',
+  });
+  const forged = (await sign(serviceClaims)).split('.');
+  forged[1] = Buffer.from(JSON.stringify({ ...serviceClaims, aud: audience, iss: `https://${team}`, exp: 4102444800 })).toString('base64url');
+  assert.deepEqual(await gate(forged.join('.')), { allow: false, status: 404, reason: 'unauthenticated' });
+  assert.equal(officialCalls, 0, 'Rejected tokens never reach the identity lookup');
+  record('Listed service token with bad aud, bad iss, foreign key or tampered payload is denied');
+
+  officialCalls = 0;
+  const userJwt = await sign({ email: 'owner@fixture.invalid', sub: 'user-sub', type: 'app' });
+  assert.deepEqual(await gate(userJwt), { allow: true, reason: 'allowlisted', email: 'owner@fixture.invalid' });
+  assert.equal(officialCalls, 1, 'Email users still go through official authenticate');
+  const strangerUser = createAccessAuthenticate({
+    officialAuthenticate: async () => ({ email: 'stranger@fixture.invalid', name: 'S', role: 40 }),
+    getKey,
+    env: {},
+  });
+  assert.deepEqual(await evaluateAccessGate({
+    pathname: '/_emdash/admin',
+    request: reqWith(userJwt),
+    env: svcEnv,
+    authenticate: strangerUser,
+  }), { allow: false, status: 404, reason: 'unknown-identity' });
+  officialCalls = 0;
+  const bothClaims = await sign({ email: 'owner@fixture.invalid', common_name: tokenCn, sub: 'user-sub' });
+  assert.deepEqual(await gate(bothClaims), { allow: true, reason: 'allowlisted', email: 'owner@fixture.invalid' });
+  assert.equal(officialCalls, 1, 'A JWT with an email is a user, never a service token');
+  assert.deepEqual(await evaluateAccessGate({
+    pathname: '/_emdash/admin',
+    request: reqWith(userJwt),
+    env: svcEnv,
+    authenticate: async () => ({ email: 'service+0123456789abcdef0123456789abcdef@tokens.invalid' }),
+  }), { allow: false, status: 404, reason: 'unknown-identity' });
+  record('Email users are unchanged: official lookup, email allowlist, and no service-token shortcut');
+
+  const svcMiddleware = createAccessNamespaceGuard({ authenticate: svcAuthenticate, hasActiveAdmin: adminPresent });
+  const noAdminMiddleware = createAccessNamespaceGuard({ authenticate: svcAuthenticate, hasActiveAdmin: async () => false });
+  const defaultAdminMiddleware = createAccessNamespaceGuard({ authenticate: svcAuthenticate });
+  process.env.EMDASH_OPERATOR_SERVICE_TOKENS = tokenCn;
+  process.env[ACCESS_TEAM_DOMAIN_ENV] = team;
+  const mwCtx = async (jwt) => ({
+    request: reqWith(jwt),
+    url: new URL('http://127.0.0.1/_emdash/api/content/posts'),
+    locals: adapterLocals,
+  });
+  const okRes = await svcMiddleware(await mwCtx(await sign(serviceClaims)), () => new Response('ok'));
+  assert.equal(await okRes.text(), 'ok');
+  const noAdminRes = await noAdminMiddleware(await mwCtx(await sign(serviceClaims)), () => new Response('ok'));
+  assert.equal(noAdminRes.status, 404);
+  assert.equal(await noAdminRes.text(), 'Not Found');
+  const defaultAdminRes = await defaultAdminMiddleware(await mwCtx(await sign(serviceClaims)), () => new Response('ok'));
+  assert.equal(defaultAdminRes.status, 404, 'Without a readable CMS DB binding the default admin check fails closed');
+  const denyRes = await svcMiddleware(
+    await mwCtx(await sign({ ...serviceClaims, common_name: otherCn })),
+    () => new Response('ok'),
+  );
+  assert.equal(denyRes.status, 404);
+  assert.equal(await denyRes.text(), 'Not Found');
+  delete process.env.EMDASH_OPERATOR_SERVICE_TOKENS;
+  const unsetRes = await svcMiddleware(await mwCtx(await sign(serviceClaims)), () => new Response('ok'));
+  assert.equal(unsetRes.status, 404);
+  record('Guard middleware reads EMDASH_OPERATOR_SERVICE_TOKENS at runtime and keeps the same 404 body');
+}
 
 console.log(checks.map((check) => `PASS ${check}`).join('\n'));

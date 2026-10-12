@@ -1,4 +1,21 @@
-# E2E run contract source proof
+# E2E run contract source proof — PR39 integration
+
+Base/main: `ed60ae7fb4ae657ddf2a0b30dddb7d1593575f1e`. Integration input: `eba27738da45a8a38bd3f67b50c166b7b55781ff`.
+The run-contract module, tests and guide are unchanged from merged PR38.
+Only package wiring gains the offline mailbox suite. Current source SHA-256
+values are recorded in `verification.json`; the prior PR38 record below is historical.
+
+Parent Node v22.23.2 verification: 51 focused tests passed (38 run-contract +
+13 mailbox). Full `npm run verify` attempt 2 passed all 26 command stages and
+151 native tests, including upgrade and Cloudflare denial checks. Attempt 1
+stopped at the unchanged upgrade fixture with synthetic passkey/verify 401;
+the single bounded rerun passed on identical source. Both outcomes are retained
+in verification metadata. CLI validation, repository audit and diff checks pass.
+Decision `website-e2e-run-contract-049` is reverified through the pinned CLI
+after this integrated verification. Fresh exact-source reviews remain pending.
+The source-only limits below continue to apply.
+
+# Historical PR38 cycle9 source proof
 
 Repository: dinkuskit/dinkuskit. Base: `771d91245918f321afbd55f495ec34741e6f09df`.
 Reviewed input before this repair: `2afd397321254a4a3683edec9858b4501455d8b8`.
@@ -45,7 +62,7 @@ The in-memory lifecycle demonstrates ownership/cleanup intent before allocation,
 exact reconciliation, bounded failure retention, safe cleanup receipts, and separate
 inactive-history expiry. No runtime source files changed.
 
-## Current Verification (Repair Cycle 9)
+## Historical Verification (Repair Cycle 9)
 
 Node v22.23.2, matching the repository `.nvmrc`:
 
@@ -62,7 +79,7 @@ Node v22.23.2, matching the repository `.nvmrc`:
 - Decision `website-e2e-run-contract-049` reverified through the pinned CLI against
   this current proof after the parent full verification passed.
 
-Current focused source SHA-256 digests:
+Historical cycle9 focused source SHA-256 digests:
 - `tests/e2e/run-contract.mjs`: `681fce36c64b56479fd6bf1e6a6d11fbcbd003e8354a317d6741991ef85f4a09`
 - `tests/e2e/run-contract.test.mjs`: `e7b1a2d6a0e3a84889996e2b845bf8ba58389d03e22c0506d3f8bcc1ecf09ea6`
 - `docs/e2e-run-contract.md`: `ce1ad79af32a3d62d0a99ec4c582a06cefcbd3159a0fc6440e9bd8c6f3a16303`

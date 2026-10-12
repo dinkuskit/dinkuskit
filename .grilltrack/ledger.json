@@ -4015,6 +4015,20 @@
           "note": "fork composition invalidates prior current proof",
           "source_snapshot_ref": ".grilltrack/lineage/fc5864820e336b89121904a1d935b7f5d1180416d7fca8520fe5671bf0ec2e83",
           "to": "needs_reverification"
+        },
+        {
+          "at": "2026-10-12T00:25:55+00:00",
+          "choice": "Consume the frozen run manifest; bound exact mailbox recipient intent environment receive window and origin/path; reject stale ambiguous foreign matches; report delivery placement separately; use one-use expiring in-process handoff and explicit blocked or assisted outcomes. Fixtures prove only offline behavior.",
+          "from": "needs_reverification",
+          "implementation_ref": "file:tests/e2e/mailbox-contract.mjs;file:tests/e2e/mailbox-contract.test.mjs;file:docs/e2e-mailbox-contract.md;file:proof/e2e-mailbox-contract/PROOF.md",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": null
         }
       ],
       "id": "website-e2e-mailbox-contract-050",
@@ -4034,10 +4048,10 @@
       "review_ref": null,
       "review_result": null,
       "review_source_identity": null,
-      "status": "needs_reverification",
+      "status": "verified",
       "superseded_by": null,
-      "updated_at": "2026-10-11T23:54:00+00:00",
-      "verification_ref": null
+      "updated_at": "2026-10-12T00:25:55+00:00",
+      "verification_ref": "file:proof/e2e-mailbox-contract/PROOF.md;file:proof/e2e-mailbox-contract/verification.json"
     },
     {
       "baseline_ref": "git:4c8fdcc30e141075ee39edb017f193622840ac8c",
@@ -4119,6 +4133,20 @@
           "note": "fork composition invalidates prior current proof",
           "source_snapshot_ref": ".grilltrack/lineage/fc5864820e336b89121904a1d935b7f5d1180416d7fca8520fe5671bf0ec2e83",
           "to": "needs_reverification"
+        },
+        {
+          "at": "2026-10-12T00:25:55+00:00",
+          "choice": "DinkusKit owns one versioned non-secret manifest/result contract and deterministic fake-resource lifecycle tests; local/A/B provenance, manual/assisted truth, exact ownership, fixed failure expiry and separate history retention. No live adapters or runtime changes.",
+          "from": "needs_reverification",
+          "implementation_ref": "file:tests/e2e/run-contract.mjs;file:tests/e2e/run-contract.test.mjs;file:docs/e2e-run-contract.md",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": null
         }
       ],
       "id": "website-e2e-run-contract-049",
@@ -4148,10 +4176,10 @@
       "review_ref": null,
       "review_result": null,
       "review_source_identity": null,
-      "status": "needs_reverification",
+      "status": "verified",
       "superseded_by": null,
-      "updated_at": "2026-10-11T23:54:00+00:00",
-      "verification_ref": null
+      "updated_at": "2026-10-12T00:25:55+00:00",
+      "verification_ref": "file:proof/e2e-run-contract/PROOF.md;file:proof/e2e-run-contract/verification.json"
     },
     {
       "baseline_ref": null,
@@ -7990,5 +8018,5 @@
   "status": "active",
   "title": "Composed integration",
   "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5",
-  "updated_at": "2026-10-11T23:54:00+00:00"
+  "updated_at": "2026-10-12T00:25:55+00:00"
 }

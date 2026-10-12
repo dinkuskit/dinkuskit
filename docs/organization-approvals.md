@@ -81,17 +81,24 @@ operator plugin's People and Stores pages (decisions 036 and 037).
 ## Merchant account status
 
 `/account` reads the current active memberships on every GET and shows each
-organization as Pending, Admitted, or Denied. Automatic admission is shown as
-Admitted without inventing an operator decision or audit. Admission does not
-connect a site or activate a service. The page is private and `no-store`.
+business as Waiting for approval, Approved or Not approved (decision 049, which
+replaces 029's wording; the page layout is in [account-pages.md](account-pages.md)).
+Automatic approval is shown as Approved without inventing an operator decision
+or audit. Approval does not connect a site or activate a service; the page says
+what to do next instead. The page is private and `no-store`.
 
-Only an organization's owner sees its sanitized notification summary. Email
-delivery state is described as pending, processing, unavailable, or “Email
-accepted for sending”; accepted means the binding send resolved and does not
-confirm recipient delivery. SMS unavailability is shown without exposing a
-recipient, actor, claim identifier, or provider error. Members see admission
-status only, and the read is limited to organizations in their current active
-membership list. Notification availability never changes the admission decision, and merchants cannot retry notifications or make admission decisions.
+Only a business's owner sees its notification summary, in plain words: "We are
+sending you an email about this decision", "We sent you an email about this
+decision", "We could not email you about this decision", or, for a phone
+contact, that we do not send text messages yet. "Sent" means the binding send
+resolved; it never claims the email reached the inbox. No recipient, actor,
+claim identifier or provider error is shown. Staff see the approval only, and
+the read is limited to businesses in their current active membership list.
+Whether the email arrives never changes the decision, and merchants cannot
+retry notifications or make approval decisions.
+
+The decision email names the business, never its ID: "Your business is approved
+on DinkusKit" or "Your business wasn't approved on DinkusKit".
 
 ## Local verification
 

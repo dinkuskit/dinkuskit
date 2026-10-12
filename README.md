@@ -36,6 +36,14 @@ Local development (`npm run dev`, bound to 127.0.0.1) still serves the EmDash ed
 
 Every production build denies the entire `/_emdash` namespace before EmDash bootstrap, including first-admin setup and CMS-hosted media under `/_emdash/api/media/file`. Public pages remain usable after a local fixture seed of the same persisted D1. Current marketing pages do not use CMS-hosted `/_emdash` media. Enabling a production CMS requires a separately configured protected operator access lane; Host, forwarded headers, Origin, cookies, query strings, and environment/proof bindings do not unlock it.
 
+## Agent account tests
+
+Run `npm run agent:test` after installing dependencies to exercise signup, staff
+permissions, revocation, and simulated store consent without email clicks. This
+uses fixed synthetic identities and a disposable loopback runtime; no production
+route is enabled. See [local agent testing](docs/agent-testing.md) for scope,
+security boundaries, and the distinction from browser and real-mail tests.
+
 ## Verify
 
 ```sh

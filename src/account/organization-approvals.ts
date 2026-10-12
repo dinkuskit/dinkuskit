@@ -131,11 +131,11 @@ export async function finishNotification(db: D1Database, notificationId: string,
 export async function dispatchNotification(db: D1Database, notificationId: string, binding?: MerchantEmailBinding): Promise<void> {
   const claimed = await claimNotification(db, notificationId);
   if (!claimed) return;
-  const current = await db.prepare(`SELECT 1 FROM dinkuskit_organization o
+  const current = await db.prepare(`SELECT o.name FROM dinkuskit_organization o
     JOIN "user" u ON u.id=o.owner_user_id JOIN dinkuskit_signup_profile p ON p.user_id=u.id
     WHERE o.organization_id=? AND p.service_channel='email' AND p.email=?
       AND p.email=u.email AND p.email_verified=1 AND u.emailVerified=1`)
-    .bind(claimed.organizationId, claimed.recipient).first();
+    .bind(claimed.organizationId, claimed.recipient).first<{ name: string }>();
   if (!current) {
     await db.prepare(`UPDATE dinkuskit_organization_notification SET status='unavailable',
       unavailable_reason='selected_contact_changed',claim_token=NULL,claimed_at=NULL
@@ -150,8 +150,14 @@ export async function dispatchNotification(db: D1Database, notificationId: strin
   const message = {
     to: claimed.recipient,
     from: { email: 'accounts@dinkuskit.com', name: 'DinkusKit' },
-    subject: `DinkusKit organization admission ${claimed.decision}`,
-    text: `Your organization (${claimed.organizationId}) admission was ${claimed.decision}.\nView your organizations at https://dinkuskit.com/account.\nThis decision does not connect stores or activate services.`,
+    // Names the business, never its ID.
+    ...(claimed.decision === 'approved' ? {
+      subject: 'Your business is approved on DinkusKit',
+      text: `${current.name} is approved on DinkusKit.\nSign in at https://dinkuskit.com/account to connect your store.\n`,
+    } : {
+      subject: "Your business wasn't approved on DinkusKit",
+      text: `${current.name} wasn't approved on DinkusKit, so it can't connect a store.\nSee it at https://dinkuskit.com/account.\n`,
+    }),
   };
   try {
     await (delivery ?? binding)!.send(message);

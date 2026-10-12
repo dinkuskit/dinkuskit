@@ -40,6 +40,22 @@ function time(value, name) {
   assert.equal(new Date(value).toISOString(), value, `${name} must be a canonical timestamp`);
   return value;
 }
+function isLoopback(hostname) {
+  const name = hostname.replace(/\.$/, '');
+  if (name === 'localhost' || name.endsWith('.localhost') || name === '[::1]') return true;
+  if (/^\[::ffff:7f[0-9a-f]{2}:[0-9a-f]{1,4}\]$/.test(name)) return true;
+  if (/^127(?:\.(?:25[0-5]|2[0-4]\d|1\d\d|[0-9]{1,2})){3}$/.test(hostname)) return true;
+  return false;
+}
+
+function isUnspecified(hostname) {
+  const name = hostname.replace(/\.$/, "");
+  if (name === "0.0.0.0" || name === "[::]") return true;
+  if (name === "[::ffff:0:0]" || name === "[::ffff:0.0.0.0]") return true;
+  if (/^0(?:\.0){3}$/.test(name)) return true;
+  return false;
+}
+
 function origin(value, name) {
   assert.equal(typeof value, 'string', `${name} must be a canonical HTTPS origin`);
   const parsed = new URL(value);
@@ -49,6 +65,8 @@ function origin(value, name) {
   assert.equal(parsed.hash, '', `${name} must not contain a fragment`);
   assert.equal(parsed.username, '', `${name} must not contain userinfo`);
   assert.equal(parsed.password, '', `${name} must not contain userinfo`);
+  assert.ok(!isLoopback(parsed.hostname), `${name} cannot use loopback origin`);
+  assert.ok(!isUnspecified(parsed.hostname), `${name} cannot use unspecified origin`);
   assert.equal(value, parsed.origin + '/', `${name} must be canonical`);
   return value;
 }
@@ -56,7 +74,7 @@ function localOrigin(value, name) {
   assert.equal(typeof value, 'string', `${name} must be a canonical loopback origin`);
   const parsed = new URL(value);
   assert.ok(['http:', 'https:'].includes(parsed.protocol), `${name} must use HTTP(S)`);
-  assert.ok(['127.0.0.1', 'localhost'].includes(parsed.hostname), `${name} must be loopback`);
+  assert.ok(isLoopback(parsed.hostname), `${name} must be loopback`);
   assert.equal(parsed.pathname, '/', `${name} must not contain a path`);
   assert.equal(parsed.search, '', `${name} must not contain a query`);
   assert.equal(parsed.hash, '', `${name} must not contain a fragment`);
@@ -79,8 +97,11 @@ function targetShape(target, name) {
   if (target.provenance_class === 'local-fixture') {
     localOrigin(target.site_origin, `${name}.site_origin`);
   } else origin(target.site_origin, `${name}.site_origin`);
-  if (target.provenance_class === 'local-fixture') assert.equal(target.deployment_ref, 'deployment-local', 'local deployment is invalid');
-  if (target.provenance_class === 'test-build') assert.notEqual(target.deployment_ref, 'deployment-local', 'test-build deployment is invalid');
+  if (target.provenance_class === 'local-fixture') {
+    assert.equal(target.deployment_ref, 'deployment-local', 'local deployment is invalid');
+  } else {
+    assert.notEqual(target.deployment_ref, 'deployment-local', `${target.provenance_class} deployment is invalid`);
+  }
   return target;
 }
 function requirement(value, name) {
@@ -112,6 +133,11 @@ function validateReceipt(value, name = 'receipt') {
   source(value.source_ref, `${name}.source_ref`);
   if (value.provenance_class === 'local-fixture') localOrigin(value.site_origin, `${name}.site_origin`);
   else origin(value.site_origin, `${name}.site_origin`);
+  if (value.provenance_class === 'local-fixture') {
+    assert.equal(value.deployment_ref, 'deployment-local', `${name} local deployment is invalid`);
+  } else {
+    assert.notEqual(value.deployment_ref, 'deployment-local', `${name} ${value.provenance_class} deployment is invalid`);
+  }
   assert.ok(ORACLE_KINDS.has(value.oracle_kind) || SUPPLEMENTARY.has(value.oracle_kind), `${name}.oracle_kind is invalid`);
   if (value.authority_expires_at !== null) time(value.authority_expires_at, `${name}.authority_expires_at`);
   assert.match(value.evidence_hash, HASH, `${name}.evidence_hash must be an exact hash`);
@@ -169,7 +195,14 @@ export function validateResult(input, manifest = null) {
   assert.ok(['reserved', 'provisioning', 'active', 'evidence-sealed', 'cleanup-pending', 'removed', 'failed'].includes(result.cleanup.resource_state), 'cleanup.resource_state is invalid');
   assert.ok(Array.isArray(result.cleanup.evidence), 'cleanup.evidence must be a list');
   result.cleanup.evidence.forEach((entry, i) => validateReceipt(entry, `cleanup.evidence[${i}]`));
+  if (result.journey.status === 'failed') {
+    assert.ok(result.failure !== null, 'failure descriptor required when journey failed');
+  }
   if (result.failure !== null) {
+    if (manifest) {
+      const stageOwners = new Set(manifest.oracles.map((stage) => stage.owner_repo));
+      assert.ok(stageOwners.has(result.failure.owning_stage_repo), 'failure owning_stage_repo must match declared manifest stage ownership');
+    }
     exact(result.failure, ['code', 'failure_at', 'expected', 'observed', 'proof_ref', 'owner_repo', 'next_action', 'last_accepted_receipt_ref', 'owning_stage_repo'], 'result.failure');
     id(result.failure.code, 'failure.code'); time(result.failure.failure_at, 'failure.failure_at');
     for (const key of ['expected', 'observed', 'next_action']) id(result.failure[key], `failure.${key}`);
@@ -185,11 +218,45 @@ function sameTarget(manifest, receipt) {
   return receipt.run_id === manifest.run_id && receipt.environment === manifest.environment &&
     Object.keys(manifest.target).every((key) => receipt[key] === manifest.target[key]);
 }
+function targetCorrelationMismatch(manifest, receipt) {
+  if (receipt.run_id !== manifest.run_id) return { expected: manifest.run_id, observed: receipt.run_id };
+  if (receipt.environment !== manifest.environment) return { expected: manifest.environment, observed: receipt.environment };
+  for (const key of Object.keys(manifest.target)) {
+    if (receipt[key] !== manifest.target[key]) return { expected: manifest.target[key], observed: receipt[key] };
+  }
+  return null;
+}
 export function assessRun(manifestInput, resultInput, assessedAt = manifestInput.timestamps.heartbeat_at) {
   const manifest = validateManifest(manifestInput);
   const result = validateResult(resultInput, manifest);
   time(assessedAt, 'assessment time');
   const failures = [];
+  for (const entry of result.journey.evidence) {
+    const mismatch = targetCorrelationMismatch(manifest, entry);
+    if (mismatch) {
+      failures.push({
+        code: 'evidence-correlation-mismatch',
+        stage_id: entry.stage_id,
+        owner_repo: entry.owner_repo,
+        expected: mismatch.expected,
+        observed: mismatch.observed,
+        next_action: 'isolate-target-evidence',
+      });
+    }
+  }
+  for (const entry of result.cleanup.evidence) {
+    const mismatch = targetCorrelationMismatch(manifest, entry);
+    if (mismatch) {
+      failures.push({
+        code: 'evidence-correlation-mismatch',
+        stage_id: entry.stage_id,
+        owner_repo: entry.owner_repo,
+        expected: mismatch.expected,
+        observed: mismatch.observed,
+        next_action: 'isolate-target-evidence',
+      });
+    }
+  }
   const accepted = [];
   for (const stage of manifest.oracles) {
     const permitted = stage.allowed_environments.includes(manifest.environment);
@@ -212,6 +279,11 @@ export function assessRun(manifestInput, resultInput, assessedAt = manifestInput
   if (result.journey.status === 'passed' && result.failure !== null) failures.push({code: 'contradictory-journey', owner_repo: manifest.owner_repo, expected: 'consistent-outcome', observed: 'failure-present', next_action: 'resolve-failure'});
   const assistance = result.journey.assistance_refs.length > 0 ? 'assisted' : 'unassisted';
   const last = result.journey.evidence.filter((entry) => accepted.includes(entry)).at(-1) ?? null;
+  if (result.failure !== null) {
+    const stageOwners = new Set(manifest.oracles.map((stage) => stage.owner_repo));
+    assert.ok(stageOwners.has(result.failure.owning_stage_repo), 'failure owning_stage_repo must match declared manifest stage ownership');
+    assert.equal(result.failure.last_accepted_receipt_ref, last ? last.receipt_ref : null, 'failure last_accepted_receipt_ref must match actual accepted stage evidence');
+  }
   const cleanupMissing = manifest.cleanup_oracles.filter((req) => !result.cleanup.evidence.some((entry) => {
     if (!sameTarget(manifest, entry) || entry.stage_id !== `cleanup-${req.service}` || entry.owner_repo !== req.owner_repo
         || entry.provider_ref !== req.provider_ref || entry.oracle_kind !== 'state') return false;
@@ -219,9 +291,15 @@ export function assessRun(manifestInput, resultInput, assessedAt = manifestInput
       || (entry.state_ref === 'authority-expired' && entry.authority_expires_at !== null && Date.parse(entry.authority_expires_at) <= Date.parse(assessedAt));
     return entry.state_ref === (req.service === 'retry-suppression' ? 'retries-suppressed' : 'resource-absent') && entry.authority_expires_at === null;
   }));
-  const cleanupComplete = result.cleanup.status === 'passed' && result.cleanup.resource_state === 'removed' && cleanupMissing.length === 0;
+  const cleanupCorrelation = result.cleanup.evidence.every((entry) => sameTarget(manifest, entry));
+  const cleanupComplete = result.cleanup.status === 'passed' && result.cleanup.resource_state === 'removed' && cleanupCorrelation && cleanupMissing.length === 0;
+  const hasCorrelationMismatch = failures.some((entry) => entry.code === 'evidence-correlation-mismatch');
   let status = result.journey.status;
-  if (status === 'passed') status = failures.length ? 'blocked' : cleanupComplete ? 'passed' : 'incomplete';
+  if (hasCorrelationMismatch) {
+    status = 'blocked';
+  } else if (status === 'passed') {
+    status = failures.length ? 'blocked' : cleanupComplete ? 'passed' : 'incomplete';
+  }
   if (!cleanupComplete) failures.push({code: 'cleanup-incomplete', owner_repo: manifest.owner_repo,
     expected: 'resource-absence-and-service-safety', observed: 'cleanup-unresolved', next_action: 'resolve-cleanup'});
   return {run_id: manifest.run_id, environment: manifest.environment, target: manifest.target, status, journey: result.journey.status, cleanup: cleanupComplete ? 'passed' : result.cleanup.status === 'failed' ? 'failed' : 'unknown',
@@ -315,6 +393,7 @@ export class FakeLifecycle {
   }
   reconcileInterrupted(input) {
     const {run_id, account_ref, ownership_ref, resource_ref} = exact(input, ['run_id', 'account_ref', 'ownership_ref', 'resource_ref'], 'reconciliation');
+    this.checkDeadline(run_id);
     const r = this.#record(run_id);
     assert.equal(r.account_ref, account_ref, 'account ownership mismatch');
     assert.equal(r.ownership_ref, ownership_ref, 'cleanup ownership mismatch');
@@ -363,6 +442,7 @@ export class FakeLifecycle {
     assert.ok(Object.keys(input).every((key) => ['service', 'receipt_ref', 'status', 'authority_expires_at'].includes(key)), 'cleanup receipt has undeclared fields');
     const {service, receipt_ref, status = 'safe', authority_expires_at = null} = input;
     const r = this.#record(run_id); assert.notEqual(r.state, 'removed', 'removed run is immutable');
+    assert.ok(['cleanup-pending', 'failed'].includes(r.state), 'cleanup receipt requires pending or failed state');
     assert.ok(CLEANUP_SERVICES.has(service), 'cleanup service invalid'); id(receipt_ref, 'receipt_ref'); assert.equal(status, 'safe', 'unsafe receipt');
     if (authority_expires_at !== null) {
       assert.equal(service, 'authority', 'only authority receipt has expiry'); time(authority_expires_at, 'authority expiry');
@@ -433,6 +513,30 @@ export class FakeLifecycle {
       assert.ok(Date.parse(r.heartbeat_at) >= Date.parse(r.created_at) && Date.parse(r.heartbeat_at) <= Date.parse(snapshot.now), 'heartbeat invalid');
       assert.equal(r.cleanup_intent, true, 'cleanup intent missing');
       for (const key of ['history_retained', 'retry_suppression_required']) assert.equal(typeof r[key], 'boolean', key);
+      if (r.state === 'failed') {
+        assert.ok(r.failure_at !== null, 'failed state requires failure metadata');
+        assert.equal(r.retry_suppression_required, true, 'failed state requires retry suppression');
+      } else if (r.state === 'cleanup-pending') {
+        assert.equal(r.failure_at, null, 'cleanup-pending cannot have failure metadata');
+        assert.ok(r.terminal_at !== null, 'cleanup-pending requires terminal metadata');
+        assert.equal(r.retry_suppression_required, true, 'cleanup-pending requires retry suppression');
+        assert.ok(r.resource_ref !== null, 'cleanup-pending requires allocated resource');
+      } else if (r.state === 'removed') {
+        assert.equal(r.retry_suppression_required, true, 'removed state requires retry suppression');
+        if (r.failure_at !== null) {
+          assert.ok(Date.parse(snapshot.now) >= Date.parse(r.expiry_at), 'removed failed run before failure expiry');
+        }
+      } else {
+        assert.equal(r.failure_at, null, 'live state cannot have failure metadata');
+        assert.equal(r.terminal_at, null, 'live state cannot have terminal metadata');
+        assert.equal(r.retry_suppression_required, false, 'live state cannot require retry suppression');
+        assert.deepEqual(r.receipts, [], 'live state cannot have cleanup receipts');
+        if (r.state === 'reserved') {
+          assert.equal(r.resource_ref, null, 'reserved state cannot have allocated resource');
+        } else if (['active', 'evidence-sealed'].includes(r.state)) {
+          assert.ok(r.resource_ref !== null, 'active state requires allocated resource');
+        }
+      }
       if (r.failure_at !== null) {
         time(r.failure_at, 'failure_at'); id(r.failure_reason, 'failure_reason'); time(r.expiry_at, 'expiry_at');
         assert.equal(Date.parse(r.expiry_at), Date.parse(r.failure_at) + FAILURE_WINDOW_MS, 'failure expiry changed');
@@ -445,6 +549,10 @@ export class FakeLifecycle {
         assert.ok(Date.parse(r.terminal_at) >= Date.parse(r.created_at) && Date.parse(r.terminal_at) <= Date.parse(snapshot.now), 'terminal outside run');
         assert.equal(Date.parse(r.history_expires_at), Date.parse(r.terminal_at) + HISTORY_WINDOW_MS, 'history expiry changed');
       } else assert.equal(r.history_expires_at, null);
+      if (!r.history_retained) {
+        assert.equal(r.state, "removed", "unresolved run must retain history");
+        assert.ok(Date.parse(snapshot.now) >= Date.parse(r.history_expires_at), "history dropped before expiry");
+      }
       assert.ok(Array.isArray(r.receipts), 'receipts required');
       for (const receipt of r.receipts) {
         exact(receipt, ['service', 'receipt_ref', 'authority_expires_at'], 'snapshot receipt');
@@ -465,6 +573,13 @@ export class FakeLifecycle {
       exact(resource, ['resource_ref', 'run_id', 'account_ref', 'ownership_ref'], 'snapshot resource');
       for (const value of Object.values(resource)) id(value, 'resource reference');
       assert.equal(life.#resources.has(resource.resource_ref), false, 'duplicate resource');
+      const owner = life.#records.get(resource.run_id);
+      if (owner) {
+        assert.equal(resource.account_ref, owner.account_ref, "resource account mismatch");
+        assert.equal(resource.ownership_ref, owner.ownership_ref, "resource ownership mismatch");
+        assert.ok(owner.resource_refs.includes(resource.resource_ref), "resource outside admitted selector");
+        assert.notEqual(owner.state, "removed", "removed run cannot retain resources");
+      }
       // Foreign fake resources may be injected to exercise refusal; they grant no ownership.
       life.#resources.set(resource.resource_ref, clone(resource));
     }
@@ -474,9 +589,22 @@ export class FakeLifecycle {
     const eventTypes = new Set(['cleanup-ownership-registered', 'cleanup-intent-recorded', 'budget-updated', 'heartbeat-renewed',
       'allocation-started', 'allocation-interrupted', 'allocation-recorded', 'allocation-reconciled', 'resource-unavailable',
       'evidence-sealed', 'retry-suppression-required', 'failure-classified', 'cleanup-receipt-recorded', 'cleanup-pending', 'cleanup-unresolved', 'resource-removed']);
+    let prevAt = -Infinity;
     for (const entry of snapshot.events) {
       exact(entry, ['type', 'at', 'run_id'], 'snapshot event');
-      assert.ok(eventTypes.has(entry.type), 'event type invalid'); time(entry.at, 'event time'); id(entry.run_id, 'event run');
+      assert.ok(eventTypes.has(entry.type), 'event type invalid');
+      time(entry.at, 'event time');
+      id(entry.run_id, 'event run');
+      const eventTime = Date.parse(entry.at);
+      assert.ok(eventTime >= prevAt, 'events out of chronological order');
+      assert.ok(eventTime <= Date.parse(snapshot.now), 'event in the future');
+      prevAt = eventTime;
+      const owner = life.#records.get(entry.run_id);
+      if (!owner) {
+        assert.equal(entry.type, 'resource-unavailable', 'fabricated ownership event for unknown run');
+      } else {
+        assert.ok(eventTime >= Date.parse(owner.created_at), 'event precedes run creation');
+      }
     }
     life.#events = clone(snapshot.events);
     return life;

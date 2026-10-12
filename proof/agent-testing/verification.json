@@ -1,0 +1,25 @@
+{
+  "base": "4c8fdcc30e141075ee39edb017f193622840ac8c",
+  "full_verification_node": "22.23.2",
+  "focused_verification_node": "22.23.1",
+  "checks": {
+    "agent-routes.log": {
+      "sha256": "8910d2f2e6effdd0566585a48711d598afdacf49e066439c6a7ef001fb3ab66b",
+      "exit": 0
+    },
+    "agent-runner.log": {
+      "sha256": "43dafc342970a964c9ef5cc40bc20b9d5bb4bcd68a28df785dcaf13c2f8d97e7",
+      "exit": 0
+    },
+    "typecheck.log": {
+      "sha256": "11812ac1b237de1d7ba7cbc6e0e350f2829b792b68b2d39ed0b3a8feccb5557f",
+      "exit": 0
+    },
+    "verify-node22.23.2.log": {
+      "sha256": "d573a2ec1dff1190e04faccecea0c0bc8487296b81a831882400eafa132eaf2a",
+      "exit": 0
+    }
+  },
+  "scope": "local built HTTP application; synthetic email and store-proof transports",
+  "deployed": false
+}

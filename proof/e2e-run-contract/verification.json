@@ -1,26 +1,40 @@
 {
   "schema_version": 1,
   "repository": "dinkuskit/dinkuskit",
-  "base_commit": "4c8fdcc30e141075ee39edb017f193622840ac8c",
+  "base_commit": "771d91245918f321afbd55f495ec34741e6f09df",
+  "initial_head": "2afd397321254a4a3683edec9858b4501455d8b8",
   "runtime": "Node v22.23.2",
   "source_sha256": {
-    "tests/e2e/run-contract.mjs": "da6898307997f95f182f671f42d2d9f15b81b2641398055752ce4e8a14c5f1d5",
-    "tests/e2e/run-contract.test.mjs": "84d3bba255304db3771f9b2d27f98607258560043b5d8337d8913000deaaf26c",
-    "docs/e2e-run-contract.md": "8cbebdc3ae118e25f784fe97c6f64787599b566e7548e96d3f1f727be1a44470",
-    "package.json": "6631098a7fcde695d44c5630b190f126f706d725ffd21f403bf8d1b26f91a973"
+    "tests/e2e/run-contract.mjs": "681fce36c64b56479fd6bf1e6a6d11fbcbd003e8354a317d6741991ef85f4a09",
+    "tests/e2e/run-contract.test.mjs": "e7b1a2d6a0e3a84889996e2b845bf8ba58389d03e22c0506d3f8bcc1ecf09ea6",
+    "docs/e2e-run-contract.md": "ce1ad79af32a3d62d0a99ec4c582a06cefcbd3159a0fc6440e9bd8c6f3a16303",
+    "package.json": "7edc505656659e256235c5740d150584b6482212cbe57669b673385ec1fc436b"
   },
   "checks": [
     {
-      "command": "npm ci",
+      "command": "node --test tests/e2e/run-contract.test.mjs",
+      "exit_code": 0,
+      "tests": 38,
+      "status": "passed"
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "status": "passed"
+    },
+    {
+      "command": "node scripts/audit-repo.mjs",
+      "exit_code": 0,
+      "status": "passed"
+    },
+    {
+      "command": "./scripts/grilltrack --project . validate",
+      "status": "passed",
       "exit_code": 0
     },
     {
-      "command": "npm run test:e2e-contract",
-      "exit_code": 0,
-      "tests": 23
-    },
-    {
       "command": "npm run verify",
+      "status": "passed",
       "exit_code": 0,
       "completed_commands": [
         "verify",
@@ -31,6 +45,7 @@
         "test:account",
         "test:e2e-contract",
         "build",
+        "test:agent-routes",
         "test:inventory-runner",
         "test:merchant",
         "test:shared-store",
@@ -55,7 +70,11 @@
         },
         {
           "command": "test:e2e-contract",
-          "tests": 23
+          "tests": 38
+        },
+        {
+          "command": "test:agent-routes",
+          "tests": 5
         },
         {
           "command": "test:inventory-runner",
@@ -71,7 +90,7 @@
         },
         {
           "command": "test:foundation",
-          "tests": 7
+          "tests": 8
         },
         {
           "command": "test:inventory-overview",
@@ -86,16 +105,443 @@
           "tests": 8
         }
       ]
-    },
-    {
-      "command": "git diff --check",
-      "exit_code": 0
     }
   ],
   "claims": {
-    "local_contract": "verified",
+    "local_contract": "verified-focused-38-tests",
     "hosted_a": "not-run",
     "deployed_b": "not-run",
+    "full_verification": "passed",
     "independent_review": "pending"
+  },
+  "verified_at": "2026-10-11T23:53:06.993704+00:00",
+  "historical_cycle8": {
+    "head": "2afd397321254a4a3683edec9858b4501455d8b8",
+    "source_sha256": {
+      "tests/e2e/run-contract.mjs": "07cde8eef2507e7c14fdf1e42ea2302b7720df27a2e1a36c8212be33944e7dcb",
+      "tests/e2e/run-contract.test.mjs": "5c7de83c6a60dab78705ccfb5eca13b6ef6e4b2451e276a1f658bb664f7c6896",
+      "docs/e2e-run-contract.md": "d16c51c3af636f3a9aabd0ca8e89e7ac4ad89337e6fb75f7ca78e22aa0fdb389",
+      "package.json": "7edc505656659e256235c5740d150584b6482212cbe57669b673385ec1fc436b"
+    },
+    "checks": [
+      {
+        "command": "node --test tests/e2e/run-contract.test.mjs",
+        "exit_code": 0,
+        "tests": 36,
+        "status": "passed"
+      },
+      {
+        "command": "git diff --check",
+        "exit_code": 0,
+        "status": "passed"
+      },
+      {
+        "command": "node scripts/audit-repo.mjs",
+        "exit_code": 0,
+        "status": "passed"
+      },
+      {
+        "command": "./scripts/grilltrack --project . validate",
+        "status": "passed",
+        "exit_code": 0
+      },
+      {
+        "command": "npm run verify",
+        "status": "passed",
+        "exit_code": 0,
+        "completed_commands": [
+          "verify",
+          "audit:repo",
+          "setup",
+          "types:wrangler",
+          "typecheck",
+          "test:account",
+          "test:e2e-contract",
+          "build",
+          "test:agent-routes",
+          "test:inventory-runner",
+          "test:merchant",
+          "test:shared-store",
+          "test:foundation",
+          "test:inventory-overview",
+          "test:organization-approvals",
+          "test:operator-admin",
+          "test:smoke",
+          "test:dev-cms",
+          "test:public-release-reuse",
+          "test:cms-operation-helpers",
+          "test:access-gate",
+          "test:safe-http-url",
+          "test:cms-operation",
+          "test:emdash-upgrade",
+          "test:cloudflare-candidate"
+        ],
+        "native_test_groups": [
+          {
+            "command": "test:account",
+            "tests": 10
+          },
+          {
+            "command": "test:e2e-contract",
+            "tests": 36
+          },
+          {
+            "command": "test:agent-routes",
+            "tests": 5
+          },
+          {
+            "command": "test:inventory-runner",
+            "tests": 9
+          },
+          {
+            "command": "test:merchant",
+            "tests": 20
+          },
+          {
+            "command": "test:shared-store",
+            "tests": 27
+          },
+          {
+            "command": "test:foundation",
+            "tests": 8
+          },
+          {
+            "command": "test:inventory-overview",
+            "tests": 8
+          },
+          {
+            "command": "test:organization-approvals",
+            "tests": 5
+          },
+          {
+            "command": "test:operator-admin",
+            "tests": 8
+          }
+        ]
+      }
+    ]
+  },
+  "historical_cycle7": {
+    "head": "7356a84012ce0c69f62fc6909d8b0ddb6e2dc527",
+    "source_sha256": {
+      "tests/e2e/run-contract.mjs": "7d6d2c2b89fd641c6268187a823ad113109087d8b42fa89fcdb98d106036c040",
+      "tests/e2e/run-contract.test.mjs": "993c27c7a731b88dea929b18fb16f322fa089284801a15aca195e3509a20ca19",
+      "docs/e2e-run-contract.md": "99083654d380829cbc74ed6387b95567360b683a2df3d87496f76001a10c8898",
+      "package.json": "7edc505656659e256235c5740d150584b6482212cbe57669b673385ec1fc436b"
+    },
+    "checks": [
+      {
+        "command": "node --test tests/e2e/run-contract.test.mjs",
+        "exit_code": 0,
+        "tests": 34,
+        "status": "passed"
+      },
+      {
+        "command": "git diff --check",
+        "exit_code": 0,
+        "status": "passed"
+      },
+      {
+        "command": "node scripts/audit-repo.mjs",
+        "exit_code": 0,
+        "status": "passed"
+      },
+      {
+        "command": "./scripts/grilltrack --project . validate",
+        "status": "passed",
+        "exit_code": 0
+      },
+      {
+        "command": "npm run verify",
+        "status": "blocked-external-font-download",
+        "exit_code": 1,
+        "completed_commands": [
+          "audit:repo",
+          "setup",
+          "types:wrangler",
+          "typecheck",
+          "test:account",
+          "test:e2e-contract",
+          "build",
+          "test:agent-routes",
+          "test:inventory-runner",
+          "test:merchant",
+          "test:shared-store",
+          "test:foundation",
+          "test:inventory-overview",
+          "test:organization-approvals",
+          "test:operator-admin",
+          "test:smoke",
+          "test:dev-cms",
+          "test:public-release-reuse",
+          "test:cms-operation-helpers",
+          "test:access-gate",
+          "test:safe-http-url",
+          "test:cms-operation"
+        ],
+        "native_test_groups": [
+          {
+            "command": "test:account",
+            "tests": 10
+          },
+          {
+            "command": "test:e2e-contract",
+            "tests": 34
+          },
+          {
+            "command": "test:agent-routes",
+            "tests": 5
+          },
+          {
+            "command": "test:inventory-runner",
+            "tests": 9
+          },
+          {
+            "command": "test:merchant",
+            "tests": 20
+          },
+          {
+            "command": "test:shared-store",
+            "tests": 27
+          },
+          {
+            "command": "test:foundation",
+            "tests": 8
+          },
+          {
+            "command": "test:inventory-overview",
+            "tests": 8
+          },
+          {
+            "command": "test:organization-approvals",
+            "tests": 5
+          },
+          {
+            "command": "test:operator-admin",
+            "tests": 8
+          }
+        ],
+        "note": "All preceding commands passed including134 native tests. Upgrade fixture build failed CannotFetchFontFile from fonts.gstatic.com; final test:cloudflare-candidate was not reached. Current-head CI full verification required."
+      }
+    ],
+    "ci": {
+      "run_id": 38182169287,
+      "conclusion": "success",
+      "url": "https://github.com/dinkuskit/dinkuskit/actions/runs/38182169287"
+    }
+  },
+  "historical_cycle6": {
+    "head": "69384a095af1a9d3166e7da2b2024264ad2242b6",
+    "source_sha256": {
+      "tests/e2e/run-contract.mjs": "fb5ce409ef4b5e7ca97eede745d1907041653ddfc8907dc4d562424a7dbed9ba",
+      "tests/e2e/run-contract.test.mjs": "2468e8dd84519cff69dc6ec3e482363aaf9af5a2e428e5ceb855e6040c962398",
+      "docs/e2e-run-contract.md": "271a014ff0a9ebcbcd68c7768790d641f4aa7824e243634a71237a1173614e05",
+      "package.json": "7edc505656659e256235c5740d150584b6482212cbe57669b673385ec1fc436b"
+    },
+    "checks": [
+      {
+        "command": "node --test tests/e2e/run-contract.test.mjs",
+        "exit_code": 0,
+        "tests": 32,
+        "status": "passed"
+      },
+      {
+        "command": "git diff --check",
+        "exit_code": 0,
+        "status": "passed"
+      },
+      {
+        "command": "node scripts/audit-repo.mjs",
+        "exit_code": 0,
+        "status": "passed"
+      },
+      {
+        "command": "./scripts/grilltrack --project . validate",
+        "status": "passed",
+        "exit_code": 0
+      },
+      {
+        "command": "npm run verify",
+        "status": "blocked-external-font-download",
+        "exit_code": 1,
+        "completed_commands": [
+          "audit:repo",
+          "setup",
+          "types:wrangler",
+          "typecheck",
+          "test:account",
+          "test:e2e-contract",
+          "build",
+          "test:agent-routes",
+          "test:inventory-runner",
+          "test:merchant",
+          "test:shared-store",
+          "test:foundation",
+          "test:inventory-overview",
+          "test:organization-approvals",
+          "test:operator-admin",
+          "test:smoke",
+          "test:dev-cms",
+          "test:public-release-reuse",
+          "test:cms-operation-helpers",
+          "test:access-gate",
+          "test:safe-http-url",
+          "test:cms-operation",
+          "test:emdash-upgrade"
+        ],
+        "native_test_groups": [
+          {
+            "command": "test:account",
+            "tests": 10
+          },
+          {
+            "command": "test:e2e-contract",
+            "tests": 32
+          },
+          {
+            "command": "test:agent-routes",
+            "tests": 5
+          },
+          {
+            "command": "test:inventory-runner",
+            "tests": 9
+          },
+          {
+            "command": "test:merchant",
+            "tests": 20
+          },
+          {
+            "command": "test:shared-store",
+            "tests": 27
+          },
+          {
+            "command": "test:foundation",
+            "tests": 8
+          },
+          {
+            "command": "test:inventory-overview",
+            "tests": 8
+          },
+          {
+            "command": "test:organization-approvals",
+            "tests": 5
+          },
+          {
+            "command": "test:operator-admin",
+            "tests": 8
+          }
+        ],
+        "note": "All preceding checks passed; final test:cloudflare-candidate build failed CannotFetchFontFile from fonts.gstatic.com. Two isolated retries also failed. No source assertion failed; current-head CI remains required."
+      },
+      {
+        "command": "npm run test:cloudflare-candidate",
+        "status": "blocked-external-font-download",
+        "exit_code": 1,
+        "attempts": 2
+      }
+    ],
+    "ci": {
+      "run_id": 38180462397,
+      "attempt": 2,
+      "conclusion": "success",
+      "url": "https://github.com/dinkuskit/dinkuskit/actions/runs/38180462397"
+    }
+  },
+  "historical_verification": {
+    "note": "Preserved historical verification from pre-integration snapshot (23 tests based on 4c8fdcc30e141075ee39edb017f193622840ac8c)",
+    "base_commit": "4c8fdcc30e141075ee39edb017f193622840ac8c",
+    "source_sha256": {
+      "tests/e2e/run-contract.mjs": "da6898307997f95f182f671f42d2d9f15b81b2641398055752ce4e8a14c5f1d5",
+      "tests/e2e/run-contract.test.mjs": "84d3bba255304db3771f9b2d27f98607258560043b5d8337d8913000deaaf26c",
+      "docs/e2e-run-contract.md": "8cbebdc3ae118e25f784fe97c6f64787599b566e7548e96d3f1f727be1a44470",
+      "package.json": "6631098a7fcde695d44c5630b190f126f706d725ffd21f403bf8d1b26f91a973"
+    },
+    "checks": [
+      {
+        "command": "npm ci",
+        "exit_code": 0
+      },
+      {
+        "command": "npm run test:e2e-contract",
+        "exit_code": 0,
+        "tests": 23
+      },
+      {
+        "command": "npm run verify",
+        "exit_code": 0,
+        "completed_commands": [
+          "verify",
+          "audit:repo",
+          "setup",
+          "types:wrangler",
+          "typecheck",
+          "test:account",
+          "test:e2e-contract",
+          "build",
+          "test:inventory-runner",
+          "test:merchant",
+          "test:shared-store",
+          "test:foundation",
+          "test:inventory-overview",
+          "test:organization-approvals",
+          "test:operator-admin",
+          "test:smoke",
+          "test:dev-cms",
+          "test:public-release-reuse",
+          "test:cms-operation-helpers",
+          "test:access-gate",
+          "test:safe-http-url",
+          "test:cms-operation",
+          "test:emdash-upgrade",
+          "test:cloudflare-candidate"
+        ],
+        "native_test_groups": [
+          {
+            "command": "test:account",
+            "tests": 10
+          },
+          {
+            "command": "test:e2e-contract",
+            "tests": 23
+          },
+          {
+            "command": "test:inventory-runner",
+            "tests": 9
+          },
+          {
+            "command": "test:merchant",
+            "tests": 20
+          },
+          {
+            "command": "test:shared-store",
+            "tests": 27
+          },
+          {
+            "command": "test:foundation",
+            "tests": 8
+          },
+          {
+            "command": "test:inventory-overview",
+            "tests": 8
+          },
+          {
+            "command": "test:organization-approvals",
+            "tests": 5
+          },
+          {
+            "command": "test:operator-admin",
+            "tests": 7
+          }
+        ]
+      },
+      {
+        "command": "git diff --check",
+        "exit_code": 0
+      },
+      {
+        "command": "grilltrack validate",
+        "exit_code": 0
+      }
+    ]
   }
 }

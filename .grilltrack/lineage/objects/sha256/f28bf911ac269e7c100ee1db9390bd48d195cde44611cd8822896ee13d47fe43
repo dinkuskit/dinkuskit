@@ -1,0 +1,1542 @@
+{
+  "adjudicated_decisions": {
+    "merchant-auth-007": {
+      "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+      "role": "incoming"
+    },
+    "merchant-better-auth-008": {
+      "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+      "role": "incoming"
+    },
+    "merchant-closure-019": {
+      "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+      "role": "incoming"
+    },
+    "merchant-communication-018": {
+      "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+      "role": "incoming"
+    },
+    "merchant-communication-018-repair": {
+      "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+      "role": "incoming"
+    },
+    "merchant-connect-local-proof-009": {
+      "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+      "role": "incoming"
+    },
+    "merchant-employee-authority-021": {
+      "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+      "role": "incoming"
+    },
+    "merchant-membership-013": {
+      "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+      "role": "incoming"
+    },
+    "merchant-operator-017": {
+      "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+      "role": "incoming"
+    },
+    "merchant-owner-privileges-015": {
+      "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+      "role": "incoming"
+    },
+    "merchant-phone-transport-option-023": {
+      "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+      "role": "incoming"
+    },
+    "merchant-pilot-admission-020": {
+      "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+      "role": "incoming"
+    },
+    "merchant-signup-contact-016": {
+      "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+      "role": "incoming"
+    },
+    "merchant-signup-flow-022": {
+      "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+      "role": "incoming"
+    },
+    "merchant-signup-flow-022-repair": {
+      "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+      "role": "incoming"
+    },
+    "merchant-tier-intent-014": {
+      "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+      "role": "incoming"
+    },
+    "website-account-003": {
+      "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+      "role": "incoming"
+    },
+    "website-audience-002": {
+      "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+      "role": "incoming"
+    },
+    "website-availability-010": {
+      "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+      "role": "incoming"
+    },
+    "website-commerce-checkout-settings-044": {
+      "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+      "role": "incoming"
+    },
+    "website-coupons-coming-soon-046": {
+      "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+      "role": "incoming"
+    },
+    "website-domain-006": {
+      "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+      "role": "incoming"
+    },
+    "website-e2e-run-contract-049": {
+      "reason": "Preauthorized routine adjudication: current main lifecycle decision 049 body on main wins over stale fork.",
+      "role": "incoming"
+    },
+    "website-email-contact-without-phone-034": {
+      "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+      "role": "incoming"
+    },
+    "website-emdash12-025": {
+      "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+      "role": "incoming"
+    },
+    "website-future-004": {
+      "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+      "role": "incoming"
+    },
+    "website-inventory-overview-024": {
+      "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+      "role": "incoming"
+    },
+    "website-merchant-admission-status-029": {
+      "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+      "role": "incoming"
+    },
+    "website-operation-009": {
+      "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+      "role": "incoming"
+    },
+    "website-operator-012": {
+      "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+      "role": "incoming"
+    },
+    "website-operator-admin-emdash-access-035": {
+      "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+      "role": "incoming"
+    },
+    "website-operator-approvals-in-admin-039": {
+      "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+      "role": "incoming"
+    },
+    "website-operator-authorization-027": {
+      "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+      "role": "incoming"
+    },
+    "website-operator-cut-off-store-037": {
+      "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+      "role": "incoming"
+    },
+    "website-operator-directory-026": {
+      "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+      "role": "incoming"
+    },
+    "website-operator-restore-cut-off-store-041": {
+      "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+      "role": "incoming"
+    },
+    "website-operator-services-view-038": {
+      "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+      "role": "incoming"
+    },
+    "website-operator-suspend-account-036": {
+      "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+      "role": "incoming"
+    },
+    "website-optional-phone-signup-033": {
+      "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+      "role": "incoming"
+    },
+    "website-organization-approvals-028": {
+      "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+      "role": "incoming"
+    },
+    "website-owner-remove-employee-040": {
+      "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+      "role": "incoming"
+    },
+    "website-platform-001": {
+      "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+      "role": "incoming"
+    },
+    "website-production-store-connect-032": {
+      "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+      "role": "incoming"
+    },
+    "website-public-launch-008": {
+      "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+      "role": "incoming"
+    },
+    "website-scaffold-005": {
+      "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+      "role": "incoming"
+    },
+    "website-shared-store-service-grants-030": {
+      "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+      "role": "incoming"
+    },
+    "website-ship-signin-047": {
+      "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+      "role": "incoming"
+    },
+    "website-store-key-for-commerce-042": {
+      "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+      "role": "incoming"
+    },
+    "website-store-key-without-payments-045": {
+      "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+      "role": "incoming"
+    },
+    "website-store-pass-site-origin-048": {
+      "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+      "role": "incoming"
+    },
+    "website-store-services-opt-in-043": {
+      "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+      "role": "incoming"
+    },
+    "website-template-demo-011": {
+      "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+      "role": "incoming"
+    },
+    "website-test-mode-deploy-031": {
+      "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+      "role": "incoming"
+    },
+    "website-visual-007": {
+      "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+      "role": "incoming"
+    }
+  },
+  "adjudication": {
+    "decisions": {
+      "merchant-auth-007": {
+        "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+        "role": "incoming"
+      },
+      "merchant-better-auth-008": {
+        "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+        "role": "incoming"
+      },
+      "merchant-closure-019": {
+        "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+        "role": "incoming"
+      },
+      "merchant-communication-018": {
+        "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+        "role": "incoming"
+      },
+      "merchant-communication-018-repair": {
+        "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+        "role": "incoming"
+      },
+      "merchant-connect-local-proof-009": {
+        "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+        "role": "incoming"
+      },
+      "merchant-employee-authority-021": {
+        "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+        "role": "incoming"
+      },
+      "merchant-membership-013": {
+        "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+        "role": "incoming"
+      },
+      "merchant-operator-017": {
+        "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+        "role": "incoming"
+      },
+      "merchant-owner-privileges-015": {
+        "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+        "role": "incoming"
+      },
+      "merchant-phone-transport-option-023": {
+        "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+        "role": "incoming"
+      },
+      "merchant-pilot-admission-020": {
+        "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+        "role": "incoming"
+      },
+      "merchant-signup-contact-016": {
+        "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+        "role": "incoming"
+      },
+      "merchant-signup-flow-022": {
+        "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+        "role": "incoming"
+      },
+      "merchant-signup-flow-022-repair": {
+        "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+        "role": "incoming"
+      },
+      "merchant-tier-intent-014": {
+        "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+        "role": "incoming"
+      },
+      "website-account-003": {
+        "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+        "role": "incoming"
+      },
+      "website-audience-002": {
+        "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+        "role": "incoming"
+      },
+      "website-availability-010": {
+        "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+        "role": "incoming"
+      },
+      "website-commerce-checkout-settings-044": {
+        "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+        "role": "incoming"
+      },
+      "website-coupons-coming-soon-046": {
+        "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+        "role": "incoming"
+      },
+      "website-domain-006": {
+        "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+        "role": "incoming"
+      },
+      "website-e2e-run-contract-049": {
+        "reason": "Preauthorized routine adjudication: current main lifecycle decision 049 body on main wins over stale fork.",
+        "role": "incoming"
+      },
+      "website-email-contact-without-phone-034": {
+        "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+        "role": "incoming"
+      },
+      "website-emdash12-025": {
+        "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+        "role": "incoming"
+      },
+      "website-future-004": {
+        "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+        "role": "incoming"
+      },
+      "website-inventory-overview-024": {
+        "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+        "role": "incoming"
+      },
+      "website-merchant-admission-status-029": {
+        "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+        "role": "incoming"
+      },
+      "website-operation-009": {
+        "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+        "role": "incoming"
+      },
+      "website-operator-012": {
+        "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+        "role": "incoming"
+      },
+      "website-operator-admin-emdash-access-035": {
+        "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+        "role": "incoming"
+      },
+      "website-operator-approvals-in-admin-039": {
+        "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+        "role": "incoming"
+      },
+      "website-operator-authorization-027": {
+        "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+        "role": "incoming"
+      },
+      "website-operator-cut-off-store-037": {
+        "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+        "role": "incoming"
+      },
+      "website-operator-directory-026": {
+        "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+        "role": "incoming"
+      },
+      "website-operator-restore-cut-off-store-041": {
+        "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+        "role": "incoming"
+      },
+      "website-operator-services-view-038": {
+        "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+        "role": "incoming"
+      },
+      "website-operator-suspend-account-036": {
+        "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+        "role": "incoming"
+      },
+      "website-optional-phone-signup-033": {
+        "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+        "role": "incoming"
+      },
+      "website-organization-approvals-028": {
+        "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+        "role": "incoming"
+      },
+      "website-owner-remove-employee-040": {
+        "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+        "role": "incoming"
+      },
+      "website-platform-001": {
+        "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+        "role": "incoming"
+      },
+      "website-production-store-connect-032": {
+        "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+        "role": "incoming"
+      },
+      "website-public-launch-008": {
+        "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+        "role": "incoming"
+      },
+      "website-scaffold-005": {
+        "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+        "role": "incoming"
+      },
+      "website-shared-store-service-grants-030": {
+        "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+        "role": "incoming"
+      },
+      "website-ship-signin-047": {
+        "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+        "role": "incoming"
+      },
+      "website-store-key-for-commerce-042": {
+        "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+        "role": "incoming"
+      },
+      "website-store-key-without-payments-045": {
+        "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+        "role": "incoming"
+      },
+      "website-store-pass-site-origin-048": {
+        "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+        "role": "incoming"
+      },
+      "website-store-services-opt-in-043": {
+        "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+        "role": "incoming"
+      },
+      "website-template-demo-011": {
+        "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+        "role": "incoming"
+      },
+      "website-test-mode-deploy-031": {
+        "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+        "role": "incoming"
+      },
+      "website-visual-007": {
+        "reason": "Preauthorized routine adjudication: current main lifecycle body on main wins over stale fork.",
+        "role": "incoming"
+      }
+    },
+    "refs": {
+      "base": "c9062f843615ba1eb6ec94204e4583f5927f2fdf",
+      "current": "57f9a4338dc473dbfdcce76289703eeb7f7a0316",
+      "incoming": "ed60ae7fb4ae657ddf2a0b30dddb7d1593575f1e"
+    },
+    "schema": "grilltrack/adjudication/v1"
+  },
+  "composed_review": false,
+  "composed_verification": false,
+  "decision_ids": [
+    "merchant-auth-007",
+    "merchant-better-auth-008",
+    "merchant-closure-019",
+    "merchant-communication-018",
+    "merchant-communication-018-repair",
+    "merchant-connect-local-proof-009",
+    "merchant-employee-authority-021",
+    "merchant-membership-013",
+    "merchant-operator-017",
+    "merchant-owner-privileges-015",
+    "merchant-phone-transport-option-023",
+    "merchant-pilot-admission-020",
+    "merchant-signup-contact-016",
+    "merchant-signup-flow-022",
+    "merchant-signup-flow-022-repair",
+    "merchant-tier-intent-014",
+    "website-account-003",
+    "website-account-pages-plain-words-049",
+    "website-agent-testing-032",
+    "website-audience-002",
+    "website-availability-010",
+    "website-commerce-checkout-settings-044",
+    "website-coupons-coming-soon-046",
+    "website-domain-006",
+    "website-e2e-mailbox-contract-050",
+    "website-e2e-run-contract-049",
+    "website-email-contact-without-phone-034",
+    "website-emdash12-025",
+    "website-future-004",
+    "website-inventory-overview-024",
+    "website-merchant-admission-status-029",
+    "website-operation-009",
+    "website-operator-012",
+    "website-operator-admin-emdash-access-035",
+    "website-operator-approvals-in-admin-039",
+    "website-operator-authorization-027",
+    "website-operator-cut-off-store-037",
+    "website-operator-directory-026",
+    "website-operator-restore-cut-off-store-041",
+    "website-operator-services-view-038",
+    "website-operator-suspend-account-036",
+    "website-optional-phone-signup-033",
+    "website-organization-approvals-028",
+    "website-owner-remove-employee-040",
+    "website-owner-renames-business-050",
+    "website-platform-001",
+    "website-production-store-connect-032",
+    "website-public-launch-008",
+    "website-scaffold-005",
+    "website-shared-store-service-grants-030",
+    "website-ship-signin-047",
+    "website-store-key-for-commerce-042",
+    "website-store-key-without-payments-045",
+    "website-store-pass-site-origin-048",
+    "website-store-services-opt-in-043",
+    "website-template-demo-011",
+    "website-test-mode-deploy-031",
+    "website-visual-007"
+  ],
+  "decision_provenance": {
+    "merchant-auth-007": [
+      {
+        "role": "base",
+        "source_identity": "git:c9062f843615ba1eb6ec94204e4583f5927f2fdf",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:57f9a4338dc473dbfdcce76289703eeb7f7a0316",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:ed60ae7fb4ae657ddf2a0b30dddb7d1593575f1e",
+        "track_id": "gt-join-7769d874ad28c3b4cfb163f45ea91183"
+      }
+    ],
+    "merchant-better-auth-008": [
+      {
+        "role": "base",
+        "source_identity": "git:c9062f843615ba1eb6ec94204e4583f5927f2fdf",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:57f9a4338dc473dbfdcce76289703eeb7f7a0316",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:ed60ae7fb4ae657ddf2a0b30dddb7d1593575f1e",
+        "track_id": "gt-join-7769d874ad28c3b4cfb163f45ea91183"
+      }
+    ],
+    "merchant-closure-019": [
+      {
+        "role": "base",
+        "source_identity": "git:c9062f843615ba1eb6ec94204e4583f5927f2fdf",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:57f9a4338dc473dbfdcce76289703eeb7f7a0316",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:ed60ae7fb4ae657ddf2a0b30dddb7d1593575f1e",
+        "track_id": "gt-join-7769d874ad28c3b4cfb163f45ea91183"
+      }
+    ],
+    "merchant-communication-018": [
+      {
+        "role": "base",
+        "source_identity": "git:c9062f843615ba1eb6ec94204e4583f5927f2fdf",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:57f9a4338dc473dbfdcce76289703eeb7f7a0316",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:ed60ae7fb4ae657ddf2a0b30dddb7d1593575f1e",
+        "track_id": "gt-join-7769d874ad28c3b4cfb163f45ea91183"
+      }
+    ],
+    "merchant-communication-018-repair": [
+      {
+        "role": "base",
+        "source_identity": "git:c9062f843615ba1eb6ec94204e4583f5927f2fdf",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:57f9a4338dc473dbfdcce76289703eeb7f7a0316",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:ed60ae7fb4ae657ddf2a0b30dddb7d1593575f1e",
+        "track_id": "gt-join-7769d874ad28c3b4cfb163f45ea91183"
+      }
+    ],
+    "merchant-connect-local-proof-009": [
+      {
+        "role": "base",
+        "source_identity": "git:c9062f843615ba1eb6ec94204e4583f5927f2fdf",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:57f9a4338dc473dbfdcce76289703eeb7f7a0316",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:ed60ae7fb4ae657ddf2a0b30dddb7d1593575f1e",
+        "track_id": "gt-join-7769d874ad28c3b4cfb163f45ea91183"
+      }
+    ],
+    "merchant-employee-authority-021": [
+      {
+        "role": "base",
+        "source_identity": "git:c9062f843615ba1eb6ec94204e4583f5927f2fdf",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:57f9a4338dc473dbfdcce76289703eeb7f7a0316",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:ed60ae7fb4ae657ddf2a0b30dddb7d1593575f1e",
+        "track_id": "gt-join-7769d874ad28c3b4cfb163f45ea91183"
+      }
+    ],
+    "merchant-membership-013": [
+      {
+        "role": "base",
+        "source_identity": "git:c9062f843615ba1eb6ec94204e4583f5927f2fdf",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:57f9a4338dc473dbfdcce76289703eeb7f7a0316",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:ed60ae7fb4ae657ddf2a0b30dddb7d1593575f1e",
+        "track_id": "gt-join-7769d874ad28c3b4cfb163f45ea91183"
+      }
+    ],
+    "merchant-operator-017": [
+      {
+        "role": "base",
+        "source_identity": "git:c9062f843615ba1eb6ec94204e4583f5927f2fdf",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:57f9a4338dc473dbfdcce76289703eeb7f7a0316",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:ed60ae7fb4ae657ddf2a0b30dddb7d1593575f1e",
+        "track_id": "gt-join-7769d874ad28c3b4cfb163f45ea91183"
+      }
+    ],
+    "merchant-owner-privileges-015": [
+      {
+        "role": "base",
+        "source_identity": "git:c9062f843615ba1eb6ec94204e4583f5927f2fdf",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:57f9a4338dc473dbfdcce76289703eeb7f7a0316",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:ed60ae7fb4ae657ddf2a0b30dddb7d1593575f1e",
+        "track_id": "gt-join-7769d874ad28c3b4cfb163f45ea91183"
+      }
+    ],
+    "merchant-phone-transport-option-023": [
+      {
+        "role": "base",
+        "source_identity": "git:c9062f843615ba1eb6ec94204e4583f5927f2fdf",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:57f9a4338dc473dbfdcce76289703eeb7f7a0316",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:ed60ae7fb4ae657ddf2a0b30dddb7d1593575f1e",
+        "track_id": "gt-join-7769d874ad28c3b4cfb163f45ea91183"
+      }
+    ],
+    "merchant-pilot-admission-020": [
+      {
+        "role": "base",
+        "source_identity": "git:c9062f843615ba1eb6ec94204e4583f5927f2fdf",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:57f9a4338dc473dbfdcce76289703eeb7f7a0316",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:ed60ae7fb4ae657ddf2a0b30dddb7d1593575f1e",
+        "track_id": "gt-join-7769d874ad28c3b4cfb163f45ea91183"
+      }
+    ],
+    "merchant-signup-contact-016": [
+      {
+        "role": "base",
+        "source_identity": "git:c9062f843615ba1eb6ec94204e4583f5927f2fdf",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:57f9a4338dc473dbfdcce76289703eeb7f7a0316",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:ed60ae7fb4ae657ddf2a0b30dddb7d1593575f1e",
+        "track_id": "gt-join-7769d874ad28c3b4cfb163f45ea91183"
+      }
+    ],
+    "merchant-signup-flow-022": [
+      {
+        "role": "base",
+        "source_identity": "git:c9062f843615ba1eb6ec94204e4583f5927f2fdf",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:57f9a4338dc473dbfdcce76289703eeb7f7a0316",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:ed60ae7fb4ae657ddf2a0b30dddb7d1593575f1e",
+        "track_id": "gt-join-7769d874ad28c3b4cfb163f45ea91183"
+      }
+    ],
+    "merchant-signup-flow-022-repair": [
+      {
+        "role": "base",
+        "source_identity": "git:c9062f843615ba1eb6ec94204e4583f5927f2fdf",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:57f9a4338dc473dbfdcce76289703eeb7f7a0316",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:ed60ae7fb4ae657ddf2a0b30dddb7d1593575f1e",
+        "track_id": "gt-join-7769d874ad28c3b4cfb163f45ea91183"
+      }
+    ],
+    "merchant-tier-intent-014": [
+      {
+        "role": "base",
+        "source_identity": "git:c9062f843615ba1eb6ec94204e4583f5927f2fdf",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:57f9a4338dc473dbfdcce76289703eeb7f7a0316",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:ed60ae7fb4ae657ddf2a0b30dddb7d1593575f1e",
+        "track_id": "gt-join-7769d874ad28c3b4cfb163f45ea91183"
+      }
+    ],
+    "website-account-003": [
+      {
+        "role": "base",
+        "source_identity": "git:c9062f843615ba1eb6ec94204e4583f5927f2fdf",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:57f9a4338dc473dbfdcce76289703eeb7f7a0316",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:ed60ae7fb4ae657ddf2a0b30dddb7d1593575f1e",
+        "track_id": "gt-join-7769d874ad28c3b4cfb163f45ea91183"
+      }
+    ],
+    "website-account-pages-plain-words-049": [
+      {
+        "role": "incoming",
+        "source_identity": "git:ed60ae7fb4ae657ddf2a0b30dddb7d1593575f1e",
+        "track_id": "gt-join-7769d874ad28c3b4cfb163f45ea91183"
+      }
+    ],
+    "website-agent-testing-032": [
+      {
+        "role": "incoming",
+        "source_identity": "git:ed60ae7fb4ae657ddf2a0b30dddb7d1593575f1e",
+        "track_id": "gt-join-7769d874ad28c3b4cfb163f45ea91183"
+      }
+    ],
+    "website-audience-002": [
+      {
+        "role": "base",
+        "source_identity": "git:c9062f843615ba1eb6ec94204e4583f5927f2fdf",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:57f9a4338dc473dbfdcce76289703eeb7f7a0316",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:ed60ae7fb4ae657ddf2a0b30dddb7d1593575f1e",
+        "track_id": "gt-join-7769d874ad28c3b4cfb163f45ea91183"
+      }
+    ],
+    "website-availability-010": [
+      {
+        "role": "base",
+        "source_identity": "git:c9062f843615ba1eb6ec94204e4583f5927f2fdf",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:57f9a4338dc473dbfdcce76289703eeb7f7a0316",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:ed60ae7fb4ae657ddf2a0b30dddb7d1593575f1e",
+        "track_id": "gt-join-7769d874ad28c3b4cfb163f45ea91183"
+      }
+    ],
+    "website-commerce-checkout-settings-044": [
+      {
+        "role": "base",
+        "source_identity": "git:c9062f843615ba1eb6ec94204e4583f5927f2fdf",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:57f9a4338dc473dbfdcce76289703eeb7f7a0316",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:ed60ae7fb4ae657ddf2a0b30dddb7d1593575f1e",
+        "track_id": "gt-join-7769d874ad28c3b4cfb163f45ea91183"
+      }
+    ],
+    "website-coupons-coming-soon-046": [
+      {
+        "role": "base",
+        "source_identity": "git:c9062f843615ba1eb6ec94204e4583f5927f2fdf",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:57f9a4338dc473dbfdcce76289703eeb7f7a0316",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:ed60ae7fb4ae657ddf2a0b30dddb7d1593575f1e",
+        "track_id": "gt-join-7769d874ad28c3b4cfb163f45ea91183"
+      }
+    ],
+    "website-domain-006": [
+      {
+        "role": "base",
+        "source_identity": "git:c9062f843615ba1eb6ec94204e4583f5927f2fdf",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:57f9a4338dc473dbfdcce76289703eeb7f7a0316",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:ed60ae7fb4ae657ddf2a0b30dddb7d1593575f1e",
+        "track_id": "gt-join-7769d874ad28c3b4cfb163f45ea91183"
+      }
+    ],
+    "website-e2e-mailbox-contract-050": [
+      {
+        "role": "current",
+        "source_identity": "git:57f9a4338dc473dbfdcce76289703eeb7f7a0316",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      }
+    ],
+    "website-e2e-run-contract-049": [
+      {
+        "role": "base",
+        "source_identity": "git:c9062f843615ba1eb6ec94204e4583f5927f2fdf",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:57f9a4338dc473dbfdcce76289703eeb7f7a0316",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:ed60ae7fb4ae657ddf2a0b30dddb7d1593575f1e",
+        "track_id": "gt-join-7769d874ad28c3b4cfb163f45ea91183"
+      }
+    ],
+    "website-email-contact-without-phone-034": [
+      {
+        "role": "base",
+        "source_identity": "git:c9062f843615ba1eb6ec94204e4583f5927f2fdf",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:57f9a4338dc473dbfdcce76289703eeb7f7a0316",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:ed60ae7fb4ae657ddf2a0b30dddb7d1593575f1e",
+        "track_id": "gt-join-7769d874ad28c3b4cfb163f45ea91183"
+      }
+    ],
+    "website-emdash12-025": [
+      {
+        "role": "base",
+        "source_identity": "git:c9062f843615ba1eb6ec94204e4583f5927f2fdf",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:57f9a4338dc473dbfdcce76289703eeb7f7a0316",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:ed60ae7fb4ae657ddf2a0b30dddb7d1593575f1e",
+        "track_id": "gt-join-7769d874ad28c3b4cfb163f45ea91183"
+      }
+    ],
+    "website-future-004": [
+      {
+        "role": "base",
+        "source_identity": "git:c9062f843615ba1eb6ec94204e4583f5927f2fdf",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:57f9a4338dc473dbfdcce76289703eeb7f7a0316",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:ed60ae7fb4ae657ddf2a0b30dddb7d1593575f1e",
+        "track_id": "gt-join-7769d874ad28c3b4cfb163f45ea91183"
+      }
+    ],
+    "website-inventory-overview-024": [
+      {
+        "role": "base",
+        "source_identity": "git:c9062f843615ba1eb6ec94204e4583f5927f2fdf",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:57f9a4338dc473dbfdcce76289703eeb7f7a0316",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:ed60ae7fb4ae657ddf2a0b30dddb7d1593575f1e",
+        "track_id": "gt-join-7769d874ad28c3b4cfb163f45ea91183"
+      }
+    ],
+    "website-merchant-admission-status-029": [
+      {
+        "role": "base",
+        "source_identity": "git:c9062f843615ba1eb6ec94204e4583f5927f2fdf",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:57f9a4338dc473dbfdcce76289703eeb7f7a0316",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:ed60ae7fb4ae657ddf2a0b30dddb7d1593575f1e",
+        "track_id": "gt-join-7769d874ad28c3b4cfb163f45ea91183"
+      }
+    ],
+    "website-operation-009": [
+      {
+        "role": "base",
+        "source_identity": "git:c9062f843615ba1eb6ec94204e4583f5927f2fdf",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:57f9a4338dc473dbfdcce76289703eeb7f7a0316",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:ed60ae7fb4ae657ddf2a0b30dddb7d1593575f1e",
+        "track_id": "gt-join-7769d874ad28c3b4cfb163f45ea91183"
+      }
+    ],
+    "website-operator-012": [
+      {
+        "role": "base",
+        "source_identity": "git:c9062f843615ba1eb6ec94204e4583f5927f2fdf",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:57f9a4338dc473dbfdcce76289703eeb7f7a0316",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:ed60ae7fb4ae657ddf2a0b30dddb7d1593575f1e",
+        "track_id": "gt-join-7769d874ad28c3b4cfb163f45ea91183"
+      }
+    ],
+    "website-operator-admin-emdash-access-035": [
+      {
+        "role": "base",
+        "source_identity": "git:c9062f843615ba1eb6ec94204e4583f5927f2fdf",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:57f9a4338dc473dbfdcce76289703eeb7f7a0316",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:ed60ae7fb4ae657ddf2a0b30dddb7d1593575f1e",
+        "track_id": "gt-join-7769d874ad28c3b4cfb163f45ea91183"
+      }
+    ],
+    "website-operator-approvals-in-admin-039": [
+      {
+        "role": "base",
+        "source_identity": "git:c9062f843615ba1eb6ec94204e4583f5927f2fdf",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:57f9a4338dc473dbfdcce76289703eeb7f7a0316",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:ed60ae7fb4ae657ddf2a0b30dddb7d1593575f1e",
+        "track_id": "gt-join-7769d874ad28c3b4cfb163f45ea91183"
+      }
+    ],
+    "website-operator-authorization-027": [
+      {
+        "role": "base",
+        "source_identity": "git:c9062f843615ba1eb6ec94204e4583f5927f2fdf",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:57f9a4338dc473dbfdcce76289703eeb7f7a0316",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:ed60ae7fb4ae657ddf2a0b30dddb7d1593575f1e",
+        "track_id": "gt-join-7769d874ad28c3b4cfb163f45ea91183"
+      }
+    ],
+    "website-operator-cut-off-store-037": [
+      {
+        "role": "base",
+        "source_identity": "git:c9062f843615ba1eb6ec94204e4583f5927f2fdf",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:57f9a4338dc473dbfdcce76289703eeb7f7a0316",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:ed60ae7fb4ae657ddf2a0b30dddb7d1593575f1e",
+        "track_id": "gt-join-7769d874ad28c3b4cfb163f45ea91183"
+      }
+    ],
+    "website-operator-directory-026": [
+      {
+        "role": "base",
+        "source_identity": "git:c9062f843615ba1eb6ec94204e4583f5927f2fdf",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:57f9a4338dc473dbfdcce76289703eeb7f7a0316",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:ed60ae7fb4ae657ddf2a0b30dddb7d1593575f1e",
+        "track_id": "gt-join-7769d874ad28c3b4cfb163f45ea91183"
+      }
+    ],
+    "website-operator-restore-cut-off-store-041": [
+      {
+        "role": "base",
+        "source_identity": "git:c9062f843615ba1eb6ec94204e4583f5927f2fdf",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:57f9a4338dc473dbfdcce76289703eeb7f7a0316",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:ed60ae7fb4ae657ddf2a0b30dddb7d1593575f1e",
+        "track_id": "gt-join-7769d874ad28c3b4cfb163f45ea91183"
+      }
+    ],
+    "website-operator-services-view-038": [
+      {
+        "role": "base",
+        "source_identity": "git:c9062f843615ba1eb6ec94204e4583f5927f2fdf",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:57f9a4338dc473dbfdcce76289703eeb7f7a0316",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:ed60ae7fb4ae657ddf2a0b30dddb7d1593575f1e",
+        "track_id": "gt-join-7769d874ad28c3b4cfb163f45ea91183"
+      }
+    ],
+    "website-operator-suspend-account-036": [
+      {
+        "role": "base",
+        "source_identity": "git:c9062f843615ba1eb6ec94204e4583f5927f2fdf",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:57f9a4338dc473dbfdcce76289703eeb7f7a0316",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:ed60ae7fb4ae657ddf2a0b30dddb7d1593575f1e",
+        "track_id": "gt-join-7769d874ad28c3b4cfb163f45ea91183"
+      }
+    ],
+    "website-optional-phone-signup-033": [
+      {
+        "role": "base",
+        "source_identity": "git:c9062f843615ba1eb6ec94204e4583f5927f2fdf",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:57f9a4338dc473dbfdcce76289703eeb7f7a0316",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:ed60ae7fb4ae657ddf2a0b30dddb7d1593575f1e",
+        "track_id": "gt-join-7769d874ad28c3b4cfb163f45ea91183"
+      }
+    ],
+    "website-organization-approvals-028": [
+      {
+        "role": "base",
+        "source_identity": "git:c9062f843615ba1eb6ec94204e4583f5927f2fdf",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:57f9a4338dc473dbfdcce76289703eeb7f7a0316",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:ed60ae7fb4ae657ddf2a0b30dddb7d1593575f1e",
+        "track_id": "gt-join-7769d874ad28c3b4cfb163f45ea91183"
+      }
+    ],
+    "website-owner-remove-employee-040": [
+      {
+        "role": "base",
+        "source_identity": "git:c9062f843615ba1eb6ec94204e4583f5927f2fdf",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:57f9a4338dc473dbfdcce76289703eeb7f7a0316",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:ed60ae7fb4ae657ddf2a0b30dddb7d1593575f1e",
+        "track_id": "gt-join-7769d874ad28c3b4cfb163f45ea91183"
+      }
+    ],
+    "website-owner-renames-business-050": [
+      {
+        "role": "incoming",
+        "source_identity": "git:ed60ae7fb4ae657ddf2a0b30dddb7d1593575f1e",
+        "track_id": "gt-join-7769d874ad28c3b4cfb163f45ea91183"
+      }
+    ],
+    "website-platform-001": [
+      {
+        "role": "base",
+        "source_identity": "git:c9062f843615ba1eb6ec94204e4583f5927f2fdf",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:57f9a4338dc473dbfdcce76289703eeb7f7a0316",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:ed60ae7fb4ae657ddf2a0b30dddb7d1593575f1e",
+        "track_id": "gt-join-7769d874ad28c3b4cfb163f45ea91183"
+      }
+    ],
+    "website-production-store-connect-032": [
+      {
+        "role": "base",
+        "source_identity": "git:c9062f843615ba1eb6ec94204e4583f5927f2fdf",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:57f9a4338dc473dbfdcce76289703eeb7f7a0316",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:ed60ae7fb4ae657ddf2a0b30dddb7d1593575f1e",
+        "track_id": "gt-join-7769d874ad28c3b4cfb163f45ea91183"
+      }
+    ],
+    "website-public-launch-008": [
+      {
+        "role": "base",
+        "source_identity": "git:c9062f843615ba1eb6ec94204e4583f5927f2fdf",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:57f9a4338dc473dbfdcce76289703eeb7f7a0316",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:ed60ae7fb4ae657ddf2a0b30dddb7d1593575f1e",
+        "track_id": "gt-join-7769d874ad28c3b4cfb163f45ea91183"
+      }
+    ],
+    "website-scaffold-005": [
+      {
+        "role": "base",
+        "source_identity": "git:c9062f843615ba1eb6ec94204e4583f5927f2fdf",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:57f9a4338dc473dbfdcce76289703eeb7f7a0316",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:ed60ae7fb4ae657ddf2a0b30dddb7d1593575f1e",
+        "track_id": "gt-join-7769d874ad28c3b4cfb163f45ea91183"
+      }
+    ],
+    "website-shared-store-service-grants-030": [
+      {
+        "role": "base",
+        "source_identity": "git:c9062f843615ba1eb6ec94204e4583f5927f2fdf",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:57f9a4338dc473dbfdcce76289703eeb7f7a0316",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:ed60ae7fb4ae657ddf2a0b30dddb7d1593575f1e",
+        "track_id": "gt-join-7769d874ad28c3b4cfb163f45ea91183"
+      }
+    ],
+    "website-ship-signin-047": [
+      {
+        "role": "base",
+        "source_identity": "git:c9062f843615ba1eb6ec94204e4583f5927f2fdf",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:57f9a4338dc473dbfdcce76289703eeb7f7a0316",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:ed60ae7fb4ae657ddf2a0b30dddb7d1593575f1e",
+        "track_id": "gt-join-7769d874ad28c3b4cfb163f45ea91183"
+      }
+    ],
+    "website-store-key-for-commerce-042": [
+      {
+        "role": "base",
+        "source_identity": "git:c9062f843615ba1eb6ec94204e4583f5927f2fdf",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:57f9a4338dc473dbfdcce76289703eeb7f7a0316",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:ed60ae7fb4ae657ddf2a0b30dddb7d1593575f1e",
+        "track_id": "gt-join-7769d874ad28c3b4cfb163f45ea91183"
+      }
+    ],
+    "website-store-key-without-payments-045": [
+      {
+        "role": "base",
+        "source_identity": "git:c9062f843615ba1eb6ec94204e4583f5927f2fdf",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:57f9a4338dc473dbfdcce76289703eeb7f7a0316",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:ed60ae7fb4ae657ddf2a0b30dddb7d1593575f1e",
+        "track_id": "gt-join-7769d874ad28c3b4cfb163f45ea91183"
+      }
+    ],
+    "website-store-pass-site-origin-048": [
+      {
+        "role": "base",
+        "source_identity": "git:c9062f843615ba1eb6ec94204e4583f5927f2fdf",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:57f9a4338dc473dbfdcce76289703eeb7f7a0316",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:ed60ae7fb4ae657ddf2a0b30dddb7d1593575f1e",
+        "track_id": "gt-join-7769d874ad28c3b4cfb163f45ea91183"
+      }
+    ],
+    "website-store-services-opt-in-043": [
+      {
+        "role": "base",
+        "source_identity": "git:c9062f843615ba1eb6ec94204e4583f5927f2fdf",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:57f9a4338dc473dbfdcce76289703eeb7f7a0316",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:ed60ae7fb4ae657ddf2a0b30dddb7d1593575f1e",
+        "track_id": "gt-join-7769d874ad28c3b4cfb163f45ea91183"
+      }
+    ],
+    "website-template-demo-011": [
+      {
+        "role": "base",
+        "source_identity": "git:c9062f843615ba1eb6ec94204e4583f5927f2fdf",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:57f9a4338dc473dbfdcce76289703eeb7f7a0316",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:ed60ae7fb4ae657ddf2a0b30dddb7d1593575f1e",
+        "track_id": "gt-join-7769d874ad28c3b4cfb163f45ea91183"
+      }
+    ],
+    "website-test-mode-deploy-031": [
+      {
+        "role": "base",
+        "source_identity": "git:c9062f843615ba1eb6ec94204e4583f5927f2fdf",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:57f9a4338dc473dbfdcce76289703eeb7f7a0316",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:ed60ae7fb4ae657ddf2a0b30dddb7d1593575f1e",
+        "track_id": "gt-join-7769d874ad28c3b4cfb163f45ea91183"
+      }
+    ],
+    "website-visual-007": [
+      {
+        "role": "base",
+        "source_identity": "git:c9062f843615ba1eb6ec94204e4583f5927f2fdf",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:57f9a4338dc473dbfdcce76289703eeb7f7a0316",
+        "track_id": "gt-join-10135ef494ed0371d06a888ceb41e4ca"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:ed60ae7fb4ae657ddf2a0b30dddb7d1593575f1e",
+        "track_id": "gt-join-7769d874ad28c3b4cfb163f45ea91183"
+      }
+    ]
+  },
+  "joined_track_id": "gt-join-fc5864820e336b89121904a1d935b7f5",
+  "needs_reverification": [
+    "merchant-auth-007",
+    "merchant-better-auth-008",
+    "merchant-closure-019",
+    "merchant-communication-018-repair",
+    "merchant-connect-local-proof-009",
+    "merchant-employee-authority-021",
+    "merchant-membership-013",
+    "merchant-operator-017",
+    "merchant-owner-privileges-015",
+    "merchant-phone-transport-option-023",
+    "merchant-pilot-admission-020",
+    "merchant-signup-contact-016",
+    "merchant-signup-flow-022-repair",
+    "merchant-tier-intent-014",
+    "website-account-003",
+    "website-account-pages-plain-words-049",
+    "website-agent-testing-032",
+    "website-audience-002",
+    "website-availability-010",
+    "website-commerce-checkout-settings-044",
+    "website-coupons-coming-soon-046",
+    "website-domain-006",
+    "website-e2e-mailbox-contract-050",
+    "website-e2e-run-contract-049",
+    "website-email-contact-without-phone-034",
+    "website-emdash12-025",
+    "website-future-004",
+    "website-inventory-overview-024",
+    "website-operation-009",
+    "website-operator-012",
+    "website-operator-admin-emdash-access-035",
+    "website-operator-approvals-in-admin-039",
+    "website-operator-restore-cut-off-store-041",
+    "website-operator-services-view-038",
+    "website-operator-suspend-account-036",
+    "website-optional-phone-signup-033",
+    "website-organization-approvals-028",
+    "website-owner-remove-employee-040",
+    "website-owner-renames-business-050",
+    "website-platform-001",
+    "website-production-store-connect-032",
+    "website-public-launch-008",
+    "website-scaffold-005",
+    "website-shared-store-service-grants-030",
+    "website-ship-signin-047",
+    "website-store-key-for-commerce-042",
+    "website-store-key-without-payments-045",
+    "website-store-pass-site-origin-048",
+    "website-store-services-opt-in-043",
+    "website-template-demo-011",
+    "website-test-mode-deploy-031",
+    "website-visual-007"
+  ],
+  "plan_id": "fc5864820e336b89121904a1d935b7f5d1180416d7fca8520fe5671bf0ec2e83",
+  "refs": {
+    "base": "c9062f843615ba1eb6ec94204e4583f5927f2fdf",
+    "current": "57f9a4338dc473dbfdcce76289703eeb7f7a0316",
+    "incoming": "ed60ae7fb4ae657ddf2a0b30dddb7d1593575f1e"
+  },
+  "retention": {
+    "lineage": {
+      "base": "ee0f840d86047d990b4c6e054175390724fd48f0402ecea13b84865b62bd53e6",
+      "current": "ee0f840d86047d990b4c6e054175390724fd48f0402ecea13b84865b62bd53e6",
+      "incoming": "dc39225e4995ed938b8b77fa00e5dc4c045e6f42d643d0d4b4bd424abc227d7e"
+    },
+    "schema": "grilltrack/retained/v2"
+  },
+  "schema": "grilltrack/reconcile/v2",
+  "snapshot_ref": ".grilltrack/lineage/fc5864820e336b89121904a1d935b7f5d1180416d7fca8520fe5671bf0ec2e83",
+  "snapshots": {
+    "base": {
+      "events.jsonl": "a20341ddcdbc56ef9e7958a23c60c6d4442e59f60cf45ee7c17955c80399af2b",
+      "ledger.json": "5b0fc09f394c4c593352b1107df60cef4e6635beae33271bcc9908b50de19df8"
+    },
+    "current": {
+      "events.jsonl": "7aa82e61f7027e11650e9bb7d31055a8825657d09963c519f6bd912fad35c915",
+      "ledger.json": "d72be370536074239946643079ba5f48ba78af9c6a0b8fb8814c558df5c6a2d3"
+    },
+    "incoming": {
+      "events.jsonl": "658b95370bd5649c67cc477f1db0cacb99eba314e506df0f8aaadd9f208f3fc0",
+      "ledger.json": "884a9db65dd981cca5f970ee363fd8c457d902dbace91c90557a7c9cf92e8b27"
+    }
+  },
+  "title": "Composed integration"
+}

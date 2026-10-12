@@ -81,6 +81,11 @@ const named = Astro.url.searchParams.get('named') === '1';
       <h1>{selected ? selected.name : 'Your DinkusKit account'}</h1>
       <form method="post" action="/account/logout"><button type="submit">Log out</button></form>
     </div>
+    {selected ? (
+      <nav aria-label="Account" class="account-nav">
+        <a href="/account/sites">Your stores</a>
+      </nav>
+    ) : null}
     {error ? <p class="account-error" role="alert">{error}</p> : null}
     {named ? <p role="status">Saved your business name.</p> : null}
 
@@ -283,6 +288,7 @@ const named = Astro.url.searchParams.get('named') === '1';
 </Site>
 <style>
   .account-top { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+  .account-nav { margin: 0 0 1rem; }
   .account-top h1 { overflow-wrap: anywhere; }
   .account-card { border: 1px solid #d4ddd3; background: white; padding: 1.25rem; margin: 1.25rem 0; }
   .account-card h2 { margin-top: 0; }

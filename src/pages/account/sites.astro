@@ -151,7 +151,12 @@ if (!await authorizeOrganization(env.MERCHANT_DB, merchant.userId, organizationI
             </ul>
             <p>Store key: {store.key ? `created ${when(store.key.createdAt)}, ${store.key.lastUsedAt ? `last used ${when(store.key.lastUsedAt)}` : 'not used yet'}` : 'none yet'}</p>
             {newKey?.siteId === store.siteId ? (
-              <p role="status">Your new store key: <code>{newKey.key}</code> Copy it into Commerce's settings in EmDash now. It will not be shown again. If this store had a key before, that key has stopped working.</p>
+              <div class="new-store-key">
+                <p>Your new store key: <code id={`store-key-${store.siteId}`}>{newKey.key}</code></p>
+                <button type="button" data-copy-target={`store-key-${store.siteId}`} data-copy-status={`store-key-status-${store.siteId}`} hidden>Copy store key</button>
+                <p id={`store-key-status-${store.siteId}`} role="status" aria-live="polite"></p>
+                <p>Copy it into Commerce's settings in EmDash now. It will not be shown again. If this store had a key before, that key has stopped working.</p>
+              </div>
             ) : null}
             {isOwner ? (
               <form method="post" action="/account/sites">
@@ -197,3 +202,7 @@ if (!await authorizeOrganization(env.MERCHANT_DB, merchant.userId, organizationI
     <p><a href="/account">Back to account</a></p>
   </div>
 </Site>
+<script>
+  import { wireCopyButtons } from '../../account/copy-secret.ts';
+  wireCopyButtons(document, document, window);
+</script>

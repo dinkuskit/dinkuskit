@@ -76,7 +76,10 @@ test('account page: next step, business name, staff list and plain messages', as
     assert.equal((await staffForm({ action: 'remove_member', email: 'pages-staff@example.com' })).headers.get('location'), '/account?staff_error=not_staff');
     assert.doesNotMatch(await page(runtime, employee.jar), /Corner Shop/);
 
+    assert.match(html, /<nav aria-label="Account"[^>]*>\s*<a href="\/account\/sites"[^>]*>Your stores<\/a>/, 'the account page links to Your stores');
+    assert.match(html, /<nav aria-label="Main navigation">[\s\S]*<a href="\/account\/sites">Your stores<\/a>[\s\S]*<\/nav>/, 'the header links to Your stores when signed in');
     const sites = await page(runtime, owner.jar, '/account/sites');
+    assert.match(sites, /<a href="\/account\/sites" aria-current="page">Your stores<\/a>/, 'the header marks Your stores as the current page');
     assert.match(sites, /<h1[^>]*>Your stores<\/h1>/);
     assert.match(sites, /No store is connected yet\. Install the DinkusKit Payments plugin/);
     assert.ok(!sites.includes(orgId), 'Your stores never shows the business ID');

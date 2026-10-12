@@ -22,6 +22,7 @@ import { Role } from '@emdash-cms/auth';
       <nav aria-label="Main navigation">
         <a href="/getting-started">Getting started</a>
         <a href="/account">Account</a>
+        {Astro.locals.merchant ? <a href="/account/sites" aria-current={Astro.url.pathname === '/account/sites' ? 'page' : undefined}>Your stores</a> : null}
         {Astro.locals.user?.role === Role.ADMIN && !Astro.locals.user.disabled ? <a href={OPERATOR_APPROVALS_PATH}>Operator admin</a> : null}
         <a href="https://github.com/dinkuskit">GitHub</a>
       </nav>

@@ -33,6 +33,7 @@ footer { margin-top: 2.5rem; font-size: .85rem; color: #42594b; }
 .account-form button, .account-panel button { background: #215d43; color: white; border: 0; padding: .7rem 1rem; font: inherit; cursor: pointer; }
 .account-form button:focus-visible, .account-panel button:focus-visible { outline: 3px solid #30764f; outline-offset: 3px; }
 .account-error { color: #8a1f1f; }
+.new-store-key code { overflow-wrap: anywhere; user-select: all; }
 .operator-dashboard, .operator-detail { padding: 3rem 0 2.5rem; }
 .operator-dashboard { max-width: 1000px; }
 .operator-detail { max-width: 760px; }

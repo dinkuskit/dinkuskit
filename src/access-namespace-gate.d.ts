@@ -42,11 +42,14 @@ declare module '../scripts/lib/access-namespace-gate.mjs' {
     serviceTokens: string[];
   };
   export function deniedNamespaceResponse(): Response;
+  export const EMDASH_ADMIN_ROLE: number;
+  export function cmsHasActiveAdmin(db: unknown): Promise<boolean>;
   export function evaluateAccessGate(input: {
     pathname: string;
     request: Request;
     env?: Record<string, string | undefined>;
     authenticate?: (request: Request, config: unknown) => Promise<{ email?: string; serviceToken?: string }>;
+    hasActiveAdmin?: () => Promise<boolean>;
   }): Promise<{ allow: boolean; status?: number; reason: string; email?: string }>;
 }
 

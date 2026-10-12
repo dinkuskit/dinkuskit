@@ -6,6 +6,7 @@ import {
   ACCESS_TEAM_DOMAIN_ENV,
   INSTALLED_EDITOR_ROLE,
   OPERATOR_ALLOWLIST_ENV,
+  cmsHasActiveAdmin,
   decodeRoutingPathname,
   evaluateAccessGate,
   isEmdashNamespace,
@@ -395,11 +396,13 @@ record('Public route passes through to downstream next with adapter locals');
   const reqWith = (jwt) => new Request('http://127.0.0.1/_emdash/api/content/posts', {
     headers: { 'cf-access-jwt-assertion': jwt },
   });
-  const gate = (jwt, env = svcEnv) => evaluateAccessGate({
-    pathname: '/_emdash/api/content/posts',
+  const adminPresent = async () => true;
+  const gate = (jwt, env = svcEnv, hasActiveAdmin = adminPresent, pathname = '/_emdash/api/content/posts') => evaluateAccessGate({
+    pathname,
     request: reqWith(jwt),
     env,
     authenticate: svcAuthenticate,
+    hasActiveAdmin,
   });
   const serviceClaims = { common_name: tokenCn, sub: '', type: 'app' };
 
@@ -419,6 +422,43 @@ record('Public route passes through to downstream next with adapter locals');
   assert.equal(identity.role, INSTALLED_EDITOR_ROLE, 'Service token maps to Editor (40), not Admin');
   assert.equal(identity.email, 'service+0123456789abcdef0123456789abcdef@tokens.invalid');
   record('Verified, listed service token is allowed as a stable Editor placeholder without identity lookup');
+
+  // Bootstrap boundary: a listed, verified token is denied until a human Admin exists.
+  const noAdminCases = [undefined, async () => false, async () => { throw new Error('db down'); }, async () => 'yes'];
+  for (const hasActiveAdmin of noAdminCases) {
+    for (const path of ['/_emdash/api/content/posts', '/_emdash/admin/setup', '/_emdash/api/setup/status', '/_emdash/admin']) {
+      assert.deepEqual(await evaluateAccessGate({
+        pathname: path,
+        request: reqWith(await sign(serviceClaims)),
+        env: svcEnv,
+        authenticate: svcAuthenticate,
+        hasActiveAdmin,
+      }), { allow: false, status: 404, reason: 'service-token-before-admin' }, path);
+    }
+  }
+  assert.deepEqual(
+    await evaluateAccessGate({ pathname: '/_emdash/admin/setup', request: reqWith(await sign({ email: 'owner@fixture.invalid', sub: 'u' })), env: svcEnv, authenticate: svcAuthenticate }),
+    { allow: true, reason: 'allowlisted', email: 'owner@fixture.invalid' },
+    'Allowlisted humans can still bootstrap without an existing Admin',
+  );
+  const fakeD1 = (rows, { fail = false } = {}) => ({
+    prepare(sql) {
+      assert.match(sql, /FROM users WHERE role >= \? AND \(disabled IS NULL OR disabled = 0\)/);
+      return {
+        bind(role) {
+          assert.equal(role, 50);
+          return { first: async () => { if (fail) throw new Error('no such table: users'); return rows.find((r) => r.role >= role && !r.disabled) ? { ok: 1 } : null; } };
+        },
+      };
+    },
+  });
+  assert.equal(await cmsHasActiveAdmin(undefined), false);
+  assert.equal(await cmsHasActiveAdmin(fakeD1([])), false);
+  assert.equal(await cmsHasActiveAdmin(fakeD1([{ role: 40, disabled: 0 }])), false);
+  assert.equal(await cmsHasActiveAdmin(fakeD1([{ role: 50, disabled: 1 }])), false);
+  assert.equal(await cmsHasActiveAdmin(fakeD1([{ role: 50 }], { fail: true })), false);
+  assert.equal(await cmsHasActiveAdmin(fakeD1([{ role: 40 }, { role: 50, disabled: 0 }])), true);
+  record('Service tokens are denied (404, before EmDash) until the CMS has an enabled Admin; empty, Editor-only, disabled-Admin or unreadable DB all fail closed');
 
   const unlisted = await gate(await sign({ ...serviceClaims, common_name: otherCn }));
   assert.deepEqual(unlisted, { allow: false, status: 404, reason: 'unauthenticated' });
@@ -506,7 +546,9 @@ record('Public route passes through to downstream next with adapter locals');
   }), { allow: false, status: 404, reason: 'unknown-identity' });
   record('Email users are unchanged: official lookup, email allowlist, and no service-token shortcut');
 
-  const svcMiddleware = createAccessNamespaceGuard({ authenticate: svcAuthenticate });
+  const svcMiddleware = createAccessNamespaceGuard({ authenticate: svcAuthenticate, hasActiveAdmin: adminPresent });
+  const noAdminMiddleware = createAccessNamespaceGuard({ authenticate: svcAuthenticate, hasActiveAdmin: async () => false });
+  const defaultAdminMiddleware = createAccessNamespaceGuard({ authenticate: svcAuthenticate });
   process.env.EMDASH_OPERATOR_SERVICE_TOKENS = tokenCn;
   process.env[ACCESS_TEAM_DOMAIN_ENV] = team;
   const mwCtx = async (jwt) => ({
@@ -516,6 +558,11 @@ record('Public route passes through to downstream next with adapter locals');
   });
   const okRes = await svcMiddleware(await mwCtx(await sign(serviceClaims)), () => new Response('ok'));
   assert.equal(await okRes.text(), 'ok');
+  const noAdminRes = await noAdminMiddleware(await mwCtx(await sign(serviceClaims)), () => new Response('ok'));
+  assert.equal(noAdminRes.status, 404);
+  assert.equal(await noAdminRes.text(), 'Not Found');
+  const defaultAdminRes = await defaultAdminMiddleware(await mwCtx(await sign(serviceClaims)), () => new Response('ok'));
+  assert.equal(defaultAdminRes.status, 404, 'Without a readable CMS DB binding the default admin check fails closed');
   const denyRes = await svcMiddleware(
     await mwCtx(await sign({ ...serviceClaims, common_name: otherCn })),
     () => new Response('ok'),

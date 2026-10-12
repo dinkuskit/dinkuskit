@@ -140,6 +140,8 @@ Access (decision `website-operator-admin-emdash-access-035`). Owner-only, once:
    `service+<client_id>@tokens.invalid`, created on first use. Unset means no
    service token gets in. Add tokens only after the operator has become the
    first Admin: EmDash makes whoever arrives first on an empty site the Admin.
+   The gate also enforces this: until the CMS `DB` has an enabled Admin
+   (role 50), every service token gets the same 404.
 3. Rebuild with the team domain and deploy:
 
    ```sh

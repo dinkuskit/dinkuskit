@@ -5,6 +5,7 @@ import {
   ACCESS_TEAM_DOMAIN_ENV,
   OPERATOR_ALLOWLIST_ENV,
   OPERATOR_SERVICE_TOKENS_ENV,
+  cmsHasActiveAdmin,
   deniedNamespaceResponse,
   evaluateAccessGate,
   isEmdashNamespace,
@@ -24,10 +25,22 @@ export function readGateEnv(_context?: { locals?: App.Locals }): Record<string, 
   };
 }
 
+/** Reads the EmDash CMS D1 binding (`DB`) and checks for an enabled Admin. */
+export async function defaultHasActiveAdmin(): Promise<boolean> {
+  try {
+    const { env } = await import('cloudflare:workers');
+    return await cmsHasActiveAdmin((env as unknown as Record<string, unknown>).DB);
+  } catch {
+    return false;
+  }
+}
+
 export function createAccessNamespaceGuard(options: {
   authenticate?: typeof accessAuthenticate;
+  hasActiveAdmin?: () => Promise<boolean>;
 } = {}) {
   const authenticate = options.authenticate ?? accessAuthenticate;
+  const hasActiveAdmin = options.hasActiveAdmin ?? defaultHasActiveAdmin;
   return defineMiddleware(async (context, next) => {
     let pathname = context.url.pathname;
     try {
@@ -37,6 +50,7 @@ export function createAccessNamespaceGuard(options: {
         request: context.request,
         env: readGateEnv(context),
         authenticate,
+        hasActiveAdmin,
       });
       if (decision.allow) return next();
       return deniedNamespaceResponse();
@@ -54,7 +68,8 @@ export function createAccessNamespaceGuard(options: {
  * namespace, including setup and login, before EmDash runtime unless
  * official Access `authenticate` succeeds and the identity is on the
  * runtime operator allowlist, or the verified Access JWT is a service token
- * whose common name is on EMDASH_OPERATOR_SERVICE_TOKENS. Host, forwarded headers, and spoofed
+ * whose common name is on EMDASH_OPERATOR_SERVICE_TOKENS and the CMS already
+ * has an enabled human Admin (so a token can never become the first Admin). Host, forwarded headers, and spoofed
  * cookies are not unlocks.
  */
 export const onRequest = createAccessNamespaceGuard();

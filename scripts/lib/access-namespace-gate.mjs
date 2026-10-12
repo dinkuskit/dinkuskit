@@ -205,8 +205,12 @@ export function deniedNamespaceResponse() {
  * @param {Request} input.request
  * @param {Record<string, string | undefined>} [input.env]
  * @param {(request: Request, config: unknown) => Promise<{ email?: string, serviceToken?: string }>} [input.authenticate]
+ * @param {() => Promise<boolean>} [input.hasActiveAdmin] Must resolve true only
+ *   when the EmDash CMS already has an enabled Admin. Service tokens are denied
+ *   when this is missing, false, or throws, so a token can never be the first
+ *   user EmDash provisions (which it would make Admin).
  */
-export async function evaluateAccessGate({ pathname, request, env = {}, authenticate }) {
+export async function evaluateAccessGate({ pathname, request, env = {}, authenticate, hasActiveAdmin }) {
   const resolved = resolveNamespacePathname(pathname);
   if (resolved.kind === 'public') {
     return { allow: true, reason: 'public' };
@@ -243,10 +247,41 @@ export async function evaluateAccessGate({ pathname, request, env = {}, authenti
     ) {
       return { allow: false, status: 404, reason: 'unknown-identity' };
     }
+    // EmDash provisions the first user on an empty site as Admin whatever
+    // role is passed. Admit service tokens only after a human Admin exists.
+    let adminExists = false;
+    try {
+      adminExists = typeof hasActiveAdmin === 'function' && (await hasActiveAdmin()) === true;
+    } catch {
+      adminExists = false;
+    }
+    if (!adminExists) {
+      return { allow: false, status: 404, reason: 'service-token-before-admin' };
+    }
     return { allow: true, reason: 'service-token', email };
   }
   if (!email || !config.allowlist.includes(email)) {
     return { allow: false, status: 404, reason: 'unknown-identity' };
   }
   return { allow: true, reason: 'allowlisted', email };
+}
+
+/** EmDash ROLE_ADMIN. */
+export const EMDASH_ADMIN_ROLE = 50;
+
+/**
+ * True when the EmDash CMS D1 database already has an enabled Admin user.
+ * Any error (missing binding, missing table) resolves false: fail closed.
+ */
+export async function cmsHasActiveAdmin(db) {
+  if (!db || typeof db.prepare !== 'function') return false;
+  try {
+    const row = await db
+      .prepare('SELECT 1 AS ok FROM users WHERE role >= ? AND (disabled IS NULL OR disabled = 0) LIMIT 1')
+      .bind(EMDASH_ADMIN_ROLE)
+      .first();
+    return Boolean(row && row.ok === 1);
+  } catch {
+    return false;
+  }
 }

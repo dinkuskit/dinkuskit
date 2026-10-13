@@ -1,3 +1,9 @@
 {   "action": "track_reconciled",   "at": "2026-10-11T23:54:00+00:00",   "data": {     "plan_id": "fc5864820e336b89121904a1d935b7f5d1180416d7fca8520fe5671bf0ec2e83",     "snapshot_ref": ".grilltrack/lineage/fc5864820e336b89121904a1d935b7f5d1180416d7fca8520fe5671bf0ec2e83",     "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"   },   "event_id": "fc5864820e336b89121904a1d935b7f5d1180416d7fca8520fe5671bf0ec2e83" }
 {"action": "decision_verified", "at": "2026-10-12T00:25:55+00:00", "data": {"decision_id": "website-e2e-run-contract-049"}, "event_id": "387c73dd-30db-45ea-8f52-c4c8ae4b24dc"}
 {"action": "decision_verified", "at": "2026-10-12T00:25:55+00:00", "data": {"decision_id": "website-e2e-mailbox-contract-050"}, "event_id": "e81fad0c-32a4-43c0-9b66-c6f7689bae6f"}
+{"action": "focus_started", "at": "2026-10-13T14:14:34+00:00", "data": {"cadence": "frontier-batch", "domain": "Builder bot credentials and runtime"}, "event_id": "ac3e2dbe-6022-46b3-a70d-0b586a017d72"}
+{"action": "decision_proposed", "at": "2026-10-13T14:14:35+00:00", "data": {"decision_id": "builder-bot-credentials-059"}, "event_id": "a1b2e43d-1f16-48a9-ac35-8afae836a0d7"}
+{"action": "decision_proposed", "at": "2026-10-13T14:14:35+00:00", "data": {"decision_id": "builder-bot-runtime-060"}, "event_id": "b38c41b2-f6d5-436e-b7cc-18004b14e15b"}
+{"action": "shared_understanding_confirmed", "at": "2026-10-13T14:14:35+00:00", "data": {"summary": "Decided by Ryan (owner), 2026-10-13: GitHub App-only credentials; Worker at bot.dinkuskit.com dispatching to CP-1 runner."}, "event_id": "c2ee1196-7d7c-4fa4-8537-fd383b97030b"}
+{"action": "decision_locked", "at": "2026-10-13T14:14:35+00:00", "data": {"decision_id": "builder-bot-credentials-059"}, "event_id": "1fc68432-b241-43ed-88e0-27be9378cbb3"}
+{"action": "decision_locked", "at": "2026-10-13T14:14:35+00:00", "data": {"decision_id": "builder-bot-runtime-060"}, "event_id": "a9b67cee-212b-49d1-890c-5d4a54bf5bd3"}

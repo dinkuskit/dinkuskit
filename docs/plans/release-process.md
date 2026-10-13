@@ -1,6 +1,21 @@
 # Plan: plugin versioning and release process
 
-Status: **plan only, nothing implemented yet**. Decisions were locked by Ryan on 2026-10-13. This doc covers what we will build in each DinkusKit plugin repo. No workflow files change in this PR.
+Status: **plan only, nothing implemented yet**. Decided by Ryan (owner), 2026-10-13. Decisions are recorded and locked in GrillTrack:
+
+| Decision | ID |
+|---|---|
+| Changesets plus CHANGELOG, EmDash-style | `release-changesets-061` |
+| 0.x: fixes patch, everything else minor, declared per PR in a changeset | `release-semver-0x-062` |
+| 1.0.0 after coupons, inventory, commerce, payments, ship (bundles optional) | `release-1-0-gate-063` |
+| One release-PR merge does tag + GitHub Release + Registry publish | `release-publish-on-merge-064` |
+| pkg.pr.new previews stay | `release-pr-previews-065` |
+| Betas under a separate beta plugin name on the demo store; passing e2e opens final release PR | `release-beta-flow-066` |
+| Tagging starts at v0.2.0; version from package.json | `release-baseline-067` |
+| Separate Changesets release workflow with its own GitHub App | `release-bot-068` |
+| No release-environment approver; Ryan's merge is the gate | `release-approver-069` |
+| RELEASING.md pointer file per plugin repo | `release-releasing-md-070` |
+
+ This doc covers what we will build in each DinkusKit plugin repo. No workflow files change in this PR.
 
 ## Current state
 
@@ -10,6 +25,8 @@ Status: **plan only, nothing implemented yet**. Decisions were locked by Ryan on
 - Plugin repos already run per-PR CI and the ClawSweeper dispatch.
 
 ## Model: Changesets, the way EmDash does it
+
+(`release-changesets-061`)
 
 We copy the EmDash setup (`emdash-cms/emdash` at `06f911b`):
 
@@ -24,10 +41,14 @@ Contrast: RepoGlance uses tag-only versions. A hand-pushed tag triggers its `rel
 
 ## Baseline
 
+(`release-baseline-067`)
+
 - Start at **`v0.2.0`**, matching the Registry. The bootstrap commit in each plugin repo bumps `package.json#version` to `0.2.0` (and the manifest, if it carries a version) and tags it `v0.2.0`. Every later release builds up from there.
 - **Version source of truth: `package.json#version`.** `emdash-plugin publish` reads it there (plugin-cli `publish.ts`). The release PR bumps `package.json`; anything else that shows a version is derived from it or kept in sync by the same PR.
 
 ## Versioning rules (while on 0.x)
+
+(`release-semver-0x-062`)
 
 - **patch**: bug fixes only.
 - **minor**: everything else, including a new route, a new setting, a schema change, or anything breaking.
@@ -36,9 +57,13 @@ Contrast: RepoGlance uses tag-only versions. A hand-pushed tag triggers its `rel
 
 ### 1.0.0 gate
 
+(`release-1-0-gate-063`)
+
 1.0.0 waits until **coupons, inventory, commerce, payments and ship** are all in. Bundles are optional. Until then, a `check-no-major` style script fails the release workflow if any version would reach `>=1.0.0`. Removing that guard is the explicit 1.0 decision.
 
 ## Release flow
+
+(`release-publish-on-merge-064`, `release-beta-flow-066`, `release-pr-previews-065`)
 
 ```
 PR merged with changeset ──► release bot opens "ci: release" PR (pre mode → x.y.z-beta.N)
@@ -73,6 +98,8 @@ tag + GitHub Release (notes from CHANGELOG.md) + `emdash-plugin publish`, in one
 
 ## Credentials
 
+(`release-bot-068`, `release-approver-069`)
+
 - The Registry publish credential lives in a GitHub **environment** named `release` in each plugin repo. Ryan creates it and adds the secret, with deployment limited to `main` and **no required reviewer**. Ryan's merge of the release PR is the only gate, as in EmDash. Only the publish job references that environment.
 - The release bot is a deterministic Changesets GitHub Actions workflow running with **its own GitHub App**, separate from the smoky-agent builder bot. This copies EmDash, where the release workflow uses its own `APP_ID`/`APP_PRIVATE_KEY` and `emdashbot` does no releases. The app is scoped to contents and pull requests write.
 - Workflows must never echo, log or print secrets. Agents never read or print secret values.
@@ -85,5 +112,7 @@ tag + GitHub Release (notes from CHANGELOG.md) + `emdash-plugin publish`, in one
 4. Optionally extract the workflow into a shared reusable workflow once two repos run it without changes.
 
 ## Per-repo docs
+
+(`release-releasing-md-070`)
 
 Each plugin repo gets a short `RELEASING.md` that summarizes the flow (add a changeset, merge the bot's release PR, betas on the demo store) and links to this plan as the source of truth.

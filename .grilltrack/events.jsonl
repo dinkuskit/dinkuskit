@@ -7,3 +7,25 @@
 {"action": "shared_understanding_confirmed", "at": "2026-10-13T14:14:35+00:00", "data": {"summary": "Decided by Ryan (owner), 2026-10-13: GitHub App-only credentials; Worker at bot.dinkuskit.com dispatching to CP-1 runner."}, "event_id": "c2ee1196-7d7c-4fa4-8537-fd383b97030b"}
 {"action": "decision_locked", "at": "2026-10-13T14:14:35+00:00", "data": {"decision_id": "builder-bot-credentials-059"}, "event_id": "1fc68432-b241-43ed-88e0-27be9378cbb3"}
 {"action": "decision_locked", "at": "2026-10-13T14:14:35+00:00", "data": {"decision_id": "builder-bot-runtime-060"}, "event_id": "a9b67cee-212b-49d1-890c-5d4a54bf5bd3"}
+{"action": "focus_started", "at": "2026-10-13T14:47:42+00:00", "data": {"cadence": "frontier-batch", "domain": "Plugin versioning and release process"}, "event_id": "a12c78e2-c46d-4c42-ad2f-be91563ea8b1"}
+{"action": "decision_proposed", "at": "2026-10-13T14:47:42+00:00", "data": {"decision_id": "release-changesets-061"}, "event_id": "f6edb826-1444-4737-993f-a361f63c3cb7"}
+{"action": "decision_proposed", "at": "2026-10-13T14:47:42+00:00", "data": {"decision_id": "release-semver-0x-062"}, "event_id": "5efcbe60-884f-408b-a63e-bdfe77fcdd69"}
+{"action": "decision_proposed", "at": "2026-10-13T14:47:42+00:00", "data": {"decision_id": "release-1-0-gate-063"}, "event_id": "e041a3f0-873a-48e1-bd74-0d3a0371e53a"}
+{"action": "decision_proposed", "at": "2026-10-13T14:47:42+00:00", "data": {"decision_id": "release-publish-on-merge-064"}, "event_id": "73ac3141-46db-4239-b2c4-3c9c1d8d9f41"}
+{"action": "decision_proposed", "at": "2026-10-13T14:47:42+00:00", "data": {"decision_id": "release-pr-previews-065"}, "event_id": "54df4b77-ce0d-4d60-b84b-f55704641a46"}
+{"action": "decision_proposed", "at": "2026-10-13T14:47:42+00:00", "data": {"decision_id": "release-beta-flow-066"}, "event_id": "21a0cc26-2831-4650-997a-8e8995facea5"}
+{"action": "decision_proposed", "at": "2026-10-13T14:47:43+00:00", "data": {"decision_id": "release-baseline-067"}, "event_id": "0f23a89b-a04e-441b-b5f4-2145aef641dd"}
+{"action": "decision_proposed", "at": "2026-10-13T14:47:43+00:00", "data": {"decision_id": "release-bot-068"}, "event_id": "6a2a3c60-3248-464f-8483-7a070598fb24"}
+{"action": "decision_proposed", "at": "2026-10-13T14:47:43+00:00", "data": {"decision_id": "release-approver-069"}, "event_id": "b377b0c2-10f6-4b77-8be5-5c227404607b"}
+{"action": "decision_proposed", "at": "2026-10-13T14:47:43+00:00", "data": {"decision_id": "release-releasing-md-070"}, "event_id": "b60a5db7-fbc8-452f-9664-00f2899d9435"}
+{"action": "shared_understanding_confirmed", "at": "2026-10-13T14:47:43+00:00", "data": {"summary": "Decided by Ryan (owner), 2026-10-13: release-process decisions for docs/plans/release-process.md."}, "event_id": "11b1350f-291e-41bd-b8ae-bc56880a603b"}
+{"action": "decision_locked", "at": "2026-10-13T14:47:43+00:00", "data": {"decision_id": "release-changesets-061"}, "event_id": "f8ccd580-8102-4982-9275-14c736fe0329"}
+{"action": "decision_locked", "at": "2026-10-13T14:47:43+00:00", "data": {"decision_id": "release-semver-0x-062"}, "event_id": "3d4eb520-36d3-4e94-9f81-be4e7f2cc5a7"}
+{"action": "decision_locked", "at": "2026-10-13T14:47:43+00:00", "data": {"decision_id": "release-1-0-gate-063"}, "event_id": "a548086e-b667-4e57-8625-ebe433f82640"}
+{"action": "decision_locked", "at": "2026-10-13T14:47:43+00:00", "data": {"decision_id": "release-publish-on-merge-064"}, "event_id": "6289020d-9018-4f35-a9f8-808e9a87ede3"}
+{"action": "decision_locked", "at": "2026-10-13T14:47:43+00:00", "data": {"decision_id": "release-pr-previews-065"}, "event_id": "1ac3ffc0-f19b-4c14-b9ee-22cb3ad810c7"}
+{"action": "decision_locked", "at": "2026-10-13T14:47:43+00:00", "data": {"decision_id": "release-beta-flow-066"}, "event_id": "849e3db8-001c-4079-9317-a985471b72a0"}
+{"action": "decision_locked", "at": "2026-10-13T14:47:44+00:00", "data": {"decision_id": "release-baseline-067"}, "event_id": "7f20840e-a048-4068-a85b-e4f74547f847"}
+{"action": "decision_locked", "at": "2026-10-13T14:47:44+00:00", "data": {"decision_id": "release-bot-068"}, "event_id": "c46d74cb-b82e-4be0-94e2-4c0ec24602c9"}
+{"action": "decision_locked", "at": "2026-10-13T14:47:44+00:00", "data": {"decision_id": "release-approver-069"}, "event_id": "b4e39d1f-48c0-4da5-90d2-044b4505067c"}
+{"action": "decision_locked", "at": "2026-10-13T14:47:44+00:00", "data": {"decision_id": "release-releasing-md-070"}, "event_id": "2bbed3b6-0ff7-4a8f-a3db-9fd261fb8111"}

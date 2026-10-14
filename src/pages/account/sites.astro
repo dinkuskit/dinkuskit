@@ -1,4 +1,5 @@
 ---
+import { shipRecipient } from '../../account/ship-recipient.ts';
 import Site from '../../layouts/Site.astro';
 import { MerchantUnavailableError, seeOther, unavailableResponse } from '../../account/config.ts';
 import { getMerchantEnv } from '../../account/bindings.ts';
@@ -54,6 +55,7 @@ if (Astro.request.method === 'POST') {
     if (await loadCommerceSettings(env.MERCHANT_DB, siteId)) return seeOther(`/account/sites?changed=${encodeURIComponent(siteId)}`);
   }
   if (form.get('action') === 'checkout_settings' && siteId) {
+    if (shipRecipient(siteId, env.SHIP_SANDBOX_REGISTRATION) && form.get('payments_mode') === 'live') return new Response(JSON.stringify({ error: 'ship_test_required' }), { status: 400, headers: { 'content-type': 'application/json' } });
     const flat = form.get('shipping_mode') === 'flat';
     const minor = flat ? dollarsToMinor(String(form.get('shipping_amount') ?? '')) : 0;
     const settings = minor === null ? null : await saveCommerceSettings(env.MERCHANT_DB, {
@@ -72,7 +74,7 @@ if (Astro.request.method === 'POST') {
         const store = (await listStoreSetup(env.MERCHANT_DB, merchant.subject)).find(row => row.siteId === siteId);
         shown = store ? {
           siteId,
-          json: checkoutSettingsJson({ siteId, siteOrigin: store.siteOrigin, binding: payments.binding, settings, coupons: store.services.coupons === 'on', ship: store.services.ship === 'on' }),
+          json: checkoutSettingsJson({ registration: env.SHIP_SANDBOX_REGISTRATION, siteId, siteOrigin: store.siteOrigin, binding: payments.binding, settings, coupons: store.services.coupons === 'on', ship: store.services.ship === 'on' }),
           note: payments.binding.ready ? undefined : 'Payments says this account still needs attention, so checkouts may be refused until it is finished in the Payments plugin.',
         } : { siteId, error: SETTINGS_ERROR.forbidden };
       }

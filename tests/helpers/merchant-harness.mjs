@@ -38,7 +38,7 @@ async function emitProofFetch() {
   );
 }
 
-async function prepareBuiltTestConfig({ persistTo, secret, origin, jwt, cmsProof = false, agentTest = null }) {
+async function prepareBuiltTestConfig({ persistTo, secret, origin, jwt, cmsProof = false, agentTest = null, shipSandboxRegistration }) {
   const built = JSON.parse(await readFile('dist/server/wrangler.json', 'utf8'));
   const main = agentTest ? 'agent-test-entry.mjs' : cmsProof ? 'cms-test-entry.mjs' : 'test-entry.mjs';
   await copyFile('tests/fixtures/built-test-entry.mjs', 'dist/server/test-entry.mjs');
@@ -72,6 +72,7 @@ async function prepareBuiltTestConfig({ persistTo, secret, origin, jwt, cmsProof
     ],
     vars: {
       ...(built.vars ?? {}),
+      ...(shipSandboxRegistration === undefined ? {} : { SHIP_SANDBOX_REGISTRATION: JSON.stringify(shipSandboxRegistration) }),
       MERCHANT_AUTH_SECRET: secret,
       MERCHANT_BASE_URL: origin,
       ...(jwt === false ? {} : { MERCHANT_JWT_PRIVATE_JWK: jwt }),
@@ -103,6 +104,7 @@ export async function startMerchantTestRuntime(options = {}) {
     secret,
     origin: configuredBaseURL,
     jwt,
+    shipSandboxRegistration: options.shipSandboxRegistration,
     cmsProof: options.cmsProof === true,
     agentTest: options.agentTest ?? null,
   });

@@ -16,7 +16,7 @@ if (request.ok && !login) return seeOther(`/account/sign-in?callbackURL=${encode
 if (request.ok && login) {
   try {
     const env = await getMerchantEnv();
-    target = await startShipSignIn(env.MERCHANT_DB, request, login);
+    target = await startShipSignIn(env.MERCHANT_DB, request, login, env.SHIP_SANDBOX_REGISTRATION);
   } catch (error) {
     if (error instanceof MerchantUnavailableError) return unavailableResponse();
     throw error;

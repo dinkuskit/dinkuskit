@@ -4,7 +4,7 @@ import { randomBytes, createHash } from 'node:crypto';
 import { accountForm, request, signup, startMerchantTestRuntime, stopRuntime } from './helpers/merchant-harness.mjs';
 
 test('shared service routes require separate consent and display processor setup authority', async () => {
-  const runtime = await startMerchantTestRuntime(); const owner = new Map(); const outsider = new Map();
+  let runtime = await startMerchantTestRuntime(); const owner = new Map(); const outsider = new Map();
   try {
     await signup(runtime,'shared-owner@example.test',owner); await signup(runtime,'shared-outsider@example.test',outsider);
     const origin = 'https://shared-route.example.test';
@@ -108,7 +108,39 @@ test('shared service routes require separate consent and display processor setup
     assert.equal((await shipBack(outsider,shipPath(pkce().challenge))).searchParams.get('error'),'access_denied','another business');
     assert.equal((await shipBack(owner,`${shipPath(first.challenge)}&redirect_uri=${encodeURIComponent('https://evil.example.test/')}`)).searchParams.get('error'),'invalid_request','the return address cannot be changed');
     const noState=await request(runtime,owner,`/account/ship-sign-in?site_id=${siteId}`); assert.equal(noState.status,400); assert.match(await noState.text(),/not complete/);
+    // Restart only this local fixture with the exact server-owned registration.
+    // Persistent identity, grant and key survive; no fixture auth endpoint bypasses the built routes.
+    const legacyRefresh = (await refreshed.json()).refresh_token;
+    const oldPending = pkce();
+    const oldBack = await shipBack(owner,shipPath(oldPending.challenge));
+    const prior = runtime;
+    await prior.worker.stop();
+    runtime = await startMerchantTestRuntime({ persistTo: prior.persistTo, secret: prior.secret, jwt: prior.jwt, origin: prior.origin, port: Number(new URL(prior.origin).port), shipSandboxRegistration: { siteId, generation: 'test-generation-1' } });
+    runtime.ownedPersist = prior.ownedPersist;
+    assert.equal((await trade(replaced,'ship:orders','dinkus-ship')).status,403);
+    const sandboxPass = generation => request(runtime,new Map(),'/api/store-passes',{method:'POST',headers:{authorization:`Bearer ${replaced}`},body:JSON.stringify({site_id:siteId,scope:'ship:orders',audience:'dinkus-ship-sandbox',generation})});
+    assert.equal((await sandboxPass('stale-generation')).status,403);
+    const machine = await sandboxPass('test-generation-1'); assert.equal(machine.status,200);
+    const machineClaims = JSON.parse(Buffer.from((await machine.json()).access_token.split('.')[1],'base64url').toString());
+    assert.deepEqual([machineClaims.aud,machineClaims.ship_recipient,machineClaims.ship_generation,machineClaims.ship_mode],['dinkus-ship-sandbox','ship-sandbox','test-generation-1','test']);
+    assert.equal((await shipToken({code:oldBack.searchParams.get('code'),code_verifier:oldPending.verifier})).status,400,'legacy code cannot upgrade');
+    assert.equal((await shipToken({grant_type:'refresh_token',refresh_token:legacyRefresh})).status,400,'legacy family cannot upgrade');
+    const isolatedSettings = JSON.parse(unescape((await showSettings(owner)).html.match(/<pre><code>([\s\S]*?)<\/code><\/pre>/)[1]));
+    assert.deepEqual(isolatedSettings.ship,{origin:'https://ship.sm0ky.dev',audience:'dinkus-ship-sandbox',recipient:'ship-sandbox',generation:'test-generation-1',mode:'test'});
+    assert.equal((await showSettings(owner,{payments_mode:'live'})).status,400);
+    assert.equal((await sandboxPass('test-generation-1')).status,200,'refused live save did not change persisted TEST setting');
+    const isolatedPkce = pkce();
+    const isolatedPage = await request(runtime,owner,shipPath(isolatedPkce.challenge));
+    assert.equal(isolatedPage.status,303);
+    const isolatedBack = new URL(isolatedPage.headers.get('location'));
+    assert.equal(isolatedBack.origin,'https://ship.sm0ky.dev');
+    const isolatedToken = await shipToken({code:isolatedBack.searchParams.get('code'),code_verifier:isolatedPkce.verifier});
+    assert.equal(isolatedToken.status,200);
+    const isolatedBody = await isolatedToken.json();
+    const isolatedClaims = JSON.parse(Buffer.from(isolatedBody.access_token.split('.')[1],'base64url').toString());
+    assert.deepEqual([isolatedClaims.aud,isolatedClaims.scope,isolatedClaims.ship_generation],['dinkus-ship-sandbox','ship:labels','test-generation-1']);
+    assert.equal((await shipToken({grant_type:'refresh_token',refresh_token:isolatedBody.refresh_token})).status,200);
     assert.equal((await request(runtime,owner,'/account/logout',{method:'POST'})).status,303);
-    assert.deepEqual(await (await shipToken({grant_type:'refresh_token',refresh_token:(await refreshed.json()).refresh_token})).json(),{error:'invalid_grant'},'signing out of DinkusKit.com ends Ship\'s sign-in');
+    assert.deepEqual(await (await shipToken({grant_type:'refresh_token',refresh_token:legacyRefresh})).json(),{error:'invalid_grant'},'signing out of DinkusKit.com ends Ship\'s sign-in');
   } finally { await stopRuntime(runtime); }
 });

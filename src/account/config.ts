@@ -79,7 +79,7 @@ export const TOKEN_TTL_SECONDS = 300;
 export const TOKEN_TTL_MAX_SECONDS = 600;
 export const PROOF_FETCH_TIMEOUT_MS = 3_000;
 export const PROOF_FETCH_MAX_BYTES = 8_192;
-export const CURRENT_MERCHANT_SCHEMA_VERSION = 12;
+export const CURRENT_MERCHANT_SCHEMA_VERSION = 13;
 
 export const PUBLIC_ACCOUNT_PATHS = [
   '/account/signup',
@@ -169,6 +169,7 @@ export function shipSignInPath(request: ShipSignInRequest): string {
 export type MerchantMailIntent = 'signup' | 'signin' | 'recovery';
 
 export type MerchantEnv = {
+  SHIP_SANDBOX_REGISTRATION?: { siteId: string; generation: string };
   MERCHANT_DB: D1Database;
   MERCHANT_AUTH_SECRET: string;
   MERCHANT_BASE_URL: string;

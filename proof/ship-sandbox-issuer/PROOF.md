@@ -45,3 +45,24 @@ so the caller's working directory may be another checkout. `fixture`, `SITE` and
 `OTHER_SITE` are also exported for controlled local tests. This issuer is a website
 Worker rather than an EmDash Registry plugin; its compiled entry is
 `dist/server/entry.mjs`, covered by the HTTP proof above.
+
+## Native review repair cycle 1: populated schema-12 upgrade
+
+Accepted the compatibility proof gap from native run `38612452365` on head
+`32febf1759d55efa99c583556bdb1d16eb0028a5`. Its code/security finding lists were
+empty, but existing schema-12 authorizations were not covered by the earlier
+migration evidence. No findings were rejected; this repair changes tests/proof
+only, with no issuer behavior or helper API change.
+
+`node --experimental-strip-types --test --test-name-pattern='0013 preserves' --test-timeout=180000 tests/merchant-migrations.test.mjs` passed (one test).
+The test applies only migrations 1–12 to local D1, seeds two pending codes and two
+active refresh families before the new columns exist, and verifies the version-12
+ledger and row counts. A request through the compiled Worker applies 0013. The
+existing rows retain NULL recipient/generation/mode. Real token HTTP endpoints
+redeem one pending code and refresh one family; JWT verification against the
+public JWKS confirms production audience and no sandbox claims. After restart
+with exact-site sandbox registration, the remaining pre-migration code and family
+both return invalid_grant. The ledger stays at 13 and foreign_key_check is empty.
+All credentials are generated synthetic fixtures; no token or private JWK is
+printed. This closes the specific upgrade-evidence gap, pending fresh exact-head
+reviews and CI. Cross-service proof must be requalified for the new test-only head.

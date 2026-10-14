@@ -8549,21 +8549,75 @@
           "review_source_identity": null,
           "to": "verified",
           "verification_ref": null
+        },
+        {
+          "at": "2026-10-14T19:46:01+00:00",
+          "choice": "Frozen source contract v1: optional exact-site server registration with immutable bounded generation; fixed ship-sandbox recipient, https://ship.sm0ky.dev origin, dinkus-ship-sandbox audience and test mode. Sandbox machine requests require generation and persisted live=false plus existing key/grant. JWT adds ship_recipient, ship_generation, ship_mode only; no order/cohort claims. Checkout optional tuple, production shape unchanged. Codes/refresh pin tuple; legacy never upgrades; mismatch/removal refuses. Receiver and Commerce own exact fresh-order admission; no historical order migration. Source/tests/PR/review only; activation separately gated.",
+          "from": "verified",
+          "implementation_ref": "file:docs/ship-sandbox-issuer.md",
+          "note": "adjudicated review requires a fix",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "needs_reverification",
+          "verification_ref": "file:proof/ship-sandbox-issuer/PROOF.md"
+        },
+        {
+          "at": "2026-10-14T19:46:30+00:00",
+          "choice": "Frozen source contract v1: optional exact-site server registration with immutable bounded generation; fixed ship-sandbox recipient, https://ship.sm0ky.dev origin, dinkus-ship-sandbox audience and test mode. Sandbox machine requests require generation and persisted live=false plus existing key/grant. JWT adds ship_recipient, ship_generation, ship_mode only; no order/cohort claims. Checkout optional tuple, production shape unchanged. Codes/refresh pin tuple; legacy never upgrades; mismatch/removal refuses. Receiver and Commerce own exact fresh-order admission; no historical order migration. Source/tests/PR/review only; activation separately gated.",
+          "from": "needs_reverification",
+          "implementation_ref": "file:docs/ship-sandbox-issuer.md",
+          "note": "bounded implementation recorded",
+          "repair_required": true,
+          "review_classifications": [
+            "required_fix"
+          ],
+          "review_ref": "https://github.com/dinkuskit/dinkuskit/issues/44#issuecomment-6173399908",
+          "review_result": "findings",
+          "review_source_identity": "git:32febf1759d55efa99c583556bdb1d16eb0028a5",
+          "to": "implemented",
+          "verification_ref": "file:proof/ship-sandbox-issuer/PROOF.md"
+        },
+        {
+          "at": "2026-10-14T19:46:30+00:00",
+          "choice": "Frozen source contract v1: optional exact-site server registration with immutable bounded generation; fixed ship-sandbox recipient, https://ship.sm0ky.dev origin, dinkus-ship-sandbox audience and test mode. Sandbox machine requests require generation and persisted live=false plus existing key/grant. JWT adds ship_recipient, ship_generation, ship_mode only; no order/cohort claims. Checkout optional tuple, production shape unchanged. Codes/refresh pin tuple; legacy never upgrades; mismatch/removal refuses. Receiver and Commerce own exact fresh-order admission; no historical order migration. Source/tests/PR/review only; activation separately gated.",
+          "from": "implemented",
+          "implementation_ref": "file:tests/merchant-migrations.test.mjs",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": "file:proof/ship-sandbox-issuer/PROOF.md"
         }
       ],
       "id": "ship-sandbox-issuer-v1",
-      "implementation_ref": "file:docs/ship-sandbox-issuer.md",
+      "implementation_ref": "file:tests/merchant-migrations.test.mjs",
       "question": "How does the issuer authorize the isolated Ship recipient?",
       "rationale": "",
       "repair_required": false,
       "review_classifications": [],
-      "review_history": [],
+      "review_history": [
+        {
+          "classifications": [
+            "required_fix"
+          ],
+          "ref": "https://github.com/dinkuskit/dinkuskit/issues/44#issuecomment-6173399908",
+          "result": "findings",
+          "reviewed_at": "2026-10-14T19:46:01+00:00",
+          "source_identity": "git:32febf1759d55efa99c583556bdb1d16eb0028a5"
+        }
+      ],
       "review_ref": null,
       "review_result": null,
       "review_source_identity": null,
       "status": "verified",
       "superseded_by": null,
-      "updated_at": "2026-10-14T15:12:58+00:00",
+      "updated_at": "2026-10-14T19:46:30+00:00",
       "verification_ref": "file:proof/ship-sandbox-issuer/PROOF.md"
     }
   ],
@@ -8587,5 +8641,5 @@
   "status": "active",
   "title": "Composed integration",
   "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5",
-  "updated_at": "2026-10-14T15:12:58+00:00"
+  "updated_at": "2026-10-14T19:46:30+00:00"
 }

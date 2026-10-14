@@ -3,55 +3,14 @@ import { issueStorePass, replaceStoreKey } from '../src/account/store-passes.ts'
 import { checkoutSettingsJson } from '../src/account/commerce-settings.ts';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import Database from 'better-sqlite3';
-import { readFile, readdir } from 'node:fs/promises';
 import { createHash, randomBytes } from 'node:crypto';
 import { createLocalJWKSet, jwtVerify } from 'jose';
-import { createLocalTestKeys } from '../src/account/jwt.ts';
+import { fixture, SITE, OTHER_SITE, mintSandboxPass } from './helpers/ship-issuer-fixture.mjs';
 import { exchangeShipToken, shipLabelAccess, startShipSignIn } from '../src/account/ship-sign-in.ts';
 import { setEmployeePermissions } from '../src/account/organizations.ts';
 import { SESSION_EXPIRES_IN_SECONDS, SHIP_SIGN_IN_CALLBACK, STORE_PASS_SERVICES, safeAccountPath, shipSignInPath, shipSignInRequest } from '../src/account/config.ts';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
-const SITE = '7d0c3f0e-5d8b-4f43-9e43-2f9ad2c1a001';
-const OTHER_SITE = '7d0c3f0e-5d8b-4f43-9e43-2f9ad2c1a002';
-
-async function fixture() {
-  const sqlite = new Database(':memory:');
-  sqlite.pragma('foreign_keys = ON');
-  for (const file of (await readdir('migrations/merchant')).filter(n => n.endsWith('.sql')).sort()) {
-    sqlite.exec(await readFile(`migrations/merchant/${file}`, 'utf8'));
-  }
-  const db = { prepare(sql) {
-    const stmt = sqlite.prepare(sql); let args = [];
-    const q = { bind(...values) { args = values; return q; }, async first() { return stmt.get(...args) ?? null; }, async all() { return { success: true, results: stmt.all(...args) }; }, async run() { return { success: true, meta: { changes: stmt.run(...args).changes } }; }, execute() { return { success: true, meta: { changes: stmt.run(...args).changes } }; } };
-    return q;
-  }, async batch(queries) { return sqlite.transaction(() => queries.map(q => q.execute()))(); } };
-  const users = ['alice', 'admin', 'clerk', 'staff', 'bob'];
-  for (const user of users) {
-    sqlite.prepare('INSERT INTO "user" (id,name,email,emailVerified,createdAt,updatedAt) VALUES (?, ?, ?, 1, 1, 1)').run(user, user, `${user}@example.test`);
-    sqlite.prepare('INSERT INTO dinkuskit_account (user_id,subject,created_at,updated_at) VALUES (?, ?, 1, 1)').run(user, `personal-${user}`);
-  }
-  for (const [org, owner] of [['a', 'alice'], ['b', 'bob']]) {
-    sqlite.prepare("INSERT INTO dinkuskit_organization (organization_id,name,status,owner_user_id,authority_subject,admission_status,created_by_user_id,created_at,updated_at) VALUES (?, ?, 'active', ?, ?, 'admitted', ?, 1, 1)").run(org, org, owner, `org-${org}`, owner);
-    sqlite.prepare("INSERT INTO dinkuskit_membership VALUES (?, ?, 'owner', 'active', '[]', 1, 1)").run(org, owner);
-    sqlite.prepare('INSERT INTO dinkuskit_user_selection VALUES (?, ?, 1)').run(owner, org);
-  }
-  sqlite.prepare("INSERT INTO dinkuskit_membership VALUES ('a', 'admin', 'administrator', 'active', '[\"membership:manage\"]', 1, 1)").run();
-  sqlite.prepare("INSERT INTO dinkuskit_membership VALUES ('a', 'clerk', 'member', 'active', '[\"ship:labels\"]', 1, 1)").run();
-  sqlite.prepare("INSERT INTO dinkuskit_membership VALUES ('a', 'staff', 'member', 'active', '[\"site:view\"]', 1, 1)").run();
-  sqlite.prepare("INSERT INTO dinkuskit_store_identity VALUES (?, 'https://store-a.example.test', 'org-a', 1)").run(SITE);
-  sqlite.prepare("INSERT INTO dinkuskit_store_identity VALUES (?, 'https://store-b.example.test', 'org-b', 1)").run(OTHER_SITE);
-  sqlite.prepare("INSERT INTO dinkuskit_service_grant (site_id, service, revoked, granted_at) VALUES (?, 'ship', 0, 1)").run(SITE);
-  const session = (user, expiresAtMs = Date.now() + 7 * DAY_MS) => {
-    const id = `session-${user}-${randomBytes(4).toString('hex')}`;
-    sqlite.prepare('INSERT INTO session (id, expiresAt, token, createdAt, updatedAt, userId) VALUES (?, ?, ?, ?, ?, ?)')
-      .run(id, new Date(expiresAtMs).toISOString(), randomBytes(16).toString('hex'), new Date().toISOString(), new Date().toISOString(), user);
-    return { userId: user, sessionId: id };
-  };
-  const keys = await createLocalTestKeys();
-  return { sqlite, db, session, keys, privateJwkJson: JSON.stringify(keys.privateJwk), close() { sqlite.close(); } };
-}
 
 function pkce() {
   const verifier = randomBytes(32).toString('base64url');
@@ -353,4 +312,12 @@ test('sandbox concurrent code redemption and refresh rotation have at most one s
     const next = await rotated.find(r => r.status === 200).json();
     assert.equal((await refresh(f, next.refresh_token)).status, 400, 'duplicate refresh terminates the family');
   } finally { f.close(); }
+});
+
+test('shared integration helper mints through the actual issuer', async () => {
+  const produced = await mintSandboxPass();
+  const { payload } = await jwtVerify(produced.token, createLocalJWKSet({ keys: [produced.publicJwk] }), { issuer: 'https://dinkuskit.com/account', audience: SHIP_SANDBOX_AUDIENCE });
+  assert.equal(payload.site_id, produced.siteId);
+  assert.equal(payload.ship_generation, produced.generation);
+  assert.equal(payload.scope, 'ship:orders');
 });

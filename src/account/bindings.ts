@@ -1,3 +1,4 @@
+import { readShipSandboxRegistration } from './ship-recipient.ts';
 import { env } from 'cloudflare:workers';
 import { applyPendingMerchantMigrations } from './migrate.ts';
 import { MerchantUnavailableError, type MerchantEmailBinding, type MerchantEnv } from './config.ts';
@@ -28,6 +29,7 @@ export function readMerchantEnv(): MerchantEnv {
   const baseURL = typeof raw.MERCHANT_BASE_URL === 'string' ? raw.MERCHANT_BASE_URL : '';
   if (!db || !secret.trim() || !baseURL.trim()) throw new MerchantUnavailableError();
   return {
+    SHIP_SANDBOX_REGISTRATION: readShipSandboxRegistration(raw.SHIP_SANDBOX_REGISTRATION),
     MERCHANT_DB: db,
     MERCHANT_AUTH_SECRET: secret,
     MERCHANT_BASE_URL: canonicalMerchantBaseURL(baseURL),

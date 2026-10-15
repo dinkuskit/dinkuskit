@@ -1,54 +1,16 @@
+import { readShipSandboxRegistration, SHIP_SANDBOX_AUDIENCE } from '../src/account/ship-recipient.ts';
+import { issueStorePass, replaceStoreKey } from '../src/account/store-passes.ts';
+import { checkoutSettingsJson } from '../src/account/commerce-settings.ts';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import Database from 'better-sqlite3';
-import { readFile, readdir } from 'node:fs/promises';
 import { createHash, randomBytes } from 'node:crypto';
 import { createLocalJWKSet, jwtVerify } from 'jose';
-import { createLocalTestKeys } from '../src/account/jwt.ts';
+import { fixture, SITE, OTHER_SITE, mintSandboxPass } from './helpers/ship-issuer-fixture.mjs';
 import { exchangeShipToken, shipLabelAccess, startShipSignIn } from '../src/account/ship-sign-in.ts';
 import { setEmployeePermissions } from '../src/account/organizations.ts';
 import { SESSION_EXPIRES_IN_SECONDS, SHIP_SIGN_IN_CALLBACK, STORE_PASS_SERVICES, safeAccountPath, shipSignInPath, shipSignInRequest } from '../src/account/config.ts';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
-const SITE = '7d0c3f0e-5d8b-4f43-9e43-2f9ad2c1a001';
-const OTHER_SITE = '7d0c3f0e-5d8b-4f43-9e43-2f9ad2c1a002';
-
-async function fixture() {
-  const sqlite = new Database(':memory:');
-  sqlite.pragma('foreign_keys = ON');
-  for (const file of (await readdir('migrations/merchant')).filter(n => n.endsWith('.sql')).sort()) {
-    sqlite.exec(await readFile(`migrations/merchant/${file}`, 'utf8'));
-  }
-  const db = { prepare(sql) {
-    const stmt = sqlite.prepare(sql); let args = [];
-    const q = { bind(...values) { args = values; return q; }, async first() { return stmt.get(...args) ?? null; }, async all() { return { success: true, results: stmt.all(...args) }; }, async run() { return { success: true, meta: { changes: stmt.run(...args).changes } }; }, execute() { return { success: true, meta: { changes: stmt.run(...args).changes } }; } };
-    return q;
-  }, async batch(queries) { return sqlite.transaction(() => queries.map(q => q.execute()))(); } };
-  const users = ['alice', 'admin', 'clerk', 'staff', 'bob'];
-  for (const user of users) {
-    sqlite.prepare('INSERT INTO "user" (id,name,email,emailVerified,createdAt,updatedAt) VALUES (?, ?, ?, 1, 1, 1)').run(user, user, `${user}@example.test`);
-    sqlite.prepare('INSERT INTO dinkuskit_account (user_id,subject,created_at,updated_at) VALUES (?, ?, 1, 1)').run(user, `personal-${user}`);
-  }
-  for (const [org, owner] of [['a', 'alice'], ['b', 'bob']]) {
-    sqlite.prepare("INSERT INTO dinkuskit_organization (organization_id,name,status,owner_user_id,authority_subject,admission_status,created_by_user_id,created_at,updated_at) VALUES (?, ?, 'active', ?, ?, 'admitted', ?, 1, 1)").run(org, org, owner, `org-${org}`, owner);
-    sqlite.prepare("INSERT INTO dinkuskit_membership VALUES (?, ?, 'owner', 'active', '[]', 1, 1)").run(org, owner);
-    sqlite.prepare('INSERT INTO dinkuskit_user_selection VALUES (?, ?, 1)').run(owner, org);
-  }
-  sqlite.prepare("INSERT INTO dinkuskit_membership VALUES ('a', 'admin', 'administrator', 'active', '[\"membership:manage\"]', 1, 1)").run();
-  sqlite.prepare("INSERT INTO dinkuskit_membership VALUES ('a', 'clerk', 'member', 'active', '[\"ship:labels\"]', 1, 1)").run();
-  sqlite.prepare("INSERT INTO dinkuskit_membership VALUES ('a', 'staff', 'member', 'active', '[\"site:view\"]', 1, 1)").run();
-  sqlite.prepare("INSERT INTO dinkuskit_store_identity VALUES (?, 'https://store-a.example.test', 'org-a', 1)").run(SITE);
-  sqlite.prepare("INSERT INTO dinkuskit_store_identity VALUES (?, 'https://store-b.example.test', 'org-b', 1)").run(OTHER_SITE);
-  sqlite.prepare("INSERT INTO dinkuskit_service_grant (site_id, service, revoked, granted_at) VALUES (?, 'ship', 0, 1)").run(SITE);
-  const session = (user, expiresAtMs = Date.now() + 7 * DAY_MS) => {
-    const id = `session-${user}-${randomBytes(4).toString('hex')}`;
-    sqlite.prepare('INSERT INTO session (id, expiresAt, token, createdAt, updatedAt, userId) VALUES (?, ?, ?, ?, ?, ?)')
-      .run(id, new Date(expiresAtMs).toISOString(), randomBytes(16).toString('hex'), new Date().toISOString(), new Date().toISOString(), user);
-    return { userId: user, sessionId: id };
-  };
-  const keys = await createLocalTestKeys();
-  return { sqlite, db, session, keys, privateJwkJson: JSON.stringify(keys.privateJwk), close() { sqlite.close(); } };
-}
 
 function pkce() {
   const verifier = randomBytes(32).toString('base64url');
@@ -59,11 +21,11 @@ const STATE = 'state-' + 'x'.repeat(40);
 
 async function signIn(f, login, site = SITE) {
   const { verifier, challenge } = pkce();
-  const location = new URL(await startShipSignIn(f.db, { siteId: site, state: STATE, codeChallenge: challenge }, login));
+  const location = new URL(await startShipSignIn(f.db, { siteId: site, state: STATE, codeChallenge: challenge }, login, f.registration));
   return { location, verifier, code: location.searchParams.get('code') };
 }
 
-const token = (f, body) => exchangeShipToken({ db: f.db, body, privateJwkJson: f.privateJwkJson });
+const token = (f, body) => exchangeShipToken({ db: f.db, body, registration: f.registration, privateJwkJson: f.privateJwkJson });
 const refresh = (f, refreshToken) => token(f, { grant_type: 'refresh_token', refresh_token: refreshToken });
 
 test('Ship sign-in request: exact parameters, canonical continuation, and a usable state on its own', () => {
@@ -225,4 +187,137 @@ test('a refresh counts as using DinkusKit.com and extends the sign-in once a day
     const late = await signIn(f, ended, OTHER_SITE);
     assert.equal((await token(f, { code: late.code, code_verifier: late.verifier })).status, 400, 'an expired DinkusKit.com sign-in');
   } finally { f.close(); }
+});
+
+const REGISTRATION = { siteId: SITE, generation: 'test-generation-1' };
+function enableSandbox(f) {
+  f.registration = { ...REGISTRATION };
+  f.sqlite.prepare("INSERT INTO dinkuskit_commerce_settings (site_id,shipping_mode,shipping_minor,shipping_revision,live,updated_by_user_id,updated_at) VALUES (?, 'free', 0, 1, 0, 'alice', 1)").run(SITE);
+}
+async function sandboxClaims(f, body, scope) {
+  const { payload } = await jwtVerify(body.access_token, createLocalJWKSet({ keys: [f.keys.publicJwk] }), { issuer: 'https://dinkuskit.com/account', audience: SHIP_SANDBOX_AUDIENCE });
+  assert.equal(payload.site_id, SITE);
+  assert.equal(payload.scope, scope);
+  assert.equal(payload.ship_recipient, 'ship-sandbox');
+  assert.equal(payload.ship_generation, REGISTRATION.generation);
+  assert.equal(payload.ship_mode, 'test');
+  assert.equal(payload.ship_cohort, undefined);
+  assert.equal(payload.order_id, undefined);
+  await assert.rejects(jwtVerify(body.access_token, createLocalJWKSet({ keys: [f.keys.publicJwk] }), { audience: 'dinkus-ship' }));
+  return payload;
+}
+
+test('sandbox registration is absent by default and accepts only exact bounded server fields', () => {
+  assert.equal(readShipSandboxRegistration(undefined), undefined);
+  assert.deepEqual(readShipSandboxRegistration(JSON.stringify(REGISTRATION)), REGISTRATION);
+  for (const value of ['', null, {}, 'null', '[]', JSON.stringify({ ...REGISTRATION, origin: 'https://evil.test' }), JSON.stringify({ ...REGISTRATION, audience: 'dinkus-ship' }), JSON.stringify({ ...REGISTRATION, generation: '' }), JSON.stringify({ ...REGISTRATION, generation: 'a'.repeat(129) }), JSON.stringify({ ...REGISTRATION, generation: '../next' }), JSON.stringify({ ...REGISTRATION, siteId: '../site' })]) {
+    assert.throws(() => readShipSandboxRegistration(value));
+  }
+});
+
+test('sandbox machine passes require registered site, expected generation, TEST settings and existing key/grant', async () => {
+  const f = await fixture(); try {
+    enableSandbox(f);
+    const key = await replaceStoreKey(f.db, { siteId: SITE, subject: 'org-a', organizationId: 'a', actorUserId: 'alice' });
+    const request = { site_id: SITE, audience: SHIP_SANDBOX_AUDIENCE, scope: 'ship:orders', generation: REGISTRATION.generation };
+    const send = (body, registration = f.registration) => issueStorePass({ db: f.db, authorization: `Bearer ${key}`, body, registration, privateJwkJson: f.privateJwkJson });
+    const ok = await send(request); assert.equal(ok.status, 200); await sandboxClaims(f, await ok.json(), 'ship:orders');
+    for (const body of [
+      { ...request, site_id: OTHER_SITE }, { ...request, generation: 'old-generation' },
+      { ...request, scope: 'ship:labels' }, { ...request, recipient: 'ship-sandbox' },
+      { site_id: SITE, scope: 'ship:orders', audience: SHIP_SANDBOX_AUDIENCE },
+      { site_id: SITE, scope: 'ship:orders', audience: 'dinkus-ship' },
+    ]) assert.notEqual((await send(body)).status, 200);
+    assert.notEqual((await send(request, null)).status, 200);
+    f.sqlite.prepare('UPDATE dinkuskit_commerce_settings SET live = 1').run();
+    assert.equal((await send(request)).status, 403);
+    f.sqlite.prepare('DELETE FROM dinkuskit_commerce_settings').run();
+    assert.equal((await send(request)).status, 403);
+    f.registration = undefined; enableSandbox(f);
+    f.sqlite.prepare("UPDATE dinkuskit_service_grant SET revoked = 1 WHERE service = 'ship'").run();
+    assert.equal((await send(request)).status, 403);
+    f.sqlite.prepare("UPDATE dinkuskit_service_grant SET revoked = 0 WHERE service = 'ship'").run();
+    f.sqlite.prepare("UPDATE dinkuskit_account SET disabled = 1 WHERE user_id = 'alice'").run();
+    assert.equal((await send(request)).status, 403);
+  } finally { f.close(); }
+});
+
+test('checkout output preserves production shape and binds sandbox to TEST only', () => {
+  const input = { siteId: SITE, siteOrigin: 'https://store.example.test', binding: { providerId: 'authorize_net', bindingRef: 'test-binding', ready: true }, settings: { live: false, shippingMode: 'free', shippingMinor: 0, shippingRevision: 1 }, coupons: false, ship: true };
+  assert.deepEqual(JSON.parse(checkoutSettingsJson(input)).ship, { origin: 'https://ship.dinkuskit.com', audience: 'dinkus-ship' });
+  assert.deepEqual(JSON.parse(checkoutSettingsJson({ ...input, registration: REGISTRATION })).ship, { origin: 'https://ship.sm0ky.dev', audience: SHIP_SANDBOX_AUDIENCE, recipient: 'ship-sandbox', generation: REGISTRATION.generation, mode: 'test' });
+  assert.equal(checkoutSettingsJson({ ...input, registration: { ...REGISTRATION, siteId: OTHER_SITE } }), checkoutSettingsJson(input));
+  assert.throws(() => checkoutSettingsJson({ ...input, registration: REGISTRATION, settings: { ...input.settings, live: true } }), /ship_test_required/);
+});
+
+test('sandbox labels pin callback, code and rotating refresh; stale or removed registration never retargets', async () => {
+  const f = await fixture(); try {
+    enableSandbox(f);
+    const login = f.session('alice');
+    const code = await signIn(f, login);
+    assert.equal(code.location.origin, 'https://ship.sm0ky.dev');
+    assert.equal(code.location.pathname, '/auth/callback');
+    const response = await token(f, { code: code.code, code_verifier: code.verifier });
+    assert.equal(response.status, 200); const first = await response.json(); await sandboxClaims(f, first, 'ship:labels');
+    const renewed = await refresh(f, first.refresh_token); assert.equal(renewed.status, 200);
+    const second = await renewed.json(); await sandboxClaims(f, second, 'ship:labels');
+    assert.equal((await refresh(f, first.refresh_token)).status, 400);
+    assert.equal((await refresh(f, second.refresh_token)).status, 400, 'replay ends family');
+    for (const registration of [{ ...REGISTRATION, generation: 'test-generation-2' }, undefined, { ...REGISTRATION, siteId: OTHER_SITE }]) {
+      f.registration = REGISTRATION;
+      const pending = await signIn(f, login);
+      const active = await signIn(f, login);
+      const family = await (await token(f, { code: active.code, code_verifier: active.verifier })).json();
+      f.registration = registration;
+      assert.equal((await token(f, { code: pending.code, code_verifier: pending.verifier })).status, 400);
+      assert.equal((await refresh(f, family.refresh_token)).status, 400);
+    }
+  } finally { f.close(); }
+});
+
+test('legacy code and refresh never upgrade; sandbox live/missing settings and dead login refuse', async () => {
+  const f = await fixture(); try {
+    const login = f.session('alice');
+    const oldCode = await signIn(f, login);
+    const oldActive = await signIn(f, login);
+    const oldFamily = await (await token(f, { code: oldActive.code, code_verifier: oldActive.verifier })).json();
+    enableSandbox(f);
+    assert.equal((await token(f, { code: oldCode.code, code_verifier: oldCode.verifier })).status, 400);
+    assert.equal((await refresh(f, oldFamily.refresh_token)).status, 400);
+    const active = await signIn(f, login);
+    const family = await (await token(f, { code: active.code, code_verifier: active.verifier })).json();
+    const pending = await signIn(f, login);
+    f.sqlite.prepare('UPDATE dinkuskit_commerce_settings SET live = 1').run();
+    assert.equal((await signIn(f, login)).location.searchParams.get('error'), 'store_unavailable');
+    assert.equal((await token(f, { code: pending.code, code_verifier: pending.verifier })).status, 400);
+    assert.equal((await refresh(f, family.refresh_token)).status, 400);
+    f.sqlite.prepare('DELETE FROM dinkuskit_commerce_settings').run();
+    assert.equal((await signIn(f, login)).location.searchParams.get('error'), 'store_unavailable');
+    f.registration = undefined; enableSandbox(f);
+    const dead = await signIn(f, login);
+    f.sqlite.prepare('DELETE FROM session WHERE id = ?').run(login.sessionId);
+    assert.equal((await token(f, { code: dead.code, code_verifier: dead.verifier })).status, 400);
+  } finally { f.close(); }
+});
+
+test('sandbox concurrent code redemption and refresh rotation have at most one success', async () => {
+  const f = await fixture(); try {
+    enableSandbox(f);
+    const pending = await signIn(f, f.session('alice'));
+    const redeemed = await Promise.all([1, 2].map(() => token(f, { code: pending.code, code_verifier: pending.verifier })));
+    assert.deepEqual(redeemed.map(r => r.status).sort(), [200, 400]);
+    const family = await redeemed.find(r => r.status === 200).json();
+    const rotated = await Promise.all([1, 2].map(() => refresh(f, family.refresh_token)));
+    assert.deepEqual(rotated.map(r => r.status).sort(), [200, 400]);
+    const next = await rotated.find(r => r.status === 200).json();
+    assert.equal((await refresh(f, next.refresh_token)).status, 400, 'duplicate refresh terminates the family');
+  } finally { f.close(); }
+});
+
+test('shared integration helper mints through the actual issuer', async () => {
+  const produced = await mintSandboxPass();
+  const { payload } = await jwtVerify(produced.token, createLocalJWKSet({ keys: [produced.publicJwk] }), { issuer: 'https://dinkuskit.com/account', audience: SHIP_SANDBOX_AUDIENCE });
+  assert.equal(payload.site_id, produced.siteId);
+  assert.equal(payload.ship_generation, produced.generation);
+  assert.equal(payload.scope, 'ship:orders');
 });

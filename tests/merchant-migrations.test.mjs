@@ -1,9 +1,11 @@
 import assert from 'node:assert/strict';
-import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, rm, writeFile, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import test from 'node:test';
+import { createHash, randomBytes } from 'node:crypto';
+import { createLocalJWKSet, jwtVerify } from 'jose';
 import { request, startMerchantTestRuntime, stopRuntime, testSecret } from './helpers/merchant-harness.mjs';
 
 const wrangler = 'node_modules/.bin/wrangler';
@@ -20,6 +22,7 @@ const expectedLedger = [
   { version: 10, name: '0010_store_keys.sql' },
   { version: 11, name: '0011_commerce_settings.sql' },
   { version: 12, name: '0012_ship_sign_in.sql' },
+  { version: 13, name: '0013_ship_recipient.sql' },
 ];
 
 function wranglerD1(persistTo, args) {
@@ -193,6 +196,82 @@ test('merchant D1 migration 0009 marks earlier cut-offs and keeps the operator h
       { action_id: 'op_v9', action: 'service_restored' },
     ]);
   } finally {
+    await rm(persistTo, { recursive: true, force: true });
+  }
+});
+
+
+test('merchant D1 migration 0013 preserves populated schema-12 Ship authority without sandbox upgrade', async () => {
+  const persistTo = await mkdtemp(join(tmpdir(), 'dk-v12-ship-'));
+  let runtime;
+  const hash = value => createHash('sha256').update(value).digest('hex');
+  const secret = () => randomBytes(32).toString('base64url');
+  const codes = [secret(), secret()];
+  const refreshes = [secret(), secret()];
+  const verifier = secret();
+  const challenge = createHash('sha256').update(verifier).digest('base64url');
+  const expires = Math.floor(Date.now() / 1000) + 3600;
+  const sessionExpiry = new Date(Date.now() + 86400000).toISOString();
+  const query = sql => {
+    const answer = wranglerD1(persistTo, ['execute', '--yes', '--json', '--command', sql]);
+    assert.equal(answer.status, 0, 'local D1 query succeeds');
+    return JSON.parse(answer.stdout).at(-1).results;
+  };
+  try {
+    const schema = (await Promise.all(expectedLedger.filter(m => m.version <= 12).map(m => readFile(`migrations/merchant/${m.name}`, 'utf8')))).join('\n');
+    const seed = join(persistTo, 'schema12.sql');
+    await writeFile(seed, schema + `
+      INSERT INTO "user" (id,name,email,emailVerified,createdAt,updatedAt) VALUES ('ship-v12-user','Synthetic','ship-v12@example.test',1,1,1);
+      INSERT INTO dinkuskit_account (user_id,subject,created_at,updated_at) VALUES ('ship-v12-user','ship-v12-person',1,1);
+      INSERT INTO dinkuskit_organization (organization_id,name,status,owner_user_id,authority_subject,admission_status,created_by_user_id,created_at,updated_at)
+      VALUES ('ship-v12-org','Synthetic','active','ship-v12-user','ship-v12-subject','admitted','ship-v12-user',1,1);
+      INSERT INTO dinkuskit_membership VALUES ('ship-v12-org','ship-v12-user','owner','active','[]',1,1);
+      INSERT INTO dinkuskit_store_identity VALUES ('ship-v12-site','https://ship-v12.example.test','ship-v12-subject',1);
+      INSERT INTO dinkuskit_service_grant (site_id,service,revoked,granted_at) VALUES ('ship-v12-site','ship',0,1);
+      INSERT INTO dinkuskit_commerce_settings VALUES ('ship-v12-site','free',0,1,0,'ship-v12-user',1);
+      INSERT INTO session (id,expiresAt,token,createdAt,updatedAt,userId) VALUES ('ship-v12-session','${sessionExpiry}','${secret()}',1,1,'ship-v12-user');
+      ${codes.map(code => `INSERT INTO dinkuskit_ship_sign_in_code (code_hash,site_id,user_id,session_id,code_challenge,expires_at,used_at) VALUES ('${hash(code)}','ship-v12-site','ship-v12-user','ship-v12-session','${challenge}',${expires},NULL);`).join('\n')}
+      ${refreshes.map((refresh, i) => `INSERT INTO dinkuskit_ship_sign_in (sign_in_id,site_id,user_id,session_id,email,token_hash,previous_hash,created_at,refreshed_at,ended_at) VALUES ('ship-v12-family-${i}','ship-v12-site','ship-v12-user','ship-v12-session','ship-v12@example.test','${hash(refresh)}',NULL,1,1,NULL);`).join('\n')}
+    `, { mode: 0o600 });
+    applySql(persistTo, seed);
+    assert.deepEqual(ledgerRows(persistTo), expectedLedger.filter(m => m.version <= 12));
+    assert.equal(query("PRAGMA table_info('dinkuskit_ship_sign_in')").some(c => c.name === 'ship_recipient'), false);
+    assert.deepEqual(query('SELECT count(*) n FROM dinkuskit_ship_sign_in_code'), [{ n: 2 }]);
+    assert.deepEqual(query('SELECT count(*) n FROM dinkuskit_ship_sign_in'), [{ n: 2 }]);
+
+    runtime = await startMerchantTestRuntime({ persistTo });
+    assert.equal((await request(runtime, new Map(), '/account/.well-known/jwks.json')).status, 200, 'compiled runtime applies 0013');
+    assert.deepEqual(ledgerRows(persistTo), expectedLedger);
+    for (const table of ['dinkuskit_ship_sign_in_code', 'dinkuskit_ship_sign_in']) {
+      assert.deepEqual(query(`SELECT ship_recipient,ship_generation,ship_mode FROM ${table}`), Array.from({ length: 2 }, () => ({ ship_recipient: null, ship_generation: null, ship_mode: null })));
+    }
+    const exchange = body => request(runtime, new Map(), '/api/ship-sign-in/token', { method: 'POST', body: JSON.stringify(body) });
+    const redeemed = await exchange({ code: codes[0], code_verifier: verifier });
+    assert.equal(redeemed.status, 200);
+    const refreshed = await exchange({ grant_type: 'refresh_token', refresh_token: refreshes[0] });
+    assert.equal(refreshed.status, 200);
+    const publicKeys = await (await request(runtime, new Map(), '/account/.well-known/jwks.json')).json();
+    for (const response of [redeemed, refreshed]) {
+      const { access_token } = await response.json();
+      const { payload } = await jwtVerify(access_token, createLocalJWKSet(publicKeys), { issuer: 'https://dinkuskit.com/account', audience: 'dinkus-ship' });
+      assert.equal(payload.site_id, 'ship-v12-site');
+      assert.equal(payload.scope, 'ship:labels');
+      assert.equal(payload.ship_recipient, undefined);
+      assert.equal(payload.ship_generation, undefined);
+      assert.equal(payload.ship_mode, undefined);
+    }
+    const prior = runtime;
+    await stopRuntime(prior); runtime = undefined;
+    runtime = await startMerchantTestRuntime({ persistTo, secret: prior.secret, jwt: prior.jwt, shipSandboxRegistration: { siteId: 'ship-v12-site', generation: 'test-generation-1' } });
+    for (const body of [{ code: codes[1], code_verifier: verifier }, { grant_type: 'refresh_token', refresh_token: refreshes[1] }]) {
+      const denied = await exchange(body);
+      assert.equal(denied.status, 400);
+      assert.deepEqual(await denied.json(), { error: 'invalid_grant' });
+    }
+    assert.deepEqual(ledgerRows(persistTo), expectedLedger, 'restart leaves additive migration idempotent');
+    assert.deepEqual(query('PRAGMA foreign_key_check'), []);
+  } finally {
+    if (runtime) await stopRuntime(runtime);
     await rm(persistTo, { recursive: true, force: true });
   }
 });

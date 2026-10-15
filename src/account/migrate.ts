@@ -1,5 +1,5 @@
 import { CURRENT_MERCHANT_SCHEMA_VERSION } from './config.ts';
-import { SQL_0001 as sql0001, SQL_0002 as sql0002, SQL_0003 as sql0003, SQL_0004 as sql0004, SQL_0005 as sql0005, SQL_0006 as sql0006, SQL_0007 as sql0007, SQL_0008 as sql0008, SQL_0009 as sql0009, SQL_0010 as sql0010, SQL_0011 as sql0011, SQL_0012 as sql0012 } from './migration-sql.ts';
+import { SQL_0001 as sql0001, SQL_0002 as sql0002, SQL_0003 as sql0003, SQL_0004 as sql0004, SQL_0005 as sql0005, SQL_0006 as sql0006, SQL_0007 as sql0007, SQL_0008 as sql0008, SQL_0009 as sql0009, SQL_0010 as sql0010, SQL_0011 as sql0011, SQL_0012 as sql0012, SQL_0013 as sql0013 } from './migration-sql.ts';
 
 type Migration = { version: number; name: string; sql: string };
 
@@ -16,6 +16,7 @@ export const MERCHANT_MIGRATIONS: readonly Migration[] = [
   { version: 10, name: '0010_store_keys.sql', sql: sql0010 },
   { version: 11, name: '0011_commerce_settings.sql', sql: sql0011 },
   { version: 12, name: '0012_ship_sign_in.sql', sql: sql0012 },
+  { version: 13, name: '0013_ship_recipient.sql', sql: sql0013 },
 ];
 
 const LEDGER_DDL = 'CREATE TABLE IF NOT EXISTS dinkuskit_schema_migrations (version INTEGER PRIMARY KEY, name TEXT NOT NULL, applied_at INTEGER NOT NULL)';
@@ -47,6 +48,7 @@ async function recordedMerchantSchemaVersion(db: D1Database): Promise<number | n
 }
 
 async function detectedAppliedMerchantSchemaVersion(db: D1Database): Promise<number> {
+  if (await columnExists(db, 'dinkuskit_ship_sign_in', 'ship_mode') && await columnExists(db, 'dinkuskit_ship_sign_in_code', 'ship_mode')) return 13;
   if (await tableExists(db, 'dinkuskit_ship_sign_in')) return 12;
   if (await tableExists(db, 'dinkuskit_commerce_settings')) return 11;
   if (await tableExists(db, 'dinkuskit_store_key')) return 10;

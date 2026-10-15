@@ -2,6 +2,7 @@ import {
   OWNER_ENABLED_SERVICES, STORE_KEY_PREFIX, STORE_PASS_LIMIT_PER_MINUTE, STORE_PASS_SERVICES,
   type OwnerEnabledService, type StorePassService,
 } from './config.ts';
+import { shipRecipient, shipClaims, shipTestMode, SHIP_SANDBOX_AUDIENCE, type ShipSandboxRegistration } from './ship-recipient.ts';
 import { signServicePass } from './jwt.ts';
 import { persistPublicJwk, revokeServiceGrant } from './store.ts';
 
@@ -109,15 +110,22 @@ function json(status: number, body: unknown): Response {
 
 /** POST /api/store-passes: trades a store key for a 5-minute pass for one service. */
 export async function issueStorePass(input: {
-  db: D1Database; authorization: string | null; body: unknown; privateJwkJson?: string;
+  db: D1Database; authorization: string | null; body: unknown; privateJwkJson?: string; registration?: ShipSandboxRegistration;
 }): Promise<Response> {
   const key = input.authorization?.match(/^Bearer ([^\s]+)$/i)?.[1];
   if (!key || !KEY_PATTERN.test(key)) return json(401, { error: 'invalid_store_key' });
   const body = input.body;
   if (!body || typeof body !== 'object' || Array.isArray(body)) return json(400, { error: 'invalid_request' });
   const fields = body as Record<string, unknown>;
-  if (Object.keys(fields).sort().join(',') !== 'audience,scope,site_id' || typeof fields.site_id !== 'string') return json(400, { error: 'invalid_request' });
-  const service = STORE_PASS_SERVICES.find(s => s.scope === fields.scope && s.audience === fields.audience);
+  if (typeof fields.site_id !== 'string') return json(400, { error: 'invalid_request' });
+  const isolated = fields.audience === SHIP_SANDBOX_AUDIENCE;
+  const recipient = shipRecipient(fields.site_id, input.registration);
+  const expectedKeys = isolated ? 'audience,generation,scope,site_id' : 'audience,scope,site_id';
+  if (Object.keys(fields).sort().join(',') !== expectedKeys) return json(400, { error: 'invalid_request' });
+  if (isolated && (!recipient || fields.generation !== recipient.generation || fields.scope !== 'ship:orders')) return json(403, { error: 'ship_recipient_mismatch' });
+  const service = isolated ? { service: 'ship', scope: 'ship:orders', audience: SHIP_SANDBOX_AUDIENCE } as const
+    : STORE_PASS_SERVICES.find(s => s.scope === fields.scope && s.audience === fields.audience);
+  if (service?.service === 'ship' && recipient && !isolated) return json(403, { error: 'ship_recipient_mismatch' });
   if (!service) return json(400, { error: 'invalid_request' });
 
   const minute = Math.floor(Date.now() / 60_000);
@@ -143,10 +151,11 @@ export async function issueStorePass(input: {
   if (store.revoked === 1 && store.revoked_by === 'operator') return json(403, { error: 'service_cut_off' });
   if (store.revoked !== 0) return json(403, { error: 'service_not_enabled' });
 
+  if (isolated && !await shipTestMode(input.db, used.site_id, recipient)) return json(403, { error: 'ship_test_required' });
   const signed = await signServicePass({
     subject: store.account_subject, siteId: used.site_id, audience: service.audience, scope: service.scope, privateJwkJson: input.privateJwkJson,
     // The store's web address as Connect checked it, so Payments can send shoppers back to the store.
-    claims: { site_origin: store.site_origin }, backdateSeconds: 2,
+    claims: { site_origin: store.site_origin, ...(isolated ? shipClaims(recipient) : {}) }, backdateSeconds: 2,
   });
   if (!signed.ok) return json(503, { error: 'signing_unavailable' });
   await persistPublicJwk(input.db, signed.kid, signed.publicJwk);

@@ -9,7 +9,7 @@ export const POST: APIRoute = async (context) => {
   try {
     const env = await getMerchantEnv();
     const body = await context.request.json().catch(() => null);
-    return exchangeShipToken({ db: env.MERCHANT_DB, body, privateJwkJson: env.MERCHANT_JWT_PRIVATE_JWK });
+    return exchangeShipToken({ db: env.MERCHANT_DB, body, registration: env.SHIP_SANDBOX_REGISTRATION, privateJwkJson: env.MERCHANT_JWT_PRIVATE_JWK });
   } catch (error) {
     if (error instanceof MerchantUnavailableError) return unavailableResponse();
     throw error;

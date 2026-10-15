@@ -13,6 +13,7 @@ export const POST: APIRoute = async (context) => {
       db: env.MERCHANT_DB,
       authorization: context.request.headers.get('authorization'),
       body,
+      registration: env.SHIP_SANDBOX_REGISTRATION,
       privateJwkJson: env.MERCHANT_JWT_PRIVATE_JWK,
     });
   } catch (error) {

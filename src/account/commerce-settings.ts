@@ -1,4 +1,5 @@
-import { ACCOUNT_ISSUER, COUPONS_ORIGIN, PAYMENTS_ORIGIN, SHIP_ORIGIN, STORE_PASS_SERVICES } from './config.ts';
+import { shipRecipient, shipDestination, type ShipSandboxRegistration } from './ship-recipient.ts';
+import { ACCOUNT_ISSUER, COUPONS_ORIGIN, PAYMENTS_ORIGIN, STORE_PASS_SERVICES } from './config.ts';
 import { prepareServiceAccess } from './jwt.ts';
 import { persistPublicJwk } from './store.ts';
 
@@ -109,9 +110,11 @@ export async function readPaymentsBinding(input: {
 
 /** The exact JSON text for Commerce's installedCheckout setting. Coupons and Ship appear only while on. */
 export function checkoutSettingsJson(input: {
-  siteId: string; siteOrigin: string; binding: PaymentsBinding; settings: CommerceSettings; coupons: boolean; ship: boolean;
+  siteId: string; siteOrigin: string; binding: PaymentsBinding; settings: CommerceSettings; coupons: boolean; ship: boolean; registration?: ShipSandboxRegistration;
 }): string {
   const { binding, settings } = input;
+  const recipient = shipRecipient(input.siteId, input.registration);
+  if (recipient && settings.live) throw new Error('ship_test_required');
   const value = {
     schema: CHECKOUT_SETTINGS_SCHEMA,
     enabled: true,
@@ -132,7 +135,7 @@ export function checkoutSettingsJson(input: {
       ...(settings.shippingMode === 'flat' ? { amount: { currency: 'USD', minor: String(settings.shippingMinor) } } : {}),
     },
     ...(input.coupons ? { coupons: { origin: COUPONS_ORIGIN, audience: audience('coupons') } } : {}),
-    ...(input.ship ? { ship: { origin: SHIP_ORIGIN, audience: audience('ship') } } : {}),
+    ...(input.ship ? { ship: shipDestination(recipient) } : {}),
   };
   return JSON.stringify(value, null, 2);
 }

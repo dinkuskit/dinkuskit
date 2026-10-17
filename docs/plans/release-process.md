@@ -9,7 +9,8 @@ Status: **plan only, nothing implemented yet**. Decided by Ryan (owner), 2026-10
 | 1.0.0 after coupons, inventory, commerce, payments, ship (bundles optional) | `release-1-0-gate-063` |
 | One release-PR merge does tag + GitHub Release + Registry publish | `release-publish-on-merge-064` |
 | pkg.pr.new previews stay | `release-pr-previews-065` |
-| Betas under a separate beta plugin name on the demo store; passing e2e opens final release PR | `release-beta-flow-066` |
+| ~~Betas under a separate beta plugin name on the demo store; passing e2e opens final release PR~~ (superseded by `release-beta-cut-071`) | `release-beta-flow-066` |
+| Betas cut on demand with a Cut beta button; a recorded journeys pass gates the final release PR; same release files in every plugin repo | `release-beta-cut-071` |
 | Tagging starts at v0.2.0; version from package.json | `release-baseline-067` |
 | Separate Changesets release workflow with its own GitHub App | `release-bot-068` |
 | No release-environment approver; Ryan's merge is the gate | `release-approver-069` |
@@ -62,6 +63,16 @@ Contrast: RepoGlance uses tag-only versions. A hand-pushed tag triggers its `rel
 1.0.0 waits until **coupons, inventory, commerce, payments and ship** are all in. Bundles are optional. Until then, a `check-no-major` style script fails the release workflow if any version would reach `>=1.0.0`. Removing that guard is the explicit 1.0 decision.
 
 ## Release flow
+
+> **Superseded for betas (2026-10-17, `release-beta-cut-071`).** The pre-mode beta steps below describe `release-beta-flow-066`, which `release-beta-cut-071` replaces. The current beta flow:
+>
+> 1. A manual **Cut beta** workflow, run by Ryan or an agent with his go, publishes `x.y.z-beta.N` from current `main` under the plugin's separate `-beta` Registry package. `x.y.z` is the version the pending changesets would release; `N` is one more than the highest beta tag or Registry beta version. No Changesets pre mode, no beta on ordinary merges, and no release PR or ClawSweeper round per beta.
+> 2. One beta store runs every plugin's newest beta. With several betas waiting, finals release one at a time and the journeys rerun between them.
+> 3. A manual **promote** step opens the final `ci: release` PR only for a beta whose Running journeys passed on the beta store (recorded proof naming that beta). The PR names that beta version and `main` commit; if `main` gains a new changeset after the pass, it waits for the next beta's pass.
+> 4. The release PR gets a hand-started ClawSweeper review (`@clawsweeper review`), and Ryan's merge of the reviewed commit is the only stable publish.
+> 5. Every plugin repo runs the same release files, copied from Commerce with only package names changed, plus a check that fails when a copy drifts. Journeys stay one cross-plugin suite in SaariusSkills.
+>
+> Commerce finishes 0.3.0 in pre mode first; Payments and Commerce move to this flow after go-live.
 
 (`release-publish-on-merge-064`, `release-beta-flow-066`, `release-pr-previews-065`)
 

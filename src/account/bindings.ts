@@ -38,8 +38,15 @@ export function readMerchantEnv(): MerchantEnv {
   };
 }
 
+// Each isolate checks the merchant schema once, and later requests skip its D1 round trips. A flag,
+// not a shared promise, so no request waits on D1 calls another request started and may abandon.
+let merchantSchemaChecked = false;
+
 export async function getMerchantEnv(): Promise<MerchantEnv> {
   const resolved = readMerchantEnv();
-  await applyPendingMerchantMigrations(resolved.MERCHANT_DB);
+  if (!merchantSchemaChecked) {
+    await applyPendingMerchantMigrations(resolved.MERCHANT_DB);
+    merchantSchemaChecked = true;
+  }
   return resolved;
 }

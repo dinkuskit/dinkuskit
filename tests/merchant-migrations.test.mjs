@@ -275,3 +275,26 @@ test('merchant D1 migration 0013 preserves populated schema-12 Ship authority wi
     await rm(persistTo, { recursive: true, force: true });
   }
 });
+
+test('merchant D1 migrations: a runtime checks the schema once and the next start repairs the ledger', async () => {
+  const persistTo = await mkdtemp(join(tmpdir(), 'dk-check-once-'));
+  const jwks = runtime => request(runtime, new Map(), '/account/.well-known/jwks.json');
+  let runtime;
+  try {
+    runtime = await startMerchantTestRuntime({ persistTo });
+    assert.equal((await jwks(runtime)).status, 200);
+    assert.deepEqual(ledgerRows(persistTo), expectedLedger);
+    const removed = wranglerD1(persistTo, ['execute', '--yes', '--command', 'DELETE FROM dinkuskit_schema_migrations WHERE version = 13']);
+    assert.equal(removed.status, 0, removed.stderr || removed.stdout);
+    assert.equal((await jwks(runtime)).status, 200);
+    assert.deepEqual(ledgerRows(persistTo), expectedLedger.slice(0, -1), 'later requests in the same runtime skip the schema check');
+    await stopRuntime(runtime); runtime = undefined;
+
+    runtime = await startMerchantTestRuntime({ persistTo });
+    assert.equal((await jwks(runtime)).status, 200);
+    assert.deepEqual(ledgerRows(persistTo), expectedLedger, 'a new runtime finds the missing ledger row and records it again');
+  } finally {
+    if (runtime) await stopRuntime(runtime);
+    await rm(persistTo, { recursive: true, force: true });
+  }
+});

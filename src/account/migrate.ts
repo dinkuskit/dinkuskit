@@ -92,7 +92,28 @@ async function recordAppliedMerchantVersions(db: D1Database, upTo: number, now: 
   );
 }
 
+/**
+ * The recorded version when the full check below would change nothing, found in one batched read and
+ * no writes: the ledger lists every migration and the columns the latest one adds exist (the first
+ * thing detectedAppliedMerchantSchemaVersion checks). Otherwise null.
+ */
+async function settledMerchantSchemaVersion(db: D1Database): Promise<number | null> {
+  const results = await db.batch([
+    db.prepare('SELECT MAX(version) AS v, COUNT(*) FILTER (WHERE version BETWEEN 1 AND ?) AS n FROM dinkuskit_schema_migrations')
+      .bind(CURRENT_MERCHANT_SCHEMA_VERSION),
+    db.prepare('PRAGMA table_info("dinkuskit_ship_sign_in")'),
+    db.prepare('PRAGMA table_info("dinkuskit_ship_sign_in_code")'),
+  ]).catch(() => null) as { results?: { v?: number | null; n?: number; name?: string }[] }[] | null;
+  // No ledger yet; the full check creates it.
+  if (!results) return null;
+  const [[recorded], ...shipTables] = results.map(result => result.results ?? []);
+  const hasShipMode = shipTables.every(columns => columns.some(column => column.name === 'ship_mode'));
+  return Number(recorded?.n) === CURRENT_MERCHANT_SCHEMA_VERSION && hasShipMode ? Number(recorded?.v) : null;
+}
+
 export async function applyPendingMerchantMigrations(db: D1Database): Promise<{ from: number; to: number }> {
+  const settled = await settledMerchantSchemaVersion(db);
+  if (settled !== null) return { from: settled, to: settled };
   const from = await currentMerchantSchemaVersion(db);
   const now = Math.floor(Date.now() / 1000);
   if (from < CURRENT_MERCHANT_SCHEMA_VERSION) {

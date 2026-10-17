@@ -38,3 +38,5 @@
 {"action": "decision_reviewed", "at": "2026-10-14T19:46:01+00:00", "data": {"classifications": ["required_fix"], "decision_id": "ship-sandbox-issuer-v1", "ref": "https://github.com/dinkuskit/dinkuskit/issues/44#issuecomment-6173399908", "result": "findings", "reviewed_at": "2026-10-14T19:46:01+00:00", "source_identity": "git:32febf1759d55efa99c583556bdb1d16eb0028a5"}, "event_id": "e1a7fb52-9d78-4ed7-b65e-72ee5c112a91"}
 {"action": "decision_implemented", "at": "2026-10-14T19:46:30+00:00", "data": {"decision_id": "ship-sandbox-issuer-v1"}, "event_id": "d4a7eb74-e10e-4f95-a56d-704033468afa"}
 {"action": "decision_verified", "at": "2026-10-14T19:46:30+00:00", "data": {"decision_id": "ship-sandbox-issuer-v1"}, "event_id": "9aebffb5-1a22-4e41-9e8a-1acecc95ba7a"}
+{"action": "focus_started", "at": "2026-10-17T22:20:59+00:00", "data": {"cadence": "sequential", "domain": "Plugin versioning and release process"}, "event_id": "2affc209-2192-43b4-8cba-5a57ff1a9611"}
+{"action": "decision_proposed", "at": "2026-10-17T22:20:59+00:00", "data": {"decision_id": "release-beta-cut-071"}, "event_id": "dc9e3163-81ec-43fc-8d3f-4fdb4bd16615"}

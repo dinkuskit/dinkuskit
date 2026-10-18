@@ -10,7 +10,10 @@ import { revokeServiceGrant } from '../src/account/store.ts';
 import { cutOffStore, restoreStore } from '../src/account/operator-admin.ts';
 import { issueStorePass, listStoreSetup, replaceStoreKey, setOwnerService } from '../src/account/store-passes.ts';
 import { checkoutSettingsJson, dollarsToMinor, loadCommerceSettings, readPaymentsBinding, saveCommerceSettings } from '../src/account/commerce-settings.ts';
-import { PAYMENTS_CALLBACK_PATH, PAYMENTS_PROOF_PATH, PAYMENTS_REGISTRY_IDENTITY } from '../src/account/config.ts';
+import {
+  PAYMENTS_BETA_CALLBACK_PATH, PAYMENTS_BETA_PROOF_PATH, PAYMENTS_BETA_REGISTRY_IDENTITY,
+  PAYMENTS_CALLBACK_PATH, PAYMENTS_PROOF_PATH, PAYMENTS_REGISTRY_IDENTITY,
+} from '../src/account/config.ts';
 import { stripTypeScriptTypes } from 'node:module';
 
 test('Payments registration matches pinned EmDash Registry publisher identity and rejects unregistered paths', async () => {
@@ -21,11 +24,20 @@ test('Payments registration matches pinned EmDash Registry publisher identity an
   assert.deepEqual(PAYMENTS_REGISTRY_IDENTITY, { publisherDid: 'did:plc:ekk4pjmkh3k3ql2kfoex3qt4', slug: 'dinkus-payments', installedPluginId: id });
   assert.equal(PAYMENTS_CALLBACK_PATH, `/_emdash/admin/plugins/${id}/status`);
   assert.equal(PAYMENTS_PROOF_PATH, `/_emdash/api/plugins/${id}/store-proof`);
+  const betaId = await makeRegistryPluginId('did:plc:ekk4pjmkh3k3ql2kfoex3qt4', 'dinkus-payments-beta');
+  assert.equal(betaId, 'r_sffx6l4z6mpqliki');
+  assert.deepEqual(PAYMENTS_BETA_REGISTRY_IDENTITY, { publisherDid: 'did:plc:ekk4pjmkh3k3ql2kfoex3qt4', slug: 'dinkus-payments-beta', installedPluginId: betaId });
+  assert.equal(PAYMENTS_BETA_CALLBACK_PATH, `/_emdash/admin/plugins/${betaId}/status`);
+  assert.equal(PAYMENTS_BETA_PROOF_PATH, `/_emdash/api/plugins/${betaId}/store-proof`);
   const otherId = await makeRegistryPluginId('did:plc:otherpublisher', 'dinkus-payments');
+  const otherBetaId = await makeRegistryPluginId('did:plc:otherpublisher', 'dinkus-payments-beta');
   const f = await fixture(); try {
     for (const path of [
       '/_emdash/admin/plugins/dinkus-payments/status',
+      '/_emdash/admin/plugins/dinkus-payments-beta/status',
       `/_emdash/admin/plugins/${otherId}/status`,
+      `/_emdash/admin/plugins/${otherBetaId}/status`,
+      `/_emdash/admin/plugins/${betaId}/store-proof`,
       `/_emdash/admin/plugins/${id}/status?next=elsewhere`,
       `/_emdash/admin/plugins/${id}/other`,
     ]) {
@@ -39,6 +51,7 @@ test('Payments registration matches pinned EmDash Registry publisher identity an
 const registrations = {
   inventory: { client: 'dinkus-inventory-emdash', callback: '/_emdash/admin/plugins/dinkus-inventory/inventory', audience: 'inventory', scope: 'inventory:admin' },
   payments: { client: 'dinkus-payments-emdash', callback: '/_emdash/admin/plugins/r_3brsc2on3bu673rn/status', audience: 'dinkus-payments', scope: 'payments:admin' },
+  'payments-beta': { client: 'dinkus-payments-emdash', service: 'payments', callback: '/_emdash/admin/plugins/r_sffx6l4z6mpqliki/status', audience: 'dinkus-payments', scope: 'payments:admin' },
 };
 async function fixture() {
   const sqlite = new Database(':memory:');
@@ -69,8 +82,8 @@ async function fixture() {
   const merchant = (user = 'alice') => ({ userId: user, email: `${user}@example.test`, subject: user === 'bob' ? 'org-b' : 'org-a', organizationId: user === 'bob' ? 'b' : 'a', accountId: JSON.stringify(['https://dinkuskit.com/account', user === 'bob' ? 'org-b' : 'org-a']) });
   return { sqlite, db, legacyBefore, keys, merchant, beforeBatch(hook) { beforeBatch = hook; }, close() { sqlite.close(); } };
 }
-async function start(f, service = 'inventory', origin = 'https://store.example.test', extra = {}) {
-  const reg = registrations[service]; const verifier = randomBytes(32).toString('base64url');
+async function start(f, installation = 'inventory', origin = 'https://store.example.test', extra = {}) {
+  const reg = registrations[installation]; const service = reg.service ?? installation; const verifier = randomBytes(32).toString('base64url');
   const request = { protocol_version: 2, client_id: reg.client, service, site_origin: origin, callback_uri: origin + reg.callback, code_challenge: createHash('sha256').update(verifier).digest('base64url'), code_challenge_method: 'S256', ...extra };
   const response = await startStoreConnection(f.db, request, 'https://dinkuskit.com');
   const body = await response.json();
@@ -214,15 +227,24 @@ test('independent contract: proof transport selects only the registered service 
     return new Response(JSON.stringify({version:2,connection_id:'proof-id',challenge:'challenge',client_id:'registered',service:'registered',site_id:'canonical-id',site_origin:'https://store.example.test',callback_uri:'https://store.example.test/callback',code_challenge:'pkce',expires_at:Date.now()+1000}), {status:200});
   };
   try {
-    for (const service of ['inventory','payments']) {
-      const result=await fetchStoreProofReceipt({siteOrigin:'https://store.example.test',connectionId:'proof-id',clientId:registrations[service].client,service});
+    for (const [installation, installedId] of [['inventory','dinkus-inventory'],['payments','r_3brsc2on3bu673rn'],['payments-beta','r_sffx6l4z6mpqliki']]) {
+      const reg=registrations[installation];
+      const result=await fetchStoreProofReceipt({siteOrigin:'https://store.example.test',connectionId:'proof-id',clientId:reg.client,service:reg.service ?? installation,callbackUri:`https://store.example.test${reg.callback}`});
       assert.equal(result.ok,true);
-      const installedId = service === 'payments' ? 'r_3brsc2on3bu673rn' : 'dinkus-inventory';
       assert.equal(requested.at(-1).url,`https://store.example.test/_emdash/api/plugins/${installedId}/store-proof?connection_id=proof-id`);
       assert.equal(requested.at(-1).options.redirect,'manual');
     }
-    assert.equal((await fetchStoreProofReceipt({siteOrigin:'https://store.example.test',connectionId:'proof-id',clientId:registrations.inventory.client,service:'payments'})).ok,false);
-    assert.equal(requested.length,2);
+    for (const [label, input] of [
+      ['client of another service', {clientId:registrations.inventory.client,service:'payments',callbackUri:`https://store.example.test${registrations.payments.callback}`}],
+      ['callback of another service', {clientId:registrations.payments.client,service:'payments',callbackUri:`https://store.example.test${registrations.inventory.callback}`}],
+      ['callback on another origin', {clientId:registrations.payments.client,service:'payments',callbackUri:`https://other.example.test${registrations['payments-beta'].callback}`}],
+      ['unregistered installation', {clientId:registrations.payments.client,service:'payments',callbackUri:'https://store.example.test/_emdash/admin/plugins/dinkus-payments-beta/status'}],
+      ['no callback', {clientId:registrations.payments.client,service:'payments',callbackUri:''}],
+    ]) {
+      const result=await fetchStoreProofReceipt({siteOrigin:'https://store.example.test',connectionId:'proof-id',...input});
+      assert.deepEqual([result.ok,result.reason],[false,'unregistered_service'],label);
+    }
+    assert.equal(requested.length,3);
   } finally { globalThis.fetch=original; }
 });
 
@@ -245,12 +267,35 @@ test('independent contract: production consent checks the store through the netw
   }
 });
 
+test('independent contract: the Payments beta connects with its own callback and store check', async () => {
+  const {fetchStoreProofReceipt} = await import('../src/account/proof-fetch.ts');
+  const original = globalThis.fetch;
+  const betaProof = id => `https://store.example.test/_emdash/api/plugins/r_sffx6l4z6mpqliki/store-proof?connection_id=${id}`;
+  const f = await fixture(); try {
+    const c = await start(f, 'payments-beta'); assert.equal(c.response.status, 200);
+    assert.equal(f.sqlite.prepare('SELECT callback_uri FROM dinkuskit_store_connection WHERE connection_id = ?').get(c.body.connection_id).callback_uri, 'https://store.example.test/_emdash/admin/plugins/r_sffx6l4z6mpqliki/status');
+    const stableShaped = { ...c.receipt, callback_uri: `https://store.example.test${registrations.payments.callback}` };
+    assert.deepEqual(await consent(f, c, 'alice', { proofFetch: async () => ({ ok: true, transport: 'simulation', receipt: stableShaped }) }), { ok: false, reason: 'proof_mismatch_callback_uri', status: 403 }, 'a stable-shaped receipt does not prove a beta connection');
+    const requested = [];
+    globalThis.fetch = async url => { requested.push(String(url)); return String(url) === betaProof(c.body.connection_id) ? new Response(JSON.stringify(c.receipt), { status: 200 }) : new Response('not found', { status: 404 }); };
+    assert.deepEqual(await consent(f, c, 'alice', { proofFetch: fetchStoreProofReceipt }), { ok: true, redirect: 'https://store.example.test/_emdash/admin/plugins/r_sffx6l4z6mpqliki/status' });
+    assert.deepEqual(requested, [betaProof(c.body.connection_id)], 'the beta connection reads only the beta proof path');
+    const response = await exchange(f, c); assert.equal(response.status, 200); const issued = await response.json();
+    const { payload } = await jwtVerify(issued.access_token, createLocalJWKSet({ keys: [f.keys.publicJwk] }), { issuer: 'https://dinkuskit.com/account', audience: 'dinkus-payments' });
+    assert.equal(payload.scope, 'payments:admin'); assert.equal(payload.site_id, c.body.site_id);
+    const stable = await start(f, 'payments', 'https://stable.example.test'); requested.length = 0;
+    globalThis.fetch = async url => { requested.push(String(url)); return new Response('not found', { status: 404 }); };
+    assert.equal((await consent(f, stable, 'alice', { proofFetch: fetchStoreProofReceipt })).ok, false);
+    assert.deepEqual(requested, [`https://stable.example.test/_emdash/api/plugins/r_3brsc2on3bu673rn/store-proof?connection_id=${stable.body.connection_id}`], 'a stable connection never reads the beta path');
+  } finally { globalThis.fetch = original; f.close(); }
+});
+
 test('independent contract: proof transport refuses redirects without following them', async () => {
   const {fetchStoreProofReceipt} = await import('../src/account/proof-fetch.ts');
   const original = globalThis.fetch; let calls=0;
   globalThis.fetch = async () => { calls++; return new Response(null, {status:302, headers:{location:'https://elsewhere.example.test/'}}); };
   try {
-    const result=await fetchStoreProofReceipt({siteOrigin:'https://store.example.test',connectionId:'proof-id',clientId:registrations.payments.client,service:'payments'});
+    const result=await fetchStoreProofReceipt({siteOrigin:'https://store.example.test',connectionId:'proof-id',clientId:registrations.payments.client,service:'payments',callbackUri:`https://store.example.test${registrations.payments.callback}`});
     assert.deepEqual([result.ok,result.reason],[false,'proof_redirect_rejected']);
     assert.equal(calls,1);
   } finally { globalThis.fetch=original; }

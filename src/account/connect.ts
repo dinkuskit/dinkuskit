@@ -1,7 +1,6 @@
 import {
-  ACCOUNT_ISSUER, CONNECTION_MAX_LIFETIME_MS, REGISTERED_STORE_SERVICES,
-  STORE_CONNECTION_PROTOCOL_VERSION, TOKEN_TTL_MAX_SECONDS, TOKEN_TTL_SECONDS,
-  type RegisteredStoreService,
+  ACCOUNT_ISSUER, CONNECTION_MAX_LIFETIME_MS, STORE_CONNECTION_PROTOCOL_VERSION,
+  TOKEN_TTL_MAX_SECONDS, TOKEN_TTL_SECONDS, isRegisteredClient, registeredInstallation,
 } from './config.ts';
 import {
   approveConnectionAndBind, denyOwnedStoreConnection, insertStoreConnection, loadActiveBinding,
@@ -17,15 +16,12 @@ const S256 = 'S256';
 const json = (status: number, body: unknown) => new Response(JSON.stringify(body), {
   status, headers: { 'content-type': 'application/json', 'cache-control': 'private, no-store' },
 });
-const serviceFor = (clientId: unknown, service: unknown): RegisteredStoreService | null =>
-  REGISTERED_STORE_SERVICES.find(item => item.clientId === clientId && item.service === service) ?? null;
 const randomId = () => crypto.randomUUID();
 const isChallenge = (value: string) => /^[A-Za-z0-9_-]{43,128}$/.test(value);
 async function sha256Base64Url(value: string): Promise<string> {
   const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value));
   return btoa(String.fromCharCode(...new Uint8Array(digest))).replaceAll('+', '-').replaceAll('/', '_').replaceAll('=', '');
 }
-function callbackFor(origin: string, service: RegisteredStoreService): string { return `${origin}${service.callbackPath}`; }
 export function verificationUri(baseUrl: string, connectionId: string): string {
   return `${baseUrl.replace(/\/$/, '')}/account/connect?connection_id=${encodeURIComponent(connectionId)}`;
 }
@@ -35,15 +31,15 @@ export async function startStoreConnection(db: D1Database, body: unknown, baseUr
   const input = body as Record<string, unknown>;
   if (Object.prototype.hasOwnProperty.call(input, 'site_id')) return json(400, { error: 'site_id_not_allowed' });
   if (input.protocol_version !== STORE_CONNECTION_PROTOCOL_VERSION) return json(400, { error: 'unsupported_protocol' });
-  const registered = serviceFor(input.client_id, input.service);
-  if (!registered) return json(400, { error: 'invalid_client' });
+  if (!isRegisteredClient(input.client_id, input.service)) return json(400, { error: 'invalid_client' });
   if (input.code_challenge_method !== S256 || typeof input.code_challenge !== 'string' || !isChallenge(input.code_challenge)) return json(400, { error: 'invalid_pkce' });
   if (typeof input.site_origin !== 'string' || typeof input.callback_uri !== 'string') return json(400, { error: 'invalid_request' });
   const origin = parseCanonicalSiteOrigin(input.site_origin, options);
   if (!origin.ok) return json(400, { error: origin.reason });
   if (options.allowExactOrigin && origin.origin !== options.allowExactOrigin) return json(400, { error: 'test_origin_not_admitted' });
-  const expectedCallback = callbackFor(origin.origin, registered);
-  if (input.callback_uri !== expectedCallback) return json(400, { error: 'invalid_callback' });
+  const registered = registeredInstallation(input.client_id, input.service, origin.origin, input.callback_uri);
+  if (!registered) return json(400, { error: 'invalid_callback' });
+  const expectedCallback = `${origin.origin}${registered.callbackPath}`;
   const existing = await db.prepare('SELECT site_id FROM dinkuskit_store_identity WHERE site_origin = ?').bind(origin.origin).first<{ site_id: string }>();
   const siteId = existing?.site_id ?? randomId();
   if (!/^[A-Za-z0-9_-]{1,200}$/.test(siteId)) return json(400, { error: 'invalid_site_id' });
@@ -70,7 +66,7 @@ export async function exchangeStoreConnectionToken(input: {
   if (typeof body.client_id !== 'string' || typeof body.connection_id !== 'string' || typeof body.code_verifier !== 'string') return json(400, { error: 'invalid_request' });
   const connection = await loadStoreConnection(input.db, body.connection_id);
   if (!connection) return json(400, { error: 'invalid_grant' });
-  const registered = serviceFor(body.client_id, connection.service);
+  const registered = registeredInstallation(connection.clientId, connection.service, connection.siteOrigin, connection.callbackUri);
   if (connection.protocolVersion !== STORE_CONNECTION_PROTOCOL_VERSION) return json(400, { error: 'unsupported_protocol' });
   if (!registered || body.client_id !== connection.clientId) return json(400, { error: 'invalid_client' });
   if (Date.now() > connection.expiresAt) return json(400, { error: 'expired_token' });
@@ -113,7 +109,7 @@ export async function consentStoreConnection(input: {
     return { ok: true, redirect: connection.callbackUri };
   }
   if (!input.proofFetch) return { ok: false, reason: 'integration_unavailable', status: 503 };
-  const proof = await input.proofFetch({ siteOrigin: connection.siteOrigin, connectionId: connection.connectionId, clientId: connection.clientId, service: connection.service });
+  const proof = await input.proofFetch({ siteOrigin: connection.siteOrigin, connectionId: connection.connectionId, clientId: connection.clientId, service: connection.service, callbackUri: connection.callbackUri });
   if (!proof.ok) return { ok: false, reason: proof.reason, status: 403 };
   const expected: StoreProofReceipt = {
     version: 2, connection_id: connection.connectionId, challenge: connection.challenge,

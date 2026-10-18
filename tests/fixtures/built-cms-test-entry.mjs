@@ -200,6 +200,7 @@ async function proofRoutes(request, env, ctx) {
       connectionId: String(body.connectionId ?? 'probe'),
       clientId: String(body.clientId ?? 'dinkus-inventory-emdash'),
       service: String(body.service ?? 'inventory'),
+      callbackUri: String(body.callbackUri ?? ''),
     });
     return json(result.ok ? 200 : 403, result);
   }

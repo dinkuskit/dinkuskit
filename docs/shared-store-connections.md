@@ -12,6 +12,7 @@ Ship integration is outside this slice.
 | --- | --- | --- | --- | --- | --- |
 | `inventory` | `dinkus-inventory-emdash` | `/_emdash/admin/plugins/dinkus-inventory/inventory` | `/_emdash/api/plugins/dinkus-inventory/store-proof` | `inventory` | `inventory:admin` |
 | `payments` | `dinkus-payments-emdash` | `/_emdash/admin/plugins/r_3brsc2on3bu673rn/status` | `/_emdash/api/plugins/r_3brsc2on3bu673rn/store-proof` | `dinkus-payments` | `payments:admin` |
+| `payments` (beta) | `dinkus-payments-emdash` | `/_emdash/admin/plugins/r_sffx6l4z6mpqliki/status` | `/_emdash/api/plugins/r_sffx6l4z6mpqliki/store-proof` | `dinkus-payments` | `payments:admin` |
 
 The server selects these values from the registered client/service pair, never
 from arbitrary client-supplied proof URLs, scopes, or audiences. Payments consent
@@ -27,6 +28,13 @@ callback/proof paths are rejected. Another publisher's derived ID, an arbitrary
 `r_*` string or a caller-provided path cannot select a different registration.
 An exact registered path still does not attest installation by itself: origin
 proof, transaction comparison and current Owner consent remain required.
+
+The Payments beta package (slug `dinkus-payments-beta`, same publisher) installs
+as `r_sffx6l4z6mpqliki` and is the second registered Payments installation. Both
+use the same client, audience and scope, and a store holds one Payments grant
+whichever installation connected it. The callback a connection starts with picks
+its installation, the server stores it, and consent reads the store check only at
+that installation's proof path; nothing at consent can name another path.
 
 Inventory's listed slug paths currently describe a config-managed local sandbox
 installation only. Its manifest has a placeholder publisher; no approved Registry

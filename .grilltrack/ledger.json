@@ -4,11 +4,11 @@
   "current_focus": {
     "cadence": "sequential",
     "confirmed": true,
-    "confirmed_at": "2026-10-17T22:26:17+00:00",
+    "confirmed_at": "2026-10-18T20:50:30+00:00",
     "domain": "Plugin versioning and release process",
     "started_at": "2026-10-17T22:20:59+00:00",
     "status": "confirmed",
-    "summary": "Ronald approved in the project thread on 17 Oct 2026 22:26 UTC: lock release-beta-cut-071 and merge once ClawSweeper review is clean."
+    "summary": "Ronald agreed in the project's journeys thread on 18 Oct 2026 20:36 UTC to the step 'DinkusKit.com: let the Payments beta connect, then deploy.'"
   },
   "decisions": [
     {
@@ -8677,6 +8677,78 @@
       "superseded_by": null,
       "updated_at": "2026-10-17T22:26:17+00:00",
       "verification_ref": null
+    },
+    {
+      "baseline_ref": "git:6417e23bc7a5880cdc9688240853d6a746030c94",
+      "candidate_refs": [],
+      "choice": "Exactly two Payments installations connect for client dinkus-payments-emdash: stable r_3brsc2on3bu673rn (slug dinkus-payments) and beta r_sffx6l4z6mpqliki (slug dinkus-payments-beta), both from publisher did:plc:ekk4pjmkh3k3ql2kfoex3qt4, each with its own fixed callback and proof path. The callback a connection starts with selects its installation and is stored; consent reads the store check only at that installation's proof path, never one a caller names. Audience dinkus-payments, scope payments:admin, protocol version 2 and the single Payments grant per store stay the same. No other installation, slug or publisher is accepted.",
+      "context_ref": "file:docs/shared-store-connections.md",
+      "created_at": "2026-10-18T20:50:22+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [
+        "website-production-store-connect-032",
+        "release-beta-cut-071"
+      ],
+      "domain": "Plugin versioning and release process",
+      "history": [
+        {
+          "at": "2026-10-18T20:50:30+00:00",
+          "choice": "Exactly two Payments installations connect for client dinkus-payments-emdash: stable r_3brsc2on3bu673rn (slug dinkus-payments) and beta r_sffx6l4z6mpqliki (slug dinkus-payments-beta), both from publisher did:plc:ekk4pjmkh3k3ql2kfoex3qt4, each with its own fixed callback and proof path. The callback a connection starts with selects its installation and is stored; consent reads the store check only at that installation's proof path, never one a caller names. Audience dinkus-payments, scope payments:admin, protocol version 2 and the single Payments grant per store stay the same. No other installation, slug or publisher is accepted.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-18T21:01:43+00:00",
+          "choice": "Exactly two Payments installations connect for client dinkus-payments-emdash: stable r_3brsc2on3bu673rn (slug dinkus-payments) and beta r_sffx6l4z6mpqliki (slug dinkus-payments-beta), both from publisher did:plc:ekk4pjmkh3k3ql2kfoex3qt4, each with its own fixed callback and proof path. The callback a connection starts with selects its installation and is stored; consent reads the store check only at that installation's proof path, never one a caller names. Audience dinkus-payments, scope payments:admin, protocol version 2 and the single Payments grant per store stay the same. No other installation, slug or publisher is accepted.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-18T21:12:04+00:00",
+          "choice": "Exactly two Payments installations connect for client dinkus-payments-emdash: stable r_3brsc2on3bu673rn (slug dinkus-payments) and beta r_sffx6l4z6mpqliki (slug dinkus-payments-beta), both from publisher did:plc:ekk4pjmkh3k3ql2kfoex3qt4, each with its own fixed callback and proof path. The callback a connection starts with selects its installation and is stored; consent reads the store check only at that installation's proof path, never one a caller names. Audience dinkus-payments, scope payments:admin, protocol version 2 and the single Payments grant per store stay the same. No other installation, slug or publisher is accepted.",
+          "from": "implemented",
+          "implementation_ref": "git:1954410a1597ddcc83bdedbef71c3f4fdb00f90c",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": null
+        }
+      ],
+      "id": "website-payments-beta-connect-072",
+      "implementation_ref": "git:1954410a1597ddcc83bdedbef71c3f4fdb00f90c",
+      "question": "Which Payments installations may connect a store to DinkusKit.com?",
+      "rationale": "Ronald agreed on 18 Oct 2026 20:36 UTC ('DinkusKit.com: let the Payments beta connect, then deploy.' / 'agreed'). release-beta-cut-071 already names accepting the beta installed ID on DinkusKit.com as a prerequisite.",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [],
+      "review_ref": null,
+      "review_result": null,
+      "review_source_identity": null,
+      "status": "verified",
+      "superseded_by": null,
+      "updated_at": "2026-10-18T21:12:04+00:00",
+      "verification_ref": "file:proof/payments-beta-connect/PROOF.md"
     }
   ],
   "last_activation": {
@@ -8699,5 +8771,5 @@
   "status": "active",
   "title": "Composed integration",
   "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5",
-  "updated_at": "2026-10-17T22:26:17+00:00"
+  "updated_at": "2026-10-18T21:12:04+00:00"
 }

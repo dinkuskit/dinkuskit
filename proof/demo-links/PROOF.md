@@ -1,5 +1,7 @@
 # Demo and Template Setup Links Proof
 
+> **Note (2026-10-18):** demo.dinkuskit.com was retired on 2026-10-18 in favour of the playground at https://playground.dinkuskit.com/, where each visitor gets their own throwaway store and checkout shows as unavailable. The record below is kept as history and describes the original 2026-10-01 slice.
+
 Date: 2026-10-01
 Decision ID: `website-template-demo-011`
 Node Version: `v22.23.2`

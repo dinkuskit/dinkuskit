@@ -22,9 +22,9 @@ DinkusKit intends both a hosted onboarding path and documented self-hosting. Pri
 
 ## Commerce and Template Store
 
-Commerce and the Template Store will be released together as a verified pair. You can explore the interactive storefront demo with a synthetic catalog to test browsing and cart behavior; checkout is disabled and no real purchases can be made. Template Store setup guidance is available for the development source pilot, while released installable packages and artifacts remain pending.
+Commerce and the Template Store will be released together as a verified pair. You can try the interactive storefront in the playground: each visitor gets their own throwaway store with a synthetic catalog to test browsing and cart behavior. Checkout shows as unavailable, so no real purchases can be made. Template Store setup guidance is available for the development source pilot, while released installable packages and artifacts remain pending.
 
-- **Try the demo**: [https://demo.dinkuskit.com/](https://demo.dinkuskit.com/) (browse and cart testing on synthetic catalog; checkout disabled)
+- **Try the demo**: [https://playground.dinkuskit.com/](https://playground.dinkuskit.com/) (your own throwaway playground store with a synthetic catalog for browse and cart testing; checkout shows as unavailable)
 - **Template setup**: [https://github.com/dinkuskit/template-store/blob/main/docs/v1-setup.md](https://github.com/dinkuskit/template-store/blob/main/docs/v1-setup.md) (development source pilot documentation; no released installer or package artifact exists)
 
 ### Operator note on content persistence

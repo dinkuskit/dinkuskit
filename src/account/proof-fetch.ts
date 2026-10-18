@@ -1,7 +1,7 @@
 import {
-  REGISTERED_STORE_SERVICES,
   PROOF_FETCH_MAX_BYTES,
   PROOF_FETCH_TIMEOUT_MS,
+  registeredInstallation,
 } from './config.ts';
 
 export type StoreProofReceipt = {
@@ -26,6 +26,8 @@ export type ProofFetchFn = (input: {
   connectionId: string;
   clientId: string;
   service: string;
+  /** The connection's stored callback; it picks the installation whose proof path is read. */
+  callbackUri: string;
 }) => Promise<ProofFetchResult>;
 
 const PRIVATE_HOSTS = new Set(['localhost', 'localhost.']);
@@ -84,8 +86,8 @@ export function parseCanonicalSiteOrigin(input: string, options: { allowExactOri
   return { ok: true, origin: url.origin };
 }
 
-export function proofUrlFor(siteOrigin: string, connectionId: string, clientId: string, service: string): URL {
-  const registered = REGISTERED_STORE_SERVICES.find(item => item.clientId === clientId && item.service === service);
+export function proofUrlFor(siteOrigin: string, connectionId: string, clientId: string, service: string, callbackUri: string): URL {
+  const registered = registeredInstallation(clientId, service, siteOrigin, callbackUri);
   if (!registered) throw new Error('unregistered_service');
   const url = new URL(registered.proofPath, `${siteOrigin}/`);
   url.search = '';
@@ -117,17 +119,12 @@ function asReceipt(value: unknown): StoreProofReceipt | null {
   };
 }
 
-export async function fetchStoreProofReceipt(input: {
-  siteOrigin: string;
-  connectionId: string;
-  clientId: string;
-  service: string;
-}): Promise<ProofFetchResult> {
+export async function fetchStoreProofReceipt(input: Parameters<ProofFetchFn>[0]): Promise<ProofFetchResult> {
   const origin = parseCanonicalSiteOrigin(input.siteOrigin);
   if (!origin.ok) return { ok: false, reason: origin.reason, transport: 'production-fetch' };
-  const registered = REGISTERED_STORE_SERVICES.find(item => item.clientId === input.clientId && item.service === input.service);
+  const registered = registeredInstallation(input.clientId, input.service, origin.origin, input.callbackUri);
   if (!registered) return { ok: false, reason: 'unregistered_service', transport: 'production-fetch' };
-  const url = proofUrlFor(origin.origin, input.connectionId, input.clientId, input.service);
+  const url = proofUrlFor(origin.origin, input.connectionId, input.clientId, input.service, input.callbackUri);
   if (url.username || url.password) return { ok: false, reason: 'invalid_proof_url', transport: 'production-fetch' };
   if (url.pathname !== registered.proofPath) return { ok: false, reason: 'invalid_proof_path', transport: 'production-fetch' };
   if ([...url.searchParams.keys()].join(',') !== 'connection_id') {

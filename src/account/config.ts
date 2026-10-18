@@ -23,6 +23,15 @@ export const PAYMENTS_REGISTRY_IDENTITY = {
 } as const;
 export const PAYMENTS_CALLBACK_PATH = '/_emdash/admin/plugins/r_3brsc2on3bu673rn/status';
 export const PAYMENTS_PROOF_PATH = '/_emdash/api/plugins/r_3brsc2on3bu673rn/store-proof';
+// The beta package (same publisher, slug dinkus-payments-beta) installs under its own
+// Registry ID, so it calls back and answers the store check at its own paths.
+export const PAYMENTS_BETA_REGISTRY_IDENTITY = {
+  publisherDid: 'did:plc:ekk4pjmkh3k3ql2kfoex3qt4',
+  slug: 'dinkus-payments-beta',
+  installedPluginId: 'r_sffx6l4z6mpqliki',
+} as const;
+export const PAYMENTS_BETA_CALLBACK_PATH = '/_emdash/admin/plugins/r_sffx6l4z6mpqliki/status';
+export const PAYMENTS_BETA_PROOF_PATH = '/_emdash/api/plugins/r_sffx6l4z6mpqliki/store-proof';
 export const STORE_CONNECTION_PROTOCOL_VERSION = 2;
 export type StoreService = 'inventory' | 'payments';
 export type RegisteredStoreService = {
@@ -33,10 +42,24 @@ export type RegisteredStoreService = {
   audience: string;
   scope: string;
 };
+/**
+ * One entry per installation a client may connect from. Payments has two, stable and
+ * beta, with the same client, audience and scope. A connection keeps the callback it
+ * started with, and that callback alone picks the proof path its store check reads.
+ */
 export const REGISTERED_STORE_SERVICES: readonly RegisteredStoreService[] = [
   { clientId: INVENTORY_CLIENT_ID, service: INVENTORY_SERVICE, callbackPath: INVENTORY_CALLBACK_PATH, proofPath: INVENTORY_PROOF_PATH, audience: 'inventory', scope: INVENTORY_SCOPE },
   { clientId: PAYMENTS_CLIENT_ID, service: PAYMENTS_SERVICE, callbackPath: PAYMENTS_CALLBACK_PATH, proofPath: PAYMENTS_PROOF_PATH, audience: 'dinkus-payments', scope: PAYMENTS_SCOPE },
+  { clientId: PAYMENTS_CLIENT_ID, service: PAYMENTS_SERVICE, callbackPath: PAYMENTS_BETA_CALLBACK_PATH, proofPath: PAYMENTS_BETA_PROOF_PATH, audience: 'dinkus-payments', scope: PAYMENTS_SCOPE },
 ];
+export function isRegisteredClient(clientId: unknown, service: unknown): boolean {
+  return REGISTERED_STORE_SERVICES.some(item => item.clientId === clientId && item.service === service);
+}
+/** The installation whose exact callback on this origin is `callbackUri`, or null. */
+export function registeredInstallation(clientId: unknown, service: unknown, siteOrigin: string, callbackUri: unknown): RegisteredStoreService | null {
+  return REGISTERED_STORE_SERVICES.find(item =>
+    item.clientId === clientId && item.service === service && `${siteOrigin}${item.callbackPath}` === callbackUri) ?? null;
+}
 /**
  * Passes Commerce trades its store key for at /api/store-passes. Payments is on for a
  * store while its Payments Connect grant is active; the owner turns Coupons and Ship

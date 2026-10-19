@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { spawn } from 'node:child_process';
+import { execFileSync, spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { copyFileSync, existsSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
@@ -214,6 +214,12 @@ try {
   assert.ok(editorProbe.status === 401 || editorProbe.status === 403, 'Seed fixture must not create a CMS editor');
   checks.push('Dedicated fixture entry seeded persisted D1 without creating a CMS editor');
   await stopWorker(fixture);
+  const docsRows = JSON.parse(execFileSync(join(root, 'node_modules/.bin/wrangler'), [
+    'd1', 'execute', 'DB', '--local', '--persist-to', persistTo, '--config', join(root, 'dist/server/wrangler.json'), '--json',
+    '--command', "SELECT status, COUNT(*) AS count FROM ec_docs WHERE deleted_at IS NULL GROUP BY status",
+  ], { cwd: root, encoding: 'utf8' }))[0].results;
+  assert.deepEqual(docsRows, [{ status: 'draft', count: 13 }], 'seed loads the docs collection with 13 unpublished entries');
+  checks.push('Seed created the docs collection in D1 with 13 unpublished entries');
 
   const production = await startWorker('production-seeded', join(root, 'dist/server/wrangler.json'), port);
   assert.ok(await waitReady(production, base), `Seeded production workerd failed to start: ${production.logs().slice(-3000)}`);
@@ -252,6 +258,14 @@ try {
       );
     }
   }
+  // The seed loads every docs article unpublished; production serves none of them.
+  assert.deepEqual(await (await request(base, '/docs/search.json')).json(), []);
+  for (const path of ['/docs', '/docs/start-here', '/docs/store-owners/test-order', '/docs/reference/commerce', '/docs/markdown/start-here.md', '/docs/start-here?preview=1', '/llms.txt']) {
+    const response = await request(base, path);
+    assert.equal(response.status, 404, `${path}: seeded draft documentation is excluded`);
+    assert.ok(!(await response.text()).includes('Choose your path and check requirements'), `${path}: no draft content`);
+  }
+  checks.push('Seeded production keeps the 13 unpublished docs entries out of HTML, Markdown, search and llms.txt');
   await denyCmsSurface(base, 'seeded-production');
   checks.push('Production /_emdash remains denied after fixture seed, including spoofed and encoded variants');
   const signup = await request(base, '/account/signup', { redirect: 'manual' });

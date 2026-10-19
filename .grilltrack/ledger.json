@@ -2,13 +2,13 @@
   "closeout": null,
   "created_at": "2026-10-11T23:54:00+00:00",
   "current_focus": {
-    "cadence": "frontier-batch",
+    "cadence": "sequential",
     "confirmed": true,
-    "confirmed_at": "2026-10-19T18:02:31+00:00",
-    "domain": "Documentation layout and article drafts",
-    "started_at": "2026-10-19T18:02:31+00:00",
+    "confirmed_at": "2026-10-19T21:13:47+00:00",
+    "domain": "Documentation in the EmDash CMS",
+    "started_at": "2026-10-19T21:03:05+00:00",
     "status": "confirmed",
-    "summary": "User explicitly requested implementation of the suggested layout and article drafts from the supplied approved handoff. Implement this bounded draft contribution, verify type/build/routes and desktop/mobile behavior, and prepare the contribution. No merge, production deployment, live transaction, credentials or service changes."
+    "summary": "Ronald approved decision 075 on the decision card (19 Oct 2026 21:13 UTC): docs move into an EmDash docs collection published from the admin, with an optional sidebar name and section folders keeping today's URLs."
   },
   "decisions": [
     {
@@ -8875,30 +8875,79 @@
       "superseded_by": null,
       "updated_at": "2026-10-19T19:38:29+00:00",
       "verification_ref": "file:proof/documentation-drafts/PROOF.md"
+    },
+    {
+      "baseline_ref": "git:1f6562b6fe9098805e9240a15391a25a81bb2bb4",
+      "candidate_refs": [],
+      "choice": "Docs live in an EmDash collection 'docs' defined only in seed/seed.json (drafts and revisions) with fields title, summary, audience, product, version_scope (EmDash reserves 'version'), section (select of the six sidebar groups), order (integer), nav_label (optional short sidebar name, falls back to title) and body (Portable Text: headings, lists, links, tables, code). EmDash's Publish replaces the draft flag and the entry's last-saved time replaces the updated date. The thirteen articles are converted once from Markdown and loaded as unpublished drafts: the seed carries them for new and local databases, and a one-time script loads the collection and drafts into an existing site through the EmDash API. src/content/docs and src/content.config.ts are removed. Today's /docs URLs stay: entry slug under a fixed folder per section (store-owners, developers, reference). Page, sidebar, search, Markdown export, Copy and View buttons and llms.txt read one list of published entries (drafts too only in local development). Docs code stays in src/docs with a single site config file so it can become a plugin or starter later. No deploy, live import or publication in this change.",
+      "context_ref": "url:https://github.com/dinkuskit/dinkuskit/issues/54",
+      "created_at": "2026-10-19T21:03:05+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [
+        "website-docs-drafts-073"
+      ],
+      "domain": "Documentation in the EmDash CMS",
+      "history": [
+        {
+          "at": "2026-10-19T21:13:47+00:00",
+          "choice": "Docs live in an EmDash collection 'docs' defined only in seed/seed.json (drafts and revisions) with fields title, summary, audience, product, version, section (select of the six sidebar groups), order (integer), nav_label (optional short sidebar name, falls back to title) and body (Portable Text: headings, lists, links, tables, code). EmDash's Publish replaces the draft flag and the entry's last-saved time replaces the updated date. The thirteen articles are converted once from Markdown and loaded as unpublished drafts: the seed carries them for new and local databases, and a one-time script loads the collection and drafts into an existing site through the EmDash API. src/content/docs and src/content.config.ts are removed. Today's /docs URLs stay: entry slug under a fixed folder per section (store-owners, developers, reference). Page, sidebar, search, Markdown export, Copy and View buttons and llms.txt read one list of published entries (drafts too only in local development). Docs code stays in src/docs with a single site config file so it can become a plugin or starter later. No deploy, live import or publication in this change.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-19T21:26:44+00:00",
+          "choice": "Docs live in an EmDash collection 'docs' defined only in seed/seed.json (drafts and revisions) with fields title, summary, audience, product, version_scope (EmDash reserves 'version'), section (select of the six sidebar groups), order (integer), nav_label (optional short sidebar name, falls back to title) and body (Portable Text: headings, lists, links, tables, code). EmDash's Publish replaces the draft flag and the entry's last-saved time replaces the updated date. The thirteen articles are converted once from Markdown and loaded as unpublished drafts: the seed carries them for new and local databases, and a one-time script loads the collection and drafts into an existing site through the EmDash API. src/content/docs and src/content.config.ts are removed. Today's /docs URLs stay: entry slug under a fixed folder per section (store-owners, developers, reference). Page, sidebar, search, Markdown export, Copy and View buttons and llms.txt read one list of published entries (drafts too only in local development). Docs code stays in src/docs with a single site config file so it can become a plugin or starter later. No deploy, live import or publication in this change.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": null
+        }
+      ],
+      "id": "website-docs-collection-075",
+      "implementation_ref": "file:docs/documentation-authoring.md",
+      "question": "Where do the website docs live, and how is an article published?",
+      "rationale": "Approved by Ronald on the decision card, 19 Oct 2026 21:13 UTC. The version field is named version_scope because EmDash reserves 'version' as a system field.",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [],
+      "review_ref": null,
+      "review_result": null,
+      "review_source_identity": null,
+      "status": "implemented",
+      "superseded_by": null,
+      "updated_at": "2026-10-19T21:26:44+00:00",
+      "verification_ref": null
     }
   ],
   "last_activation": {
-    "at": "2026-10-19T19:29:09+00:00",
+    "at": "2026-10-19T21:03:05+00:00",
     "mechanism": "implicit"
   },
   "last_pause": {
-    "artifact_refs": [
-      "file:docs/documentation-authoring.md",
-      "file:proof/documentation-drafts/PROOF.md"
-    ],
-    "next_safe_action": "Run browser and Cloudflare verification in a compatible environment, then push the contribution branch using repository contents write access. Keep all articles draft until their product evidence gates pass.",
-    "paused_at": "2026-10-19T18:17:19+00:00",
-    "reason": "Draft contribution implemented; Cloudflare runtime and browser verification are blocked in this environment, and GitHub branch creation returned 403.",
-    "resumed_at": "2026-10-19T19:29:09+00:00"
-  },
-  "pause": {
     "artifact_refs": [
       "file:proof/documentation-drafts/PROOF.md"
     ],
     "next_safe_action": "Update PR 52 with the verified revision, obtain maintainer workflow approval and re-review, and inspect exact-head CI. No merge, deployment or article publication.",
     "paused_at": "2026-10-19T19:38:29+00:00",
-    "reason": "Focused PR 52 revisions verified locally. Maintainer workflow approval and a fresh review of the final pushed commit remain pending. All articles remain draft; launch work is separate."
+    "reason": "Focused PR 52 revisions verified locally. Maintainer workflow approval and a fresh review of the final pushed commit remain pending. All articles remain draft; launch work is separate.",
+    "resumed_at": "2026-10-19T21:03:05+00:00"
   },
+  "pause": null,
   "recommendation": null,
   "reconciliation": {
     "plan_id": "fc5864820e336b89121904a1d935b7f5d1180416d7fca8520fe5671bf0ec2e83",
@@ -8910,8 +8959,8 @@
     "snapshot_ref": ".grilltrack/lineage/fc5864820e336b89121904a1d935b7f5d1180416d7fca8520fe5671bf0ec2e83"
   },
   "schema_version": "grilltrack/v0.1",
-  "status": "paused",
+  "status": "active",
   "title": "Composed integration",
   "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5",
-  "updated_at": "2026-10-19T19:38:29+00:00"
+  "updated_at": "2026-10-19T21:26:44+00:00"
 }

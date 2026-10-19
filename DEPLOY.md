@@ -168,8 +168,8 @@ deploy with Access:
    site's Admin, so an agent does not do it.
 2. EmDash shows its setup screen. Enter the site title `DinkusKit`, choose
    **Sample content** under "How do you want to start?", and finish. Here
-   "Sample content" is this repository's `seed/seed.json`: the homepage and the
-   Getting started page.
+   "Sample content" is this repository's `seed/seed.json`: the homepage, the
+   Getting started page and the documentation articles as unpublished drafts.
 3. Check that `https://dinkuskit.com/` shows "Commerce that belongs in EmDash."
    and `https://dinkuskit.com/getting-started` shows "Your site. One connected
    experience."
@@ -178,6 +178,27 @@ Setup runs once. Later deploys keep the pages, and later edits to
 `seed/seed.json` do not change a database that already has them; edit the pages
 in the EmDash admin instead. Nothing needs to move from the earlier static site:
 it was a frozen copy of the same two pages from the same seed.
+
+## Load the docs collection (existing website database, once)
+
+Documentation articles are entries in the `docs` collection (see
+`docs/documentation-authoring.md`). Setup applies the seed only to a new
+database, so a site that finished setup before the collection existed (such as
+dinkuskit.com) gets the collection and the unpublished starting articles once
+from the import script, after a deploy that includes the docs code:
+
+```sh
+export CF_ACCESS_TOKEN="$(cloudflared access login https://dinkuskit.com/_emdash/admin >/dev/null && cloudflared access token -app=https://dinkuskit.com/_emdash/admin)"
+npm run docs:import -- https://dinkuskit.com
+unset CF_ACCESS_TOKEN
+```
+
+The owner signs in to Access (the token acts as their EmDash Admin, which
+creating a collection needs). The script creates only what is missing and never
+overwrites: a rerun prints "Kept existing" for every article. Nothing is
+published; `https://dinkuskit.com/docs/search.json` stays `[]` until an editor
+presses **Publish** on an article in `/_emdash/admin`, which shows it at its
+`/docs/...` address with no deploy. **Unpublish** hides it again.
 
 ## Post-deploy checks
 

@@ -5,6 +5,7 @@ audience: "Store owners and developers"
 product: "DinkusKit Payments"
 version: "Payments 0.2.9 source at b92ec308; installed release not verified"
 draft: true
+updated: 2026-10-19
 ---
 
 ## What Payments owns

@@ -5,6 +5,7 @@ audience: Store owners and developers
 product: DinkusKit
 version: EmDash 1.2.0 source baseline; module installation compatibility still under review
 draft: true
+updated: 2026-10-19
 ---
 
 ## Choose your path

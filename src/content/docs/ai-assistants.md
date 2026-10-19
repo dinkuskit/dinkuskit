@@ -5,6 +5,7 @@ audience: Developers
 product: DinkusKit documentation
 version: Draft publishing foundation; public docs MCP and client verification pending
 draft: true
+updated: 2026-10-19
 ---
 
 ## Read the same source
@@ -15,7 +16,7 @@ Each article includes product and version scope. Ask your assistant to compare t
 
 ## Publication status
 
-This contribution contains article drafts. Local development can preview them, but drafts are excluded from production pages, native Markdown, the public search index, and `llms.txt`. A missing article or an empty public index must not be worked around by requesting arbitrary repository files through a documentation API.
+This contribution contains article drafts. Local development can preview them, but drafts are excluded from production HTML and Markdown, the public search index, and `llms.txt`. Local development also exposes draft Markdown through the article’s Copy as Markdown and View as Markdown actions. A missing article or an empty public index must not be worked around by requesting arbitrary repository files through a documentation API.
 
 The implemented route design for selected, published articles is:
 
@@ -26,7 +27,7 @@ The implemented route design for selected, published articles is:
 | Public search data | `/docs/search.json` |
 | Discovery | `/llms.txt` |
 
-These are implementation routes, not a claim that they are already live on dinkuskit.com. While every article remains a draft, Markdown requests return not found, public search returns an empty array, and `llms.txt` returns not found. Approved publication and deployed-route checks must precede connection instructions aimed at the live site.
+These are implementation routes, not a claim that they are already live on dinkuskit.com. In production, while every article remains a draft, Markdown requests return not found, public search returns an empty array, and `llms.txt` returns not found. Approved publication and deployed-route checks must precede connection instructions aimed at the live site.
 
 ## Ask for evidence before changes
 

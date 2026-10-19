@@ -5,6 +5,7 @@ audience: "Developers"
 product: "DinkusKit Commerce extension boundaries"
 version: "Commerce 0.3.0 source exports; independent Registry add-on example unverified"
 draft: true
+updated: 2026-10-19
 ---
 
 ## Choose the extension boundary

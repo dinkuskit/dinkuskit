@@ -5,6 +5,7 @@ audience: "Store owners and developers"
 product: "DinkusKit Commerce"
 version: "Commerce 0.3.0 source at e8eca124; installed release not verified"
 draft: true
+updated: 2026-10-19
 ---
 
 ## What Commerce owns

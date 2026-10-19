@@ -5,6 +5,7 @@ audience: Store owners and developers
 product: DinkusKit
 version: Source-derived checks; tested recovery procedures still pending
 draft: true
+updated: 2026-10-19
 ---
 
 ## Start with the failing stage

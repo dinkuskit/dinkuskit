@@ -5,6 +5,7 @@ audience: "Developers"
 product: "DinkusKit contribution workflow"
 version: "Commerce e8eca124 and Payments b92ec308 source instructions"
 draft: true
+updated: 2026-10-19
 ---
 
 ## Choose the repository

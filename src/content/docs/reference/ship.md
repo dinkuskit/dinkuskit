@@ -5,6 +5,7 @@ audience: Store owners and developers
 product: Ship
 version: Source review at 42afe339e483; hosted sandbox implementation; private 0.0.0 packages
 draft: true
+updated: 2026-10-19
 ---
 
 Ship provides optional shipping automation around Commerce orders. [Commerce](/docs/reference/commerce) owns checkout shipping charges and order records; Ship handles label workflows and returns tracking events. Ship does not own product stock or payment confirmation.

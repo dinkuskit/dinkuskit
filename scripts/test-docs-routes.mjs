@@ -54,6 +54,10 @@ async function check(mode) {
         assert.equal(response.headers['cache-control'], 'no-store');
         assert.ok(response.body.includes(`https://dinkuskit.com/docs/${id}`), 'canonical URL');
         assert.match(response.body, /aria-current="page"/);
+        assert.match(response.body, /class="docs-page-actions"/);
+        assert.match(response.body, /<time datetime="\d{4}-\d{2}-\d{2}">/);
+        assert.ok(response.body.includes(`data-copy-markdown="/docs/markdown/${id}.md"`));
+        assert.ok(response.body.includes(`href="/docs/markdown/${id}.md">View as Markdown</a>`));
         const embedded = response.body.match(/id="docs-search-data"[^>]*>([\s\S]*?)<\/script>/);
         assert.ok(embedded, `${id}: local search data`);
         assert.equal(JSON.parse(embedded[1]).length, 13);
@@ -61,13 +65,23 @@ async function check(mode) {
         assert.ok(!response.body.includes('Draft for review.'), 'no draft body');
         assert.ok(!response.body.includes('id="docs-search-data"'), 'no draft index');
       }
-      assert.equal((await request(port, `/docs/markdown/${id}.md`)).status, 404, 'draft Markdown denied');
+      const markdown = await request(port, `/docs/markdown/${id}.md`);
+      assert.equal(markdown.status, mode === 'development' ? 200 : 404, 'draft Markdown is local-only');
+      if (mode === 'development') {
+        assert.equal(markdown.headers['content-type'], 'text/markdown; charset=utf-8');
+        assert.equal(markdown.headers['x-robots-tag'], 'noindex, nofollow');
+        assert.equal(markdown.headers['cache-control'], 'no-store');
+        assert.match(markdown.body, /^# /);
+        assert.match(markdown.body, /Last updated: \d{4}-\d{2}-\d{2}/);
+        assert.ok(markdown.body.includes(`Canonical URL: https://dinkuskit.com/docs/${id}`));
+      }
     }
     assert.deepEqual(JSON.parse((await request(port, '/docs/search.json')).body), []);
     assert.equal((await request(port, '/llms.txt')).status, 404);
     assert.equal((await request(port, '/docs/internal-plan')).status, 404);
     assert.equal((await request(port, '/docs/markdown/internal-plan.md')).status, 404);
     assert.equal((await request(port, '/docs/start-here?preview=1')).status, mode === 'development' ? 200 : 404);
+    assert.equal((await request(port, '/docs/markdown/start-here.md?preview=1')).status, mode === 'development' ? 200 : 404);
     console.log(`PASS ${mode}: 13 article routes, local-only drafts, canonical metadata, public corpus exclusion, unknown IDs`);
   } finally {
     child.kill('SIGTERM');

@@ -5,6 +5,7 @@ audience: "Developers"
 product: "DinkusKit Commerce and Payments"
 version: "Commerce 0.3.0 source contract; installed example verification pending"
 draft: true
+updated: 2026-10-19
 ---
 
 ## Outcome and prerequisites

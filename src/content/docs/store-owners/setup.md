@@ -5,6 +5,7 @@ audience: Store owners
 product: Commerce and Payments
 version: Commerce 0.3.0 and Payments 0.2.9 source; existing-site installation still to verify
 draft: true
+updated: 2026-10-19
 ---
 
 ## What you will finish

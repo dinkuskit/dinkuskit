@@ -5,6 +5,7 @@ audience: Store owners and developers
 product: Inventory
 version: Source review at 2b51314c7150; private 0.0.0 packages; no installable release verified
 draft: true
+updated: 2026-10-19
 ---
 
 Inventory owns physical stock: SKU identities, locations, quantities, reservations, movements, and receipts. [Commerce](/docs/reference/commerce) owns products, prices, checkout, and orders. A storefront must use those authorities instead of maintaining another stock counter.

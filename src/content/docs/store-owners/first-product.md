@@ -5,6 +5,7 @@ audience: Store owners
 product: Commerce
 version: Commerce 0.3.0 Registry admin source; installed UI walkthrough not yet verified
 draft: true
+updated: 2026-10-19
 ---
 
 ## What you will finish

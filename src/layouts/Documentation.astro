@@ -42,9 +42,15 @@ const searchData = JSON.stringify(entries.map(searchRecord)).replace(/</g, '\\u0
         <h1 id="article-title">{entry.data.title}</h1>
         <p class="lead">{entry.data.summary}</p>
         <p class="docs-version">{entry.data.version}</p>
-        {entry.data.draft ? (
+        <div class="docs-page-actions">
+          <span>Last updated <time datetime={entry.data.updated.toISOString().slice(0, 10)}>{entry.data.updated.toLocaleDateString('en-US', { dateStyle: 'medium', timeZone: 'UTC' })}</time></span>
+          <button type="button" data-copy-markdown={markdownPath(entry.id)} hidden>Copy as Markdown</button>
+          <a href={markdownPath(entry.id)}>View as Markdown</a>
+          <span class="docs-copy-status" role="status" aria-live="polite"></span>
+        </div>
+        {entry.data.draft && (
           <p class="docs-draft"><strong>Draft for review.</strong> Source-checked guidance; the complete journey still needs verification. This article is only shown in local development.</p>
-        ) : <a class="docs-markdown-link" href={markdownPath(entry.id)}>Read as Markdown</a>}
+        )}
       </div>
       <div class="docs-prose"><slot /></div>
       <nav class="docs-pagination" aria-label="Adjacent articles">
@@ -68,6 +74,30 @@ const searchData = JSON.stringify(entries.map(searchRecord)).replace(/</g, '\\u0
 <script>
   import { searchDocs } from '../docs/search.ts';
   import type { SearchArticle } from '../docs/search.ts';
+  const copy = document.querySelector<HTMLButtonElement>('[data-copy-markdown]');
+  const copyStatus = document.querySelector<HTMLElement>('.docs-copy-status');
+  if (copy && copyStatus && navigator.clipboard?.write && 'ClipboardItem' in window) {
+    copy.hidden = false;
+    copy.addEventListener('click', async () => {
+      copy.disabled = true;
+      copyStatus.textContent = '';
+      // Start the clipboard write during the click, before awaiting the fetch.
+      const markdown = fetch(copy.dataset.copyMarkdown!).then(async response => {
+        if (!response.ok) throw new Error(`Markdown request failed: ${response.status}`);
+        return new Blob([await response.text()], { type: 'text/plain' });
+      });
+      // A browser can refuse clipboard access before consuming the data promise.
+      void markdown.catch(() => {});
+      try {
+        await navigator.clipboard.write([new ClipboardItem({ 'text/plain': markdown })]);
+        copyStatus.textContent = 'Markdown copied.';
+      } catch {
+        copyStatus.textContent = 'Copy failed. Use View as Markdown to copy the article.';
+      } finally {
+        copy.disabled = false;
+      }
+    });
+  }
   const input = document.querySelector<HTMLInputElement>('#docs-search-input');
   const results = document.querySelector<HTMLUListElement>('#docs-search-results');
   const status = document.querySelector<HTMLElement>('.docs-search-status');

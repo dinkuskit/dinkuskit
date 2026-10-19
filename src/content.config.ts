@@ -12,6 +12,7 @@ const docs = defineCollection({
     version: z.string().min(1),
     // Publication must be an explicit editorial change.
     draft: z.boolean().default(true),
+    updated: z.coerce.date(),
   }),
 });
 

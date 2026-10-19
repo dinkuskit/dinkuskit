@@ -30,7 +30,7 @@ export const markdownPath = (id: string) => `/docs/markdown/${id}.md`;
 
 export interface DocRecord {
   id: string;
-  data: { title: string; summary: string; audience: string; product: string; version: string; draft: boolean };
+  data: { title: string; summary: string; audience: string; product: string; version: string; draft: boolean; updated: Date };
   body?: string;
 }
 
@@ -57,5 +57,5 @@ export function searchRecord(entry: DocRecord) {
 
 /** Authoring accepts root-relative public links and absolute URLs, so no source paths leak. */
 export function articleMarkdown(entry: DocRecord) {
-  return `# ${entry.data.title}\n\n${entry.data.summary}\n\nAudience: ${entry.data.audience}\nProduct: ${entry.data.product}\nVersion scope: ${entry.data.version}\nCanonical URL: ${canonicalDocsUrl(entry.id)}\n\n${entry.body ?? ''}`;
+  return `# ${entry.data.title}\n\n${entry.data.summary}\n\nAudience: ${entry.data.audience}\nProduct: ${entry.data.product}\nVersion scope: ${entry.data.version}\nLast updated: ${entry.data.updated.toISOString().slice(0, 10)}\nCanonical URL: ${canonicalDocsUrl(entry.id)}\n\n${entry.body ?? ''}`;
 }

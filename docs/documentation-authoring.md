@@ -14,7 +14,7 @@ npm run setup
 npm run dev
 ```
 
-Open `http://127.0.0.1:4321/docs`. Astro development mode previews the drafts with a visible notice, noindex headers, and local full-text search. The mobile drawer uses a native dialog, closes with Escape or its Close button, returns focus to the trigger, and returns navigation to the sidebar when the viewport widens. Without JavaScript, the navigation remains usable in document flow.
+Open `http://127.0.0.1:4321/docs`. Astro development mode previews draft HTML and Markdown with noindex/no-store headers, a visible HTML draft notice, and local full-text search. The article actions show the editorial update date, copy the native Markdown, or open it directly. Without clipboard support, View as Markdown remains available. The mobile drawer uses a native dialog, closes with Escape or its Close button, returns focus to the trigger, and returns navigation to the sidebar when the viewport widens. Without JavaScript, the navigation remains usable in document flow.
 
 `npm run dev:docs` provides a documentation-only Node preview using the same routes, content, and Site layout. It needs no CMS, merchant account, or Cloudflare bindings. This fixture does not verify those production surfaces. Some agent environments make Astro background its dev server automatically; the route test controls a foreground child and stops only that process.
 
@@ -38,7 +38,7 @@ There is no production draft-preview switch or request parameter. The same build
 | `troubleshooting` | `src/content/docs/troubleshooting.md` |
 | `ai-assistants` | `src/content/docs/ai-assistants.md` |
 
-Use root-relative `/docs/...` links and absolute public-source links. Source-relative assets and imports are not part of this initial corpus. Keep reference facts canonical and link from task articles. Frontmatter `draft` defaults to true; setting it false is an explicit editorial publication decision after evidence review. Published pages must not link to draft articles. Metadata and substantive Markdown are retained in native output; there is no separate handwritten agent corpus.
+Use root-relative `/docs/...` links and absolute public-source links. Source-relative assets and imports are not part of this initial corpus. Keep reference facts canonical and link from task articles. Frontmatter `draft` defaults to true; setting it false is an explicit editorial publication decision after evidence review. Published pages must not link to draft articles. Every article requires an `updated: YYYY-MM-DD` editorial date; update it when the article changes. This date appears in HTML and native Markdown. Metadata and substantive Markdown are retained in native output; there is no separate handwritten agent corpus.
 
 ## Reconciled source baseline
 
@@ -59,6 +59,6 @@ Run `npm run test:docs`, `npm run test:docs-routes`, `npm run typecheck`, `npm r
 
 Before publication, qualify exact installable artifacts, reproduce the existing-site product and TEST-order journey, execute developer examples, select a supported independent add-on surface, and replace source-derived troubleshooting with observed recovery steps. Then implement and client-test the read-only docs MCP against the same `getPublicDocs()` corpus. MCP is intentionally not claimed complete by this slice.
 
-The historical static exporter still enumerates only the original public pages and cannot publish these routes. `DEPLOY.md` describes a separate Worker candidate. Determine the active release path from authorized deployment evidence before integrating publication; source instructions alone do not prove production routing. Do not enable optional Cloudflare conversion or alter content-signal policy as part of this contribution.
+`DEPLOY.md` documents the release path: `npm run build:cloudflare`, then `npx wrangler deploy --config .grilltrack/work/cloudflare-candidate-20260930/dist/server/wrangler.json`. The build uses `astro.cloudflare.config.mjs` with `output: 'server'`, so the documentation routes are included in the same Worker as the site. Preserve the Access build configuration required by `DEPLOY.md`. The historical static exporter is the old path and does not publish these routes. This contribution does not deploy or independently verify live routing. Do not enable optional Cloudflare conversion or alter content-signal policy as part of this contribution.
 
 Rollback before publication is a source revert of this contribution. A deployed-docs rollback must be prepared against the actual selected build and hosting mechanism. No deployment is included here.

@@ -5,6 +5,7 @@ audience: Store owners
 product: Commerce and Payments
 version: Commerce e8eca124 and Payments b92ec308 source; end-to-end purchase proof pending
 draft: true
+updated: 2026-10-19
 ---
 
 ## What counts as success

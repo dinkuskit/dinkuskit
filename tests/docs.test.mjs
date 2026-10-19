@@ -6,7 +6,7 @@ import { searchDocs } from '../src/docs/search.ts';
 
 const entry = (id, draft, body = '') => ({ id, body, data: {
   title: 'Catalog integration', summary: 'Read public products.', audience: 'Developers',
-  product: 'Commerce', version: 'Synthetic fixture', draft,
+  product: 'Commerce', version: 'Synthetic fixture', draft, updated: new Date('2026-10-19T00:00:00Z'),
 } });
 
 test('publication requires both explicit selection and non-draft status', () => {
@@ -23,6 +23,7 @@ test('Markdown and search retain source body and version context', () => {
   assert.equal(searchRecord(article).text, body);
   assert.equal(searchRecord(article).version, 'Synthetic fixture');
   assert.ok(articleMarkdown(article).includes('https://dinkuskit.com/docs/reference/commerce'));
+  assert.ok(articleMarkdown(article).includes('Last updated: 2026-10-19'));
 });
 
 test('keyword search uses full text, prefers titles, and bounds results', () => {
@@ -44,6 +45,7 @@ test('selected articles have resolvable docs links and portable public link path
   for (const [id, source] of pages) {
     assert.match(source, /^---\n/, `${id}: metadata`);
     assert.match(source, /\ndraft: (true|false)\n/, `${id}: explicit publication status`);
+    assert.match(source, /\nupdated: \d{4}-\d{2}-\d{2}\n/, `${id}: editorial update date`);
     assert.match(source, /\n## /, `${id}: substantive headings`);
     for (const [, href] of source.matchAll(/\]\(([^\s)]+)\)/g)) {
       assert.ok(/^(https:\/\/|\/docs\/|#)/.test(href), `${id}: source-relative or unsafe link ${href}`);

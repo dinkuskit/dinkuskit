@@ -69,6 +69,12 @@ function parseInline(text: string, key: () => string) {
         i += emphasis[0].length;
         continue;
       }
+      // A backslash keeps the next punctuation character literal.
+      if (source[i] === '\\' && /[!-/:-@[-`{-~]/.test(source[i + 1] ?? '')) {
+        plain += source[i + 1];
+        i += 2;
+        continue;
+      }
       plain += source[i];
       i++;
     }
@@ -164,7 +170,18 @@ function spansToMarkdown(spans: PortableTextSpan[] = [], markDefs: PortableTextM
   return out;
 }
 
+/** Backslash-escape characters that would otherwise read as inline Markdown. */
+function escapeInline(text: string): string {
+  return text.replace(/[\\`*_[\]]/g, '\\$&');
+}
+
+/** Keep a plain paragraph that looks like a heading, list item or quote a paragraph. */
+function escapeBlockStart(text: string): string {
+  return text.replace(/^(#{1,6}(?=\s)|[-+*](?=\s)|>)/, '\\$1').replace(/^(\d+)\.(?=\s)/, '$1\\.');
+}
+
 function decorate(text: string, marks: string[]): string {
+  if (!marks.includes('code')) text = escapeInline(text);
   // Code is innermost, so `**`x`**` round-trips.
   const ordered = [...marks].filter(mark => MARK_SYNTAX[mark]).sort((a, b) => (a === 'code' ? -1 : b === 'code' ? 1 : 0));
   return ordered.reduce((value, mark) => `${MARK_SYNTAX[mark]}${value}${MARK_SYNTAX[mark]}`, text);
@@ -203,7 +220,7 @@ export function portableTextToMarkdown(blocks: PortableTextBlock[] = []): string
       } else if (block.style === 'blockquote') {
         parts.push(`> ${text}`);
       } else {
-        parts.push(text);
+        parts.push(escapeBlockStart(text));
       }
     }
   }

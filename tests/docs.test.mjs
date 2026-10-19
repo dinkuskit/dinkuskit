@@ -58,6 +58,28 @@ test('Portable Text keeps marks, links, tables, code and heading anchors', () =>
   assert.equal(portableTextToMarkdown(blocks), '## Use **bold** text\n\n1. One `x`\n2. Two\n\n| A | B |\n| --- | --- |\n| [l](https://example.com) | `c` |\n\n## Use bold text');
 });
 
+test('literal text typed in the CMS stays literal in the Markdown export', () => {
+  const span = text => ({ _type: 'span', _key: text, text, marks: [] });
+  const block = (text, extra = {}) => ({ _type: 'block', _key: text, style: 'normal', markDefs: [], children: [span(text)], ...extra });
+  const blocks = [
+    block('Fields marked *required* use snake_case, `ticks` and [brackets] with a \\ backslash.'),
+    block('# not a heading'),
+    block('- not a list'),
+    block('1. not a numbered list'),
+    block('> not a quote'),
+    { _type: 'block', _key: 'code', style: 'normal', markDefs: [], children: [{ _type: 'span', _key: 'c', text: '*kept*', marks: ['code'] }] },
+  ];
+  const markdown = portableTextToMarkdown(blocks);
+  assert.equal(markdown, [
+    'Fields marked \\*required\\* use snake\\_case, \\`ticks\\` and \\[brackets\\] with a \\\\ backslash.',
+    '\\# not a heading', '\\- not a list', '1\\. not a numbered list', '\\> not a quote', '`*kept*`',
+  ].join('\n\n'));
+  const reparsed = markdownToPortableText(markdown);
+  assert.deepEqual(reparsed.map(item => [item.style, item.listItem, item.children.map(child => [child.text, child.marks])]), blocks.map(item => [
+    'normal', undefined, item.children.map(child => [child.text, child.marks]),
+  ]));
+});
+
 test('keyword search uses full text, prefers titles, and bounds results', () => {
   const articles = [
     { id: 'a', title: 'Other', summary: '', url: '/docs/a', text: 'Catalog integration and checkout.' },

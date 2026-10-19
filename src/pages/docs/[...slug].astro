@@ -1,0 +1,20 @@
+---
+import { render } from 'astro:content';
+import { getVisibleDocs } from '../../docs/content.ts';
+import Documentation from '../../layouts/Documentation.astro';
+import Site from '../../layouts/Site.astro';
+const entries = await getVisibleDocs();
+const entry = entries.find(item => item.id === Astro.params.slug);
+const rendered = entry ? await render(entry) : undefined;
+const Content = rendered?.Content;
+if (!entry) Astro.response.status = 404;
+if (entry?.data.draft) {
+  Astro.response.headers.set('X-Robots-Tag', 'noindex, nofollow');
+  Astro.response.headers.set('Cache-Control', 'no-store');
+}
+---
+{entry && rendered && Content ? (
+  <Documentation entry={entry} entries={entries} headings={rendered.headings}><Content /></Documentation>
+) : (
+  <Site title="Page not found" description="This documentation page is not available."><div class="intro"><h1>Page not found.</h1><p>This documentation page is not available.</p><a href="/getting-started">Getting started</a></div></Site>
+)}

@@ -60,6 +60,7 @@ The smoke expectations refer to the original starter content. If you edit that c
 
 - [Product charter](docs/CHARTER.md)
 - [Getting started](docs/getting-started.md)
+- [Documentation drafts and local preview](docs/documentation-authoring.md)
 - [Hosted runtime candidate runbook](docs/hosted-runtime-candidate.md)
 - [Authentication research](docs/authentication-research.md)
 - [Merchant account-boundary proof](proof/merchant-auth-proof/README.md)

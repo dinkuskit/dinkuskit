@@ -2,13 +2,13 @@
   "closeout": null,
   "created_at": "2026-10-11T23:54:00+00:00",
   "current_focus": {
-    "cadence": "sequential",
+    "cadence": "frontier-batch",
     "confirmed": true,
-    "confirmed_at": "2026-10-18T20:50:30+00:00",
-    "domain": "Plugin versioning and release process",
-    "started_at": "2026-10-17T22:20:59+00:00",
+    "confirmed_at": "2026-10-19T18:02:31+00:00",
+    "domain": "Documentation layout and article drafts",
+    "started_at": "2026-10-19T18:02:31+00:00",
     "status": "confirmed",
-    "summary": "Ronald agreed in the project's journeys thread on 18 Oct 2026 20:36 UTC to the step 'DinkusKit.com: let the Payments beta connect, then deploy.'"
+    "summary": "User explicitly requested implementation of the suggested layout and article drafts from the supplied approved handoff. Implement this bounded draft contribution, verify type/build/routes and desktop/mobile behavior, and prepare the contribution. No merge, production deployment, live transaction, credentials or service changes."
   },
   "decisions": [
     {
@@ -8749,6 +8749,61 @@
       "superseded_by": null,
       "updated_at": "2026-10-18T21:12:04+00:00",
       "verification_ref": "file:proof/payments-beta-connect/PROOF.md"
+    },
+    {
+      "baseline_ref": "git:cf9375959f194ad7435bcf7374efdf63cd668188",
+      "candidate_refs": [],
+      "choice": "Repository-owned Markdown in an Astro content collection; reuse Site styles with expandable grouped left navigation, search, active article, contextual contents and accessible mobile drawer. Draft thirteen articles using pinned module sources. Show drafts only in local development, exclude them from production HTML and all public machine outputs. Prepare native Markdown, search and llms.txt selection; docs MCP and runtime product proof remain separate follow-up work.",
+      "context_ref": "file:docs/documentation-authoring.md",
+      "created_at": "2026-10-19T18:02:31+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [],
+      "domain": "Documentation layout and article drafts",
+      "history": [
+        {
+          "at": "2026-10-19T18:02:31+00:00",
+          "choice": "Repository-owned Markdown in an Astro content collection; reuse Site styles with expandable grouped left navigation, search, active article, contextual contents and accessible mobile drawer. Draft thirteen articles using pinned module sources. Show drafts only in local development, exclude them from production HTML and all public machine outputs. Prepare native Markdown, search and llms.txt selection; docs MCP and runtime product proof remain separate follow-up work.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-19T18:17:19+00:00",
+          "choice": "Repository-owned Markdown in an Astro content collection; reuse Site styles with expandable grouped left navigation, search, active article, contextual contents and accessible mobile drawer. Draft thirteen articles using pinned module sources. Show drafts only in local development, exclude them from production HTML and all public machine outputs. Prepare native Markdown, search and llms.txt selection; docs MCP and runtime product proof remain separate follow-up work.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": null
+        }
+      ],
+      "id": "website-docs-drafts-073",
+      "implementation_ref": "file:docs/documentation-authoring.md",
+      "question": "How should the approved first documentation contribution be implemented?",
+      "rationale": "User supplied the approved handoff and explicitly requested a separate contribution branch and beginning layout/article draft implementation on 2026-10-19.",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [],
+      "review_ref": null,
+      "review_result": null,
+      "review_source_identity": null,
+      "status": "implemented",
+      "superseded_by": null,
+      "updated_at": "2026-10-19T18:17:19+00:00",
+      "verification_ref": null
     }
   ],
   "last_activation": {
@@ -8756,7 +8811,15 @@
     "mechanism": "implicit"
   },
   "last_pause": null,
-  "pause": null,
+  "pause": {
+    "artifact_refs": [
+      "file:docs/documentation-authoring.md",
+      "file:proof/documentation-drafts/PROOF.md"
+    ],
+    "next_safe_action": "Run browser and Cloudflare verification in a compatible environment, then push the contribution branch using repository contents write access. Keep all articles draft until their product evidence gates pass.",
+    "paused_at": "2026-10-19T18:17:19+00:00",
+    "reason": "Draft contribution implemented; Cloudflare runtime and browser verification are blocked in this environment, and GitHub branch creation returned 403."
+  },
   "recommendation": null,
   "reconciliation": {
     "plan_id": "fc5864820e336b89121904a1d935b7f5d1180416d7fca8520fe5671bf0ec2e83",
@@ -8768,8 +8831,8 @@
     "snapshot_ref": ".grilltrack/lineage/fc5864820e336b89121904a1d935b7f5d1180416d7fca8520fe5671bf0ec2e83"
   },
   "schema_version": "grilltrack/v0.1",
-  "status": "active",
+  "status": "paused",
   "title": "Composed integration",
   "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5",
-  "updated_at": "2026-10-18T21:12:04+00:00"
+  "updated_at": "2026-10-19T18:17:19+00:00"
 }

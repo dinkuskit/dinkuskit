@@ -1,7 +1,9 @@
 ---
 import { OPERATOR_APPROVALS_PATH } from '../operator-admin/paths.ts';
-interface Props { title: string; description: string }
-const { title, description } = Astro.props;
+import { getVisibleDocs } from '../docs/content.ts';
+interface Props { title: string; description: string; wide?: boolean; noindex?: boolean }
+const { title, description, wide = false, noindex = false } = Astro.props;
+const hasDocs = (await getVisibleDocs()).length > 0;
 const canonical = new URL(Astro.url.pathname, Astro.site);
 import '../styles/site.css';
 import { Role } from '@emdash-cms/auth';
@@ -12,6 +14,7 @@ import { Role } from '@emdash-cms/auth';
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
     <link rel="canonical" href={canonical} />
     <title>{title} · DinkusKit</title>
   </head>
@@ -21,13 +24,14 @@ import { Role } from '@emdash-cms/auth';
       <a class="brand" href="/">DinkusKit <span aria-hidden="true">* * *</span></a>
       <nav aria-label="Main navigation">
         <a href="/getting-started">Getting started</a>
+        {hasDocs && <a href="/docs" aria-current={Astro.url.pathname.startsWith('/docs') ? 'true' : undefined}>Docs</a>}
         <a href="/account">Account</a>
         {Astro.locals.merchant ? <a href="/account/sites" aria-current={Astro.url.pathname === '/account/sites' ? 'page' : undefined}>Your stores</a> : null}
         {Astro.locals.user?.role === Role.ADMIN && !Astro.locals.user.disabled ? <a href={OPERATOR_APPROVALS_PATH}>Operator admin</a> : null}
         <a href="https://github.com/dinkuskit">GitHub</a>
       </nav>
     </header>
-    <main id="main"><slot /></main>
+    <main id="main" class:list={{ 'docs-main': wide }}><slot /></main>
     <footer>
       <p>Built with EmDash. Growing in the open.</p>
       <a href="https://github.com/dinkuskit/dinkuskit">Website source</a>

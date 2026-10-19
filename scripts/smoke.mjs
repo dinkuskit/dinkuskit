@@ -181,6 +181,14 @@ try {
   const freshHomeBody = await freshHome.text();
   assert.ok(!/Commerce that belongs in EmDash/.test(freshHomeBody), 'Fresh production must not already contain seeded marketing copy');
   checks.push('Fresh production /_emdash GET/POST, spoofed Host/Origin/forwarded/cookie/query, encoded variants, and media are denied before any setup mutation');
+  // Draft documentation must never become a public corpus, even through a guessed URL.
+  assert.deepEqual(await (await request(base, '/docs/search.json')).json(), []);
+  for (const path of ['/docs', '/docs/start-here', '/docs/start-here?preview=1', '/docs/markdown/start-here.md', '/llms.txt', '/docs/internal-plan']) {
+    const response = await request(base, path);
+    assert.equal(response.status, 404, `${path}: draft documentation is excluded`);
+    assert.ok(!(await response.text()).includes('Choose your path and check requirements'), `${path}: no draft content`);
+  }
+  checks.push('Production excludes draft documentation from HTML, Markdown, search and llms.txt; query parameters cannot enable previews');
   await stopWorker(fresh);
 
   const fixture = await startWorker('cms-seed-fixture', fixtureConfig, port);

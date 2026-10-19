@@ -363,8 +363,11 @@ test('store passes: one key, a 5-minute pass for each service that is on, nothin
 test('store passes: replaced, malformed and mismatched keys and requests are refused', async () => {
   const f = await fixture(); try {
     const { siteId, owner, key, pass } = await storeWithKey(f);
+    assert.equal(await setOwnerService(f.db, { ...owner, service: 'ship', on: true }), 'on');
+    assert.equal((await pass('ship:admin', 'dinkus-ship')).status, 200);
     const replaced = await replaceStoreKey(f.db, owner); assert.notEqual(replaced, key);
     assert.deepEqual(await pass('payments:checkout', 'dinkus-payments'), { status: 401, body: { error: 'invalid_store_key' } });
+    assert.deepEqual(await pass('ship:admin', 'dinkus-ship'), { status: 401, body: { error: 'invalid_store_key' } }, 'Replace key stops Ship plugin passes too');
     assert.equal((await pass('payments:checkout', 'dinkus-payments', { key: replaced })).status, 200);
     assert.deepEqual(await pass('payments:checkout', 'dinkus-payments', { key: 'dk_store_' + 'A'.repeat(43) }), { status: 401, body: { error: 'invalid_store_key' } });
     assert.deepEqual(await pass('payments:checkout', 'dinkus-payments', { key: 'not-a-store-key' }), { status: 401, body: { error: 'invalid_store_key' } });
@@ -399,6 +402,9 @@ test('store passes: suspension, operator cut-off and restore are enforced at eve
     assert.deepEqual(await pass('coupons:checkout', 'dinkus-coupons'), { status: 403, body: { error: 'service_not_enabled' } }, 'after restore the owner turns it on again');
     assert.equal(await setOwnerService(f.db, { ...owner, service: 'coupons', on: true }), 'on');
     assert.equal((await pass('coupons:checkout', 'dinkus-coupons')).status, 200);
+    assert.equal(await setOwnerService(f.db, { ...owner, service: 'ship', on: true }), 'on');
+    assert.equal(await cutOffStore(f.db, siteId, 'ship', operator), 1);
+    assert.deepEqual(await pass('ship:admin', 'dinkus-ship'), { status: 403, body: { error: 'service_cut_off' } }, 'an operator cut-off of Ship stops Ship plugin passes');
     f.sqlite.prepare("UPDATE dinkuskit_account SET disabled = 1 WHERE user_id = 'alice'").run();
     assert.deepEqual(await pass('payments:checkout', 'dinkus-payments'), { status: 403, body: { error: 'store_suspended' } });
     f.sqlite.prepare("UPDATE dinkuskit_account SET disabled = 0 WHERE user_id = 'alice'").run();

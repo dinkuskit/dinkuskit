@@ -1,64 +1,79 @@
-# Documentation contribution
+# Documentation authoring
 
-This is the first layout and article-draft slice requested on 2026-10-19. It implements the supplied thirteen-article map in the existing Astro/EmDash website. It is not a publication or runtime product-readiness claim.
+The documentation at `/docs` is EmDash content. Articles live in the `docs` collection and are written, edited and published from the EmDash admin at `/_emdash` or through the EmDash API, with no pull request or deploy per article. This replaced the repository Markdown of the first slice (#52) under GrillTrack decision `website-docs-collection-075` (issue #54).
 
-## Source ownership and preview
+## The docs collection
 
-`src/content/docs/**/*.md` owns article text. `src/content.config.ts` validates small metadata; `src/docs/catalog.ts` owns the explicit page allowlist, order, and groups. There is one source per article. Existing marketing pages retain their EmDash content and rendering. No CMS seed, merchant authority, editor access, service setting, deployment configuration, or historical export allowlist is changed.
+`seed/seed.json` defines the collection, with drafts and revisions:
 
-Use the repository's Node version and normal setup:
+| Field | Admin label | Use |
+| --- | --- | --- |
+| `title` | Title | Article heading, page title, and the Markdown/llms.txt title. |
+| `nav_label` | Sidebar name | Optional short name in the sidebar; the title is used when empty. |
+| `summary` | Summary | Lead paragraph, meta description and search summary. |
+| `audience` | Audience | Eyebrow above the title. |
+| `product` | Product | Shown in the Markdown export and search data. |
+| `version_scope` | Version scope | The releases or source revisions the article was checked against. (`version` is an EmDash system field.) |
+| `section` | Section | One of the six sidebar groups. |
+| `order` | Order | Reading order across all articles; sections appear in the order of their first article. |
+| `body` | Body | Portable Text: headings, paragraphs, lists, quotes, links, tables and code blocks. |
+
+EmDash's **Publish** button is the only publication switch, and the entry's last-saved time is the "Last updated" date. An unpublished entry is a draft.
+
+URLs are `/docs/<folder>/<slug>`: the entry slug, under a folder for three sections (`store-owners` for Store owners, `developers` for Developers, `reference` for Product reference) and directly under `/docs/` for the others. The folders are set in `src/docs/site.ts`. Changing an entry's slug or section changes its URL.
+
+Use root-relative `/docs/...` links between articles and absolute `https://` links elsewhere. A published article must not link to an unpublished one.
+
+## What reads the collection
+
+`getPublicDocs()` in `src/docs/content.ts` returns published entries only. `getVisibleDocs()` adds drafts only in Astro's local development server; there is no request parameter or deployment setting that shows drafts in production. Every surface reads one of those two lists:
+
+- the article page, sidebar, previous/next links, contents list and in-page search (`src/docs/components/`),
+- `/docs/markdown/<id>.md` and the Copy as Markdown and View as Markdown buttons, which convert Portable Text to Markdown (`src/docs/portable-text.ts`),
+- `/docs/search.json` and `/llms.txt`, which list published articles only, even in development.
+
+Production answers 404 for an unpublished article's HTML and Markdown, and leaves it out of search and `llms.txt`.
+
+## Keeping it portable
+
+The docs code is self-contained in `src/docs/` so it can become a `dinkuskit/docs` plugin or starter later. `catalog.ts` (selection, sections, Markdown export, search records, llms.txt), `portable-text.ts`, `search.ts` and the components take a list of articles and a `DocsSite` value; `site.ts` is the one DinkusKit-specific file (origin, name, section folders). `content.ts` is the EmDash adapter. The page routes in `src/pages/docs/` and `src/pages/llms.txt.ts` wrap the components in the site's own layout.
+
+## The thirteen starting articles
+
+The articles from #52 were converted once from Markdown to Portable Text with `scripts/docs-import.mjs seed --from 1f6562b`, and are stored in `seed/seed.json` as unpublished drafts:
+
+| Article ID | Section | Sidebar name |
+| --- | --- | --- |
+| `start-here` | Start here | Choose your path |
+| `store-owners/setup` | Store owners | Set up a store |
+| `store-owners/first-product` | Store owners | Add your first product |
+| `store-owners/test-order` | Store owners | Verify a test order |
+| `developers/integrate` | Developers | Build a site |
+| `developers/add-on` | Developers | Extend DinkusKit |
+| `developers/contribute` | Developers | Contribute |
+| `reference/commerce` | Product reference | Commerce |
+| `reference/payments` | Product reference | Payments |
+| `reference/inventory` | Product reference | Inventory |
+| `reference/ship` | Product reference | Ship |
+| `troubleshooting` | Troubleshooting and upgrades | Troubleshooting and upgrades |
+| `ai-assistants` | Using AI assistants | Read docs with your assistant |
+
+A new database gets the collection and these drafts from setup's sample content. A database that already finished setup (such as dinkuskit.com's) gets them once with `npm run docs:import -- https://dinkuskit.com` (see `DEPLOY.md`). After that the CMS is the source: editing `seed/seed.json` does not change a site that already has the articles.
+
+The source revisions the drafts were checked against, and the gaps they record, are listed in each article's Version scope and "Sources and verification limits" section and in `proof/documentation-drafts/`. Each article is published only after its journey is proven (#53).
+
+## Local preview and checks
 
 ```sh
 npm ci
 npm run setup
-npm run dev
+npm run dev:docs
 ```
 
-Open `http://127.0.0.1:4321/docs`. Astro development mode previews draft HTML and Markdown with noindex/no-store headers, a visible HTML draft notice, and local full-text search. The article actions show the editorial update date, copy the native Markdown, or open it directly. Without clipboard support, View as Markdown remains available. The mobile drawer uses a native dialog, closes with Escape or its Close button, returns focus to the trigger, and returns navigation to the sidebar when the viewport widens. Without JavaScript, the navigation remains usable in document flow.
+`npm run dev:docs` runs a documentation-only Node preview with its own SQLite EmDash database under `.grilltrack/work/docs-preview/`. Open `http://127.0.0.1:4321/_emdash/api/setup/dev-bypass?redirect=/docs` once to load the seed and sign in as a local admin; drafts then show with a "Draft for review." notice and noindex/no-store headers, and the admin at `/_emdash/admin` can publish them. `npm run dev` previews the full Cloudflare site the same way.
 
-`npm run dev:docs` provides a documentation-only Node preview using the same routes, content, and Site layout. It needs no CMS, merchant account, or Cloudflare bindings. This fixture does not verify those production surfaces. Some agent environments make Astro background its dev server automatically; the route test controls a foreground child and stops only that process.
+- `npm run test:docs`: selection, sections, URLs, Markdown, search, llms.txt, Portable Text conversion, and the seed's collection and thirteen drafts.
+- `npm run test:docs-routes`: in the preview, loads the drafts, reloads them with the import script, publishes one through the EmDash API, then checks development and a production build of the same database: only the published article is served.
+- `npm run test:smoke`: on the production workerd build, the seed creates the collection with thirteen unpublished entries and none is served.
 
-There is no production draft-preview switch or request parameter. The same build-time collection feeds all routes, but `getPublicDocs()` always excludes drafts and unselected IDs. All thirteen articles currently remain drafts. Therefore a normal production build serves 404 for their HTML/Markdown routes and `/llms.txt`, and returns `[]` from `/docs/search.json`. The global Docs link appears only when visible articles exist.
-
-## Article map
-
-| Article ID | Canonical source |
-| --- | --- |
-| `start-here` | `src/content/docs/start-here.md` |
-| `store-owners/setup` | `src/content/docs/store-owners/setup.md` |
-| `store-owners/first-product` | `src/content/docs/store-owners/first-product.md` |
-| `store-owners/test-order` | `src/content/docs/store-owners/test-order.md` |
-| `developers/integrate` | `src/content/docs/developers/integrate.md` |
-| `developers/add-on` | `src/content/docs/developers/add-on.md` |
-| `developers/contribute` | `src/content/docs/developers/contribute.md` |
-| `reference/commerce` | `src/content/docs/reference/commerce.md` |
-| `reference/payments` | `src/content/docs/reference/payments.md` |
-| `reference/inventory` | `src/content/docs/reference/inventory.md` |
-| `reference/ship` | `src/content/docs/reference/ship.md` |
-| `troubleshooting` | `src/content/docs/troubleshooting.md` |
-| `ai-assistants` | `src/content/docs/ai-assistants.md` |
-
-Use root-relative `/docs/...` links and absolute public-source links. Source-relative assets and imports are not part of this initial corpus. Keep reference facts canonical and link from task articles. Frontmatter `draft` defaults to true; setting it false is an explicit editorial publication decision after evidence review. Published pages must not link to draft articles. Every article requires an `updated: YYYY-MM-DD` editorial date; update it when the article changes. This date appears in HTML and native Markdown. Metadata and substantive Markdown are retained in native output; there is no separate handwritten agent corpus.
-
-## Reconciled source baseline
-
-| Repository | Inspected revision | Material limit |
-| --- | --- | --- |
-| Website | `cf9375959f194ad7435bcf7374efdf63cd668188` | Astro 7.3.2, EmDash 1.2.0; current deployment not inspected live. |
-| Commerce | `e8eca12488f992acbaef712d71c9ac1d45b35e78` | Source and v0.3.0 tag agree; Registry artifact not installed. README has older release prose. |
-| Payments | `b92ec308eda74c2dfff8c2deca574bf2e17ff654` | Package 0.2.9; v0.2.9 tag is `9a1509400f0578ae5d27d0df0e4959b49eac9884`. |
-| Inventory | `2b51314c715071bed05a3b6332739ad39eeb8acb` | Private 0.0.0 packages, current manifest targets EmDash 1.2.0; README is stale. |
-| Ship | `42afe339e483bb366839822291ce4168c1045d61` | Hosted sandbox service differs from private root plugin; no live postage claim. |
-| Template Store | `75f49ff6ded989726a76676eb27d8ae9b64ab980` | Supporting source only; current Commerce pin differs from older pairing docs. |
-
-Important gaps are recorded in the drafts: provider-confirmed checkout and Commerce Orders handoff are separate; `recorded` is insufficient without Orders visibility. Inventory is not universally required. A native helper/export does not establish an independently installable add-on SDK. The add-on draft's host structured-data example remains unqualified as a Registry extension.
-
-## Verification and next slice
-
-Run `npm run test:docs`, `npm run test:docs-routes`, `npm run typecheck`, `npm run build`, and the affected route/browser checks. `test:docs-routes` builds the documentation-only fixture and verifies both development and production mode; it does not substitute for Cloudflare smoke. The initial route checks intentionally expect thirteen draft articles and an empty public corpus; revise those expectations with an approved publication change. `npm run verify` remains the repository's full CI gate. Curated results belong in `proof/documentation-drafts/PROOF.md`; generated logs/screenshots stay ignored.
-
-Before publication, qualify exact installable artifacts, reproduce the existing-site product and TEST-order journey, execute developer examples, select a supported independent add-on surface, and replace source-derived troubleshooting with observed recovery steps. Then implement and client-test the read-only docs MCP against the same `getPublicDocs()` corpus. MCP is intentionally not claimed complete by this slice.
-
-`DEPLOY.md` documents the release path: `npm run build:cloudflare`, then `npx wrangler deploy --config .grilltrack/work/cloudflare-candidate-20260930/dist/server/wrangler.json`. The build uses `astro.cloudflare.config.mjs` with `output: 'server'`, so the documentation routes are included in the same Worker as the site. Preserve the Access build configuration required by `DEPLOY.md`. The historical static exporter is the old path and does not publish these routes. This contribution does not deploy or independently verify live routing. Do not enable optional Cloudflare conversion or alter content-signal policy as part of this contribution.
-
-Rollback before publication is a source revert of this contribution. A deployed-docs rollback must be prepared against the actual selected build and hosting mechanism. No deployment is included here.
+`npm run verify` runs all three.

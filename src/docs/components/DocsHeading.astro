@@ -1,0 +1,6 @@
+---
+// Headings carry the anchor the contents list links to.
+const { node } = Astro.props as { node: { style?: string; _anchor?: string } };
+const Tag = (/^h[1-6]$/.test(node.style ?? '') ? node.style : 'p') as 'h2';
+---
+<Tag id={node._anchor}><slot /></Tag>

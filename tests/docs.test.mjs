@@ -1,29 +1,61 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFileSync } from 'node:fs';
-import { articleMarkdown, publicPageIds, selectDocs, searchRecord } from '../src/docs/catalog.ts';
+import { articleId, articleMarkdown, docsSections, llmsText, searchRecord, selectArticles } from '../src/docs/catalog.ts';
+import { markdownToPortableText, portableTextToMarkdown, headingAnchors } from '../src/docs/portable-text.ts';
 import { searchDocs } from '../src/docs/search.ts';
 
-const entry = (id, draft, body = '') => ({ id, body, data: {
-  title: 'Catalog integration', summary: 'Read public products.', audience: 'Developers',
-  product: 'Commerce', version: 'Synthetic fixture', draft, updated: new Date('2026-10-19T00:00:00Z'),
+const site = { origin: 'https://docs.example', name: 'Example', description: 'Example docs.', sectionPaths: { Reference: 'reference' } };
+const seed = JSON.parse(readFileSync(new URL('../seed/seed.json', import.meta.url), 'utf8'));
+
+const entry = (slug, status, data = {}) => ({ id: slug, data: {
+  status, title: 'Catalog integration', summary: 'Read public products.', audience: 'Developers', product: 'Commerce',
+  version_scope: 'Synthetic fixture', section: 'Reference', order: 10, updatedAt: new Date('2026-10-19T00:00:00Z'),
+  body: markdownToPortableText('## Price\n\nSee [the guide](/docs/start).'), ...data,
 } });
 
-test('publication requires both explicit selection and non-draft status', () => {
-  const entries = [entry('start-here', false), entry('reference/commerce', true), entry('internal-plan', false)];
-  assert.deepEqual(selectDocs(entries).map(item => item.id), ['start-here']);
-  assert.deepEqual(selectDocs(entries, true).map(item => item.id), ['start-here', 'reference/commerce']);
-  assert.deepEqual(selectDocs([entry('../docs/CHARTER', false)]), []);
+test('only published entries are public; drafts appear only when previewing', () => {
+  const entries = [entry('commerce', 'published', { order: 20 }), entry('payments', 'draft'), entry('start', 'published', { section: 'Start here', order: 5 })];
+  assert.deepEqual(selectArticles(site, entries).map(item => item.id), ['start', 'reference/commerce']);
+  assert.deepEqual(selectArticles(site, entries, true).map(item => item.id), ['start', 'reference/payments', 'reference/commerce']);
+  assert.deepEqual(selectArticles(site, [entry('archived', 'archived'), entry('scheduled', 'scheduled')]), []);
+  assert.deepEqual(selectArticles(site, [entry('no-body', 'published', { body: undefined }), entry('no-section', 'published', { section: '' })]), []);
+  const [article] = selectArticles(site, [entry('commerce', 'published', { nav_label: 'Commerce' })]);
+  assert.equal(article.navLabel, 'Commerce');
+  assert.equal(article.draft, false);
+  assert.equal(article.updated.toISOString(), '2026-10-19T00:00:00.000Z');
+  assert.equal(selectArticles(site, [entry('commerce', 'published')])[0].navLabel, 'Catalog integration');
 });
 
-test('Markdown and search retain source body and version context', () => {
-  const body = '## Price\n\n```json\n{"minor":"1200"}\n```\n\n| Name | Price |\n| --- | --- |\n| Sample | 12 |\n\n[Guide](/docs/start-here#choose-your-path)';
-  const article = entry('reference/commerce', false, body);
-  assert.ok(articleMarkdown(article).includes(body));
-  assert.equal(searchRecord(article).text, body);
-  assert.equal(searchRecord(article).version, 'Synthetic fixture');
-  assert.ok(articleMarkdown(article).includes('https://dinkuskit.com/docs/reference/commerce'));
-  assert.ok(articleMarkdown(article).includes('Last updated: 2026-10-19'));
+test('sections keep the order of their first article and folders come from the site', () => {
+  assert.equal(articleId(site, 'commerce', 'Reference'), 'reference/commerce');
+  assert.equal(articleId(site, 'start', 'Start here'), 'start');
+  const articles = selectArticles(site, [entry('b', 'published', { order: 30 }), entry('a', 'published', { section: 'Start here', order: 10 }), entry('c', 'published', { order: 20 })]);
+  assert.deepEqual(docsSections(articles).map(section => [section.title, section.pages.map(page => page.id)]), [['Start here', ['a']], ['Reference', ['reference/c', 'reference/b']]]);
+});
+
+test('Markdown, search and llms.txt come from the same published list', () => {
+  const body = '## Price\n\n```json\n{"minor":"1200"}\n```\n\n| Name | Price |\n| --- | --- |\n| Sample | 12 |\n\n- **Bold** and `code` with [a link](/docs/start)';
+  const [article] = selectArticles(site, [entry('commerce', 'published', { body: markdownToPortableText(body) })]);
+  const markdown = articleMarkdown(site, article);
+  assert.ok(markdown.includes(body));
+  assert.ok(markdown.includes('Canonical URL: https://docs.example/docs/reference/commerce'));
+  assert.ok(markdown.includes('Version scope: Synthetic fixture'));
+  assert.ok(markdown.includes('Last updated: 2026-10-19'));
+  assert.equal(searchRecord(site, article).text, body);
+  assert.equal(searchRecord(site, article).url, '/docs/reference/commerce');
+  assert.ok(llmsText(site, [article]).includes('- [Catalog integration](https://docs.example/docs/markdown/reference/commerce.md): Read public products.'));
+  assert.equal(llmsText(site, []), null);
+});
+
+test('Portable Text keeps marks, links, tables, code and heading anchors', () => {
+  const blocks = markdownToPortableText('## Use **bold** text\n\n1. One `x`\n2. Two\n\n| A | B |\n| --- | --- |\n| [l](https://example.com) | `c` |\n\n## Use bold text');
+  assert.deepEqual(blocks[0].children.map(span => [span.text, span.marks]), [['Use ', []], ['bold', ['strong']], [' text', []]]);
+  assert.equal(blocks[1].listItem, 'number');
+  assert.equal(blocks[3]._type, 'table');
+  assert.equal(blocks[3].rows[1].cells[0].markDefs[0].href, 'https://example.com');
+  assert.deepEqual([...headingAnchors(blocks).values()].map(heading => heading.slug), ['use-bold-text', 'use-bold-text-1']);
+  assert.equal(portableTextToMarkdown(blocks), '## Use **bold** text\n\n1. One `x`\n2. Two\n\n| A | B |\n| --- | --- |\n| [l](https://example.com) | `c` |\n\n## Use bold text');
 });
 
 test('keyword search uses full text, prefers titles, and bounds results', () => {
@@ -39,21 +71,36 @@ test('keyword search uses full text, prefers titles, and bounds results', () => 
   assert.equal(searchDocs(Array.from({ length: 20 }, (_, i) => ({ ...articles[0], id: String(i) })), 'catalog').length, 10);
 });
 
-test('selected articles have resolvable docs links and portable public link paths', () => {
-  const pages = new Map(publicPageIds.map(id => [id, readFileSync(new URL(`../src/content/docs/${id}.md`, import.meta.url), 'utf8')]));
-  assert.equal(pages.size, 13);
-  for (const [id, source] of pages) {
-    assert.match(source, /^---\n/, `${id}: metadata`);
-    assert.match(source, /\ndraft: (true|false)\n/, `${id}: explicit publication status`);
-    assert.match(source, /\nupdated: \d{4}-\d{2}-\d{2}\n/, `${id}: editorial update date`);
-    assert.match(source, /\n## /, `${id}: substantive headings`);
-    for (const [, href] of source.matchAll(/\]\(([^\s)]+)\)/g)) {
-      assert.ok(/^(https:\/\/|\/docs\/|#)/.test(href), `${id}: source-relative or unsafe link ${href}`);
-      if (href.startsWith('/docs/')) {
-        const target = href.slice('/docs/'.length).split('#')[0];
-        assert.ok(pages.has(target), `${id}: unknown article ${target}`);
-        if (/\ndraft: false\n/.test(source)) assert.match(pages.get(target), /\ndraft: false\n/, `${id}: published article links to draft ${target}`);
-      }
+test('the seed defines the docs collection and holds the thirteen articles as drafts', async () => {
+  const { docsSite } = await import('../src/docs/site.ts');
+  const collection = seed.collections.find(item => item.slug === 'docs');
+  assert.deepEqual(collection.supports, ['drafts', 'revisions']);
+  assert.deepEqual(collection.fields.map(field => [field.slug, field.type]), [
+    ['title', 'string'], ['nav_label', 'string'], ['summary', 'text'], ['audience', 'string'], ['product', 'string'],
+    ['version_scope', 'string'], ['section', 'select'], ['order', 'integer'], ['body', 'portableText'],
+  ]);
+  const sections = collection.fields.find(field => field.slug === 'section').validation.options;
+  assert.equal(sections.length, 6);
+  for (const folder of Object.keys(docsSite.sectionPaths)) assert.ok(sections.includes(folder), `${folder}: a seed section`);
+
+  const entries = seed.content.docs;
+  assert.equal(entries.length, 13);
+  const articles = selectArticles(docsSite, entries.map(item => ({ id: item.slug, data: { ...item.data, status: item.status } })), true);
+  assert.equal(articles.length, 13);
+  assert.ok(entries.every(item => item.status === 'draft'), 'every imported article starts unpublished');
+  assert.deepEqual(articles.map(article => article.id), [
+    'start-here', 'store-owners/setup', 'store-owners/first-product', 'store-owners/test-order',
+    'developers/integrate', 'developers/add-on', 'developers/contribute',
+    'reference/commerce', 'reference/payments', 'reference/inventory', 'reference/ship', 'troubleshooting', 'ai-assistants',
+  ]);
+  const ids = new Set(articles.map(article => article.id));
+  for (const article of articles) {
+    const markdown = portableTextToMarkdown(article.body);
+    assert.equal(portableTextToMarkdown(markdownToPortableText(markdown)), markdown, `${article.id}: stable Markdown`);
+    assert.match(markdown, /^## /m, `${article.id}: substantive headings`);
+    for (const [, href] of markdown.matchAll(/\]\(([^\s)]+)\)/g)) {
+      assert.ok(/^(https:\/\/|\/docs\/|#)/.test(href), `${article.id}: source-relative or unsafe link ${href}`);
+      if (href.startsWith('/docs/')) assert.ok(ids.has(href.slice('/docs/'.length).split('#')[0]), `${article.id}: unknown article ${href}`);
     }
   }
 });

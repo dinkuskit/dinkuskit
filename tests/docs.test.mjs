@@ -105,6 +105,29 @@ test('code and nested lists render as written in an independent Markdown rendere
   assert.equal(portableTextToMarkdown(reparsed), markdown);
 });
 
+test('emphasis inside words and literal block prefixes render as written in an independent Markdown renderer', () => {
+  const span = (text, marks = []) => ({ _type: 'span', _key: text, text, marks });
+  const block = (children, extra = {}) => ({ _type: 'block', _key: children[0].text, style: 'normal', markDefs: [], children, ...extra });
+  const literal = ['---', '1) item', '2. item', '~~~', '===', '| a |', '+ plus', '#hash', '    indented'];
+  const blocks = [
+    block([span('x'), span('a', ['em']), span('y and '), span('a*b_c', ['em']), span('.')]),
+    ...literal.map(text => block([span(text)])),
+    block([span('- inner')], { listItem: 'bullet', level: 1 }),
+    block([span('# quoted')], { style: 'blockquote' }),
+  ];
+  const markdown = portableTextToMarkdown(blocks);
+  const html = marked.parse(markdown).replace(/\n/g, '');
+  assert.equal(html, [
+    '<p>x<em>a</em>y and <em>a*b_c</em>.</p>',
+    ...literal.map(text => `<p>${text.trim()}</p>`),
+    '<ul><li>- inner</li></ul>',
+    '<blockquote><p># quoted</p></blockquote>',
+  ].join(''));
+  const reparsed = markdownToPortableText(markdown);
+  const shape = items => items.map(item => [item.style, item.listItem, item.children.map(child => [child.text.trim(), child.marks])]);
+  assert.deepEqual(shape(reparsed), shape(blocks));
+});
+
 test('keyword search uses full text, prefers titles, and bounds results', () => {
   const articles = [
     { id: 'a', title: 'Other', summary: '', url: '/docs/a', text: 'Catalog integration and checkout.' },

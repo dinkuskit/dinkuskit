@@ -79,7 +79,9 @@ function parseInline(text: string, key: () => string) {
         i += link[0].length;
         continue;
       }
-      const emphasis = rest.match(/^(\*\*)(.+?)\*\*/) ?? rest.match(/^(\*)([^*\s](?:[^*]*[^*\s])?)\*/) ?? (/\w/.test(source[i - 1] ?? '') ? null : rest.match(/^(_)([^_\s](?:[^_]*[^_\s])?)_(?!\w)/));
+      const emphasis = rest.match(/^(\*\*)(.+?)\*\*/)
+        ?? rest.match(/^(\*)((?:\\.|[^*\s\\])(?:(?:\\.|[^*\\])*(?:\\.|[^*\s\\]))?)\*/)
+        ?? (/\w/.test(source[i - 1] ?? '') ? null : rest.match(/^(_)((?:\\.|[^_\s\\])(?:(?:\\.|[^_\\])*(?:\\.|[^_\s\\]))?)_(?!\w)/));
       if (emphasis) {
         push(plain, marks); plain = '';
         walk(emphasis[2], [...marks, DECORATORS[emphasis[1]]]);
@@ -171,6 +173,7 @@ export function markdownToPortableText(markdown: string, keyPrefix = 'k'): Porta
 }
 
 const MARK_SYNTAX: Record<string, string> = { strong: '**', em: '_' };
+const WORD = /[\p{L}\p{N}_]/u;
 
 /** Delimit code with a backtick run longer than any inside it, padded where the text touches a backtick or space. */
 function codeToMarkdown(text: string): string {
@@ -189,12 +192,12 @@ function spansToMarkdown(spans: PortableTextSpan[] = [], markDefs: PortableTextM
     if (linkKey) {
       let inner = '';
       while (i < spans.length && (spans[i].marks ?? []).includes(linkKey)) {
-        inner += decorate(spans[i].text, (spans[i].marks ?? []).filter(mark => mark !== linkKey));
+        inner += decorate(spans, i, (spans[i].marks ?? []).filter(mark => mark !== linkKey));
         i++;
       }
       out += `[${inner}](${links.get(linkKey)})`;
     } else {
-      out += decorate(spans[i].text, spans[i].marks ?? []);
+      out += decorate(spans, i, spans[i].marks ?? []);
       i++;
     }
   }
@@ -206,15 +209,24 @@ function escapeInline(text: string): string {
   return text.replace(/[\\`*_[\]<>&]/g, '\\$&');
 }
 
-/** Keep a plain paragraph that looks like a heading, list item or quote a paragraph. */
+/**
+ * Keep text that would start a block (heading, list item, rule, setext underline,
+ * fence, table or indented code) literal at the start of each line.
+ */
 function escapeBlockStart(text: string): string {
-  return text.replace(/^(#{1,6}(?=\s)|[-+*](?=\s)|>)/, '\\$1').replace(/^(\d+)\.(?=\s)/, '$1\\.');
+  return text.replace(/^[ \t]+/gm, '').replace(/^([#>+=~|-])/gm, '\\$1').replace(/^(\d{1,9})([.)])(?=\s|$)/gm, '$1\\$2');
 }
 
-function decorate(text: string, marks: string[]): string {
+function decorate(spans: PortableTextSpan[], index: number, marks: string[]): string {
+  let text = spans[index].text;
   // Code is innermost, so `**`x`**` round-trips.
   text = marks.includes('code') ? codeToMarkdown(text) : escapeInline(text);
-  return marks.filter(mark => MARK_SYNTAX[mark]).reduce((value, mark) => `${MARK_SYNTAX[mark]}${value}${MARK_SYNTAX[mark]}`, text);
+  // Underscores cannot emphasize inside a word, so emphasis touching letters or digits uses asterisks.
+  const touchesWord = WORD.test(spans[index - 1]?.text.at(-1) ?? '') || WORD.test(spans[index + 1]?.text[0] ?? '');
+  return marks.filter(mark => MARK_SYNTAX[mark]).reduce((value, mark) => {
+    const syntax = mark === 'em' && touchesWord ? '*' : MARK_SYNTAX[mark];
+    return `${syntax}${value}${syntax}`;
+  }, text);
 }
 
 function cellToMarkdown(cell: TableCell): string {
@@ -252,11 +264,11 @@ export function portableTextToMarkdown(blocks: PortableTextBlock[] = []): string
         const indent = columns[level - 2] ?? 2 * (level - 1);
         const marker = block.listItem === 'number' ? `${counters[level - 1]}.` : '-';
         columns[level - 1] = indent + marker.length + 1;
-        parts.push(`${' '.repeat(indent)}${marker} ${text}`);
+        parts.push(`${' '.repeat(indent)}${marker} ${escapeBlockStart(text)}`);
       } else if (/^h[1-6]$/.test(block.style ?? '')) {
         parts.push(`${'#'.repeat(Number(block.style!.slice(1)))} ${text}`);
       } else if (block.style === 'blockquote') {
-        parts.push(`> ${text}`);
+        parts.push(`> ${escapeBlockStart(text)}`);
       } else {
         parts.push(escapeBlockStart(text));
       }

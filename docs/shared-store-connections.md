@@ -168,7 +168,10 @@ Authorization: Bearer <store key>
 ```
 
 The allowed pairs are `payments:checkout` with `dinkus-payments`,
-`coupons:checkout` with `dinkus-coupons`, and `ship:orders` with `dinkus-ship`.
+`coupons:checkout` with `dinkus-coupons`, and `ship:orders` and `ship:admin` with
+`dinkus-ship`. `ship:admin` is for the Ship plugin in the store admin, which
+trades the same key; it is on and off with the store's Ship switch, like
+`ship:orders`, and Ship answers its admin routes only for that scope.
 The answer is `{"access_token", "token_type": "Bearer", "expires_in": 300}`: an
 ES256 pass from the same issuer and keys as Connect passes, with `sub` the
 business's subject, `site_id`, `site_origin` (the store's web address exactly as

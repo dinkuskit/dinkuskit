@@ -227,6 +227,7 @@ test('sandbox machine passes require registered site, expected generation, TEST 
       { ...request, scope: 'ship:labels' }, { ...request, recipient: 'ship-sandbox' },
       { site_id: SITE, scope: 'ship:orders', audience: SHIP_SANDBOX_AUDIENCE },
       { site_id: SITE, scope: 'ship:orders', audience: 'dinkus-ship' },
+      { ...request, scope: 'ship:admin' }, { site_id: SITE, scope: 'ship:admin', audience: 'dinkus-ship' },
     ]) assert.notEqual((await send(body)).status, 200);
     assert.notEqual((await send(request, null)).status, 200);
     f.sqlite.prepare('UPDATE dinkuskit_commerce_settings SET live = 1').run();

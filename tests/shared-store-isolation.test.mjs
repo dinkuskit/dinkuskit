@@ -341,11 +341,19 @@ test('store passes: one key, a 5-minute pass for each service that is on, nothin
     assert.deepEqual(payments.body.expires_in, 300);
     assert.deepEqual(await pass('coupons:checkout', 'dinkus-coupons'), { status: 403, body: { error: 'service_not_enabled' } });
     assert.deepEqual(await pass('ship:orders', 'dinkus-ship'), { status: 403, body: { error: 'service_not_enabled' } });
+    assert.deepEqual(await pass('ship:admin', 'dinkus-ship'), { status: 403, body: { error: 'service_not_enabled' } }, 'the Ship plugin needs Ship turned on too');
     assert.equal(await setOwnerService(f.db, { ...owner, service: 'ship', on: true }), 'on');
     const ship = await pass('ship:orders', 'dinkus-ship'); assert.equal(ship.status, 200);
     await jwtVerify(ship.body.access_token, jwks, { audience: 'dinkus-ship' });
+    const shipAdmin = await pass('ship:admin', 'dinkus-ship'); assert.equal(shipAdmin.status, 200);
+    const { payload: admin } = await jwtVerify(shipAdmin.body.access_token, jwks, { issuer: 'https://dinkuskit.com/account', audience: 'dinkus-ship' });
+    assert.deepEqual([admin.sub, admin.site_id, admin.site_origin, admin.scope, admin.exp - admin.iat, shipAdmin.body.expires_in],
+      ['org-a', siteId, f.sqlite.prepare('SELECT site_origin FROM dinkuskit_store_identity WHERE site_id = ?').get(siteId).site_origin, 'ship:admin', 300, 300],
+      'the Ship plugin pass is signed like the ship:orders one, under the same Ship grant');
+    assert.match(admin.site_origin, /^https:\/\//);
     assert.equal(await setOwnerService(f.db, { ...owner, service: 'ship', on: false }), 'off');
     assert.deepEqual(await pass('ship:orders', 'dinkus-ship'), { status: 403, body: { error: 'service_not_enabled' } });
+    assert.deepEqual(await pass('ship:admin', 'dinkus-ship'), { status: 403, body: { error: 'service_not_enabled' } });
     assert.equal(await setOwnerService(f.db, { ...owner, service: 'payments', on: true }), 'forbidden', 'Payments is turned on only by its own Connect');
     const listed = (await listStoreSetup(f.db, 'org-a'))[0];
     assert.deepEqual(listed.services, { payments: 'on', coupons: 'off', ship: 'off' }); assert.ok(listed.key.lastUsedAt);
@@ -361,6 +369,7 @@ test('store passes: replaced, malformed and mismatched keys and requests are ref
     assert.deepEqual(await pass('payments:checkout', 'dinkus-payments', { key: 'dk_store_' + 'A'.repeat(43) }), { status: 401, body: { error: 'invalid_store_key' } });
     assert.deepEqual(await pass('payments:checkout', 'dinkus-payments', { key: 'not-a-store-key' }), { status: 401, body: { error: 'invalid_store_key' } });
     for (const body of [null, [], { site_id: siteId, scope: 'payments:admin', audience: 'dinkus-payments' }, { site_id: siteId, scope: 'payments:checkout', audience: 'dinkus-coupons' },
+      { site_id: siteId, scope: 'ship:admin', audience: 'dinkus-payments' }, { site_id: siteId, scope: 'ship:labels', audience: 'dinkus-ship' },
       { site_id: siteId, scope: 'payments:checkout', audience: 'dinkus-payments', extra: 1 }, { scope: 'payments:checkout', audience: 'dinkus-payments' }]) {
       assert.deepEqual(await pass(null, null, { key: replaced, body }), { status: 400, body: { error: 'invalid_request' } }, JSON.stringify(body));
     }

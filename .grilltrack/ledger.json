@@ -8875,29 +8875,55 @@
       "superseded_by": null,
       "updated_at": "2026-10-19T19:38:29+00:00",
       "verification_ref": "file:proof/documentation-drafts/PROOF.md"
+    },
+    {
+      "baseline_ref": "git:1f6562b6fe9098805e9240a15391a25a81bb2bb4",
+      "candidate_refs": [],
+      "choice": "DinkusKit.com signs scope ship:admin with audience dinkus-ship at POST /api/store-passes, exactly like ship:orders: ES256 from the account issuer, with sub, site_id, site_origin and a 5-minute life. It falls under the store's existing Ship grant (the owner's Ship switch) with the same refusals, so there is no new grant, page or setting. A store registered for the isolated Ship sandbox gets no ship:admin pass. The store key still goes only to /api/store-passes. Ship answers its admin routes only for this scope, and its order routes refuse it.",
+      "context_ref": "file:docs/shared-store-connections.md",
+      "created_at": "2026-10-19T23:20:01+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [
+        "website-store-services-opt-in-043",
+        "website-store-pass-site-origin-048"
+      ],
+      "domain": "Documentation layout and article drafts",
+      "history": [],
+      "id": "website-ship-admin-pass-075",
+      "implementation_ref": null,
+      "question": "Which pass does the Ship plugin in a store's admin trade the store key for?",
+      "rationale": "The Ship Registry plugin buys and prints labels from the store admin through Ship's admin routes; a separate scope keeps those routes apart from Commerce's ship:orders calls without asking the owner for a second consent.",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [],
+      "review_ref": null,
+      "review_result": null,
+      "review_source_identity": null,
+      "status": "proposed",
+      "superseded_by": null,
+      "updated_at": "2026-10-19T23:20:01+00:00",
+      "verification_ref": null
     }
   ],
   "last_activation": {
-    "at": "2026-10-19T19:29:09+00:00",
+    "at": "2026-10-19T23:20:01+00:00",
     "mechanism": "implicit"
   },
   "last_pause": {
-    "artifact_refs": [
-      "file:docs/documentation-authoring.md",
-      "file:proof/documentation-drafts/PROOF.md"
-    ],
-    "next_safe_action": "Run browser and Cloudflare verification in a compatible environment, then push the contribution branch using repository contents write access. Keep all articles draft until their product evidence gates pass.",
-    "paused_at": "2026-10-19T18:17:19+00:00",
-    "reason": "Draft contribution implemented; Cloudflare runtime and browser verification are blocked in this environment, and GitHub branch creation returned 403.",
-    "resumed_at": "2026-10-19T19:29:09+00:00"
-  },
-  "pause": {
     "artifact_refs": [
       "file:proof/documentation-drafts/PROOF.md"
     ],
     "next_safe_action": "Update PR 52 with the verified revision, obtain maintainer workflow approval and re-review, and inspect exact-head CI. No merge, deployment or article publication.",
     "paused_at": "2026-10-19T19:38:29+00:00",
-    "reason": "Focused PR 52 revisions verified locally. Maintainer workflow approval and a fresh review of the final pushed commit remain pending. All articles remain draft; launch work is separate."
+    "reason": "Focused PR 52 revisions verified locally. Maintainer workflow approval and a fresh review of the final pushed commit remain pending. All articles remain draft; launch work is separate.",
+    "resumed_at": "2026-10-19T23:20:01+00:00"
+  },
+  "pause": {
+    "artifact_refs": [],
+    "next_safe_action": "Lock 075 only on the owner's approval, record implement and verify through the CLI, and keep the deploy after the Ship Worker that answers ship:admin.",
+    "paused_at": "2026-10-19T23:20:01+00:00",
+    "reason": "website-ship-admin-pass-075 proposed in a PR with its implementation and tests; it waits on the owner's approval of the Ship plugin contract before lock."
   },
   "recommendation": null,
   "reconciliation": {
@@ -8913,5 +8939,5 @@
   "status": "paused",
   "title": "Composed integration",
   "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5",
-  "updated_at": "2026-10-19T19:38:29+00:00"
+  "updated_at": "2026-10-19T23:20:01+00:00"
 }

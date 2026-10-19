@@ -26,6 +26,23 @@ export interface DocHeading { depth: number; slug: string; text: string }
 
 const DECORATORS: Record<string, string> = { '**': 'strong', '_': 'em', '*': 'em', '`': 'code' };
 
+/** A code span: an opening backtick run closed by a run of the same length (CommonMark). */
+function codeSpan(source: string): { text: string; length: number } | null {
+  const open = source.match(/^`+/)?.[0];
+  if (!open) return null;
+  const run = new RegExp(`(?<!\`)${open}(?!\`)`, 'g');
+  run.lastIndex = open.length;
+  const close = run.exec(source);
+  if (!close) return null;
+  let text = source.slice(open.length, close.index);
+  if (/^ [\s\S]* $/.test(text) && /[^ ]/.test(text)) text = text.slice(1, -1);
+  return { text, length: close.index + open.length };
+}
+
+function longestRun(text: string, character: string): number {
+  return Math.max(0, ...(text.match(new RegExp(`${character}+`, 'g')) ?? []).map(run => run.length));
+}
+
 function keyMaker(prefix: string) {
   let next = 0;
   return () => `${prefix}${(next++).toString(36)}`;
@@ -46,17 +63,17 @@ function parseInline(text: string, key: () => string) {
     let i = 0;
     while (i < source.length) {
       const rest = source.slice(i);
-      const code = rest.match(/^`([^`]+)`/);
+      const code = codeSpan(rest);
       if (code) {
         push(plain, marks); plain = '';
-        push(code[1], [...marks, 'code']);
-        i += code[0].length;
+        push(code.text, [...marks, 'code']);
+        i += code.length;
         continue;
       }
-      const link = rest.match(/^\[((?:[^\]`]|`[^`]*`)+)\]\(([^\s)]+)\)/);
+      const link = rest.match(/^\[((?:[^\]`]|(`+)[^`](?:[\s\S]*?[^`])?\2(?!`)|`)+)\]\(([^\s)]+)\)/);
       if (link) {
         push(plain, marks); plain = '';
-        const def = { _type: 'link', _key: key(), href: link[2] };
+        const def = { _type: 'link', _key: key(), href: link[3] };
         markDefs.push(def);
         walk(link[1], [...marks, def._key]);
         i += link[0].length;
@@ -99,17 +116,23 @@ export function markdownToPortableText(markdown: string, keyPrefix = 'k'): Porta
   const key = keyMaker(keyPrefix);
   const lines = markdown.replace(/\r\n/g, '\n').split('\n');
   const blocks: PortableTextBlock[] = [];
+  // Indents of the open list items; a deeper indent nests, an equal or shallower one closes items.
+  const listIndents: number[] = [];
   let i = 0;
   while (i < lines.length) {
     const line = lines[i];
     if (!line.trim()) { i++; continue; }
-    const fence = line.match(/^```(\S*)\s*$/);
+    const item = line.match(/^(\s*)([-*+]|\d+\.)\s+(.+)$/);
+    if (!item) listIndents.length = 0;
+    const fence = line.match(/^(`{3,})([^`\s]*)\s*$/);
     if (fence) {
+      // The fence closes on a backtick run at least as long as the one that opened it.
+      const close = new RegExp(`^${fence[1]}\`*\\s*$`);
       const code: string[] = [];
       i++;
-      while (i < lines.length && !/^```\s*$/.test(lines[i])) code.push(lines[i++]);
+      while (i < lines.length && !close.test(lines[i])) code.push(lines[i++]);
       i++;
-      blocks.push({ _type: 'code', _key: key(), code: code.join('\n'), ...(fence[1] ? { language: fence[1] } : {}) });
+      blocks.push({ _type: 'code', _key: key(), code: code.join('\n'), ...(fence[2] ? { language: fence[2] } : {}) });
       continue;
     }
     if (line.startsWith('|') && /^\|?\s*:?-{3,}/.test(lines[i + 1] ?? '')) {
@@ -131,9 +154,10 @@ export function markdownToPortableText(markdown: string, keyPrefix = 'k'): Porta
     if (heading) { blocks.push(textBlock(heading[2], key, { style: `h${heading[1].length}` })); i++; continue; }
     const quote = line.match(/^>\s?(.*)$/);
     if (quote) { blocks.push(textBlock(quote[1], key, { style: 'blockquote' })); i++; continue; }
-    const item = line.match(/^(\s*)([-*+]|\d+\.)\s+(.+)$/);
     if (item) {
-      blocks.push(textBlock(item[3], key, { listItem: /\d/.test(item[2]) ? 'number' : 'bullet', level: Math.floor(item[1].length / 2) + 1 }));
+      while (listIndents.length && listIndents.at(-1)! >= item[1].length) listIndents.pop();
+      listIndents.push(item[1].length);
+      blocks.push(textBlock(item[3], key, { listItem: /\d/.test(item[2]) ? 'number' : 'bullet', level: listIndents.length }));
       i++;
       continue;
     }
@@ -146,7 +170,14 @@ export function markdownToPortableText(markdown: string, keyPrefix = 'k'): Porta
   return blocks;
 }
 
-const MARK_SYNTAX: Record<string, string> = { strong: '**', em: '_', code: '`' };
+const MARK_SYNTAX: Record<string, string> = { strong: '**', em: '_' };
+
+/** Delimit code with a backtick run longer than any inside it, padded where the text touches a backtick or space. */
+function codeToMarkdown(text: string): string {
+  const ticks = '`'.repeat(longestRun(text, '`') + 1);
+  const pad = /^[` ]|[` ]$/.test(text) && /[^ ]/.test(text) ? ' ' : '';
+  return `${ticks}${pad}${text}${pad}${ticks}`;
+}
 
 function spansToMarkdown(spans: PortableTextSpan[] = [], markDefs: PortableTextMarkDef[] = []): string {
   const links = new Map(markDefs.filter(def => def._type === 'link').map(def => [def._key, def.href ?? '']));
@@ -181,10 +212,9 @@ function escapeBlockStart(text: string): string {
 }
 
 function decorate(text: string, marks: string[]): string {
-  if (!marks.includes('code')) text = escapeInline(text);
   // Code is innermost, so `**`x`**` round-trips.
-  const ordered = [...marks].filter(mark => MARK_SYNTAX[mark]).sort((a, b) => (a === 'code' ? -1 : b === 'code' ? 1 : 0));
-  return ordered.reduce((value, mark) => `${MARK_SYNTAX[mark]}${value}${MARK_SYNTAX[mark]}`, text);
+  text = marks.includes('code') ? codeToMarkdown(text) : escapeInline(text);
+  return marks.filter(mark => MARK_SYNTAX[mark]).reduce((value, mark) => `${MARK_SYNTAX[mark]}${value}${MARK_SYNTAX[mark]}`, text);
 }
 
 function cellToMarkdown(cell: TableCell): string {
@@ -196,13 +226,17 @@ export function portableTextToMarkdown(blocks: PortableTextBlock[] = []): string
   const parts: string[] = [];
   let previousList = false;
   const counters: number[] = [];
+  // Content column of the latest item at each level; a nested item starts there.
+  const columns: number[] = [];
   for (const block of blocks) {
     const isList = block._type === 'block' && Boolean(block.listItem);
     if (parts.length) parts.push(isList && previousList ? '\n' : '\n\n');
-    if (!isList) counters.length = 0;
+    if (!isList) { counters.length = 0; columns.length = 0; }
     previousList = isList;
     if (block._type === 'code') {
-      parts.push(`\`\`\`${typeof block.language === 'string' ? block.language : ''}\n${String(block.code ?? '')}\n\`\`\``);
+      const code = String(block.code ?? '');
+      const fence = '`'.repeat(Math.max(3, longestRun(code, '`') + 1));
+      parts.push(`${fence}${typeof block.language === 'string' ? block.language : ''}\n${code}\n${fence}`);
     } else if (block._type === 'table') {
       const rows = (block.rows as TableRow[] | undefined) ?? [];
       const lines = rows.map(row => `| ${row.cells.map(cellToMarkdown).join(' | ')} |`);
@@ -214,7 +248,11 @@ export function portableTextToMarkdown(blocks: PortableTextBlock[] = []): string
         const level = Math.max(1, block.level ?? 1);
         counters.length = level;
         counters[level - 1] = (counters[level - 1] ?? 0) + 1;
-        parts.push(`${'  '.repeat(level - 1)}${block.listItem === 'number' ? `${counters[level - 1]}.` : '-'} ${text}`);
+        columns.length = level - 1;
+        const indent = columns[level - 2] ?? 2 * (level - 1);
+        const marker = block.listItem === 'number' ? `${counters[level - 1]}.` : '-';
+        columns[level - 1] = indent + marker.length + 1;
+        parts.push(`${' '.repeat(indent)}${marker} ${text}`);
       } else if (/^h[1-6]$/.test(block.style ?? '')) {
         parts.push(`${'#'.repeat(Number(block.style!.slice(1)))} ${text}`);
       } else if (block.style === 'blockquote') {

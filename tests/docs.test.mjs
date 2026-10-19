@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFileSync } from 'node:fs';
+import { marked } from 'marked';
 import { articleId, articleMarkdown, docsSections, llmsText, searchRecord, selectArticles } from '../src/docs/catalog.ts';
 import { markdownToPortableText, portableTextToMarkdown, headingAnchors } from '../src/docs/portable-text.ts';
 import { searchDocs } from '../src/docs/search.ts';
@@ -80,6 +81,28 @@ test('literal text typed in the CMS stays literal in the Markdown export', () =>
   assert.deepEqual(reparsed.map(item => [item.style, item.listItem, item.children.map(child => [child.text, child.marks])]), blocks.map(item => [
     'normal', undefined, item.children.map(child => [child.text, child.marks]),
   ]));
+});
+
+test('code and nested lists render as written in an independent Markdown renderer', () => {
+  const span = (text, marks = []) => ({ _type: 'span', _key: text, text, marks });
+  const block = (children, extra = {}) => ({ _type: 'block', _key: children[0].text, style: 'normal', markDefs: [], children, ...extra });
+  const blocks = [
+    block([span('Run '), span('a `b` c', ['code']), span(' and '), span('`tick', ['code']), span(' or '), span('``', ['code']), span(' then '), span(' padded ', ['code'])]),
+    { _type: 'code', _key: 'fence', language: 'md', code: 'Before\n```js\nx\n```\nAfter' },
+    block([span('Parent')], { listItem: 'number', level: 1 }),
+    block([span('Child')], { listItem: 'bullet', level: 2 }),
+    block([span('Grandchild')], { listItem: 'number', level: 3 }),
+    block([span('Second')], { listItem: 'number', level: 1 }),
+  ];
+  const markdown = portableTextToMarkdown(blocks);
+  const html = marked.parse(markdown).replace(/\n/g, '');
+  assert.ok(html.includes('<p>Run <code>a `b` c</code> and <code>`tick</code> or <code>``</code> then <code> padded </code></p>'), html);
+  assert.ok(html.includes('<pre><code class="language-md">Before```jsx```After</code></pre>'), html);
+  assert.ok(html.includes('<ol><li>Parent<ul><li>Child<ol><li>Grandchild</li></ol></li></ul></li><li>Second</li></ol>'), html);
+  const reparsed = markdownToPortableText(markdown);
+  assert.deepEqual(reparsed.map(item => item._type === 'code' ? [item.code, item.language] : [item.listItem, item.level, item.children.map(child => [child.text, child.marks])]),
+    blocks.map(item => item._type === 'code' ? [item.code, item.language] : [item.listItem, item.level, item.children.map(child => [child.text, child.marks])]));
+  assert.equal(portableTextToMarkdown(reparsed), markdown);
 });
 
 test('keyword search uses full text, prefers titles, and bounds results', () => {

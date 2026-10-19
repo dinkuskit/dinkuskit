@@ -170,9 +170,9 @@ function spansToMarkdown(spans: PortableTextSpan[] = [], markDefs: PortableTextM
   return out;
 }
 
-/** Backslash-escape characters that would otherwise read as inline Markdown. */
+/** Backslash-escape characters that would otherwise read as inline Markdown, HTML or entities. */
 function escapeInline(text: string): string {
-  return text.replace(/[\\`*_[\]]/g, '\\$&');
+  return text.replace(/[\\`*_[\]<>&]/g, '\\$&');
 }
 
 /** Keep a plain paragraph that looks like a heading, list item or quote a paragraph. */

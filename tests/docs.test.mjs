@@ -63,6 +63,7 @@ test('literal text typed in the CMS stays literal in the Markdown export', () =>
   const block = (text, extra = {}) => ({ _type: 'block', _key: text, style: 'normal', markDefs: [], children: [span(text)], ...extra });
   const blocks = [
     block('Fields marked *required* use snake_case, `ticks` and [brackets] with a \\ backslash.'),
+    block('Use <widget> &copy; here.'),
     block('# not a heading'),
     block('- not a list'),
     block('1. not a numbered list'),
@@ -72,6 +73,7 @@ test('literal text typed in the CMS stays literal in the Markdown export', () =>
   const markdown = portableTextToMarkdown(blocks);
   assert.equal(markdown, [
     'Fields marked \\*required\\* use snake\\_case, \\`ticks\\` and \\[brackets\\] with a \\\\ backslash.',
+    'Use \\<widget\\> \\&copy; here.',
     '\\# not a heading', '\\- not a list', '1\\. not a numbered list', '\\> not a quote', '`*kept*`',
   ].join('\n\n'));
   const reparsed = markdownToPortableText(markdown);

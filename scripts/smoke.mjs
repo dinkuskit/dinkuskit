@@ -233,9 +233,9 @@ try {
       );
       assert.ok(!html.includes('coordinator-owned') && !html.includes('handoff'), `${path}: no internal coordination copy`);
       assert.ok(
-        html.includes('href="https://demo.dinkuskit.com/"')
+        html.includes('href="https://playground.dinkuskit.com/"')
         && html.includes('>Try the demo</a>'),
-        `${path}: demo link is a clickable http(s) anchor`,
+        `${path}: playground link is a clickable http(s) anchor`,
       );
       assert.ok(
         html.includes('href="https://github.com/dinkuskit/template-store/blob/main/docs/v1-setup.md"')

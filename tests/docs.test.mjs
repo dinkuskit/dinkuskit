@@ -5,6 +5,7 @@ import { marked } from 'marked';
 import { articleId, articleMarkdown, docsSections, llmsText, searchRecord, selectArticles } from '../src/docs/catalog.ts';
 import { markdownToPortableText, portableTextToMarkdown, headingAnchors } from '../src/docs/portable-text.ts';
 import { searchDocs } from '../src/docs/search.ts';
+import { compareParagraph, randomParagraph } from './docs-markdown-fuzz.mjs';
 
 const site = { origin: 'https://docs.example', name: 'Example', description: 'Example docs.', sectionPaths: { Reference: 'reference' } };
 const seed = JSON.parse(readFileSync(new URL('../seed/seed.json', import.meta.url), 'utf8'));
@@ -126,6 +127,30 @@ test('emphasis inside words and literal block prefixes render as written in an i
   const reparsed = markdownToPortableText(markdown);
   const shape = items => items.map(item => [item.style, item.listItem, item.children.map(child => [child.text.trim(), child.marks])]);
   assert.deepEqual(shape(reparsed), shape(blocks));
+});
+
+test('boundary spaces and link destinations render as written in an independent Markdown renderer', () => {
+  const span = (text, marks = []) => ({ _type: 'span', _key: text, text, marks });
+  const markDefs = ['https://example.org/a)b', 'https://example.org/a(b', 'https://example.org/a b'].map((href, index) => ({ _type: 'link', _key: `l${index}`, href }));
+  const block = { _type: 'block', _key: 'p', style: 'normal', markDefs, children: [
+    span('bold ', ['strong']), span('tail and'), span(' italic', ['em']), span(' '),
+    span('one', ['l0']), span(' '), span('two', ['l1']), span(' '), span('three', ['l2']),
+  ] };
+  const markdown = portableTextToMarkdown([block]);
+  assert.equal(markdown, '**bold** tail and _italic_ [one](https://example.org/a\\)b) [two](https://example.org/a\\(b) [three](https://example.org/a%20b)');
+  assert.equal(marked.parse(markdown).trim(), '<p><strong>bold</strong> tail and <em>italic</em> <a href="https://example.org/a)b">one</a> <a href="https://example.org/a(b">two</a> <a href="https://example.org/a%20b">three</a></p>');
+  assert.deepEqual(markdownToPortableText(markdown)[0].markDefs.map(def => def.href), ['https://example.org/a)b', 'https://example.org/a(b', 'https://example.org/a%20b']);
+});
+
+test('random inline formatting renders as written in an independent Markdown renderer and exports stably', () => {
+  for (const style of ['normal', 'h2']) {
+    for (let seed = 1; seed <= 3000; seed++) {
+      const block = randomParagraph(seed, style);
+      const result = compareParagraph(block);
+      assert.deepEqual(result.actual, result.expected, `${style} seed ${seed}: ${result.markdown} -> ${result.html}`);
+      assert.equal(result.reexported, result.markdown, `${style} seed ${seed}: stable export`);
+    }
+  }
 });
 
 test('keyword search uses full text, prefers titles, and bounds results', () => {

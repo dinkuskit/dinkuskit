@@ -70,13 +70,28 @@ function parseInline(text: string, key: () => string) {
         i += code.length;
         continue;
       }
-      const link = rest.match(/^\[((?:[^\]`]|(`+)[^`](?:[\s\S]*?[^`])?\2(?!`)|`)+)\]\(([^\s)]+)\)/);
+      const link = rest.match(/^\[((?:\\.|[^\]`\\]|(`+)[^`](?:[\s\S]*?[^`])??\2(?!`)|`)+?)\]\((<(?:\\.|[^\\<>\n])*>|(?:\\.|[^\s()\\])+)\)/);
       if (link) {
         push(plain, marks); plain = '';
-        const def = { _type: 'link', _key: key(), href: link[3] };
+        const href = link[3].replace(/^<([\s\S]*)>$/, '$1').replace(/\\([!-/:-@[-`{-~])/g, '$1');
+        const def = { _type: 'link', _key: key(), href };
         markDefs.push(def);
         walk(link[1], [...marks, def._key]);
         i += link[0].length;
+        continue;
+      }
+      const htmlCode = rest.match(/^<code>([\s\S]*?)<\/code>/);
+      if (htmlCode) {
+        push(plain, marks); plain = '';
+        push(htmlCode[1].replace(/&#(\d+);/g, (_, code) => String.fromCharCode(Number(code))), [...marks, 'code']);
+        i += htmlCode[0].length;
+        continue;
+      }
+      const tag = rest.match(/^<(strong|em)>([\s\S]+?)<\/\1>/);
+      if (tag) {
+        push(plain, marks); plain = '';
+        walk(tag[2], [...marks, tag[1]]);
+        i += tag[0].length;
         continue;
       }
       const emphasis = rest.match(/^(\*\*)(.+?)\*\*/)
@@ -152,8 +167,8 @@ export function markdownToPortableText(markdown: string, keyPrefix = 'k'): Porta
       blocks.push({ _type: 'table', _key: key(), hasHeaderRow: true, rows });
       continue;
     }
-    const heading = line.match(/^(#{1,6})\s+(.+?)\s*$/);
-    if (heading) { blocks.push(textBlock(heading[2], key, { style: `h${heading[1].length}` })); i++; continue; }
+    const heading = line.match(/^(#{1,6})(?:[ \t]+(.*?))?[ \t]*$/);
+    if (heading) { blocks.push(textBlock(heading[2] ?? '', key, { style: `h${heading[1].length}` })); i++; continue; }
     const quote = line.match(/^>\s?(.*)$/);
     if (quote) { blocks.push(textBlock(quote[1], key, { style: 'blockquote' })); i++; continue; }
     if (item) {
@@ -173,7 +188,6 @@ export function markdownToPortableText(markdown: string, keyPrefix = 'k'): Porta
 }
 
 const MARK_SYNTAX: Record<string, string> = { strong: '**', em: '_' };
-const WORD = /[\p{L}\p{N}_]/u;
 
 /** Delimit code with a backtick run longer than any inside it, padded where the text touches a backtick or space. */
 function codeToMarkdown(text: string): string {
@@ -182,22 +196,43 @@ function codeToMarkdown(text: string): string {
   return `${ticks}${pad}${text}${pad}${ticks}`;
 }
 
-function spansToMarkdown(spans: PortableTextSpan[] = [], markDefs: PortableTextMarkDef[] = []): string {
+function spansToMarkdown(source: PortableTextSpan[] = [], markDefs: PortableTextMarkDef[] = []): string {
+  // Adjacent spans with the same marks render as one, so their delimiters never meet.
+  const spans: PortableTextSpan[] = [];
+  for (const span of source) {
+    const last = spans.at(-1);
+    if (last && (last.marks ?? []).join() === (span.marks ?? []).join()) spans[spans.length - 1] = { ...last, text: last.text + span.text };
+    else spans.push(span);
+  }
   const links = new Map(markDefs.filter(def => def._type === 'link').map(def => [def._key, def.href ?? '']));
+  const linkOf = (span?: PortableTextSpan) => (span?.marks ?? []).find(mark => links.has(mark));
+  // The first character the span at j will render as, so delimiters can be checked against it.
+  const startOf = (j: number, linkKey?: string): string => {
+    const span = spans[j];
+    if (!span) return linkKey ? ']' : '';
+    const nextLink = linkOf(span);
+    if (nextLink !== linkKey) return linkKey ? ']' : '[';
+    const marks = span.marks ?? [];
+    if (marks.includes('code')) return marks.some(mark => MARK_SYNTAX[mark]) ? '*' : '`';
+    if (marks.some(mark => MARK_SYNTAX[mark]) && /^\S/.test(span.text)) return '*';
+    return escapeInline(span.text)[0] ?? startOf(j + 1, linkKey);
+  };
   let out = '';
   let i = 0;
   // Consecutive spans sharing a link render inside one [text](href).
   while (i < spans.length) {
-    const linkKey = (spans[i].marks ?? []).find(mark => links.has(mark));
+    const linkKey = linkOf(spans[i]);
     if (linkKey) {
       let inner = '';
       while (i < spans.length && (spans[i].marks ?? []).includes(linkKey)) {
-        inner += decorate(spans, i, (spans[i].marks ?? []).filter(mark => mark !== linkKey));
+        const marks = (spans[i].marks ?? []).filter(mark => mark !== linkKey);
+        inner += decorate(spans[i].text, marks, (inner || '[').at(-1)!, startOf(i + 1, linkKey), true);
         i++;
       }
-      out += `[${inner}](${links.get(linkKey)})`;
+      // A `!` right before the link would make it an image.
+      out = out.replace(/!$/, '\\!') + `[${inner}](${linkDestination(links.get(linkKey)!)})`;
     } else {
-      out += decorate(spans, i, spans[i].marks ?? []);
+      out += decorate(spans[i].text, spans[i].marks ?? [], out.at(-1) ?? '', startOf(i + 1));
       i++;
     }
   }
@@ -206,7 +241,7 @@ function spansToMarkdown(spans: PortableTextSpan[] = [], markDefs: PortableTextM
 
 /** Backslash-escape characters that would otherwise read as inline Markdown, HTML or entities. */
 function escapeInline(text: string): string {
-  return text.replace(/[\\`*_[\]<>&]/g, '\\$&');
+  return text.replace(/[\\`*_[\]<>&~]/g, '\\$&');
 }
 
 /**
@@ -214,19 +249,65 @@ function escapeInline(text: string): string {
  * fence, table or indented code) literal at the start of each line.
  */
 function escapeBlockStart(text: string): string {
-  return text.replace(/^[ \t]+/gm, '').replace(/^([#>+=~|-])/gm, '\\$1').replace(/^(\d{1,9})([.)])(?=\s|$)/gm, '$1\\$2');
+  return text.replace(/^[ \t]+|[ \t]+$/gm, '').replace(/^([#>+=~|-])/gm, '\\$1').replace(/^(\d{1,9})([.)])(?=\s|$)/gm, '$1\\$2');
 }
 
-function decorate(spans: PortableTextSpan[], index: number, marks: string[]): string {
-  let text = spans[index].text;
+/** A link destination with its parentheses, angle brackets and backslashes escaped and its spaces percent-encoded. */
+function linkDestination(href: string): string {
+  return href.replace(/[\\()<>]/g, '\\$&').replace(/\s/g, character => encodeURIComponent(character));
+}
+
+// Text between HTML tags is still read as Markdown, so every ASCII punctuation character becomes a character reference.
+const escapeHtml = (text: string) => text.replace(/[!-/:-@[-`{-~]/g, character => `&#${character.charCodeAt(0)};`);
+
+const isSpace = (character: string) => !character || /\s/.test(character);
+const isPunctuation = (character: string) => /[\p{P}\p{S}]/u.test(character);
+
+/** Whether a delimiter run between `before` and `after` can open (or, swapped, close) emphasis, per CommonMark flanking rules. */
+function canOpen(syntax: string, before: string, after: string): boolean {
+  const left = !isSpace(after) && (!isPunctuation(after) || isSpace(before) || isPunctuation(before));
+  const right = !isSpace(before) && (!isPunctuation(before) || isSpace(after) || isPunctuation(after));
+  return syntax.startsWith('_') ? left && (!right || isPunctuation(before)) : left;
+}
+function canClose(syntax: string, before: string, after: string): boolean {
+  const left = !isSpace(after) && (!isPunctuation(after) || isSpace(before) || isPunctuation(before));
+  const right = !isSpace(before) && (!isPunctuation(before) || isSpace(after) || isPunctuation(after));
+  return syntax.startsWith('_') ? right && (!left || isPunctuation(after)) : right;
+}
+
+const HTML_TAG: Record<string, string> = { strong: 'strong', em: 'em' };
+
+/**
+ * One span with its bold, italic and code marks. `before` and `after` are the
+ * rendered characters around it. Boundary spaces move outside the delimiters,
+ * italic uses `_` unless that cannot open and close here, and a span no
+ * Markdown delimiter can wrap uses <strong>/<em>.
+ */
+function decorate(raw: string, marks: string[], before: string, after: string, inLink = false): string {
+  // Bold sits inside italic whatever order the marks were applied in, so the export is stable.
+  const wrappers = ['strong', 'em'].filter(mark => marks.includes(mark));
   // Code is innermost, so `**`x`**` round-trips.
-  text = marks.includes('code') ? codeToMarkdown(text) : escapeInline(text);
-  // Underscores cannot emphasize inside a word, so emphasis touching letters or digits uses asterisks.
-  const touchesWord = WORD.test(spans[index - 1]?.text.at(-1) ?? '') || WORD.test(spans[index + 1]?.text[0] ?? '');
-  return marks.filter(mark => MARK_SYNTAX[mark]).reduce((value, mark) => {
-    const syntax = mark === 'em' && touchesWord ? '*' : MARK_SYNTAX[mark];
+  const isCode = marks.includes('code');
+  const [, lead, core, trail] = isCode ? ['', '', raw, ''] : raw.match(/^(\s*)([\s\S]*?)(\s*)$/)!;
+  // Renderers disagree on code holding backticks, backslashes or brackets in link text, or delimiters in bold or italic, so that code is HTML.
+  const htmlCode = isCode && ((inLink && /[`\\[\]]/.test(raw)) || (wrappers.length > 0 && /[`*_]/.test(raw)));
+  const body = !isCode ? escapeInline(core) : htmlCode ? `<code>${escapeHtml(raw)}</code>` : codeToMarkdown(raw);
+  if (!core || !wrappers.length) return isCode ? body : escapeInline(raw);
+  const outside = [lead.at(-1) || before, trail[0] || after];
+  // Delimiters touching another span's delimiters, or code ending in a backslash, read differently across renderers.
+  const crowded = /[*_`>)\]]/.test(outside[0]) || /[*_`<[]/.test(outside[1]) || (isCode && /\\$/.test(raw)) || (!isCode && /^[*_~]|[*_~]$/.test(core));
+  const wrap = (emSyntax: string) => wrappers.reduce((value, mark) => {
+    const syntax = mark === 'em' ? emSyntax : MARK_SYNTAX[mark];
     return `${syntax}${value}${syntax}`;
-  }, text);
+  }, body);
+  for (const emSyntax of crowded ? [] : ['_', '*']) {
+    const outer = wrappers.at(-1) === 'em' ? emSyntax : MARK_SYNTAX[wrappers.at(-1)!];
+    const first = wrappers.length > 1 ? (wrappers.at(-2) === 'em' ? emSyntax : '*') : body[0];
+    const last = wrappers.length > 1 ? first : body.at(-1)!;
+    // A delimiter right after the same character would join the previous span's run.
+    if (outside[0] !== outer[0] && canOpen(outer, outside[0], first) && canClose(outer, last, outside[1])) return lead + wrap(emSyntax) + trail;
+  }
+  return lead + wrappers.reduce((value, mark) => `<${HTML_TAG[mark]}>${value}</${HTML_TAG[mark]}>`, body) + trail;
 }
 
 function cellToMarkdown(cell: TableCell): string {
@@ -266,7 +347,8 @@ export function portableTextToMarkdown(blocks: PortableTextBlock[] = []): string
         columns[level - 1] = indent + marker.length + 1;
         parts.push(`${' '.repeat(indent)}${marker} ${escapeBlockStart(text)}`);
       } else if (/^h[1-6]$/.test(block.style ?? '')) {
-        parts.push(`${'#'.repeat(Number(block.style!.slice(1)))} ${text}`);
+        // A trailing run of # would be read as the heading's closing sequence.
+        parts.push(`${'#'.repeat(Number(block.style!.slice(1)))} ${text.trim().replace(/#+$/, '\\$&')}`);
       } else if (block.style === 'blockquote') {
         parts.push(`> ${escapeBlockStart(text)}`);
       } else {

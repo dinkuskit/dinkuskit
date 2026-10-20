@@ -64,12 +64,15 @@ export function registeredInstallation(clientId: unknown, service: unknown, site
  * Passes Commerce trades its store key for at /api/store-passes. Payments is on for a
  * store while its Payments Connect grant is active; the owner turns Coupons and Ship
  * on and off on DinkusKit.com. Each service verifies its own audience and scope.
+ * The Ship plugin in the store admin trades the same key for `ship:admin` under the
+ * store's Ship grant; Ship answers its admin routes only for that scope.
  */
 export type StorePassService = 'payments' | 'coupons' | 'ship';
 export const STORE_PASS_SERVICES: readonly { service: StorePassService; scope: string; audience: string }[] = [
   { service: 'payments', scope: 'payments:checkout', audience: 'dinkus-payments' },
   { service: 'coupons', scope: 'coupons:checkout', audience: 'dinkus-coupons' },
   { service: 'ship', scope: 'ship:orders', audience: 'dinkus-ship' },
+  { service: 'ship', scope: 'ship:admin', audience: 'dinkus-ship' },
 ];
 export const OWNER_ENABLED_SERVICES = ['coupons', 'ship'] as const;
 export type OwnerEnabledService = (typeof OWNER_ENABLED_SERVICES)[number];

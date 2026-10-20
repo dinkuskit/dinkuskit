@@ -5,7 +5,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash, randomBytes } from 'node:crypto';
 import { createLocalJWKSet, jwtVerify } from 'jose';
-import { fixture, SITE, OTHER_SITE, mintSandboxPass } from './helpers/ship-issuer-fixture.mjs';
+import { fixture, SITE, OTHER_SITE, mintSandboxPass, mintShipAdminPasses } from './helpers/ship-issuer-fixture.mjs';
 import { exchangeShipToken, shipLabelAccess, startShipSignIn } from '../src/account/ship-sign-in.ts';
 import { setEmployeePermissions } from '../src/account/organizations.ts';
 import { SESSION_EXPIRES_IN_SECONDS, SHIP_SIGN_IN_CALLBACK, STORE_PASS_SERVICES, safeAccountPath, shipSignInPath, shipSignInRequest } from '../src/account/config.ts';
@@ -227,6 +227,7 @@ test('sandbox machine passes require registered site, expected generation, TEST 
       { ...request, scope: 'ship:labels' }, { ...request, recipient: 'ship-sandbox' },
       { site_id: SITE, scope: 'ship:orders', audience: SHIP_SANDBOX_AUDIENCE },
       { site_id: SITE, scope: 'ship:orders', audience: 'dinkus-ship' },
+      { ...request, scope: 'ship:admin' }, { site_id: SITE, scope: 'ship:admin', audience: 'dinkus-ship' },
     ]) assert.notEqual((await send(body)).status, 200);
     assert.notEqual((await send(request, null)).status, 200);
     f.sqlite.prepare('UPDATE dinkuskit_commerce_settings SET live = 1').run();
@@ -320,4 +321,16 @@ test('shared integration helper mints through the actual issuer', async () => {
   assert.equal(payload.site_id, produced.siteId);
   assert.equal(payload.ship_generation, produced.generation);
   assert.equal(payload.scope, 'ship:orders');
+});
+
+test('shared integration helper mints the Ship plugin passes through the actual issuer', async () => {
+  const produced = await mintShipAdminPasses();
+  const verify = (token, options = {}) => jwtVerify(token, createLocalJWKSet({ keys: [produced.publicJwk] }), { issuer: 'https://dinkuskit.com/account', audience: 'dinkus-ship', ...options });
+  const claims = async token => { const { payload } = await verify(token); return [payload.site_id, payload.scope, payload.exp - payload.iat]; };
+  assert.deepEqual(await claims(produced.admin), [SITE, 'ship:admin', 300]);
+  assert.deepEqual(await claims(produced.orders), [SITE, 'ship:orders', 300]);
+  assert.deepEqual(await claims(produced.otherAdmin), [OTHER_SITE, 'ship:admin', 300]);
+  await assert.rejects(verify(produced.expiredAdmin), { code: 'ERR_JWT_EXPIRED' });
+  const { payload } = await verify(produced.expiredAdmin, { currentDate: new Date(Date.now() - 9 * 60 * 1000) });
+  assert.deepEqual([payload.site_id, payload.scope], [SITE, 'ship:admin'], 'the expired pass was a real ship:admin pass');
 });

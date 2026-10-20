@@ -58,3 +58,31 @@ export async function mintSandboxPass(generation = 'test-generation-1') {
     return { token: body.access_token, publicJwk: f.keys.publicJwk, siteId: SITE, generation };
   } finally { f.close(); }
 }
+
+/**
+ * Synthetic production Ship passes from the real issuer, for proof that Ship's admin
+ * routes take them: a ship:admin and a ship:orders pass for SITE, a ship:admin pass for
+ * OTHER_SITE (another business), and a ship:admin pass for SITE issued ten minutes ago,
+ * so already expired. In-process only; never log or persist the tokens.
+ */
+export async function mintShipAdminPasses() {
+  const f = await fixture();
+  try {
+    f.sqlite.prepare("INSERT INTO dinkuskit_service_grant (site_id, service, revoked, granted_at) VALUES (?, 'ship', 0, 1)").run(OTHER_SITE);
+    const key = await replaceStoreKey(f.db, { siteId: SITE, subject: 'org-a', organizationId: 'a', actorUserId: 'alice' });
+    const otherKey = await replaceStoreKey(f.db, { siteId: OTHER_SITE, subject: 'org-b', organizationId: 'b', actorUserId: 'bob' });
+    const mint = async (storeKey, siteId, scope) => {
+      const response = await issueStorePass({ db: f.db, authorization: `Bearer ${storeKey}`, body: { site_id: siteId, scope, audience: 'dinkus-ship' }, privateJwkJson: f.privateJwkJson });
+      if (response.status !== 200) throw new Error('synthetic_issuer_failed');
+      return (await response.json()).access_token;
+    };
+    const admin = await mint(key, SITE, 'ship:admin');
+    const orders = await mint(key, SITE, 'ship:orders');
+    const otherAdmin = await mint(otherKey, OTHER_SITE, 'ship:admin');
+    const now = Date.now;
+    Date.now = () => now() - 10 * 60 * 1000;
+    let expiredAdmin;
+    try { expiredAdmin = await mint(key, SITE, 'ship:admin'); } finally { Date.now = now; }
+    return { publicJwk: f.keys.publicJwk, siteId: SITE, otherSiteId: OTHER_SITE, admin, orders, otherAdmin, expiredAdmin };
+  } finally { f.close(); }
+}

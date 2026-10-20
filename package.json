@@ -6,7 +6,7 @@
   "description": "The EmDash-powered DinkusKit website and hosted-service account foundation",
   "license": "MIT",
   "engines": {
-    "node": ">=22.22.2 <23"
+    "node": ">=24.15.0 <25"
   },
   "emdash": {
     "seed": "seed/seed.json"

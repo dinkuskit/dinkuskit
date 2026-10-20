@@ -39,7 +39,7 @@ No step above is performed by this candidate preparation. Actual hostnames, acco
 
 ## Local qualification (not hosted proof)
 
-Use Node 22.23.2 from `.nvmrc`. CI installs that version with `actions/setup-node`. The fixture scripts spawn `process.execPath` and assert `process.version === 'v22.23.2'`.
+Use Node 24.22.0 from `.nvmrc`. CI installs that version with `actions/setup-node`. The fixture scripts spawn `process.execPath` and assert `process.version === 'v24.22.0'`.
 
 ```sh
 npm run verify

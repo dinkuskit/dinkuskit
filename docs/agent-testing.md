@@ -6,7 +6,7 @@ service, a browser visual test, or proof that real email was delivered.
 
 ## Run
 
-Use the repository's Node 22 version and install dependencies with `npm ci`.
+Use the repository's Node 24 version and install dependencies with `npm ci`.
 Then run:
 
 ```sh

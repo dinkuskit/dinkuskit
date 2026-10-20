@@ -1,0 +1,17 @@
+---
+import { docsPath, docsSections, type DocArticle } from '../catalog.ts';
+interface Props { entries: DocArticle[]; activeId: string }
+const { entries, activeId } = Astro.props;
+---
+<nav class="docs-navigation" aria-label="Documentation">
+  {docsSections(entries).map(section => (
+    <details open={section.pages.some(page => page.id === activeId)}>
+      <summary>{section.title}</summary>
+      <ul>
+        {section.pages.map(page => (
+          <li><a href={docsPath(page.id)} aria-current={page.id === activeId ? 'page' : undefined}>{page.navLabel}</a></li>
+        ))}
+      </ul>
+    </details>
+  ))}
+</nav>

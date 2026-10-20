@@ -1,7 +1,7 @@
 # Ship plugin store pass source proof
 
 Base: `1f6562b6fe9098805e9240a15391a25a81bb2bb4` in `dinkuskit/dinkuskit`.
-Decision: `website-ship-admin-pass-075`, proposed through the repository GrillTrack CLI.
+Decision: `website-ship-admin-pass-076`, recorded through the repository GrillTrack CLI.
 Contract: [shared store connections](../../docs/shared-store-connections.md).
 
 ## Change

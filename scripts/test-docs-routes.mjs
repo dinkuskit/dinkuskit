@@ -1,10 +1,21 @@
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { once } from 'node:events';
-import http from 'node:http';
+import { rm } from 'node:fs/promises';
 import { createServer } from 'node:net';
 import { setTimeout as delay } from 'node:timers/promises';
-import { publicPageIds } from '../src/docs/catalog.ts';
+
+// Drives the docs preview fixture (its own EmDash SQLite database) through the
+// real publish switch: seed the thirteen drafts, reload them with the one-time
+// import script, publish one article through the EmDash API, then check what
+// local development and a production build each serve from that database.
+const WORK = new URL('../.grilltrack/work/docs-preview/', import.meta.url);
+const ARTICLES = [
+  'start-here', 'store-owners/setup', 'store-owners/first-product', 'store-owners/test-order',
+  'developers/integrate', 'developers/add-on', 'developers/contribute',
+  'reference/commerce', 'reference/payments', 'reference/inventory', 'reference/ship', 'troubleshooting', 'ai-assistants',
+];
+const PUBLISHED = 'store-owners/test-order';
 
 async function unusedPort() {
   const server = createServer().listen(0, '127.0.0.1');
@@ -14,23 +25,10 @@ async function unusedPort() {
   return port;
 }
 
-function request(port, path) {
-  return new Promise((resolve, reject) => {
-    const req = http.get({ hostname: '127.0.0.1', port, path }, response => {
-      let body = '';
-      response.on('data', chunk => { body += chunk; });
-      response.on('end', () => resolve({ status: response.statusCode, headers: response.headers, body }));
-    });
-    req.on('error', reject);
-    req.setTimeout(15_000, () => req.destroy(new Error('Documentation request timed out')));
-  });
-}
-
-async function check(mode) {
-  const port = await unusedPort();
+function start(mode, port) {
   const args = mode === 'development'
     ? ['node_modules/astro/bin/astro.mjs', 'dev', '--config', 'fixtures/docs-preview/astro.config.mjs', '--host', '127.0.0.1', '--port', String(port), '--ignore-lock']
-    : ['.grilltrack/work/docs-preview/dist/server/entry.mjs'];
+    : [new URL('./dist/server/entry.mjs', WORK).pathname];
   const child = spawn(process.execPath, args, {
     env: { ...process.env, ASTRO_DEV_BACKGROUND: '1', ASTRO_TELEMETRY_DISABLED: '1', HOST: '127.0.0.1', PORT: String(port) },
     stdio: ['ignore', 'pipe', 'pipe'],
@@ -39,56 +37,164 @@ async function check(mode) {
   child.stdout.on('data', chunk => { logs = (logs + chunk).slice(-30_000); });
   child.stderr.on('data', chunk => { logs = (logs + chunk).slice(-30_000); });
   const exited = once(child, 'exit');
-  try {
-    let ready = false;
-    for (let attempt = 0; attempt < 120 && child.exitCode === null; attempt++) {
-      try { await request(port, '/docs'); ready = true; break; } catch { await delay(250); }
-    }
-    assert.ok(ready, `Documentation ${mode} renderer did not start: ${logs}`);
-    for (const id of publicPageIds) {
-      const response = await request(port, `/docs/${id}`);
-      assert.equal(response.status, mode === 'development' ? 200 : 404, `${mode}: ${id}`);
-      if (mode === 'development') {
-        assert.match(response.body, /Draft for review\./);
-        assert.equal(response.headers['x-robots-tag'], 'noindex, nofollow');
-        assert.equal(response.headers['cache-control'], 'no-store');
-        assert.ok(response.body.includes(`https://dinkuskit.com/docs/${id}`), 'canonical URL');
-        assert.match(response.body, /aria-current="page"/);
-        assert.match(response.body, /class="docs-page-actions"/);
-        assert.match(response.body, /<time datetime="\d{4}-\d{2}-\d{2}">/);
-        assert.ok(response.body.includes(`data-copy-markdown="/docs/markdown/${id}.md"`));
-        assert.ok(response.body.includes(`href="/docs/markdown/${id}.md">View as Markdown</a>`));
-        const embedded = response.body.match(/id="docs-search-data"[^>]*>([\s\S]*?)<\/script>/);
-        assert.ok(embedded, `${id}: local search data`);
-        assert.equal(JSON.parse(embedded[1]).length, 13);
-      } else {
-        assert.ok(!response.body.includes('Draft for review.'), 'no draft body');
-        assert.ok(!response.body.includes('id="docs-search-data"'), 'no draft index');
+  const base = `http://127.0.0.1:${port}`;
+  return {
+    base,
+    logs: () => logs,
+    request: (path, options = {}) => fetch(base + path, { redirect: 'manual', signal: AbortSignal.timeout(60_000), ...options }),
+    async ready() {
+      for (let attempt = 0; attempt < 240 && child.exitCode === null; attempt++) {
+        try { await fetch(`${base}/llms.txt`, { signal: AbortSignal.timeout(60_000) }); return; } catch { await delay(250); }
       }
-      const markdown = await request(port, `/docs/markdown/${id}.md`);
-      assert.equal(markdown.status, mode === 'development' ? 200 : 404, 'draft Markdown is local-only');
-      if (mode === 'development') {
-        assert.equal(markdown.headers['content-type'], 'text/markdown; charset=utf-8');
-        assert.equal(markdown.headers['x-robots-tag'], 'noindex, nofollow');
-        assert.equal(markdown.headers['cache-control'], 'no-store');
-        assert.match(markdown.body, /^# /);
-        assert.match(markdown.body, /Last updated: \d{4}-\d{2}-\d{2}/);
-        assert.ok(markdown.body.includes(`Canonical URL: https://dinkuskit.com/docs/${id}`));
-      }
-    }
-    assert.deepEqual(JSON.parse((await request(port, '/docs/search.json')).body), []);
-    assert.equal((await request(port, '/llms.txt')).status, 404);
-    assert.equal((await request(port, '/docs/internal-plan')).status, 404);
-    assert.equal((await request(port, '/docs/markdown/internal-plan.md')).status, 404);
-    assert.equal((await request(port, '/docs/start-here?preview=1')).status, mode === 'development' ? 200 : 404);
-    assert.equal((await request(port, '/docs/markdown/start-here.md?preview=1')).status, mode === 'development' ? 200 : 404);
-    console.log(`PASS ${mode}: 13 article routes, local-only drafts, canonical metadata, public corpus exclusion, unknown IDs`);
-  } finally {
-    child.kill('SIGTERM');
-    await Promise.race([exited, delay(3000)]);
-    if (child.exitCode === null && child.signalCode === null) child.kill('SIGKILL');
-  }
+      assert.fail(`Documentation ${mode} renderer did not start: ${logs}`);
+    },
+    async stop() {
+      child.kill('SIGTERM');
+      await Promise.race([exited, delay(3000)]);
+      if (child.exitCode === null && child.signalCode === null) child.kill('SIGKILL');
+    },
+  };
 }
 
-await check('development');
-await check('production');
+async function page(server, path) {
+  const response = await server.request(path);
+  return { status: response.status, headers: response.headers, body: await response.text() };
+}
+
+async function publicCorpus(server) {
+  const search = await page(server, '/docs/search.json');
+  assert.equal(search.status, 200);
+  const llms = await page(server, '/llms.txt');
+  return { search: JSON.parse(search.body).map(item => item.id), llms };
+}
+
+function runImport(base, token) {
+  return new Promise((resolve, reject) => {
+    const child = spawn(process.execPath, ['--experimental-strip-types', 'scripts/docs-import.mjs', 'push', '--url', base], {
+      env: { ...process.env, EMDASH_TOKEN: token }, stdio: ['ignore', 'pipe', 'pipe'],
+    });
+    let output = '';
+    child.stdout.on('data', chunk => { output += chunk; });
+    child.stderr.on('data', chunk => { output += chunk; });
+    child.on('error', reject);
+    child.on('exit', code => resolve({ code, output }));
+  });
+}
+
+async function checkDraftPage(server, id, draft) {
+  const response = await page(server, `/docs/${id}`);
+  assert.equal(response.status, 200, `development: ${id}`);
+  assert.equal(response.body.includes('Draft for review.'), draft, `${id}: draft notice`);
+  assert.equal(response.headers.get('x-robots-tag'), draft ? 'noindex, nofollow' : null, `${id}: robots header`);
+  assert.equal(response.headers.get('cache-control'), draft ? 'no-store' : null, `${id}: cache header`);
+  assert.ok(response.body.includes(`https://dinkuskit.com/docs/${id}`), `${id}: canonical URL`);
+  assert.match(response.body, /aria-current="page"/);
+  assert.match(response.body, /class="docs-page-actions"/);
+  assert.match(response.body, /<time datetime="\d{4}-\d{2}-\d{2}">/);
+  assert.match(response.body, /<h2 id="[a-z0-9-]+">/, `${id}: heading anchors`);
+  assert.ok(response.body.includes(`data-copy-markdown="/docs/markdown/${id}.md"`));
+  assert.ok(response.body.includes(`href="/docs/markdown/${id}.md">View as Markdown</a>`));
+  const embedded = response.body.match(/id="docs-search-data"[^>]*>([\s\S]*?)<\/script>/);
+  assert.ok(embedded, `${id}: local search data`);
+  assert.equal(JSON.parse(embedded[1]).length, ARTICLES.length);
+  const markdown = await page(server, `/docs/markdown/${id}.md`);
+  assert.equal(markdown.status, 200, `development Markdown: ${id}`);
+  assert.equal(markdown.headers.get('content-type'), 'text/markdown; charset=utf-8');
+  assert.equal(markdown.headers.get('x-robots-tag'), draft ? 'noindex, nofollow' : null);
+  assert.match(markdown.body, /^# /);
+  assert.match(markdown.body, /\n## /);
+  assert.match(markdown.body, /Last updated: \d{4}-\d{2}-\d{2}/);
+  assert.ok(markdown.body.includes(`Canonical URL: https://dinkuskit.com/docs/${id}`));
+}
+
+await rm(new URL('./data.db', WORK), { force: true });
+for (const suffix of ['-wal', '-shm']) await rm(new URL(`./data.db${suffix}`, WORK), { force: true });
+await rm(new URL('./uploads/', WORK), { recursive: true, force: true });
+
+const development = start('development', await unusedPort());
+try {
+  await development.ready();
+  const bypass = await (await development.request('/_emdash/api/setup/dev-bypass?token=1', { method: 'POST' })).json();
+  const token = bypass.data?.token;
+  assert.ok(token, `dev setup returned an API token: ${JSON.stringify(bypass).slice(0, 300)}`);
+  const api = (path, options = {}) => development.request(`/_emdash/api${path}`, {
+    ...options, headers: { authorization: `Bearer ${token}`, 'x-emdash-request': '1', ...options.headers },
+  });
+  for (const id of ARTICLES) await checkDraftPage(development, id, true);
+  let corpus = await publicCorpus(development);
+  assert.deepEqual(corpus.search, [], 'drafts never enter the public search index');
+  assert.equal(corpus.llms.status, 404, 'llms.txt waits for a published article');
+  console.log('PASS development: the seed loads 13 drafts, previewed with noindex/no-store and kept out of search and llms.txt');
+
+  // The one-time import: remove the collection, then rebuild it and the drafts through the EmDash API.
+  assert.equal((await api('/schema/collections/docs?force=true', { method: 'DELETE' })).status, 200);
+  assert.equal((await page(development, `/docs/${PUBLISHED}`)).status, 404, 'no collection, no docs');
+  let imported;
+  for (let attempt = 0; attempt < 30; attempt++) {
+    imported = await runImport(development.base, token);
+    if (!imported.output.includes('is being deleted')) break;
+    await delay(1000);
+  }
+  assert.equal(imported.code, 0, imported.output);
+  assert.match(imported.output, /Created the docs collection/);
+  assert.equal(imported.output.match(/^Added draft /gm)?.length, ARTICLES.length, imported.output);
+  const again = await runImport(development.base, token);
+  assert.equal(again.code, 0, again.output);
+  assert.equal(again.output.match(/^Kept existing /gm)?.length, ARTICLES.length, 'a second import changes nothing');
+  for (const id of ARTICLES) assert.equal((await page(development, `/docs/${id}`)).status, 200, `imported: ${id}`);
+  console.log('PASS import script: created the collection, its fields and 13 drafts through the EmDash API; a rerun keeps them');
+
+  // Publish one article the way the admin's Publish button does.
+  const slug = PUBLISHED.split('/').at(-1);
+  const found = await (await api(`/content/docs/${slug}`)).json();
+  const entryId = found.data?.item?.id;
+  assert.ok(entryId, 'draft entry found by slug');
+  assert.equal((await api(`/content/docs/${entryId}/publish`, { method: 'POST' })).status, 200);
+  await checkDraftPage(development, PUBLISHED, false);
+  corpus = await publicCorpus(development);
+  assert.deepEqual(corpus.search, [PUBLISHED]);
+  assert.equal(corpus.llms.status, 200);
+  console.log('PASS development: Publish through the EmDash API makes one article public with no rebuild');
+} finally {
+  await development.stop();
+}
+
+const production = start('production', await unusedPort());
+try {
+  await production.ready();
+  for (const id of ARTICLES) {
+    const response = await page(production, `/docs/${id}`);
+    const markdown = await page(production, `/docs/markdown/${id}.md`);
+    if (id === PUBLISHED) {
+      assert.equal(response.status, 200, `production: ${id}`);
+      assert.ok(!response.body.includes('Draft for review.'));
+      assert.equal(response.headers.get('x-robots-tag'), null);
+      assert.ok(!response.body.includes('name="robots"'));
+      assert.match(response.body, /<h2 id="what-counts-as-success">What counts as success<\/h2>/);
+      const embedded = JSON.parse(response.body.match(/id="docs-search-data"[^>]*>([\s\S]*?)<\/script>/)[1]);
+      assert.deepEqual(embedded.map(item => item.id), [PUBLISHED], 'the page embeds only published articles');
+      assert.equal(markdown.status, 200);
+      assert.ok(markdown.body.startsWith('# Complete and verify a test order\n'));
+      assert.ok(markdown.body.includes('| `recorded` | Commerce acknowledged the checkout; independently verify the corresponding Orders entry. |'));
+    } else {
+      assert.equal(response.status, 404, `production draft: ${id}`);
+      assert.ok(!response.body.includes('Draft for review.'), 'no draft body');
+      assert.ok(!response.body.includes('id="docs-search-data"'), 'no draft index');
+      assert.equal(markdown.status, 404, `production draft Markdown: ${id}`);
+    }
+  }
+  const corpus = await publicCorpus(production);
+  assert.deepEqual(corpus.search, [PUBLISHED]);
+  assert.equal(corpus.llms.status, 200);
+  assert.equal((corpus.llms.body.match(/^- \[/gm) ?? []).length, 1);
+  assert.ok(corpus.llms.body.includes(`(https://dinkuskit.com/docs/markdown/${PUBLISHED}.md)`));
+  assert.equal((await page(production, '/docs')).headers.get('location'), `/docs/${PUBLISHED}`);
+  assert.equal((await page(production, '/docs/internal-plan')).status, 404);
+  assert.equal((await page(production, '/docs/markdown/internal-plan.md')).status, 404);
+  assert.equal((await page(production, '/docs/start-here?preview=1')).status, 404);
+  assert.equal((await page(production, '/docs/markdown/start-here.md?preview=1')).status, 404);
+  assert.equal((await production.request('/_emdash/api/setup/dev-bypass', { method: 'POST' })).status, 403);
+  console.log('PASS production: only the published article is served (HTML, Markdown, search, llms.txt); 12 drafts and unknown IDs are 404; query parameters cannot preview');
+} finally {
+  await production.stop();
+}

@@ -40,7 +40,7 @@
     "test:cloudflare-candidate": "node scripts/cloudflare-candidate-denial.mjs",
     "test:safe-http-url": "node scripts/test-safe-http-url.mjs",
     "build:cloudflare": "astro build --config astro.cloudflare.config.mjs",
-    "verify": "npm run audit:repo && npm run setup && npm run types:wrangler && npm run typecheck && npm run test:docs && npm run test:account && npm run test:e2e-contract && npm run test:e2e-mailbox-contract && npm run build && npm run test:agent-routes && npm run test:inventory-runner && npm run test:merchant && npm run test:shared-store && npm run test:foundation && npm run test:inventory-overview && npm run test:organization-approvals && npm run test:operator-admin && npm run test:smoke && npm run test:dev-cms && npm run test:public-release-reuse && npm run test:cms-operation-helpers && npm run test:access-gate && npm run test:safe-http-url && npm run test:cms-operation && npm run test:emdash-upgrade && npm run test:cloudflare-candidate",
+    "verify": "npm run audit:repo && npm run setup && npm run types:wrangler && npm run typecheck && npm run test:docs && npm run test:account && npm run test:e2e-contract && npm run test:e2e-mailbox-contract && npm run build && npm run test:docs-routes && npm run test:agent-routes && npm run test:inventory-runner && npm run test:merchant && npm run test:shared-store && npm run test:foundation && npm run test:inventory-overview && npm run test:organization-approvals && npm run test:operator-admin && npm run test:smoke && npm run test:dev-cms && npm run test:public-release-reuse && npm run test:cms-operation-helpers && npm run test:access-gate && npm run test:safe-http-url && npm run test:cms-operation && npm run test:emdash-upgrade && npm run test:cloudflare-candidate",
     "prepare:public-release": "npm run setup && npm run build && node scripts/prepare-public-release.mjs",
     "test:emdash-upgrade": "node scripts/cms-operation-fixture.mjs --upgrade",
     "test:shared-store": "node --experimental-strip-types --test --test-concurrency=1 --test-timeout=180000 tests/shared-store-isolation.test.mjs tests/shared-store-routes.test.mjs tests/ship-sign-in.test.mjs",
@@ -49,7 +49,8 @@
     "test:docs": "node --experimental-strip-types --test tests/docs.test.mjs",
     "dev:docs": "astro dev --config fixtures/docs-preview/astro.config.mjs --host 127.0.0.1",
     "build:docs-preview": "astro build --config fixtures/docs-preview/astro.config.mjs",
-    "test:docs-routes": "npm run build:docs-preview && node --experimental-strip-types scripts/test-docs-routes.mjs"
+    "test:docs-routes": "npm run build:docs-preview && node --experimental-strip-types scripts/test-docs-routes.mjs",
+    "docs:import": "node --experimental-strip-types scripts/docs-import.mjs push --url"
   },
   "dependencies": {
     "@astrojs/node": "11.1.5",
@@ -71,6 +72,7 @@
     "@types/node": "26.1.1",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
+    "marked": "17.0.6",
     "typescript": "6.0.3",
     "wrangler": "4.144.0"
   },

@@ -56,9 +56,18 @@ type BindingRow = { site_id: string; site_origin: string; account_subject: strin
 function mapBinding(row: BindingRow): SiteBinding {
   return { siteId: row.site_id, siteOrigin: row.site_origin, accountSubject: row.account_subject, service: row.service, revoked: row.revoked === 1, grantedAt: row.granted_at, revokedAt: row.revoked_at, revokedBy: row.revoked_by };
 }
-export async function listActiveBindings(db: D1Database, subject: string): Promise<SiteBinding[]> {
-  const result = await db.prepare(`${bindingSelect} WHERE i.account_subject = ?`).bind(subject).all<BindingRow>();
+async function listBindings(db: D1Database, subject: string, activeOnly: boolean): Promise<SiteBinding[]> {
+  const active = activeOnly ? ' AND g.revoked = 0' : '';
+  const result = await db.prepare(`${bindingSelect} WHERE i.account_subject = ?${active}`).bind(subject).all<BindingRow>();
   return (result.results ?? []).map(mapBinding);
+}
+/** Service grants that are still on. A revoked grant is not a connected store. */
+export async function listActiveBindings(db: D1Database, subject: string): Promise<SiteBinding[]> {
+  return listBindings(db, subject, true);
+}
+/** Every service grant for the business, including ones the owner or an operator turned off. */
+export async function listServiceGrants(db: D1Database, subject: string): Promise<SiteBinding[]> {
+  return listBindings(db, subject, false);
 }
 export async function loadActiveBinding(db: D1Database, siteId: string, service: string): Promise<SiteBinding | null> {
   const row = await db.prepare(`${bindingSelect} WHERE i.site_id = ? AND g.service = ?`).bind(siteId, service).first<BindingRow>();

@@ -26,8 +26,8 @@ Top to bottom:
    - not approved: the business cannot connect a store;
    - approved with no store: install the DinkusKit Payments plugin in the
      EmDash store, open its setup page and press Connect;
-   - store connected: the store addresses and **Set up your store**, which
-     opens `/account/sites`;
+   - store connected: the addresses of stores that still have a service
+     turned on, and **Set up your store**, which opens `/account/sites`;
    - staff (not the owner): what they can do, in plain words.
    Owners also see the approval email notice. Approval never turns a service
    on; the card says what to do next instead of saying so.
@@ -47,10 +47,18 @@ are not from a browser form still get the JSON errors.
 
 ## `/account/sites` (Your stores)
 
-The heading is "Your stores" and the page names the business. With no store
+The heading is "Your stores" and the page names the business. It lists a
+store only while that store still has a service turned on. With no store
 connected, it says to install the DinkusKit Payments plugin in the EmDash
 store, open its setup page and press Connect. Set up Commerce, store keys and
-checkout settings are unchanged.
+checkout settings are unchanged, and that section is only for those connected
+stores.
+
+Revoke still turns one service off. It does not delete the store or add a
+remove button. When nothing is left on, the store leaves this page.
+`/account/sites/archive` (Archived stores) shows it, including the same Set up
+Commerce row, and the revoked service says to press Connect in the store to
+connect again. That note stays on the archive, not on the live list.
 
 ## Emails and check-your-email
 

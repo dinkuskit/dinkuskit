@@ -1,0 +1,10 @@
+---
+export const prerender = false;
+import YourStores from '../../../components/account/YourStores.astro';
+import { loadSitesPage } from '../../../account/sites-page.ts';
+
+Astro.response.headers.set('cache-control', 'private, no-store');
+const result = await loadSitesPage({ request: Astro.request, url: Astro.url, merchant: Astro.locals.merchant, view: 'live' });
+if (result instanceof Response) return result;
+---
+<YourStores {...result} />

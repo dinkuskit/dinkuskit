@@ -120,7 +120,7 @@ For full integration with DinkusKit Inventory:
 The proof launcher runs the end-to-end verification sequence on a local built workerd runtime using the actual built worker:
 
 ### Prerequisites
-Run prerequisites with Node version matching `.nvmrc` (v22.23.2):
+Run prerequisites with Node version matching `.nvmrc` (v24.22.0):
 ```bash
 npm run setup && npm run build
 ```

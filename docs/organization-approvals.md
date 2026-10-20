@@ -102,7 +102,7 @@ on DinkusKit" or "Your business wasn't approved on DinkusKit".
 
 ## Local verification
 
-Use the repository's Node 22 runtime (`.nvmrc`):
+Use the repository's Node 24 runtime (`.nvmrc`):
 
 ```sh
 npm run verify

@@ -29,7 +29,7 @@ its secret, unique signing `kid`, and D1 persistence across website worker
 restart. Mailbox URLs are held in a volatile process-memory map; merchant D1
 and public JWKS persistence use the unique ignored runtime directory.
 
-The supported local runtime is Node 22.23.2 with npm 10.9.8. From a clean
+The supported local runtime is Node 24.22.0 with npm 11.19.1. From a clean
 checkout, install dependencies with `npm ci`, then run `npm run setup`,
 `npm run build`, and `npm run test:inventory-runner`. `npm run verify` runs
 the focused inventory runner immediately after the build.

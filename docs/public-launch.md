@@ -10,4 +10,4 @@ The approved direction authorizes local preparation. Current source reviews, exp
 
 ## Reproduce the candidate
 
-Use Node 22.23.2, run npm ci, then npm run prepare:public-release. The command seeds only this checkout, builds the existing Node renderer, packages exactly two public pages plus 404 and their CSS, records immutable hashes, and stops its own renderer. Output stays under ignored .grilltrack/work/public-release/. It never deploys. Use the emitted wrangler.jsonc for a local dry run and request explicit approval before live publication.
+Use Node 24.22.0, run npm ci, then npm run prepare:public-release. The command seeds only this checkout, builds the existing Node renderer, packages exactly two public pages plus 404 and their CSS, records immutable hashes, and stops its own renderer. Output stays under ignored .grilltrack/work/public-release/. It never deploys. Use the emitted wrangler.jsonc for a local dry run and request explicit approval before live publication.

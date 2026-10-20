@@ -154,7 +154,7 @@ function publicExcerpt(html) {
 }
 
 async function main() {
-  assert.equal(process.version, 'v22.23.2', 'Node 22.23.2 required');
+  assert.equal(process.version, 'v24.22.0', 'Node 24.22.0 required');
   assert.equal(process.execPath, NODE, 'child processes must use process.execPath');
   const versions = {
     node: process.version,

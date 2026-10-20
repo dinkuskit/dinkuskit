@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
+import { createHash, randomBytes } from 'node:crypto';
 import test from 'node:test';
-import { request, signup, startMerchantTestRuntime, stopRuntime } from './helpers/merchant-harness.mjs';
+import { accountForm, request, signup, startMerchantTestRuntime, stopRuntime } from './helpers/merchant-harness.mjs';
 
 // Browser forms send Accept: text/html and come back to the account page with a message.
 const browserForm = (runtime, jar, path, values) => request(runtime, jar, path, {
@@ -83,6 +84,76 @@ test('account page: next step, business name, staff list and plain messages', as
     assert.match(sites, /<h1[^>]*>Your stores<\/h1>/);
     assert.match(sites, /No store is connected yet\. Install the DinkusKit Payments plugin/);
     assert.ok(!sites.includes(orgId), 'Your stores never shows the business ID');
+  } finally {
+    await stopRuntime(runtime);
+  }
+});
+
+test('a store with nothing left on leaves Your stores for the archive', async () => {
+  const runtime = await startMerchantTestRuntime();
+  const owner = new Map();
+  try {
+    await signup(runtime, 'archive-owner@example.com', owner);
+    const connect = async (label) => {
+      const origin = `https://${label}.stores.example`;
+      const verifier = randomBytes(32).toString('base64url');
+      const challenge = createHash('sha256').update(verifier).digest('base64url');
+      const callback = `${origin}/_emdash/admin/plugins/dinkus-inventory/inventory`;
+      const started = await request(runtime, new Map(), '/api/store-connections', {
+        method: 'POST',
+        body: JSON.stringify({
+          protocol_version: 2, client_id: 'dinkus-inventory-emdash', service: 'inventory', site_origin: origin,
+          callback_uri: callback, code_challenge: challenge, code_challenge_method: 'S256',
+        }),
+      });
+      assert.equal(started.status, 200);
+      const body = await started.json();
+      assert.equal((await request(runtime, new Map(), '/__proof/receipt', {
+        method: 'POST',
+        body: JSON.stringify({
+          version: 2, connection_id: body.connection_id, challenge: body.challenge, client_id: 'dinkus-inventory-emdash',
+          service: 'inventory', site_id: body.site_id, site_origin: origin, callback_uri: callback,
+          code_challenge: challenge, expires_at: body.expires_at,
+        }),
+      })).status, 200);
+      const approved = await request(runtime, owner, `/account/connect?connection_id=${body.connection_id}`, {
+        method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' },
+        body: await accountForm(runtime, owner, 'action=approve'),
+      });
+      assert.equal(approved.headers.get('location'), callback);
+      return { origin, siteId: body.site_id };
+    };
+    const kept = await connect('kept');
+    const retired = await connect('retired');
+    const before = await page(runtime, owner, '/account/sites');
+    assert.match(before, /kept\.stores\.example/);
+    assert.match(before, /retired\.stores\.example/);
+    assert.match(before, /Revoke inventory/);
+    assert.doesNotMatch(before, /press Connect in the store to connect again/);
+    const revoke = await request(runtime, owner, '/account/sites', {
+      method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      body: await accountForm(runtime, owner, `action=revoke&site_id=${retired.siteId}&service=inventory`),
+    });
+    assert.equal(revoke.status, 303);
+    assert.equal(revoke.headers.get('location'), '/account/sites/archive');
+    const live = await page(runtime, owner, '/account/sites');
+    assert.match(live, /kept\.stores\.example/);
+    assert.match(live, /Revoke inventory/);
+    assert.doesNotMatch(live, /retired\.stores\.example/);
+    assert.doesNotMatch(live, /press Connect in the store to connect again/);
+    assert.match(live, /href="\/account\/sites\/archive"/);
+    const home = await page(runtime, owner, '/account');
+    assert.match(home, /kept\.stores\.example/);
+    assert.doesNotMatch(home, /retired\.stores\.example/);
+    const archive = await page(runtime, owner, '/account/sites/archive');
+    assert.match(archive, /<h1[^>]*>Archived stores<\/h1>/);
+    assert.match(archive, /retired\.stores\.example/);
+    assert.doesNotMatch(archive, /kept\.stores\.example/);
+    assert.match(archive, /revoked; press Connect in the store to connect again/);
+    assert.match(archive, /Set up Commerce/);
+    assert.match(archive, new RegExp(retired.siteId));
+    assert.doesNotMatch(archive, /<button[^>]*>\s*(Remove|Delete|Revoke)/);
+    assert.equal((await request(runtime, owner, '/account/sites/nope')).status, 404);
   } finally {
     await stopRuntime(runtime);
   }

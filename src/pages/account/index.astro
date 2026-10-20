@@ -6,6 +6,7 @@ import { MerchantUnavailableError, unavailableResponse } from '../../account/con
 import { getMerchantEnv } from '../../account/bindings.ts';
 import { ADMIN_PERMISSIONS, DEFAULT_ORGANIZATION_NAME, EMPLOYEE_PERMISSIONS, listMemberships, listStaff, deletionGuard, type Membership } from '../../account/organizations.ts';
 import { listMerchantAdmissionStatuses } from '../../account/merchant-admission-status.ts';
+import { listActiveBindings } from '../../account/store.ts';
 import { listStoreSetup } from '../../account/store-passes.ts';
 
 export const prerender = false;
@@ -32,7 +33,11 @@ const canViewStaff = isOwner || Boolean(selected?.permissions.includes('membersh
 const canViewStores = isOwner || Boolean(selected?.permissions.includes('site:view'));
 const staff = selected && canViewStaff ? await listStaff(env.MERCHANT_DB, selected.organizationId, login.userId) : [];
 const selectedStatus = selected ? admissionStatuses.get(selected.organizationId) : undefined;
-const stores = merchant && selected && canViewStores && selectedStatus?.admission === 'admitted' ? await listStoreSetup(env.MERCHANT_DB, merchant.subject) : [];
+let stores = merchant && selected && canViewStores && selectedStatus?.admission === 'admitted' ? await listStoreSetup(env.MERCHANT_DB, merchant.subject) : [];
+if (stores.length > 0 && merchant) {
+  const connected = new Set((await listActiveBindings(env.MERCHANT_DB, merchant.subject)).map(binding => binding.siteId));
+  stores = stores.filter(store => connected.has(store.siteId));
+}
 const loginDeletion = await deletionGuard(env.MERCHANT_DB, login.userId);
 const showBusinesses = organizations.length > 1 || (!selected && organizations.length > 0);
 

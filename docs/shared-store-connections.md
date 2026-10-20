@@ -143,8 +143,11 @@ classes; unknown errors also fail closed.
 
 Commerce cannot press Connect (it has no room for that code), so it reaches the
 hosted services with a store key instead. On `/account/sites` the owner of a
-store's business sees **Set up Commerce** for each store that already has a
-DinkusKit store ID from Connect, and can:
+store's business sees **Set up Commerce** for each store that still has a
+service turned on. A store with nothing left on leaves that page for
+`/account/sites/archive`, which shows the same Set up Commerce row and says to
+press Connect in the store to connect again. Revoke stays a per-service cut.
+There is no delete. The owner can:
 
 - turn Coupons and Ship on or off for that store. Turning one on is the owner's
   consent and creates or revives that service's grant. Turning it off is an

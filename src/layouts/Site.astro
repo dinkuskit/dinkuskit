@@ -26,7 +26,7 @@ import { Role } from '@emdash-cms/auth';
         <a href="/getting-started">Getting started</a>
         {hasDocs && <a href="/docs" aria-current={Astro.url.pathname.startsWith('/docs') ? 'true' : undefined}>Docs</a>}
         <a href="/account">Account</a>
-        {Astro.locals.merchant ? <a href="/account/sites" aria-current={Astro.url.pathname === '/account/sites' ? 'page' : undefined}>Your stores</a> : null}
+        {Astro.locals.merchant ? <a href="/account/sites" aria-current={Astro.url.pathname === '/account/sites' || Astro.url.pathname === '/account/sites/archive' ? 'page' : undefined}>Your stores</a> : null}
         {Astro.locals.user?.role === Role.ADMIN && !Astro.locals.user.disabled ? <a href={OPERATOR_APPROVALS_PATH}>Operator admin</a> : null}
         <a href="https://github.com/dinkuskit">GitHub</a>
       </nav>

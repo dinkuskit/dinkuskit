@@ -1,0 +1,137 @@
+---
+import Site from '../../layouts/Site.astro';
+import { COMING_SOON_SERVICES } from '../../account/config.ts';
+import type { SitesPageView } from '../../account/sites-page.ts';
+
+type Props = SitesPageView;
+const {
+  showingArchive, businessName, visibleBindings, visibleStores, showArchiveLink, isOwner,
+  formAction, organizationId, newKey, shown, changedSite, saved,
+} = Astro.props;
+const when = (seconds: number) => `${new Date(seconds * 1000).toISOString().slice(0, 16).replace('T', ' ')} UTC`;
+const SERVICE_LABEL = { payments: 'Payments', coupons: 'Coupons', ship: 'Ship' } as const;
+const comingSoon = (service: string) => (COMING_SOON_SERVICES as readonly string[]).includes(service);
+const serviceNote = (binding: { revoked: boolean; revokedBy: string | null }) => !binding.revoked ? ''
+  : binding.revokedBy === 'operator' ? ' (cut off by DinkusKit; contact DinkusKit to restore it)'
+  : ' (revoked; press Connect in the store to connect again)';
+---
+<Site title={showingArchive ? 'Archived stores' : 'Your stores'} description={showingArchive ? 'Stores with no DinkusKit service still turned on.' : 'The EmDash stores connected to your business and the DinkusKit services they use.'}>
+  <div class="account-panel">
+    <p class="eyebrow">{businessName}</p>
+    <h1>{showingArchive ? 'Archived stores' : 'Your stores'}</h1>
+    {showingArchive ? (
+      visibleBindings.length === 0 && visibleStores.length === 0 ? <p>No store is archived.</p> : visibleBindings.length === 0 ? null : (
+        <ul>
+          {visibleBindings.map(binding => (
+            <li>
+              <p>{binding.siteOrigin}</p>
+              <p>Service: {binding.service}{serviceNote(binding)}</p>
+            </li>
+          ))}
+        </ul>
+      )
+    ) : visibleBindings.length === 0 ? <p>No store is connected yet. Install the DinkusKit Payments plugin in your EmDash store, open its setup page and press Connect. You'll come back here to approve it.</p> : (
+      <ul>
+        {visibleBindings.map(binding => (
+          <li>
+            <p>{binding.siteOrigin}</p>
+            <p>Service: {binding.service}{serviceNote(binding)}</p>
+            {binding.revoked || !isOwner ? null : (
+              <form method="post" action={formAction} class="account-form">
+                <input type="hidden" name="action" value="revoke" />
+                <input type="hidden" name="site_id" value={binding.siteId} />
+                <input type="hidden" name="service" value={binding.service} />
+                <input type="hidden" name="organization_id" value={organizationId} />
+                <button type="submit">Revoke {binding.service}</button>
+              </form>
+            )}
+          </li>
+        ))}
+      </ul>
+    )}
+    {showArchiveLink ? <p><a href="/account/sites/archive">Archived stores</a></p> : null}
+    {showingArchive ? <p><a href="/account/sites">Back to your stores</a></p> : null}
+    {visibleStores.length === 0 ? null : (
+      <section aria-labelledby="commerce-setup">
+        <h2 id="commerce-setup">Set up Commerce</h2>
+        <p>Commerce uses one store key to reach the DinkusKit services you turn on below. Paste the key once into Commerce's settings in EmDash.</p>
+        {visibleStores.map(store => (
+          <div class="account-form">
+            <h3>{store.siteOrigin}</h3>
+            <p>Store ID: <code>{store.siteId}</code></p>
+            <ul>
+              {(['payments', 'coupons', 'ship'] as const).map(service => (
+                <li>
+                  {SERVICE_LABEL[service]}: {store.services[service] === 'cut_off' ? 'Cut off by DinkusKit. Contact DinkusKit to have it restored.'
+                    : store.services[service] === 'on' ? 'On' : service === 'payments' ? 'Off. Press Connect in the Payments plugin to turn it on.'
+                    : comingSoon(service) ? 'Coming soon. Commerce does not take coupon codes yet.' : 'Off'}
+                  {isOwner && service !== 'payments' && store.services[service] !== 'cut_off' && (store.services[service] === 'on' || !comingSoon(service)) ? (
+                    <form method="post" action={formAction}>
+                      <input type="hidden" name="action" value="service" />
+                      <input type="hidden" name="site_id" value={store.siteId} />
+                      <input type="hidden" name="service" value={service} />
+                      <input type="hidden" name="on" value={store.services[service] === 'on' ? '0' : '1'} />
+                      <input type="hidden" name="organization_id" value={organizationId} />
+                      <button type="submit">{store.services[service] === 'on' ? `Turn off ${SERVICE_LABEL[service]}` : `Turn on ${SERVICE_LABEL[service]}`}</button>
+                    </form>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+            <p>Store key: {store.key ? `created ${when(store.key.createdAt)}, ${store.key.lastUsedAt ? `last used ${when(store.key.lastUsedAt)}` : 'not used yet'}` : 'none yet'}</p>
+            {newKey?.siteId === store.siteId ? (
+              <div class="new-store-key">
+                <p>Your new store key: <code id={`store-key-${store.siteId}`}>{newKey.key}</code></p>
+                <button type="button" data-copy-target={`store-key-${store.siteId}`} data-copy-status={`store-key-status-${store.siteId}`} hidden>Copy store key</button>
+                <p id={`store-key-status-${store.siteId}`} role="status" aria-live="polite"></p>
+                <p>Copy it into Commerce's settings in EmDash now. It will not be shown again. If this store had a key before, that key has stopped working.</p>
+              </div>
+            ) : null}
+            {isOwner ? (
+              <form method="post" action={formAction}>
+                <input type="hidden" name="action" value="checkout_settings" />
+                <input type="hidden" name="site_id" value={store.siteId} />
+                <input type="hidden" name="organization_id" value={organizationId} />
+                <fieldset>
+                  <legend>Shipping charge</legend>
+                  <label><input type="radio" name="shipping_mode" value="free" checked={saved.get(store.siteId)?.shippingMode !== 'flat'} /> Free</label>
+                  <label><input type="radio" name="shipping_mode" value="flat" checked={saved.get(store.siteId)?.shippingMode === 'flat'} /> Flat amount in dollars</label>
+                  <input type="text" name="shipping_amount" inputmode="decimal" aria-label="Flat shipping charge in dollars"
+                    value={saved.get(store.siteId)?.shippingMode === 'flat' ? (saved.get(store.siteId)!.shippingMinor / 100).toFixed(2) : ''} />
+                </fieldset>
+                <fieldset>
+                  <legend>Payments</legend>
+                  <label><input type="radio" name="payments_mode" value="test" checked={!saved.get(store.siteId)?.live} /> Test (no real money)</label>
+                  <label><input type="radio" name="payments_mode" value="live" checked={saved.get(store.siteId)?.live === true} /> Live (takes real money once Payments is live too)</label>
+                </fieldset>
+                <button type="submit">Show checkout settings</button>
+              </form>
+            ) : null}
+            {changedSite === store.siteId ? <p role="status">You changed which services are on. Show the checkout settings again and paste them into Commerce, so Commerce uses the change.</p> : null}
+            {shown?.siteId === store.siteId && shown.error ? <p class="account-error" role="alert">{shown.error}</p> : null}
+            {shown?.siteId === store.siteId && shown.json ? (
+              <div role="status">
+                <p>Paste this into Commerce's checkout settings in EmDash, replacing what is there:</p>
+                <pre><code>{shown.json}</code></pre>
+                {shown.note ? <p>{shown.note}</p> : null}
+              </div>
+            ) : null}
+            {isOwner ? (
+              <form method="post" action={formAction}>
+                <input type="hidden" name="action" value="store_key" />
+                <input type="hidden" name="site_id" value={store.siteId} />
+                <input type="hidden" name="organization_id" value={organizationId} />
+                <button type="submit">{store.key ? 'Replace key' : 'Create store key'}</button>
+              </form>
+            ) : null}
+          </div>
+        ))}
+      </section>
+    )}
+    <p><a href="/account">Back to account</a></p>
+  </div>
+</Site>
+<script>
+  import { wireCopyButtons } from '../../account/copy-secret.ts';
+  wireCopyButtons(document, document, window);
+</script>

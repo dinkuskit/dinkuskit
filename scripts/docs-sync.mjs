@@ -7,8 +7,10 @@
 //     export, with base set to that export's hash. Edit it and open a PR.
 //
 //   node --experimental-strip-types scripts/docs-sync.mjs publish [--url <site origin>] [--report]
-//     For every update file: already live, skip; live article still matches
-//     base and no admin draft waits, save it with EmDash's _rev and Publish;
+//     For every update file: every field already live, skip; live article
+//     still matches base and no admin draft waits, save it with the _rev it
+//     was read with and Publish (a draft whose every field is this update is
+//     an earlier run's, and is published);
 //     changed on the site after the file was merged, leave it (superseded);
 //     anything else, stop for that article. Then check the article page, its
 //     Markdown, search.json and llms.txt, and try an article once more if they
@@ -24,7 +26,7 @@ import { setTimeout as delay } from 'node:timers/promises';
 import { parseArgs } from 'node:util';
 import { markdownPath, searchRecord } from '../src/docs/catalog.ts';
 import { docsSite } from '../src/docs/site.ts';
-import { NEW_ARTICLE, articleSlug, entryHash, exportHash, parseUpdate, renderUpdate, updateArticle, updateData, updateFromExport, updateHash } from '../src/docs/updates.ts';
+import { NEW_ARTICLE, articleSlug, entryHash, entryState, exportHash, parseUpdate, renderUpdate, sameState, updateArticle, updateData, updateFromExport, updateHash, wantedState } from '../src/docs/updates.ts';
 
 const COLLECTION = 'docs';
 const ISSUE_PREFIX = 'Docs update stopped: ';
@@ -89,7 +91,6 @@ function emdashApi(base) {
  * read's _rev, so an admin change made after the read gets a 409, not overwritten.
  */
 async function reconcile(api, update, path) {
-  const want = updateHash(docsSite, update);
   const slug = articleSlug(update.article);
   const found = await api('GET', `/content/${COLLECTION}/${slug}`);
   if (found.status !== 200 && found.status !== 404) return { outcome: 'problem', reason: `Reading the article through the EmDash API failed: HTTP ${found.status}. Check the publisher's service token.` };
@@ -97,12 +98,16 @@ async function reconcile(api, update, path) {
   const item = entry?.item;
   const published = item?.status === 'published';
   // With a draft waiting, EmDash returns the draft as data and the published values as liveData.
-  const liveHash = published ? entryHash(docsSite, slug, item.draftRevisionId ? item.liveData : item.data) : null;
-  const pending = item && (item.draftRevisionId || !published) ? entryHash(docsSite, slug, item.data) : null;
+  const liveData = published ? (item.draftRevisionId ? item.liveData : item.data) : null;
+  const pendingData = item && (item.draftRevisionId || !published) ? item.data : null;
+  // Compare every field the update writes, placement included, not just the Markdown.
+  const want = wantedState(update, liveData ?? undefined);
   const revision = item ? { revision: item.draftRevisionId ?? item.liveRevisionId ?? null } : {};
-  if (liveHash === want) return { outcome: 'live', ...revision };
-  // A draft that is exactly this update was saved by an earlier run whose Publish didn't finish.
-  const ours = pending !== null && pending === want;
+  if (liveData && sameState(entryState(liveData), want)) return { outcome: 'live', ...revision };
+  // A draft whose every field is exactly this update was saved by an earlier run whose Publish
+  // didn't finish; a draft an editor has touched in any field is not ours.
+  const ours = pendingData !== null && sameState(entryState(pendingData), want);
+  const liveHash = liveData ? entryHash(docsSite, slug, liveData) : null;
   const matchesBase = update.base === NEW_ARTICLE ? !published && (!item || ours) : liveHash === update.base;
   if (!matchesBase) {
     const merged = mergedAt(path);
@@ -128,8 +133,12 @@ async function reconcile(api, update, path) {
   return { outcome: 'published', revision: done.data?.item?.liveRevisionId ?? null };
 }
 
-/** Do the article page, Markdown export, search.json and llms.txt all show this update's content? */
-async function shows(base, update) {
+/** Does the live entry have every field of this update, and do the article page, Markdown export, search.json and llms.txt show its content? */
+async function shows(base, api, update) {
+  const stored = await api('GET', `/content/${COLLECTION}/${articleSlug(update.article)}`);
+  const item = stored.status === 200 ? stored.data.item : null;
+  const liveData = item?.status === 'published' ? (item.draftRevisionId ? item.liveData : item.data) : null;
+  if (!liveData || !sameState(entryState(liveData), wantedState(update, liveData))) return 'the published entry does not have every field of the update';
   const article = updateArticle(update);
   const record = JSON.stringify(searchRecord(docsSite, article));
   const get = async path => {
@@ -169,7 +178,7 @@ async function publishAll(base, dir) {
       if (result.outcome === 'problem') continue;
       let missing = null;
       for (let check = 0; check < checkTries; check++) {
-        missing = await shows(base, update).catch(error => `checking it failed: ${error.message}`);
+        missing = await shows(base, api, update).catch(error => `checking it failed: ${error.message}`);
         if (!missing) break;
         await delay(checkWaitMs);
       }

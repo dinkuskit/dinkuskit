@@ -149,6 +149,47 @@ export function entryHash(site: DocsSite, slug: string, data: Record<string, unk
   return article ? exportHash(articleMarkdown(site, article)) : null;
 }
 
+/** Every docs field an update can write, in a fixed order, so two states compare as JSON. */
+export interface EntryState {
+  title: string;
+  nav_label: string;
+  summary: string;
+  audience: string;
+  product: string;
+  version_scope: string;
+  section: string;
+  order: number | null;
+  body: string;
+}
+
+const text = (value: unknown) => (typeof value === 'string' ? value.trim() : '');
+
+/** The complete state of stored entry data, with the body as Markdown. */
+export function entryState(data: Record<string, unknown> = {}): EntryState {
+  return {
+    title: text(data.title),
+    nav_label: text(data.nav_label),
+    summary: text(data.summary),
+    audience: text(data.audience),
+    product: text(data.product),
+    version_scope: text(data.version_scope),
+    section: text(data.section),
+    order: typeof data.order === 'number' ? data.order : null,
+    body: portableTextToMarkdown(Array.isArray(data.body) ? data.body : []),
+  };
+}
+
+/**
+ * The state the entry has once this update is saved on top of `current` (the
+ * live data; nothing for a new article): the update's fields, and the current
+ * placement fields the update leaves out.
+ */
+export function wantedState(update: DocUpdate, current?: Record<string, unknown>): EntryState {
+  return entryState({ ...(current ?? {}), ...updateData(update) });
+}
+
+export const sameState = (a: EntryState, b: EntryState) => JSON.stringify(a) === JSON.stringify(b);
+
 /** Turn a live Markdown export back into an update file's fields, with `base` set to the export's hash. */
 export function updateFromExport(article: string, markdown: string): DocUpdate {
   const match = markdown.match(/^# (.*)\n\n([\s\S]*?)\n\nAudience: (.*)\nProduct: (.*)\nVersion scope: (.*)\nLast updated: .*\nCanonical URL: .*\n\n([\s\S]*)$/);

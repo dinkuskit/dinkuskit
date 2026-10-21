@@ -13,7 +13,8 @@ import { WORK, resetDatabase, start, unusedPort } from './lib/docs-preview.mjs';
 // throwaway Git repository and a stand-in GitHub issues API. Covers a
 // successful update, a failed publish and its recovery, a duplicate run, a
 // stale surface, admin edits that must not be overwritten (including a race
-// between the read and the save), a save whose Publish failed, a stale job,
+// between the read and the save), a save whose Publish failed, a waiting draft
+// an editor touched, a sidebar-only change, a stale job,
 // version labels, and an unreachable site.
 const SCRIPT = new URL('./docs-sync.mjs', import.meta.url).pathname;
 const REPO = new URL('./docs-sync-repo/', WORK).pathname;
@@ -249,6 +250,47 @@ try {
   assert.equal(await liveHash(help), updateHash(docsSite, helpUpdate));
   assert.equal(openIssue(help), undefined);
   console.log('PASS partial publish: after a failed Publish the next run publishes the exact saved draft and closes the issue');
+
+  // A Publish that failed, then an editor touched only the sidebar name in that waiting draft: not ours, so it stays unpublished.
+  const contribute = 'developers/contribute';
+  assert.equal((await sync(base, token, 'pull', contribute)).code, 0);
+  edit(contribute, update => ({ summary: `${update.summary} From a merge.` }), 'Commerce 0.3.0');
+  const contributeBefore = await liveHash(contribute);
+  const contributeLabel = (await api('GET', '/content/docs/contribute')).data.item.data.nav_label;
+  await commit('Update the contribute article');
+  faults.publishFailures = 2;
+  run = await sync(base, token, 'publish', '--report');
+  assert.match(run.output, /^PROBLEM developers\/contribute: Saved as a draft, but publishing/m);
+  const waiting = (await api('GET', '/content/docs/contribute')).data.item;
+  assert.equal((await api('PUT', `/content/docs/${waiting.id}`, { data: { nav_label: 'Edited by an editor' } })).status, 200);
+  run = await sync(base, token, 'publish', '--report');
+  assert.match(run.output, /^PROBLEM developers\/contribute: Unpublished edits are waiting in the admin/m);
+  const contributeNow = (await api('GET', '/content/docs/contribute')).data.item;
+  assert.equal(await liveHash(contribute), contributeBefore, 'the live article is unchanged');
+  assert.equal((contributeNow.liveData ?? contributeNow.data).nav_label, contributeLabel, 'the editor\'s sidebar name is not published');
+  assert.equal(contributeNow.data.nav_label, 'Edited by an editor', 'the editor\'s draft is kept');
+  // Once the editor discards that draft, the update goes through.
+  assert.equal((await api('POST', `/content/docs/${waiting.id}/discard-draft`, {})).status, 200);
+  run = await sync(base, token, 'publish', '--report');
+  assert.match(run.output, /^PUBLISHED developers\/contribute/m);
+  assert.equal(openIssue(contribute), undefined);
+  console.log('PASS touched draft: an editor change to any field of the waiting draft stops recovery and nothing unreviewed is published; after a discard the update goes through');
+
+  // An update that changes only the sidebar name and order is published and checked, not taken as already live.
+  const commerce = 'reference/commerce';
+  assert.equal((await sync(base, token, 'pull', commerce)).code, 0);
+  edit(commerce, () => ({ nav_label: 'Commerce plugin', section: 'Product reference', order: 75 }), 'Commerce 0.3.0');
+  const commerceBefore = await liveHash(commerce);
+  await commit('Rename the Commerce article in the sidebar');
+  run = await sync(base, token, 'publish', '--report');
+  assert.match(run.output, /^PUBLISHED reference\/commerce( \(revision [^)]+\))?$/m);
+  const commerceNow = (await api('GET', '/content/docs/commerce')).data.item.data;
+  assert.deepEqual([commerceNow.nav_label, commerceNow.order], ['Commerce plugin', 75]);
+  assert.notEqual(await liveHash(commerce), commerceBefore, 'the version scope changed too');
+  assert.match(await (await production.request(`/docs/${commerce}`)).text(), />Commerce plugin</);
+  run = await sync(base, token, 'publish', '--report');
+  assert.match(run.output, /^LIVE reference\/commerce/m);
+  console.log('PASS placement: a sidebar name and order change publishes, shows in the sidebar, and is live on the next run');
 
   // A stale job (an older checkout) cannot put older text back.
   const ship = 'reference/ship';

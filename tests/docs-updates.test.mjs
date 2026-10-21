@@ -4,7 +4,7 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { articleId, articleMarkdown, selectArticles } from '../src/docs/catalog.ts';
 import { docsSite } from '../src/docs/site.ts';
-import { entryHash, exportHash, parseUpdate, renderUpdate, updateData, updateFromExport, updateHash, versionScopeProblem } from '../src/docs/updates.ts';
+import { entryHash, entryState, exportHash, parseUpdate, sameState, wantedState, renderUpdate, updateData, updateFromExport, updateHash, versionScopeProblem } from '../src/docs/updates.ts';
 
 const seed = JSON.parse(readFileSync(new URL('../seed/seed.json', import.meta.url), 'utf8'));
 const seedArticles = selectArticles(docsSite, seed.content.docs.map(entry => ({ id: entry.slug, data: { ...entry.data, status: 'published', updatedAt: '2026-10-20T00:00:00Z' } })));
@@ -94,4 +94,15 @@ test('every committed update file is valid and named for its article', () => {
     const update = parseUpdate(readFileSync(path, 'utf8'), relative(dir, path));
     if (update.section) assert.equal(articleId(docsSite, update.article.split('/').at(-1), update.section), update.article, `${update.article}: section and folder agree`);
   }
+});
+
+test('an entry state covers every field an update writes, placement included', () => {
+  const live = seed.content.docs.find(entry => entry.slug === 'commerce').data;
+  const update = updateFromExport('reference/commerce', exportOf(seedArticles.find(article => article.id === 'reference/commerce')));
+  assert.ok(sameState(entryState(live), wantedState(update, live)), 'an unchanged pull is the live state');
+  assert.ok(!sameState(entryState(live), wantedState({ ...update, nav_label: 'Commerce plugin' }, live)), 'a sidebar name change is a change');
+  assert.ok(!sameState(entryState(live), wantedState({ ...update, order: 999 }, live)), 'an order change is a change');
+  assert.ok(!sameState(entryState({ ...live, nav_label: 'Touched' }), wantedState(update, live)), 'an editor change to the sidebar name is noticed');
+  assert.equal(wantedState(update, live).section, live.section, 'placement the update leaves out stays as it is');
+  assert.deepEqual(wantedState(sample({ base: 'new', section: 'Store owners', order: 45 })).nav_label, '');
 });

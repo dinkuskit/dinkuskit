@@ -35,15 +35,15 @@ A change that alters what an article says can travel as a pull request instead o
 
 | Live article | What happens |
 | --- | --- |
-| Already matches the file | Nothing. |
+| Already has every field of the file | Nothing. |
 | Still matches `base`, no unpublished admin edits | Saved with the `_rev` it was read with and published, then checked. An admin change after that read gets a 409 instead of being overwritten. |
-| Still matches `base`, and the waiting draft is exactly this update (an earlier Publish failed) | That draft is published. |
+| Still matches `base`, and the waiting draft has exactly this update in every field, sidebar name and order included (an earlier Publish failed) | That draft is published. A draft an editor changed in any field stops it like any other admin draft. |
 | Changed on the site after the file was merged | Left alone: the site has newer text. |
 | Changed before the merge, admin edits waiting, or a 409 | Stopped, nothing written, and one issue "Docs update stopped: <article id>" opened. It closes itself once the article is right. |
 
 After publishing, the workflow checks that the article page, its Markdown, `/docs/search.json` and `/llms.txt` all carry the update's content (title, summary, version scope and text), and tries once more before opening an issue. Issues name the commit the run checked out and the EmDash revision involved. The same run on the 1st and 15th of each month catches a publish that failed or lagged. Run it by hand from the Actions tab (**Run workflow**) after fixing a stopped article.
 
-The workflow signs in with a Cloudflare Access service token (`DOCS_PUBLISH_ACCESS_CLIENT_ID` and `DOCS_PUBLISH_ACCESS_CLIENT_SECRET` repository secrets; see `DEPLOY.md`) and acts as an EmDash Editor. Until both secrets are set it publishes nothing. `npm run test:docs-sync` (after `npm run build:docs-preview`) runs it against the docs preview with all articles published: an update, a failed publish and its recovery, a duplicate run, a stale surface, admin edits (including one landing mid-publish), a save whose Publish failed, a stale run, version labels and an unreachable site.
+The workflow signs in with a Cloudflare Access service token (`DOCS_PUBLISH_ACCESS_CLIENT_ID` and `DOCS_PUBLISH_ACCESS_CLIENT_SECRET` repository secrets; see `DEPLOY.md`) and acts as an EmDash Editor. Until both secrets are set it publishes nothing. `npm run test:docs-sync` (after `npm run build:docs-preview`) runs it against the docs preview with all articles published: an update, a failed publish and its recovery, a duplicate run, a stale surface, admin edits (including one landing mid-publish), a save whose Publish failed, a waiting draft an editor touched, a sidebar-only change, a stale run, version labels and an unreachable site.
 
 ## What reads the collection
 

@@ -142,6 +142,14 @@ Access (decision `website-operator-admin-emdash-access-035`). Owner-only, once:
    first Admin: EmDash makes whoever arrives first on an empty site the Admin.
    The gate also enforces this: until the CMS `DB` has an enabled Admin
    (role 50), every service token gets the same 404.
+
+   The **Docs publish** workflow (`docs/documentation-authoring.md`) uses its
+   own service token this way: list its common name in
+   `EMDASH_OPERATOR_SERVICE_TOKENS` (keeping any already there), add it to the
+   application's Service Auth policy, and save the client ID and secret as the
+   repository secrets `DOCS_PUBLISH_ACCESS_CLIENT_ID` and
+   `DOCS_PUBLISH_ACCESS_CLIENT_SECRET`. A secret change is not a code deploy;
+   `EMDASH_OPERATOR_ALLOWLIST` is a separate secret and stays as it is.
 3. Rebuild with the team domain and deploy:
 
    ```sh

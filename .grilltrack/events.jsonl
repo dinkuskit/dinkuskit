@@ -70,3 +70,9 @@
 {"action": "decision_locked", "at": "2026-10-19T23:48:55+00:00", "data": {"decision_id": "website-ship-admin-pass-076"}, "event_id": "9dafd135-b198-4ab9-8853-12c491e2c169"}
 {"action": "decision_implemented", "at": "2026-10-19T23:48:55+00:00", "data": {"decision_id": "website-ship-admin-pass-076"}, "event_id": "1281fc88-4a98-4d33-aa9e-e7d31dbe90a2"}
 {"action": "decision_verified", "at": "2026-10-19T23:48:55+00:00", "data": {"decision_id": "website-ship-admin-pass-076"}, "event_id": "cb2cd5af-60d3-40c6-8204-75afd30b7d29"}
+{"action": "focus_started", "at": "2026-10-21T02:30:00+00:00", "data": {"cadence": "frontier-batch", "domain": "Docs stay current after merges"}, "event_id": "e23a2f81-6fce-40f6-85bf-e6f8519a0962"}
+{"action": "decision_proposed", "at": "2026-10-21T02:30:00+00:00", "data": {"decision_id": "website-docs-sync-077"}, "event_id": "68d41cc7-a1bf-42ad-8fdb-3ace05f5aeea"}
+{"action": "shared_understanding_confirmed", "at": "2026-10-21T03:07:00+00:00", "data": {"summary": "Ronald said 'lock it' in the project thread on 21 Oct 2026 03:06 UTC after the five-question batch: docs stay current after merges per decision 077."}, "event_id": "c39936e5-4f44-4efa-899a-33e7b644fb64"}
+{"action": "decision_locked", "at": "2026-10-21T03:07:00+00:00", "data": {"decision_id": "website-docs-sync-077"}, "event_id": "fd56edc2-f557-405a-b215-edd919d4c214"}
+{"action": "decision_implemented", "at": "2026-10-21T03:07:00+00:00", "data": {"decision_id": "website-docs-sync-077"}, "event_id": "8c023dbc-eb58-44e7-8907-4834a177ced5"}
+{"action": "decision_verified", "at": "2026-10-21T03:07:09+00:00", "data": {"decision_id": "website-docs-sync-077"}, "event_id": "3adc5474-e4d4-4c3f-ae10-189e0ccd4988"}

@@ -24,6 +24,27 @@ URLs are `/docs/<folder>/<slug>`: the entry slug, under a folder for three secti
 
 Use root-relative `/docs/...` links between articles and absolute `https://` links elsewhere. A published article must not link to an unpublished one.
 
+## Doc updates from merged PRs
+
+A change that alters what an article says can travel as a pull request instead of an admin edit (GrillTrack decision `website-docs-sync-077`, issue #63, tracker #64). The admin stays the source: a merge publishes a reviewed update, and never overwrites edits made in the admin.
+
+1. Run `npm run docs:pull -- <article id>` (for example `store-owners/test-order`). It writes `docs/updates/<article id>.md` from the article's live Markdown export: the fields as frontmatter, the body as Markdown, and `base`, the hash of what was live. For a new article, write the file by hand with `base: new`, `section` and `order` (and `nav_label` if wanted). An existing article's sidebar name, section and order are changed in the admin; an update file for it that sets them is refused.
+2. Edit the file and open a PR here. `version_scope` must name the releases an owner installs (`Commerce 0.3.0, Payments 0.2.9`, `Requires Commerce 0.4.0`) or say `Unreleased`; commit ids go under Sources in the body. `npm run test:docs` checks every update file.
+3. A plugin PR whose behavior change affects an article carries a **Docs impact** line linking to that PR, or says "none, because …".
+4. Merging runs the **Docs publish** workflow (`.github/workflows/docs-publish.yml`, one run at a time, always on the newest `main`). For each update file, `scripts/docs-sync.mjs publish` compares the live export with the file:
+
+| Live article | What happens |
+| --- | --- |
+| Already has every field of the file | Nothing. |
+| Still matches `base`, no unpublished admin edits | Saved with the `_rev` it was read with and published, then checked. An admin change after that read gets a 409 instead of being overwritten. |
+| Still matches `base`, and the waiting draft has exactly this update in every field, sidebar name and order included (an earlier Publish failed) | That draft is published. A draft an editor changed in any field stops it like any other admin draft. |
+| Changed on the site after the file was merged | Left alone: the site has newer text. |
+| Changed before the merge, admin edits waiting, or a 409 | Stopped, nothing written, and one issue "Docs update stopped: <article id>" opened. It closes itself once the article is right. |
+
+After publishing, the workflow checks that the article page, its Markdown, `/docs/search.json` and `/llms.txt` all carry the update's content (title, summary, version scope and text), and tries once more before opening an issue. Issues name the commit the run checked out and the EmDash revision involved. The same run on the 1st and 15th of each month catches a publish that failed or lagged. Run it by hand from the Actions tab (**Run workflow**) after fixing a stopped article.
+
+The workflow signs in with a Cloudflare Access service token (`DOCS_PUBLISH_ACCESS_CLIENT_ID` and `DOCS_PUBLISH_ACCESS_CLIENT_SECRET` repository secrets; see `DEPLOY.md`) and acts as an EmDash Editor. Until both secrets are set it publishes nothing. `npm run test:docs-sync` (after `npm run build:docs-preview`) runs it against the docs preview with all articles published: an update, a failed publish and its recovery, a duplicate run, a stale surface, admin edits (including one landing mid-publish), a save whose Publish failed, a waiting draft an editor touched, placement owned by the admin, a stale run, version labels and an unreachable site.
+
 ## What reads the collection
 
 `getPublicDocs()` in `src/docs/content.ts` returns published entries only. `getVisibleDocs()` adds drafts only in Astro's local development server; there is no request parameter or deployment setting that shows drafts in production. Every surface reads one of those two lists:

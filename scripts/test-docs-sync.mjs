@@ -11,8 +11,10 @@ import { WORK, resetDatabase, start, unusedPort } from './lib/docs-preview.mjs';
 // Drives scripts/docs-sync.mjs against the docs preview fixture (a throwaway
 // EmDash SQLite database with all thirteen articles published), from a
 // throwaway Git repository and a stand-in GitHub issues API. Covers a
-// successful update, a failed publish and its recovery, a duplicate run, admin
-// edits that must not be overwritten, a stale job, and version labels.
+// successful update, a failed publish and its recovery, a duplicate run, a
+// stale surface, admin edits that must not be overwritten (including a race
+// between the read and the save), a save whose Publish failed, a stale job,
+// version labels, and an unreachable site.
 const SCRIPT = new URL('./docs-sync.mjs', import.meta.url).pathname;
 const REPO = new URL('./docs-sync-repo/', WORK).pathname;
 
@@ -45,7 +47,7 @@ function sync(base, token, ...args) {
   return new Promise((resolve, reject) => {
     const child = spawn(process.execPath, ['--experimental-strip-types', SCRIPT, ...args, '--url', base], {
       cwd: REPO,
-      env: { ...process.env, EMDASH_TOKEN: token, CF_ACCESS_CLIENT_ID: '', GITHUB_TOKEN: 'test', GITHUB_REPOSITORY: 'dinkuskit/dinkuskit', GITHUB_API_URL: `http://127.0.0.1:${github.address().port}`, GITHUB_SHA: '0123456789abcdef', DOCS_SYNC_CHECK_TRIES: '3', DOCS_SYNC_CHECK_WAIT_MS: '200' },
+      env: { ...process.env, EMDASH_TOKEN: token, CF_ACCESS_CLIENT_ID: '', GITHUB_TOKEN: 'test', GITHUB_REPOSITORY: 'dinkuskit/dinkuskit', GITHUB_API_URL: `http://127.0.0.1:${github.address().port}`, DOCS_SYNC_CHECK_TRIES: '3', DOCS_SYNC_CHECK_WAIT_MS: '200' },
       stdio: ['ignore', 'pipe', 'pipe'],
     });
     let output = '';
@@ -94,9 +96,31 @@ try {
 
 // The production build serves the same database: drafts never show, the API takes the token.
 const production = start('production', await unusedPort());
+let proxy;
 try {
   await production.ready();
-  const base = production.base;
+  // The publisher talks to the site through this proxy, which can fail or delay chosen requests.
+  const faults = { publishFailures: 0, beforePut: null, staleSearch: null, dropLlms: false, putStatuses: [] };
+  proxy = createServer(async (request, response) => {
+    let body = '';
+    for await (const chunk of request) body += chunk;
+    const path = new URL(request.url, 'http://x').pathname;
+    if (faults.dropLlms && path === '/llms.txt') return request.socket.destroy();
+    if (faults.staleSearch && path === '/docs/search.json') { response.writeHead(200, { 'content-type': 'application/json' }); return response.end(faults.staleSearch); }
+    if (request.method === 'POST' && /^\/_emdash\/api\/content\/docs\/[^/]+\/publish$/.test(path) && faults.publishFailures) {
+      faults.publishFailures--;
+      response.writeHead(503, { 'content-type': 'application/json' });
+      return response.end('{}');
+    }
+    if (request.method === 'PUT' && faults.beforePut) { const hook = faults.beforePut; faults.beforePut = null; await hook(); }
+    const headers = Object.fromEntries(['authorization', 'x-emdash-request', 'content-type'].filter(name => request.headers[name]).map(name => [name, request.headers[name]]));
+    const forwarded = await production.request(request.url, { method: request.method, headers, body: body || undefined });
+    if (request.method === 'PUT') faults.putStatuses.push(forwarded.status);
+    response.writeHead(forwarded.status, { 'content-type': forwarded.headers.get('content-type') ?? 'text/plain' });
+    response.end(Buffer.from(await forwarded.arrayBuffer()));
+  }).listen(0, '127.0.0.1');
+  await once(proxy, 'listening');
+  const base = `http://127.0.0.1:${proxy.address().port}`;
   const api = async (method, path, body) => {
     const response = await production.request(`/_emdash/api${path}`, { method, headers: { authorization: `Bearer ${token}`, 'x-emdash-request': '1', 'content-type': 'application/json' }, body: body && JSON.stringify(body) });
     return { status: response.status, data: (await response.json()).data };
@@ -127,23 +151,36 @@ try {
   assert.match(run.output, /^PROBLEM store-owners\/test-order: Reading the article through the EmDash API failed: HTTP 401/m);
   assert.equal(await liveHash(testOrder), before, 'nothing changed on the site');
   assert.ok(openIssue(testOrder), 'an issue says where it stopped');
-  assert.match(openIssue(testOrder).body, /at 0123456/);
+  const head = git('rev-parse', '--short=7', 'HEAD');
+  assert.ok(openIssue(testOrder).body.includes(`at ${head}`), 'the issue names the checked-out commit');
   run = await sync(base, token, 'publish', '--report');
   assert.equal(run.code, 0, run.output);
-  assert.match(run.output, /^PUBLISHED store-owners\/test-order$/m);
+  assert.match(run.output, /^PUBLISHED store-owners\/test-order( \(revision [^)]+\))?$/m);
   assert.equal(await liveHash(testOrder), updateHash(docsSite, wanted));
   assert.match(await exportText(testOrder), /Version scope: Commerce 0\.3\.0, Payments 0\.2\.9\n[\s\S]*## After the order\n\nPress \*\*Inspect\*\* to see it\.\n$/);
   assert.equal(openIssue(testOrder), undefined);
-  assert.match(issues.at(-1).comments.at(-1), /Resolved at 0123456: the article is live and matches its update file/);
+  assert.match(issues.at(-1).comments.at(-1), new RegExp(`Resolved at ${head}: the article is live and matches its update file`));
   console.log('PASS failed publish: nothing changed and one issue opened; the next run published it and closed the issue');
 
   // A duplicate run writes nothing.
   const savedAt = (await api('GET', `/content/docs/test-order`)).data.item.updatedAt;
   run = await sync(base, token, 'publish', '--report');
   assert.equal(run.code, 0, run.output);
-  assert.match(run.output, /^LIVE store-owners\/test-order$/m);
+  assert.match(run.output, /^LIVE store-owners\/test-order( \(revision [^)]+\))?$/m);
   assert.equal((await api('GET', `/content/docs/test-order`)).data.item.updatedAt, savedAt, 'no second save');
   console.log('PASS duplicate run: an update that is already live is left alone');
+
+  // A surface still serving old content is caught, not reported healthy.
+  faults.staleSearch = JSON.stringify(JSON.parse(await (await production.request('/docs/search.json')).text()).map(item => item.id === testOrder ? { ...item, text: 'Old text.' } : item));
+  run = await sync(base, token, 'publish', '--report');
+  assert.equal(run.code, 0, run.output);
+  assert.match(run.output, /^PROBLEM store-owners\/test-order: Live in the admin, but search\.json does not have the update\./m);
+  assert.ok(openIssue(testOrder));
+  faults.staleSearch = null;
+  run = await sync(base, token, 'publish', '--report');
+  assert.match(run.output, /^LIVE store-owners\/test-order/m);
+  assert.equal(openIssue(testOrder), undefined);
+  console.log('PASS stale surface: search.json with old content is a problem until it matches, then the issue closes');
 
   // Admin edits: a waiting draft stops the update; a published admin edit made before the merge stops it too.
   const setup = 'store-owners/setup';
@@ -173,21 +210,56 @@ try {
   const redone = edit(setup, () => ({ summary: 'Edited in the admin. Updated by a merge.' }), 'Commerce 0.3.0, Payments 0.2.9');
   await commit('Redo the setup update on the admin text');
   run = await sync(base, token, 'publish', '--report');
-  assert.match(run.output, /^PUBLISHED store-owners\/setup$/m);
+  assert.match(run.output, /^PUBLISHED store-owners\/setup( \(revision [^)]+\))?$/m);
   assert.equal(await liveHash(setup), updateHash(docsSite, redone));
   assert.equal(openIssue(setup), undefined);
   console.log('PASS admin edits: a waiting draft and an earlier admin publish both stop the update without overwriting; a fresh pull publishes');
+
+  // An admin publish that lands between the publisher's read and its save gets a 409, not overwritten.
+  const ai = 'ai-assistants';
+  assert.equal((await sync(base, token, 'pull', ai)).code, 0);
+  edit(ai, update => ({ summary: `${update.summary} From a merge.` }), 'Commerce 0.3.0');
+  await commit('Update the assistants article');
+  const aiEntry = (await api('GET', '/content/docs/ai-assistants')).data;
+  faults.beforePut = async () => {
+    assert.equal((await api('PUT', `/content/docs/${aiEntry.item.id}`, { data: { summary: 'Admin got there first.' } })).status, 200);
+    assert.equal((await api('POST', `/content/docs/${aiEntry.item.id}/publish`, {})).status, 200);
+  };
+  faults.putStatuses = [];
+  run = await sync(base, token, 'publish', '--report');
+  assert.deepEqual(faults.putStatuses, [409], 'the save carried the revision it read and was refused');
+  assert.match(run.output, /^SUPERSEDED ai-assistants: the site has newer text/m);
+  assert.match(await exportText(ai), /^# .*\n\nAdmin got there first\.\n/);
+  console.log('PASS race: an admin publish between the read and the save is refused with 409 and stays live');
+
+  // A save that worked but a Publish that failed: the next run publishes exactly that draft.
+  const help = 'troubleshooting';
+  assert.equal((await sync(base, token, 'pull', help)).code, 0);
+  const helpUpdate = edit(help, update => ({ body: `${update.body}\n\n## If Publish fails\n\nRun the workflow again.` }), 'Commerce 0.3.0');
+  const helpBefore = await liveHash(help);
+  await commit('Update the troubleshooting article');
+  faults.publishFailures = 2;
+  run = await sync(base, token, 'publish', '--report');
+  assert.match(run.output, /^PROBLEM troubleshooting: Saved as a draft, but publishing through the EmDash API failed: HTTP 503/m);
+  assert.equal(await liveHash(help), helpBefore, 'the live article is unchanged');
+  assert.ok((await api('GET', '/content/docs/troubleshooting')).data.item.draftRevisionId, 'the update waits as a draft');
+  assert.ok(openIssue(help));
+  run = await sync(base, token, 'publish', '--report');
+  assert.match(run.output, /^PUBLISHED troubleshooting/m);
+  assert.equal(await liveHash(help), updateHash(docsSite, helpUpdate));
+  assert.equal(openIssue(help), undefined);
+  console.log('PASS partial publish: after a failed Publish the next run publishes the exact saved draft and closes the issue');
 
   // A stale job (an older checkout) cannot put older text back.
   const ship = 'reference/ship';
   assert.equal((await sync(base, token, 'pull', ship)).code, 0);
   edit(ship, () => ({}), 'Ship 0.1.0');
   const first = await commit('Ship article, first update');
-  assert.match((await sync(base, token, 'publish')).output, /^PUBLISHED reference\/ship$/m);
+  assert.match((await sync(base, token, 'publish')).output, /^PUBLISHED reference\/ship( \(revision [^)]+\))?$/m);
   assert.equal((await sync(base, token, 'pull', ship)).code, 0);
   const second = edit(ship, () => ({}), 'Ship 0.1.0; Requires Ship 0.2.0 for the kept pass');
   await commit('Ship article, second update');
-  assert.match((await sync(base, token, 'publish')).output, /^PUBLISHED reference\/ship$/m);
+  assert.match((await sync(base, token, 'publish')).output, /^PUBLISHED reference\/ship( \(revision [^)]+\))?$/m);
   git('checkout', '-q', first);
   run = await sync(base, token, 'publish');
   git('checkout', '-q', 'main');
@@ -202,8 +274,12 @@ try {
   writeFileSync(file(webhooks), renderUpdate({ article: webhooks, base: 'new', title: 'Receive order webhooks', summary: 'Get a call when an order is paid.', audience: 'Developers', product: 'Commerce', version_scope: 'Unreleased (on main after Commerce 0.3.0)', section: 'Developers', order: 75, body: '## Before you start\n\nThis is not in a release yet.' }));
   writeFileSync(file('reference/payments'), renderUpdate({ article: 'reference/payments', base: `sha256:${'0'.repeat(64)}`, title: 'Payments', summary: 'Payments.', audience: 'Developers', product: 'Payments', version_scope: 'Payments b92ec308', body: 'Text.' }));
   await commit('Add a webhooks article and a badly labelled update');
+  faults.publishFailures = 2;
   run = await sync(base, token, 'publish', '--report');
-  assert.match(run.output, /^PUBLISHED developers\/webhooks$/m);
+  assert.match(run.output, /^PROBLEM developers\/webhooks: Saved as a draft, but publishing/m);
+  assert.equal((await production.request(`/docs/${webhooks}`)).status, 404, 'a new article stays unpublished');
+  run = await sync(base, token, 'publish', '--report');
+  assert.match(run.output, /^PUBLISHED developers\/webhooks( \(revision [^)]+\))?$/m);
   assert.match(run.output, /^PROBLEM reference\/payments: reference\/payments\.md: version_scope "Payments b92ec308" must name a release/m);
   assert.match(await exportText(webhooks), /^Version scope: Unreleased \(on main after Commerce 0\.3\.0\)$/m);
   const search = await (await production.request('/docs/search.json')).json();
@@ -213,6 +289,19 @@ try {
   assert.ok(openIssue('reference/payments'));
   console.log('PASS version labels: an Unreleased article publishes to the page, Markdown, search and llms.txt; a commit id is refused');
 
+  // A check that cannot reach the site is reported per article; the run still finishes and reports.
+  faults.dropLlms = true;
+  run = await sync(base, token, 'publish', '--report');
+  faults.dropLlms = false;
+  assert.equal(run.code, 0, run.output);
+  assert.match(run.output, /^PROBLEM store-owners\/test-order: Live in the admin, but checking it failed: fetch failed/m);
+  assert.match(run.output, /^PROBLEM developers\/webhooks: Live in the admin, but checking it failed/m);
+  assert.ok(openIssue(testOrder) && openIssue(webhooks));
+  run = await sync(base, token, 'publish', '--report');
+  assert.equal(openIssue(testOrder), undefined);
+  assert.equal(openIssue(webhooks), undefined);
+  console.log('PASS unreachable site: each article gets its own problem and issue, and the next good run closes them');
+
   // Without --report, a problem fails the run.
   run = await sync(base, token, 'publish');
   assert.equal(run.code, 1, run.output);
@@ -220,4 +309,5 @@ try {
 } finally {
   await production.stop();
   github.close();
+  proxy?.close();
 }

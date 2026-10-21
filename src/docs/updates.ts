@@ -11,7 +11,7 @@
  * and tests, not the site's runtime.
  */
 import { createHash } from 'node:crypto';
-import { articleMarkdown, type DocArticle, type DocsSite } from './catalog.ts';
+import { articleMarkdown, selectArticles, type DocArticle, type DocsSite } from './catalog.ts';
 import { markdownToPortableText, portableTextToMarkdown } from './portable-text.ts';
 
 export const NEW_ARTICLE = 'new';
@@ -119,9 +119,9 @@ export function exportHash(markdown: string) {
   return `sha256:${createHash('sha256').update(content).digest('hex')}`;
 }
 
-/** The export hash the article will have once this update is live. */
-export function updateHash(site: DocsSite, update: DocUpdate) {
-  const article: DocArticle = {
+/** The article as the docs surfaces will show it once this update is live. */
+export function updateArticle(update: DocUpdate): DocArticle {
+  return {
     id: update.article,
     title: update.title,
     navLabel: update.nav_label ?? update.title,
@@ -135,7 +135,18 @@ export function updateHash(site: DocsSite, update: DocUpdate) {
     updated: new Date(0),
     body: markdownToPortableText(update.body),
   };
-  return exportHash(articleMarkdown(site, article));
+}
+
+/** The export hash the article will have once this update is live. */
+export function updateHash(site: DocsSite, update: DocUpdate) {
+  return exportHash(articleMarkdown(site, updateArticle(update)));
+}
+
+/** The export hash of stored entry data (from the EmDash API), or null when it is not a complete article. */
+export function entryHash(site: DocsSite, slug: string, data: Record<string, unknown> | undefined) {
+  if (!data) return null;
+  const [article] = selectArticles(site, [{ id: slug, data: { ...data, status: 'published' } }]);
+  return article ? exportHash(articleMarkdown(site, article)) : null;
 }
 
 /** Turn a live Markdown export back into an update file's fields, with `base` set to the export's hash. */

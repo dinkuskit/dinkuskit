@@ -4,7 +4,7 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { articleId, articleMarkdown, selectArticles } from '../src/docs/catalog.ts';
 import { docsSite } from '../src/docs/site.ts';
-import { exportHash, parseUpdate, renderUpdate, updateData, updateFromExport, updateHash, versionScopeProblem } from '../src/docs/updates.ts';
+import { entryHash, exportHash, parseUpdate, renderUpdate, updateData, updateFromExport, updateHash, versionScopeProblem } from '../src/docs/updates.ts';
 
 const seed = JSON.parse(readFileSync(new URL('../seed/seed.json', import.meta.url), 'utf8'));
 const seedArticles = selectArticles(docsSite, seed.content.docs.map(entry => ({ id: entry.slug, data: { ...entry.data, status: 'published', updatedAt: '2026-10-20T00:00:00Z' } })));
@@ -65,6 +65,8 @@ test('pulling every seed article gives an update whose own hash is the live hash
     const update = updateFromExport(article.id, markdown);
     assert.equal(update.base, exportHash(markdown), article.id);
     assert.equal(updateHash(docsSite, update), update.base, `${article.id}: an unchanged pull is already live`);
+    const stored = seed.content.docs.find(entry => entry.slug === article.id.split('/').at(-1)).data;
+    assert.equal(entryHash(docsSite, article.id.split('/').at(-1), stored), update.base, `${article.id}: the API's stored data hashes like the public export`);
     assert.notEqual(updateHash(docsSite, { ...update, body: `${update.body}\n\nOne more line.` }), update.base);
   }
 });

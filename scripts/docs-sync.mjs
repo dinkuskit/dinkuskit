@@ -208,7 +208,12 @@ function sourceCommit() {
 
 /** One open issue per stopped article; closed once the article is right. */
 async function report(results) {
-  const open = (await github('GET', '/issues?state=open&per_page=100')).filter(issue => !issue.pull_request && issue.title.startsWith(ISSUE_PREFIX));
+  const open = [];
+  for (let page = 1; ; page++) {
+    const batch = await github('GET', `/issues?state=open&per_page=100&page=${page}`);
+    open.push(...batch.filter(issue => !issue.pull_request && issue.title.startsWith(ISSUE_PREFIX)));
+    if (batch.length < 100) break;
+  }
   const commit = sourceCommit() ? ` at ${sourceCommit().slice(0, 7)}` : '';
   for (const result of results) {
     const title = `${ISSUE_PREFIX}${result.article}`;

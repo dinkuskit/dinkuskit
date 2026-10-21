@@ -27,7 +27,12 @@ const github = createServer(async (request, response) => {
   const json = body ? JSON.parse(body) : null;
   const send = (status, data) => { response.writeHead(status, { 'content-type': 'application/json' }); response.end(JSON.stringify(data)); };
   const path = new URL(request.url, 'http://x').pathname.replace('/repos/dinkuskit/dinkuskit', '');
-  if (request.method === 'GET' && path === '/issues') return send(200, issues.filter(issue => issue.state === 'open'));
+  if (request.method === 'GET' && path === '/issues') {
+    const query = new URL(request.url, 'http://x').searchParams;
+    const size = Number(query.get('per_page') ?? 30);
+    const page = Number(query.get('page') ?? 1);
+    return send(200, issues.filter(issue => issue.state === 'open').slice((page - 1) * size, page * size));
+  }
   if (request.method === 'POST' && path === '/issues') {
     const issue = { number: issues.length + 1, state: 'open', comments: [], ...json };
     issues.push(issue);
@@ -40,6 +45,8 @@ const github = createServer(async (request, response) => {
   send(404, {});
 }).listen(0, '127.0.0.1');
 await once(github, 'listening');
+// Other open issues fill the first page, so the publisher's issues are found only by reading every page.
+for (let number = 1; number <= 120; number++) issues.push({ number, state: 'open', comments: [], title: `Unrelated issue ${number}` });
 
 const git = (...args) => execFileSync('git', args, { cwd: REPO, encoding: 'utf8', env: { ...process.env, GIT_AUTHOR_NAME: 'Test', GIT_AUTHOR_EMAIL: 'test@example.invalid', GIT_COMMITTER_NAME: 'Test', GIT_COMMITTER_EMAIL: 'test@example.invalid' } }).trim();
 const file = article => `${REPO}docs/updates/${article}.md`;

@@ -3,11 +3,12 @@
   "created_at": "2026-10-11T23:54:00+00:00",
   "current_focus": {
     "cadence": "frontier-batch",
-    "confirmed": false,
+    "confirmed": true,
+    "confirmed_at": "2026-10-21T03:07:00+00:00",
     "domain": "Docs stay current after merges",
     "started_at": "2026-10-21T02:30:00+00:00",
-    "status": "grilling",
-    "summary": "Issue #63: merged doc changes publish themselves, articles say which release they need, and a check catches failed publishes. Ronald answered a five-question batch in the thread on 21 Oct 2026 02:27-02:28 UTC; tracker #64."
+    "status": "confirmed",
+    "summary": "Ronald said 'lock it' in the project thread on 21 Oct 2026 03:06 UTC after the five-question batch: docs stay current after merges per decision 077."
   },
   "decisions": [
     {
@@ -9016,9 +9017,52 @@
         "website-docs-collection-075"
       ],
       "domain": "Docs stay current after merges",
-      "history": [],
+      "history": [
+        {
+          "at": "2026-10-21T03:07:00+00:00",
+          "choice": "A doc change is a file docs/updates/<article id>.md in a dinkuskit/dinkuskit PR: the article's fields as frontmatter (version_scope must name a release such as 'Commerce 0.3.0' or 'Requires Commerce 0.4.0', or say 'Unreleased'), the body as Markdown converted with src/docs/portable-text.ts, and base = the sha256 of the article's public Markdown export when the PR was written ('new' for a new article); npm run docs:pull -- <article id> writes the file from the public export. A plugin PR carries a 'Docs impact' line linking to that PR or saying 'none, because ...' (PR template; dinkuskit/dinkuskit first, then Commerce and Ship only, tracker #64). On a push to main, one serialized GitHub workflow (no cancelling) checks out the newest main and reconciles every update file against the site through the EmDash API with a Cloudflare Access service token (Editor via EMDASH_OPERATOR_SERVICE_TOKENS): live export equals the file's own render = already done, skip; live equals base and no unpublished admin draft waits = save with EmDash _rev and Publish; anything else (changed in the admin, a draft waiting, a 409) = stop for that article and open or update one GitHub issue, never overwrite. All 13 articles are published (Ronald, 21 Oct); a merged file publishes its article whether new or existing. After a publish, and on the 1st and 15th of each month, a freshness check confirms the article page, Markdown export, search.json and llms.txt match each update file; a live export still equal to base means the publish lagged or failed, so it retries once, then opens an issue. No new collection fields, no seed re-import, no deploy; nothing publishes until Ronald adds the service token secret. Status-text cleanup in plugin repos is later, one small PR per repo, Commerce and Ship first.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-21T03:07:00+00:00",
+          "choice": "A doc change is a file docs/updates/<article id>.md in a dinkuskit/dinkuskit PR: the article's fields as frontmatter (version_scope must name a release such as 'Commerce 0.3.0' or 'Requires Commerce 0.4.0', or say 'Unreleased'), the body as Markdown converted with src/docs/portable-text.ts, and base = the sha256 of the article's public Markdown export when the PR was written ('new' for a new article); npm run docs:pull -- <article id> writes the file from the public export. A plugin PR carries a 'Docs impact' line linking to that PR or saying 'none, because ...' (PR template; dinkuskit/dinkuskit first, then Commerce and Ship only, tracker #64). On a push to main, one serialized GitHub workflow (no cancelling) checks out the newest main and reconciles every update file against the site through the EmDash API with a Cloudflare Access service token (Editor via EMDASH_OPERATOR_SERVICE_TOKENS): live export equals the file's own render = already done, skip; live equals base and no unpublished admin draft waits = save with EmDash _rev and Publish; anything else (changed in the admin, a draft waiting, a 409) = stop for that article and open or update one GitHub issue, never overwrite. All 13 articles are published (Ronald, 21 Oct); a merged file publishes its article whether new or existing. After a publish, and on the 1st and 15th of each month, a freshness check confirms the article page, Markdown export, search.json and llms.txt match each update file; a live export still equal to base means the publish lagged or failed, so it retries once, then opens an issue. No new collection fields, no seed re-import, no deploy; nothing publishes until Ronald adds the service token secret. Status-text cleanup in plugin repos is later, one small PR per repo, Commerce and Ship first.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-21T03:07:09+00:00",
+          "choice": "A doc change is a file docs/updates/<article id>.md in a dinkuskit/dinkuskit PR: the article's fields as frontmatter (version_scope must name a release such as 'Commerce 0.3.0' or 'Requires Commerce 0.4.0', or say 'Unreleased'), the body as Markdown converted with src/docs/portable-text.ts, and base = the sha256 of the article's public Markdown export when the PR was written ('new' for a new article); npm run docs:pull -- <article id> writes the file from the public export. A plugin PR carries a 'Docs impact' line linking to that PR or saying 'none, because ...' (PR template; dinkuskit/dinkuskit first, then Commerce and Ship only, tracker #64). On a push to main, one serialized GitHub workflow (no cancelling) checks out the newest main and reconciles every update file against the site through the EmDash API with a Cloudflare Access service token (Editor via EMDASH_OPERATOR_SERVICE_TOKENS): live export equals the file's own render = already done, skip; live equals base and no unpublished admin draft waits = save with EmDash _rev and Publish; anything else (changed in the admin, a draft waiting, a 409) = stop for that article and open or update one GitHub issue, never overwrite. All 13 articles are published (Ronald, 21 Oct); a merged file publishes its article whether new or existing. After a publish, and on the 1st and 15th of each month, a freshness check confirms the article page, Markdown export, search.json and llms.txt match each update file; a live export still equal to base means the publish lagged or failed, so it retries once, then opens an issue. No new collection fields, no seed re-import, no deploy; nothing publishes until Ronald adds the service token secret. Status-text cleanup in plugin repos is later, one small PR per repo, Commerce and Ship first.",
+          "from": "implemented",
+          "implementation_ref": "git:cf16f3a08e68581465c6f3ce24fe7885a1914f3e",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": null
+        }
+      ],
       "id": "website-docs-sync-077",
-      "implementation_ref": null,
+      "implementation_ref": "git:cf16f3a08e68581465c6f3ce24fe7885a1914f3e",
       "question": "How does a merged code change keep the published docs current without overwriting edits made in the EmDash admin?",
       "rationale": "Ronald's answers in the project thread 21 Oct 2026: 1 agreed (update files in dinkuskit/dinkuskit PRs, Docs impact line in plugin PRs); 2 agreed (merge publishes only if unchanged in the admin, else an issue); 3 all 13 articles are now published, so the never-published carve-out is dropped; 4 daily is too aggressive, twice a month for starters; 5 agreed, plus a tracker issue (#64) and only one or two plugins at first. EmDash 1.2.0 save and Publish take _rev and answer 409 on a stale write; checking out the newest main in a serialized job keeps an old job from publishing older text.",
       "repair_required": false,
@@ -9027,10 +9071,10 @@
       "review_ref": null,
       "review_result": null,
       "review_source_identity": null,
-      "status": "proposed",
+      "status": "verified",
       "superseded_by": null,
-      "updated_at": "2026-10-21T02:30:00+00:00",
-      "verification_ref": null
+      "updated_at": "2026-10-21T03:07:09+00:00",
+      "verification_ref": "url:https://github.com/dinkuskit/dinkuskit/pull/65"
     }
   ],
   "last_activation": {
@@ -9061,5 +9105,5 @@
   "status": "active",
   "title": "Composed integration",
   "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5",
-  "updated_at": "2026-10-21T02:30:00+00:00"
+  "updated_at": "2026-10-21T03:07:09+00:00"
 }

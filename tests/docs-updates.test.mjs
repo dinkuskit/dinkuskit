@@ -23,9 +23,9 @@ const sample = (fields = {}) => ({
 });
 
 test('an update file round-trips and keeps quotes, colons and numbers', () => {
-  const update = sample({ summary: 'Say "yes": then press **Publish**.', section: 'Store owners', order: 40, nav_label: 'Verify a test order' });
+  const update = sample({ base: 'new', summary: 'Say "yes": then press **Publish**.', section: 'Store owners', order: 40, nav_label: 'Verify a test order' });
   const source = renderUpdate(update);
-  assert.match(source, /^---\narticle: store-owners\/test-order\nbase: sha256:a{64}\ntitle: "Complete and verify a test order"\n/);
+  assert.match(source, /^---\narticle: store-owners\/test-order\nbase: new\ntitle: "Complete and verify a test order"\n/);
   assert.deepEqual(parseUpdate(source, 'store-owners/test-order.md'), update);
 });
 
@@ -43,7 +43,9 @@ test('bad update files are refused with the reason', () => {
     ['missing field', renderUpdate(sample({ audience: '' })), /audience is required/],
     ['unknown field', renderUpdate(sample()).replace('title:', 'draft: true\ntitle:'), /unknown field draft/],
     ['new without placement', renderUpdate(sample({ base: 'new' })), /section is required for a new article/],
-    ['bad order', renderUpdate(sample({ section: 'Store owners' })).replace('section:', 'order: ten\nsection:'), /order must be a whole number/],
+    ['bad order', renderUpdate(sample({ base: 'new', section: 'Store owners' })).replace('section:', 'order: ten\nsection:'), /order must be a whole number/],
+    ['placement on an existing article', renderUpdate(sample({ nav_label: 'Renamed' })), /nav_label can be set only for a new article; change it in the admin/],
+    ['order on an existing article', renderUpdate(sample({ order: 5 })), /order can be set only for a new article/],
     ['bad article', renderUpdate(sample({ article: '../secret' })), /article must be an article ID/],
     ['empty body', renderUpdate(sample()).replace(/\n\n## Steps[\s\S]*$/, '\n'), /body is empty/],
   ];

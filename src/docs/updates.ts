@@ -16,7 +16,7 @@ import { markdownToPortableText, portableTextToMarkdown } from './portable-text.
 
 export const NEW_ARTICLE = 'new';
 
-/** Field order in a file; the first group is required, the second only for a new article. */
+/** Field order in a file; the first group is required, the second is set only for a new article. */
 const REQUIRED = ['title', 'summary', 'audience', 'product', 'version_scope'] as const;
 const PLACEMENT = ['nav_label', 'section', 'order'] as const;
 
@@ -69,6 +69,9 @@ export function parseUpdate(source: string, path?: string): DocUpdate {
   if (data.base !== NEW_ARTICLE && !/^sha256:[0-9a-f]{64}$/.test(data.base ?? '')) throw new Error(`${where}: base must be "new" or the sha256 that npm run docs:pull wrote`);
   for (const key of REQUIRED) if (!data[key]) throw new Error(`${where}: ${key} is required`);
   if (data.base === NEW_ARTICLE) for (const key of ['section', 'order']) if (!data[key]) throw new Error(`${where}: ${key} is required for a new article`);
+  // The base hash covers what the Markdown export shows, which leaves placement out, so placement
+  // changes to an existing article are made in the admin, where nothing can overwrite them unseen.
+  if (data.base !== NEW_ARTICLE) for (const key of PLACEMENT) if (data[key] !== undefined) throw new Error(`${where}: ${key} can be set only for a new article; change it in the admin`);
   const versionProblem = versionScopeProblem(data.version_scope);
   if (versionProblem) throw new Error(`${where}: ${versionProblem}`);
   if (data.order !== undefined && !/^\d+$/.test(data.order)) throw new Error(`${where}: order must be a whole number`);

@@ -14,7 +14,7 @@ import { WORK, resetDatabase, start, unusedPort } from './lib/docs-preview.mjs';
 // successful update, a failed publish and its recovery, a duplicate run, a
 // stale surface, admin edits that must not be overwritten (including a race
 // between the read and the save), a save whose Publish failed, a waiting draft
-// an editor touched, a sidebar-only change, a stale job,
+// an editor touched, placement owned by the admin, a stale job,
 // version labels, and an unreachable site.
 const SCRIPT = new URL('./docs-sync.mjs', import.meta.url).pathname;
 const REPO = new URL('./docs-sync-repo/', WORK).pathname;
@@ -276,21 +276,30 @@ try {
   assert.equal(openIssue(contribute), undefined);
   console.log('PASS touched draft: an editor change to any field of the waiting draft stops recovery and nothing unreviewed is published; after a discard the update goes through');
 
-  // An update that changes only the sidebar name and order is published and checked, not taken as already live.
+  // Sidebar name, section and order of an existing article belong to the admin: an update file that sets them is refused before anything is read or written.
   const commerce = 'reference/commerce';
   assert.equal((await sync(base, token, 'pull', commerce)).code, 0);
-  edit(commerce, () => ({ nav_label: 'Commerce plugin', section: 'Product reference', order: 75 }), 'Commerce 0.3.0');
-  const commerceBefore = await liveHash(commerce);
-  await commit('Rename the Commerce article in the sidebar');
+  const commerceBefore = (await api('GET', '/content/docs/commerce')).data.item;
+  assert.equal((await api('PUT', `/content/docs/${commerceBefore.id}`, { data: { nav_label: 'Commerce (admin)', order: 81 } })).status, 200);
+  assert.equal((await api('POST', `/content/docs/${commerceBefore.id}/publish`, {})).status, 200);
+  writeFileSync(file(commerce), readFileSync(file(commerce), 'utf8').replace(/^version_scope: .*$/m, 'version_scope: "Commerce 0.3.0"\nnav_label: "Commerce plugin"\norder: 75'));
+  await commit('Try to rename the Commerce article in the sidebar from a stale update');
+  faults.putStatuses = [];
+  run = await sync(base, token, 'publish', '--report');
+  assert.match(run.output, /^PROBLEM reference\/commerce: reference\/commerce\.md: nav_label can be set only for a new article; change it in the admin/m);
+  assert.deepEqual(faults.putStatuses, [], 'nothing was written');
+  const commerceNow = (await api('GET', '/content/docs/commerce')).data.item.data;
+  assert.deepEqual([commerceNow.nav_label, commerceNow.order], ['Commerce (admin)', 81], 'the admin\'s published sidebar name and order stay');
+  // Without the placement lines the same update goes through and keeps the admin's placement.
+  writeFileSync(file(commerce), readFileSync(file(commerce), 'utf8').replace(/^nav_label: .*\norder: .*\n/m, ''));
+  await commit('Update the Commerce article without placement');
   run = await sync(base, token, 'publish', '--report');
   assert.match(run.output, /^PUBLISHED reference\/commerce( \(revision [^)]+\))?$/m);
-  const commerceNow = (await api('GET', '/content/docs/commerce')).data.item.data;
-  assert.deepEqual([commerceNow.nav_label, commerceNow.order], ['Commerce plugin', 75]);
-  assert.notEqual(await liveHash(commerce), commerceBefore, 'the version scope changed too');
-  assert.match(await (await production.request(`/docs/${commerce}`)).text(), />Commerce plugin</);
-  run = await sync(base, token, 'publish', '--report');
-  assert.match(run.output, /^LIVE reference\/commerce/m);
-  console.log('PASS placement: a sidebar name and order change publishes, shows in the sidebar, and is live on the next run');
+  const commerceAfter = (await api('GET', '/content/docs/commerce')).data.item.data;
+  assert.deepEqual([commerceAfter.nav_label, commerceAfter.order, commerceAfter.version_scope], ['Commerce (admin)', 81, 'Commerce 0.3.0']);
+  assert.match(await (await production.request(`/docs/${commerce}`)).text(), />Commerce \(admin\)</);
+  assert.equal(openIssue(commerce), undefined);
+  console.log('PASS placement: an update setting an existing article\'s sidebar name or order is refused before any write; the admin\'s placement stays through later updates');
 
   // A stale job (an older checkout) cannot put older text back.
   const ship = 'reference/ship';

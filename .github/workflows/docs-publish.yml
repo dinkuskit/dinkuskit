@@ -1,0 +1,49 @@
+name: Docs publish
+
+# Publishes merged doc updates (docs/updates/) to dinkuskit.com and checks the
+# published docs twice a month (GrillTrack decision website-docs-sync-077).
+# Runs one at a time and never cancels, and always checks out the newest main,
+# so an older run cannot publish older text. Stopped articles become issues.
+on:
+  push:
+    branches: [main]
+    paths: ['docs/updates/**']
+  schedule:
+    - cron: '0 14 1,15 * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: docs-publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish doc updates
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      CF_ACCESS_CLIENT_ID: ${{ secrets.DOCS_PUBLISH_ACCESS_CLIENT_ID }}
+      CF_ACCESS_CLIENT_SECRET: ${{ secrets.DOCS_PUBLISH_ACCESS_CLIENT_SECRET }}
+    steps:
+      - name: Wait for the publisher's service token
+        if: env.CF_ACCESS_CLIENT_ID == '' || env.CF_ACCESS_CLIENT_SECRET == ''
+        run: echo "::notice::DOCS_PUBLISH_ACCESS_CLIENT_ID and DOCS_PUBLISH_ACCESS_CLIENT_SECRET are not both set, so nothing was published."
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        if: env.CF_ACCESS_CLIENT_ID != '' && env.CF_ACCESS_CLIENT_SECRET != ''
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        if: env.CF_ACCESS_CLIENT_ID != '' && env.CF_ACCESS_CLIENT_SECRET != ''
+        with:
+          node-version-file: .nvmrc
+      - name: Publish and check
+        if: env.CF_ACCESS_CLIENT_ID != '' && env.CF_ACCESS_CLIENT_SECRET != ''
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node --experimental-strip-types scripts/docs-sync.mjs publish --report

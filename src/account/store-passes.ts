@@ -1,15 +1,16 @@
 import {
-  OWNER_ENABLED_SERVICES, STORE_KEY_PREFIX, STORE_PASS_LIMIT_PER_MINUTE, STORE_PASS_SERVICES,
-  type OwnerEnabledService, type StorePassService,
+  COMMERCE_SETTINGS_PASS, KEYED_PLUGINS, OWNER_ENABLED_SERVICES, PLUGIN_KEY_SCOPES, STORE_KEY_PREFIX, STORE_PASS_LIMIT_PER_MINUTE,
+  STORE_PASS_SERVICES, type KeyedPlugin, type OwnerEnabledService, type StorePassService,
 } from './config.ts';
 import { shipRecipient, shipClaims, shipTestMode, SHIP_SANDBOX_AUDIENCE, type ShipSandboxRegistration } from './ship-recipient.ts';
 import { signServicePass } from './jwt.ts';
 import { persistPublicJwk, revokeServiceGrant } from './store.ts';
 
 /**
- * Store keys and the passes Commerce trades them for. One key per store covers every
- * service the store has on; Replace key stops the old one at once. A pass is refused
- * for a suspended store, a service the owner has not turned on, and an operator cut-off.
+ * Store keys and the passes plugins trade them for. Each plugin gets its own key at
+ * Connect, limited to the passes that plugin needs; the older pasted key, one per store,
+ * still covers every service until the Connect releases ship. A pass is refused for a
+ * suspended store, a service the owner has not turned on, and an operator cut-off.
  */
 const KEY_PATTERN = /^dk_store_[A-Za-z0-9_-]{43}$/;
 const now = () => Math.floor(Date.now() / 1000);
@@ -20,7 +21,7 @@ function base64url(bytes: Uint8Array): string {
   return btoa(text).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
 
-async function hashKey(key: string): Promise<string> {
+export async function hashKey(key: string): Promise<string> {
   const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(key)));
   return [...digest].map(byte => byte.toString(16).padStart(2, '0')).join('');
 }
@@ -35,9 +36,22 @@ const OWNER_OF_STORE = `EXISTS (SELECT 1 FROM dinkuskit_store_identity i WHERE i
 type OwnerInput = { subject: string; siteId: string; organizationId: string; actorUserId: string };
 const ownerArgs = (input: OwnerInput) => [input.siteId, input.subject, input.organizationId, input.actorUserId, input.subject];
 
+/** A fresh store key for a plugin's Connect; only its hash is ever stored. */
+export function newStoreKey(): string {
+  return `${STORE_KEY_PREFIX}${base64url(crypto.getRandomValues(new Uint8Array(32)))}`;
+}
+
+/** Disconnect on Your Stores: the plugin's key stops working at once. */
+export async function disconnectPlugin(db: D1Database, input: OwnerInput & { plugin: KeyedPlugin }): Promise<boolean> {
+  if (!KEYED_PLUGINS.includes(input.plugin)) return false;
+  const result = await db.prepare(`DELETE FROM dinkuskit_plugin_key WHERE site_id = ? AND plugin = ? AND ${OWNER_OF_STORE}`)
+    .bind(input.siteId, input.plugin, ...ownerArgs(input)).run() as { meta?: { changes?: number } };
+  return (result.meta?.changes ?? 0) > 0;
+}
+
 /** Makes a new store key, replacing any earlier one. Returns the key once, or null if not allowed. */
 export async function replaceStoreKey(db: D1Database, input: OwnerInput): Promise<string | null> {
-  const key = `${STORE_KEY_PREFIX}${base64url(crypto.getRandomValues(new Uint8Array(32)))}`;
+  const key = newStoreKey();
   const result = await db.prepare(`INSERT INTO dinkuskit_store_key
       (site_id, key_hash, created_by_user_id, created_at, last_used_at, window_start, window_count)
     SELECT ?, ?, ?, ?, NULL, 0, 0 WHERE ${OWNER_OF_STORE}
@@ -72,10 +86,13 @@ export async function setOwnerService(db: D1Database, input: OwnerInput & { serv
 }
 
 export type StoreServiceState = 'on' | 'off' | 'cut_off';
+type KeyUse = { createdAt: number; lastUsedAt: number | null };
 export type StoreSetup = {
   siteId: string; siteOrigin: string;
   services: Record<StorePassService, StoreServiceState>;
-  key: { createdAt: number; lastUsedAt: number | null } | null;
+  key: KeyUse | null;
+  /** Each plugin's own key from Connect, or null while that plugin is not connected. */
+  plugins: Record<KeyedPlugin, KeyUse | null>;
 };
 
 /** Every store the business owns, with which Commerce services are on and whether it has a key. */
@@ -88,6 +105,10 @@ export async function listStoreSetup(db: D1Database, subject: string): Promise<S
   for (const store of stores.results ?? []) {
     const grants = await db.prepare('SELECT service, revoked, revoked_by FROM dinkuskit_service_grant WHERE site_id = ?')
       .bind(store.site_id).all<{ service: string; revoked: number; revoked_by: string | null }>();
+    const keys = await db.prepare('SELECT plugin, created_at, last_used_at FROM dinkuskit_plugin_key WHERE site_id = ?')
+      .bind(store.site_id).all<{ plugin: KeyedPlugin; created_at: number; last_used_at: number | null }>();
+    const plugins = Object.fromEntries(KEYED_PLUGINS.map(plugin => [plugin, null])) as StoreSetup['plugins'];
+    for (const row of keys.results ?? []) plugins[row.plugin] = { createdAt: row.created_at, lastUsedAt: row.last_used_at };
     const services = Object.fromEntries(STORE_PASS_SERVICES.map(s => [s.service, 'off'])) as StoreSetup['services'];
     for (const grant of grants.results ?? []) {
       if (!(grant.service in services)) continue;
@@ -96,6 +117,7 @@ export async function listStoreSetup(db: D1Database, subject: string): Promise<S
     rows.push({
       siteId: store.site_id, siteOrigin: store.site_origin, services,
       key: store.created_at == null ? null : { createdAt: store.created_at, lastUsedAt: store.last_used_at },
+      plugins,
     });
   }
   return rows;
@@ -108,7 +130,7 @@ function json(status: number, body: unknown): Response {
   });
 }
 
-/** POST /api/store-passes: trades a store key for a 5-minute pass for one service. */
+/** POST /api/store-passes: trades a store key for a 5-minute pass for one service, or for Commerce's settings read. */
 export async function issueStorePass(input: {
   db: D1Database; authorization: string | null; body: unknown; privateJwkJson?: string; registration?: ShipSandboxRegistration;
 }): Promise<Response> {
@@ -123,20 +145,24 @@ export async function issueStorePass(input: {
   const expectedKeys = isolated ? 'audience,generation,scope,site_id' : 'audience,scope,site_id';
   if (Object.keys(fields).sort().join(',') !== expectedKeys) return json(400, { error: 'invalid_request' });
   if (isolated && (!recipient || fields.generation !== recipient.generation || fields.scope !== 'ship:orders')) return json(403, { error: 'ship_recipient_mismatch' });
+  const settingsPass = !isolated && fields.scope === COMMERCE_SETTINGS_PASS.scope && fields.audience === COMMERCE_SETTINGS_PASS.audience;
   const service = isolated ? { service: 'ship', scope: 'ship:orders', audience: SHIP_SANDBOX_AUDIENCE } as const
-    : STORE_PASS_SERVICES.find(s => s.scope === fields.scope && s.audience === fields.audience);
+    : settingsPass ? null : STORE_PASS_SERVICES.find(s => s.scope === fields.scope && s.audience === fields.audience);
   if (service?.service === 'ship' && recipient && !isolated) return json(403, { error: 'ship_recipient_mismatch' });
-  if (!service) return json(400, { error: 'invalid_request' });
+  if (!service && !settingsPass) return json(400, { error: 'invalid_request' });
 
-  const minute = Math.floor(Date.now() / 60_000);
-  const used = await input.db.prepare(`UPDATE dinkuskit_store_key SET
+  const minute = Math.floor(Date.now() / 60_000), hash = await hashKey(key);
+  const count = (table: string, plugin: string) => input.db.prepare(`UPDATE ${table} SET
       window_count = CASE WHEN window_start = ? THEN window_count + 1 ELSE 1 END,
       window_start = ?, last_used_at = ?
-    WHERE key_hash = ? RETURNING site_id, window_count`)
-    .bind(minute, minute, now(), await hashKey(key)).first<{ site_id: string; window_count: number }>();
+    WHERE key_hash = ? RETURNING site_id, ${plugin} AS plugin, window_count`)
+    .bind(minute, minute, now(), hash).first<{ site_id: string; plugin: KeyedPlugin | null; window_count: number }>();
+  const used = await count('dinkuskit_plugin_key', 'plugin') ?? await count('dinkuskit_store_key', 'NULL');
   if (!used) return json(401, { error: 'invalid_store_key' });
   if (used.window_count > STORE_PASS_LIMIT_PER_MINUTE) return json(429, { error: 'rate_limited' });
   if (used.site_id !== fields.site_id) return json(403, { error: 'site_mismatch' });
+  // A plugin's own key gets only its plugin's passes; only Commerce's reads checkout settings.
+  if (used.plugin ? !PLUGIN_KEY_SCOPES[used.plugin].includes(fields.scope as string) : settingsPass) return json(403, { error: 'scope_not_allowed' });
 
   const store = await input.db.prepare(`SELECT i.account_subject, i.site_origin, g.revoked, g.revoked_by,
       EXISTS (SELECT 1 FROM dinkuskit_organization o JOIN dinkuskit_account a ON a.user_id = o.owner_user_id
@@ -145,15 +171,16 @@ export async function issueStorePass(input: {
           AND a.disabled = 0 AND m.role = 'owner' AND m.status = 'active') AS store_active
     FROM dinkuskit_store_identity i
     LEFT JOIN dinkuskit_service_grant g ON g.site_id = i.site_id AND g.service = ?
-    WHERE i.site_id = ?`).bind(service.service, used.site_id)
+    WHERE i.site_id = ?`).bind(service?.service ?? '', used.site_id)
     .first<{ account_subject: string; site_origin: string; revoked: number | null; revoked_by: string | null; store_active: number }>();
   if (!store || Number(store.store_active) !== 1) return json(403, { error: 'store_suspended' });
-  if (store.revoked === 1 && store.revoked_by === 'operator') return json(403, { error: 'service_cut_off' });
-  if (store.revoked !== 0) return json(403, { error: 'service_not_enabled' });
+  if (service && store.revoked === 1 && store.revoked_by === 'operator') return json(403, { error: 'service_cut_off' });
+  if (service && store.revoked !== 0) return json(403, { error: 'service_not_enabled' });
 
   if (isolated && !await shipTestMode(input.db, used.site_id, recipient)) return json(403, { error: 'ship_test_required' });
   const signed = await signServicePass({
-    subject: store.account_subject, siteId: used.site_id, audience: service.audience, scope: service.scope, privateJwkJson: input.privateJwkJson,
+    subject: store.account_subject, siteId: used.site_id, audience: service?.audience ?? COMMERCE_SETTINGS_PASS.audience,
+    scope: service?.scope ?? COMMERCE_SETTINGS_PASS.scope, privateJwkJson: input.privateJwkJson,
     // The store's web address as Connect checked it, so Payments can send shoppers back to the store.
     claims: { site_origin: store.site_origin, ...(isolated ? shipClaims(recipient) : {}) }, backdateSeconds: 2,
   });

@@ -144,3 +144,54 @@ test('shared service routes require separate consent and display processor setup
     assert.deepEqual(await (await shipToken({grant_type:'refresh_token',refresh_token:legacyRefresh})).json(),{error:'invalid_grant'},'signing out of DinkusKit.com ends Ship\'s sign-in');
   } finally { await stopRuntime(runtime); }
 });
+
+test('Connect to DinkusKit through the routes: Commerce first, a key per plugin, settings read, Disconnect', async () => {
+  const runtime = await startMerchantTestRuntime(); const owner = new Map();
+  try {
+    await signup(runtime,'plugin-owner@example.test',owner);
+    const origin = 'https://plugin-connect.example.test';
+    const paths = { commerce:['dinkus-commerce-emdash','r_gshdrqaldna3r7sn/settings'], payments:['dinkus-payments-emdash','r_3brsc2on3bu673rn/status'], ship:['dinkus-ship-emdash','r_ehdlg5cxkb3ffqvr/shipping'] };
+    const form = async (jar,fields)=>({method:'POST',headers:{'content-type':'application/x-www-form-urlencoded'},body:await accountForm(runtime,jar,new URLSearchParams(fields).toString())});
+    async function start(service) {
+      const verifier = randomBytes(32).toString('base64url'); const challenge = createHash('sha256').update(verifier).digest('base64url');
+      const [client, path] = paths[service]; const callback = `${origin}/_emdash/admin/plugins/${path}`;
+      const response = await request(runtime,new Map(),'/api/store-connections',{method:'POST',body:JSON.stringify({protocol_version:2,client_id:client,service,site_origin:origin,callback_uri:callback,code_challenge:challenge,code_challenge_method:'S256'})});
+      const body = await response.json();
+      if (response.status === 200) await request(runtime,new Map(),'/__proof/receipt',{method:'POST',body:JSON.stringify({version:2,connection_id:body.connection_id,challenge:body.challenge,client_id:client,service,site_id:body.site_id,site_origin:origin,callback_uri:callback,code_challenge:challenge,expires_at:body.expires_at})});
+      return { status: response.status, body, client, verifier, callback, path:`/account/connect?connection_id=${body.connection_id}` };
+    }
+    async function connect(service) {
+      const c = await start(service); assert.equal(c.status,200,`${service} starts`);
+      const page = await (await request(runtime,owner,c.path)).text();
+      assert.match(page,/own store key/,`the approval page says ${service} gets its own key`);
+      assert.equal((await request(runtime,owner,c.path,await form(owner,{action:'approve'}))).headers.get('location'),c.callback);
+      const token = await request(runtime,new Map(),'/api/store-connections/token',{method:'POST',body:JSON.stringify({client_id:c.client,connection_id:c.body.connection_id,code_verifier:c.verifier})});
+      assert.equal(token.status,200); return { ...c, issued: await token.json() };
+    }
+    const early = await start('ship'); assert.deepEqual([early.status, early.body], [409, { error: 'connect_commerce_first' }]);
+    const commerce = await connect('commerce'); assert.equal(commerce.issued.access_token, undefined); assert.match(commerce.issued.store_key, /^dk_store_/);
+    const siteId = commerce.issued.site_id;
+    const sites = await (await request(runtime,owner,'/account/sites')).text();
+    assert.match(sites,/plugin-connect\.example\.test/,'a store with only Commerce connected is on Your stores');
+    assert.match(sites,/Commerce plugin: connected/); assert.match(sites,/Disconnect Commerce/); assert.match(sites,/Payments plugin: not connected/);
+    const payments = await connect('payments'); assert.equal(payments.issued.site_id, siteId); assert.match(payments.issued.store_key, /^dk_store_/);
+    const trade = (key,scope,audience)=>request(runtime,new Map(),'/api/store-passes',{method:'POST',headers:{authorization:`Bearer ${key}`},body:JSON.stringify({site_id:siteId,scope,audience})});
+    assert.equal((await trade(payments.issued.store_key,'payments:checkout','dinkus-payments')).status,200);
+    assert.deepEqual(await (await trade(payments.issued.store_key,'commerce:settings','dinkuskit')).json(),{error:'scope_not_allowed'});
+    assert.equal((await request(runtime,owner,'/account/sites',await form(owner,{action:'service',site_id:siteId,service:'ship',on:'1'}))).status,303);
+    const ship = await connect('ship'); assert.equal((await trade(ship.issued.store_key,'ship:admin','dinkus-ship')).status,200);
+    // Commerce reads its settings itself.
+    assert.equal((await request(runtime,owner,'/account/sites',await form(owner,{action:'checkout_settings',site_id:siteId,shipping_mode:'flat',shipping_amount:'4.00',payments_mode:'test'}))).status,200);
+    assert.equal((await request(runtime,new Map(),'/__proof/payments-status',{method:'POST',body:JSON.stringify({site_id:siteId,body:{state:'ready',bindingRef:'bind_plugin_1',connectionEvidence:{provider:'stripe',accountRef:'acct_1PluginTest'}}})})).status,200);
+    const settingsPass = (await (await trade(commerce.issued.store_key,'commerce:settings','dinkuskit')).json()).access_token;
+    const read = await request(runtime,new Map(),'/api/commerce-settings',{headers:{authorization:`Bearer ${settingsPass}`}});
+    assert.equal(read.status,200); const settings = await read.json();
+    assert.deepEqual([settings.siteId,settings.commerceOrigin,settings.bindingRef,settings.shipping.amount.minor,settings.ship.audience],[siteId,origin,'bind_plugin_1','400','dinkus-ship']);
+    assert.equal((await request(runtime,new Map(),'/api/commerce-settings')).status,401);
+    // Disconnect stops only that plugin's key.
+    assert.equal((await request(runtime,owner,'/account/sites',await form(owner,{action:'disconnect_plugin',site_id:siteId,plugin:'ship'}))).status,303);
+    assert.deepEqual(await (await trade(ship.issued.store_key,'ship:admin','dinkus-ship')).json(),{error:'invalid_store_key'});
+    assert.equal((await trade(commerce.issued.store_key,'ship:orders','dinkus-ship')).status,200);
+    assert.match(await (await request(runtime,owner,'/account/sites')).text(),/Ship plugin: not connected/);
+  } finally { await stopRuntime(runtime); }
+});

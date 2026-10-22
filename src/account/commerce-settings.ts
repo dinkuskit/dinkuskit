@@ -1,7 +1,9 @@
 import { shipRecipient, shipDestination, type ShipSandboxRegistration } from './ship-recipient.ts';
-import { ACCOUNT_ISSUER, COUPONS_ORIGIN, PAYMENTS_ORIGIN, STORE_PASS_SERVICES } from './config.ts';
+import { createLocalJWKSet, jwtVerify } from 'jose';
+import { ACCOUNT_ISSUER, COMMERCE_SETTINGS_PASS, COUPONS_ORIGIN, PAYMENTS_ORIGIN, STORE_PASS_SERVICES } from './config.ts';
 import { prepareServiceAccess } from './jwt.ts';
-import { persistPublicJwk } from './store.ts';
+import { listPublicJwks, persistPublicJwk } from './store.ts';
+import { listStoreSetup } from './store-passes.ts';
 
 /**
  * The checkout settings Set up Commerce gives the owner to paste into Commerce's
@@ -145,4 +147,47 @@ export function dollarsToMinor(text: string): number | null {
   const match = /^\s*\$?(\d{1,6})(?:\.(\d{1,2}))?\s*$/.exec(text);
   if (!match) return null;
   return Number(match[1]) * 100 + Number((match[2] ?? '0').padEnd(2, '0'));
+}
+
+function answer(status: number, body: string): Response {
+  return new Response(body, { status, headers: { 'content-type': 'application/json', 'cache-control': 'no-store' } });
+}
+
+/**
+ * GET /api/commerce-settings: the checkout settings Commerce used to have pasted, read by
+ * Commerce itself with a 5-minute commerce:settings pass from its own store key
+ * (store-connect-checkout-settings-083). The answer is the same registry-checkout/v1 JSON,
+ * so Commerce checks it exactly as it checked a paste, including that it names its own site.
+ */
+export async function serveCommerceSettings(input: {
+  db: D1Database; authorization: string | null; privateJwkJson?: string; registration?: ShipSandboxRegistration; fetchStatus?: PaymentsStatusFetch;
+}): Promise<Response> {
+  const refuse = (status: number, error: string) => answer(status, JSON.stringify({ error }));
+  const token = input.authorization?.match(/^Bearer ([^\s]+)$/i)?.[1];
+  if (!token) return refuse(401, 'invalid_pass');
+  let siteId: string, subject: string;
+  try {
+    const { payload } = await jwtVerify(token, createLocalJWKSet(await listPublicJwks(input.db) as Parameters<typeof createLocalJWKSet>[0]), {
+      issuer: ACCOUNT_ISSUER, audience: COMMERCE_SETTINGS_PASS.audience, algorithms: ['ES256'], requiredClaims: ['exp', 'iat', 'sub'],
+    });
+    if (typeof payload.scope !== 'string' || !payload.scope.split(' ').includes(COMMERCE_SETTINGS_PASS.scope) || typeof payload.site_id !== 'string') throw new Error('scope');
+    siteId = payload.site_id;
+    subject = payload.sub!;
+  } catch {
+    return refuse(401, 'invalid_pass');
+  }
+  const store = (await listStoreSetup(input.db, subject)).find(row => row.siteId === siteId);
+  if (!store) return refuse(401, 'invalid_pass');
+  const settings = await loadCommerceSettings(input.db, siteId);
+  if (!settings) return refuse(409, 'commerce_not_set_up');
+  const payments = await readPaymentsBinding({ db: input.db, subject, siteId, privateJwkJson: input.privateJwkJson, fetchStatus: input.fetchStatus });
+  if (!payments.ok) return refuse(payments.reason === 'signing_unavailable' || payments.reason === 'payments_unreachable' ? 503 : 409, payments.reason);
+  try {
+    return answer(200, checkoutSettingsJson({
+      registration: input.registration, siteId, siteOrigin: store.siteOrigin, binding: payments.binding, settings,
+      coupons: store.services.coupons === 'on', ship: store.services.ship === 'on',
+    }));
+  } catch {
+    return refuse(409, 'ship_test_required');
+  }
 }

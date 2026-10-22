@@ -1,10 +1,10 @@
 import { shipRecipient } from './ship-recipient.ts';
-import { MerchantUnavailableError, seeOther, unavailableResponse, COMING_SOON_SERVICES, OWNER_ENABLED_SERVICES, type OwnerEnabledService } from './config.ts';
+import { MerchantUnavailableError, seeOther, unavailableResponse, COMING_SOON_SERVICES, OWNER_ENABLED_SERVICES, type KeyedPlugin, type OwnerEnabledService } from './config.ts';
 import { getMerchantEnv } from './bindings.ts';
 import { listActiveBindings, listServiceGrants, revokeServiceGrant, type SiteBinding } from './store.ts';
 import { rejectCrossOriginMutation } from './origin.ts';
 import { authorizeOrganization } from './organizations.ts';
-import { listStoreSetup, replaceStoreKey, setOwnerService, type StoreSetup } from './store-passes.ts';
+import { disconnectPlugin, listStoreSetup, replaceStoreKey, setOwnerService, type StoreSetup } from './store-passes.ts';
 import { checkoutSettingsJson, dollarsToMinor, loadCommerceSettings, readPaymentsBinding, saveCommerceSettings, type CommerceSettings } from './commerce-settings.ts';
 import { getInjectedTransports } from './transports.ts';
 import type { ResolvedMerchant } from './session.ts';
@@ -52,7 +52,8 @@ export async function loadSitesPage(input: {
   }
   let newKey: { siteId: string; key: string } | null = null;
   let shown: SitesShown | null = null;
-  // A store the business still owns, on the live page only while a service is on.
+  // A store the business still owns, on the live page only while a service is on or a plugin is connected.
+  const connected = (store: StoreSetup) => Object.values(store.plugins).some(Boolean);
   const homeFor = async (siteId: string) => {
     if (!siteId) return '/account/sites';
     const [active, grants, setups] = await Promise.all([
@@ -64,7 +65,8 @@ export async function loadSitesPage(input: {
       || grants.some(binding => binding.siteId === siteId)
       || setups.some(store => store.siteId === siteId);
     if (!known) return '/account/sites';
-    return active.some(binding => binding.siteId === siteId) ? '/account/sites' : '/account/sites/archive';
+    return active.some(binding => binding.siteId === siteId) || setups.some(store => store.siteId === siteId && connected(store))
+      ? '/account/sites' : '/account/sites/archive';
   };
   if (input.request.method === 'POST') {
     const blocked = rejectCrossOriginMutation(input.request, env.MERCHANT_BASE_URL);
@@ -113,6 +115,9 @@ export async function loadSitesPage(input: {
         }
       }
     }
+    if (form.get('action') === 'disconnect_plugin' && siteId) {
+      await disconnectPlugin(env.MERCHANT_DB, { ...owner, plugin: String(form.get('plugin') ?? '') as KeyedPlugin });
+    }
     if (form.get('action') === 'store_key' && siteId) {
       // The key is shown on this response only; it is never stored or put in a URL.
       const key = await replaceStoreKey(env.MERCHANT_DB, owner);
@@ -129,7 +134,7 @@ export async function loadSitesPage(input: {
   const organizationId = input.url.searchParams.get('organization_id') ?? merchant.organizationId;
   if (organizationId !== merchant.organizationId) return new Response(JSON.stringify({ error: 'stale_organization' }), { status: 409 });
   if (!await authorizeOrganization(env.MERCHANT_DB, merchant.userId, organizationId)) return new Response(JSON.stringify({ error: 'organization_forbidden' }), { status: 403 });
-  const activeSiteIds = new Set(activeBindings.map(binding => binding.siteId));
+  const activeSiteIds = new Set([...activeBindings.map(binding => binding.siteId), ...stores.filter(connected).map(store => store.siteId)]);
   const archivedStores = stores.filter(store => !activeSiteIds.has(store.siteId));
   const focusId = newKey?.siteId ?? shown?.siteId ?? null;
   const showingArchive = focusId ? !activeSiteIds.has(focusId) : input.view === 'archive';

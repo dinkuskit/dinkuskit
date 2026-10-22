@@ -57,7 +57,7 @@ export async function prepareServiceAccess(input: {
   | { ok: true; token: string; expiresIn: number; kid: string; publicJwk: JsonWebKey }
   | { ok: false; reason: 'missing' | 'invalid' }
 > {
-  const registered = REGISTERED_STORE_SERVICES.find(service => service.service === input.service);
+  const registered = REGISTERED_STORE_SERVICES.find(service => service.service === input.service && service.grants);
   if (!registered) return { ok: false, reason: 'invalid' };
   return signServicePass({ ...input, audience: registered.audience, scope: registered.scope });
 }

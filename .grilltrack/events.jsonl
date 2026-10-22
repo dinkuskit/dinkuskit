@@ -100,3 +100,4 @@
 {"action": "decision_reopened", "at": "2026-10-22T13:59:12+00:00", "data": {"affected": [], "decision_id": "store-connect-flow-081", "reason": "Ronald (13:35 UTC): Commerce is the base layer and connects first; Payments and Ship need Commerce, Commerce does not need them."}, "event_id": "9e33ec7a-d01e-4dde-a354-ed75520824d1"}
 {"action": "decision_locked", "at": "2026-10-22T13:59:12+00:00", "data": {"decision_id": "store-connect-flow-081"}, "event_id": "af543ef0-ce59-424d-a87e-47569970a775"}
 {"action": "decision_superseded", "at": "2026-10-22T13:59:13+00:00", "data": {"affected": [], "decision_id": "website-store-key-without-payments-045", "replacement_id": "store-connect-flow-081"}, "event_id": "0a4c5763-7121-4bdc-9b7d-d27406d2c4f5"}
+{"action": "decision_proposed", "at": "2026-10-22T15:33:39+00:00", "data": {"decision_id": "start-landing-page-20261022"}, "event_id": "3603c682-1e8c-467f-8c5c-7606ea9d2ba1"}

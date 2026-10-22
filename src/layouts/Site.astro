@@ -23,6 +23,7 @@ import { Role } from '@emdash-cms/auth';
     <header>
       <a class="brand" href="/">DinkusKit <span aria-hidden="true">* * *</span></a>
       <nav aria-label="Main navigation">
+        <a href="/start" aria-current={Astro.url.pathname === '/start' ? 'page' : undefined}>Start your store</a>
         <a href="/getting-started">Getting started</a>
         {hasDocs && <a href="/docs" aria-current={Astro.url.pathname.startsWith('/docs') ? 'true' : undefined}>Docs</a>}
         <a href="/account">Account</a>

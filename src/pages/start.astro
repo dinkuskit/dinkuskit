@@ -1,0 +1,133 @@
+---
+import Site from '../layouts/Site.astro';
+import { getMerchantEnv } from '../account/bindings.ts';
+import { createMerchantRuntime } from '../account/auth.ts';
+import { resolveLogin } from '../account/session.ts';
+
+// Where the playground's "Start your real store" buttons land. It reads who is
+// signed in only to pick the next button; anything that fails shows the signed-out page.
+export const prerender = false;
+Astro.response.headers.set('cache-control', 'private, no-store');
+let signedInAs: string | null = null;
+if (Astro.request.headers.get('cookie')) {
+  try {
+    const env = await getMerchantEnv();
+    signedInAs = (await resolveLogin(createMerchantRuntime(env).auth, env.MERCHANT_DB, Astro.request))?.email ?? null;
+  } catch {
+    signedInAs = null;
+  }
+}
+---
+<Site title="Start your real store" description="You've tried the playground. Here is how to run your own store on EmDash with DinkusKit Commerce, Payments and Ship.">
+  <div class="intro start-intro">
+    <p class="eyebrow">Start your real store</p>
+    <h1>You've tried the playground. Now run your own.</h1>
+    <p class="lead">Your store is an EmDash site you own. DinkusKit adds the shop: Commerce for products and orders, Payments for card checkout, and Ship for postage. Four steps get you from nothing to a test order.</p>
+    <div class="start-account">
+      {signedInAs ? (
+        <>
+          <p>Signed in as <strong>{signedInAs}</strong>.</p>
+          <p class="start-actions"><a class="start-button" href="/account/sites">Your stores</a><a href="/account">Your account</a></p>
+        </>
+      ) : (
+        <>
+          <p>Your store connects to a DinkusKit account.</p>
+          <p class="start-actions"><a class="start-button" href="/account/signup">Create account</a><a href="/account/sign-in">Sign in</a></p>
+        </>
+      )}
+    </div>
+  </div>
+
+  <section class="start-steps" aria-labelledby="start-steps-heading">
+    <div class="start-steps-head">
+      <h2 id="start-steps-heading">Your four steps</h2>
+      <p class="start-progress" data-start-progress aria-live="polite" hidden></p>
+    </div>
+    <ol>
+      <li class="start-step" data-start-step="site">
+        <label><input type="checkbox" data-start-check /> <span>Have an EmDash site</span></label>
+        <p>DinkusKit runs inside your own EmDash site, so you keep your site, your content and your customers.</p>
+        <details>
+          <summary>Don't have one yet?</summary>
+          <p>Follow the EmDash install guide. It creates a site you can run on Cloudflare in a few minutes. Pick any theme; you can change it later.</p>
+          <p><a href="https://docs.emdashcms.com/getting-started/">Create your first EmDash site</a></p>
+        </details>
+      </li>
+      <li class="start-step" data-start-step="plugins">
+        <label><input type="checkbox" data-start-check /> <span>Add Commerce, Payments and Ship</span></label>
+        <p>In your store admin, open the plugin Registry and install DinkusKit Commerce, DinkusKit Payments and DinkusKit Ship. Ship is optional if you'd rather mark orders shipped by hand.</p>
+      </li>
+      <li class="start-step" data-start-step="connect">
+        <label><input type="checkbox" data-start-check /> <span>Press Connect to DinkusKit</span></label>
+        <p>Connect Commerce first; it registers your store with your DinkusKit account. Then press Connect in Payments and in Ship. Each press asks you to sign in here, and the business owner approves the store once.</p>
+        <p class="start-note">The Connect button arrives with the next Commerce, Payments and Ship releases.</p>
+      </li>
+      <li class="start-step" data-start-step="order">
+        <label><input type="checkbox" data-start-check /> <span>Add a product and place a test order</span></label>
+        <p>Add a product with a price, open your shop, and check out with the test card <code>4242 4242 4242 4242</code>, any future date and any three digits. The order shows up in Commerce, ready to ship.</p>
+      </li>
+    </ol>
+    <p class="start-done" data-start-done hidden>That's a working store in test mode. Live payments open after DinkusKit's own real-store proof.</p>
+  </section>
+
+  <section class="start-more">
+    <h2>Want to look around first?</h2>
+    <p class="start-actions"><a href="https://playground.dinkuskit.com/">Back to the playground</a><a href="/getting-started">Getting started</a><a href="https://github.com/dinkuskit">Source on GitHub</a></p>
+  </section>
+</Site>
+<script>
+  // Ticks are a convenience kept in this browser only; the page works without them.
+  const KEY = 'dinkuskit-start-steps';
+  const steps = Array.from(document.querySelectorAll<HTMLElement>('[data-start-step]'));
+  const progress = document.querySelector<HTMLElement>('[data-start-progress]');
+  const done = document.querySelector<HTMLElement>('[data-start-done]');
+  let saved: string[] = [];
+  try { saved = JSON.parse(localStorage.getItem(KEY) ?? '[]'); } catch { saved = []; }
+  if (!Array.isArray(saved)) saved = [];
+  const render = () => {
+    const ticked = steps.filter(step => step.querySelector<HTMLInputElement>('[data-start-check]')?.checked);
+    steps.forEach(step => step.classList.toggle('is-done', ticked.includes(step)));
+    const next = steps.find(step => !ticked.includes(step));
+    steps.forEach(step => step.classList.toggle('is-next', step === next));
+    if (progress) { progress.hidden = false; progress.textContent = `${ticked.length} of ${steps.length} done`; }
+    if (done) done.hidden = ticked.length !== steps.length;
+    try { localStorage.setItem(KEY, JSON.stringify(ticked.map(step => step.dataset.startStep))); } catch { /* not saved */ }
+  };
+  steps.forEach(step => {
+    const box = step.querySelector<HTMLInputElement>('[data-start-check]');
+    if (!box) return;
+    box.checked = saved.includes(step.dataset.startStep ?? '');
+    box.addEventListener('change', render);
+  });
+  render();
+</script>
+<style>
+  .start-intro { padding-bottom: 2rem; }
+  .start-account { margin-top: 1.6rem; }
+  .start-account p { margin: .3rem 0; }
+  .start-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem 1.4rem; }
+  .start-actions .start-button { margin-top: .5rem; }
+  .start-button { display: inline-block; background: #215d43; color: white; padding: .7rem 1.2rem; text-decoration: none; font-weight: 600; }
+  .start-button:hover { background: #1a4c36; }
+  .start-steps { border-top: 1px solid #d4ddd3; padding-top: 1.4rem; max-width: 760px; }
+  .start-steps-head { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; flex-wrap: wrap; }
+  .start-steps h2, .start-more h2 { font-size: 1.15rem; margin: 0; }
+  .start-progress { margin: 0; color: #356047; font-weight: 700; font-size: .9rem; }
+  .start-steps ol { list-style: none; counter-reset: step; margin: 1rem 0 0; padding: 0; }
+  .start-step { counter-increment: step; position: relative; padding: 1.1rem 1.2rem 1.1rem 3.6rem; margin-bottom: .8rem; background: white; border: 1px solid #d4ddd3; border-left: 4px solid #d4ddd3; }
+  .start-step::before { content: counter(step); position: absolute; left: 1.1rem; top: 1.05rem; width: 1.7rem; height: 1.7rem; border-radius: 50%; background: #e6ece4; color: #215d43; font-weight: 700; display: grid; place-items: center; font-size: .9rem; }
+  .start-step.is-next { border-left-color: #30764f; }
+  .start-step.is-done { background: #f0f5ef; }
+  .start-step.is-done::before { content: '✓'; background: #215d43; color: white; }
+  .start-step.is-done > label span { text-decoration: line-through; text-decoration-color: #8aa596; }
+  .start-step label { display: flex; align-items: flex-start; gap: .6rem; font-weight: 700; font-size: 1.05rem; cursor: pointer; }
+  .start-step input { width: 1.15rem; height: 1.15rem; margin-top: .3rem; accent-color: #215d43; flex: none; }
+  .start-step p { color: #42594b; margin: .5rem 0 0; max-width: 62ch; }
+  .start-step details { margin-top: .6rem; }
+  .start-step summary { cursor: pointer; color: #215d43; font-weight: 600; }
+  .start-step code { overflow-wrap: anywhere; }
+  .start-note { font-size: .9rem; font-style: italic; }
+  .start-done { padding: 1rem 1.2rem; background: #e6f0e8; border: 1px solid #b9d1bf; font-weight: 600; }
+  .start-more { border-top: 1px solid #d4ddd3; margin-top: 2rem; padding-top: 1.4rem; max-width: 760px; }
+  @media (max-width: 600px) { .start-step { padding-left: 3.2rem; } .start-step::before { left: .8rem; } }
+</style>

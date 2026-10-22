@@ -9475,6 +9475,32 @@
       "superseded_by": null,
       "updated_at": "2026-10-22T13:59:12+00:00",
       "verification_ref": null
+    },
+    {
+      "baseline_ref": null,
+      "candidate_refs": [],
+      "choice": "A code page at dinkuskit.com/start, linked as 'Start your store' in the top menu. It opens 'You've tried the playground. Now run your own.' and shows four steps a visitor can tick off, remembered only in their browser: have an EmDash site (with a 'Don't have one yet?' branch to the EmDash install guide), add Commerce, Payments and Ship from the Registry, press Connect to DinkusKit (Commerce first, then Payments and Ship), add a product and place a test order with card 4242. Signed out it offers Create account and Sign in; signed in it names the account and links Your stores. The page connects nothing; Connect starts from the store admin. Until the Connect releases ship, step 3 says the button arrives with the next Commerce, Payments and Ship releases; that note is removed when they ship.",
+      "context_ref": "https://claude.ai/code/project/chan_01JLcLQeD34rfoMic23aaman?thread=cmsg_01JLcLQeD34rfoMic23aamanSyGA3rqUbpqGwQBAEzC5XQ",
+      "created_at": "2026-10-22T15:33:39+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [],
+      "domain": "Connect to DinkusKit replaces the store key paste",
+      "history": [],
+      "id": "start-landing-page-20261022",
+      "implementation_ref": null,
+      "question": "Where do the playground's 'Start your real store' buttons land on dinkuskit.com, and what does that page do?",
+      "rationale": "Ronald asked for a dedicated, easy, interactive landing page for playground visitors (22 Oct 2026). Code, not a CMS entry, because the tick-off steps and the signed-in check need code. Honest about Connect not yet shipped, per design.md.",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [],
+      "review_ref": null,
+      "review_result": null,
+      "review_source_identity": null,
+      "status": "proposed",
+      "superseded_by": null,
+      "updated_at": "2026-10-22T15:33:39+00:00",
+      "verification_ref": null
     }
   ],
   "last_activation": {
@@ -9505,5 +9531,5 @@
   "status": "active",
   "title": "Composed integration",
   "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5",
-  "updated_at": "2026-10-22T13:59:12+00:00"
+  "updated_at": "2026-10-22T15:33:39+00:00"
 }

@@ -4,7 +4,7 @@ import { getMerchantEnv } from './bindings.ts';
 import { listActiveBindings, listServiceGrants, revokeServiceGrant, type SiteBinding } from './store.ts';
 import { rejectCrossOriginMutation } from './origin.ts';
 import { authorizeOrganization } from './organizations.ts';
-import { disconnectPlugin, listStoreSetup, replaceStoreKey, setOwnerService, type StoreSetup } from './store-passes.ts';
+import { disconnectPlugin, listStoreSetup, setOwnerService, type StoreSetup } from './store-passes.ts';
 import { checkoutSettingsJson, dollarsToMinor, loadCommerceSettings, readPaymentsBinding, saveCommerceSettings, type CommerceSettings } from './commerce-settings.ts';
 import { getInjectedTransports } from './transports.ts';
 import type { ResolvedMerchant } from './session.ts';
@@ -19,7 +19,6 @@ export type SitesPageView = {
   isOwner: boolean;
   formAction: string;
   organizationId: string;
-  newKey: { siteId: string; key: string } | null;
   shown: SitesShown | null;
   changedSite: string | null;
   saved: Map<string, CommerceSettings | null>;
@@ -50,7 +49,6 @@ export async function loadSitesPage(input: {
     if (error instanceof MerchantUnavailableError) return unavailableResponse();
     throw error;
   }
-  let newKey: { siteId: string; key: string } | null = null;
   let shown: SitesShown | null = null;
   // A store the business still owns, on the live page only while a service is on or a plugin is connected.
   const connected = (store: StoreSetup) => Object.values(store.plugins).some(Boolean);
@@ -86,7 +84,7 @@ export async function loadSitesPage(input: {
     const turnOn = form.get('on') === '1';
     if (form.get('action') === 'service' && siteId && OWNER_ENABLED_SERVICES.includes(ownerService) && !(turnOn && COMING_SOON_SERVICES.includes(ownerService))) {
       await setOwnerService(env.MERCHANT_DB, { ...owner, service: ownerService, on: turnOn });
-      // Commerce only calls the services its pasted settings name, so the owner pastes new ones.
+      // Commerce picks up the change itself within 5 minutes, or at once on Get checkout settings.
       if (await loadCommerceSettings(env.MERCHANT_DB, siteId)) return seeOther(`${await homeFor(siteId)}?changed=${encodeURIComponent(siteId)}`);
     }
     if (form.get('action') === 'checkout_settings' && siteId) {
@@ -118,12 +116,7 @@ export async function loadSitesPage(input: {
     if (form.get('action') === 'disconnect_plugin' && siteId) {
       await disconnectPlugin(env.MERCHANT_DB, { ...owner, plugin: String(form.get('plugin') ?? '') as KeyedPlugin });
     }
-    if (form.get('action') === 'store_key' && siteId) {
-      // The key is shown on this response only; it is never stored or put in a URL.
-      const key = await replaceStoreKey(env.MERCHANT_DB, owner);
-      if (key) newKey = { siteId, key };
-    }
-    if (!newKey && !shown) return seeOther(await homeFor(siteId));
+    if (!shown) return seeOther(await homeFor(siteId));
   }
   const readMembership = await authorizeOrganization(env.MERCHANT_DB, merchant.userId, merchant.organizationId);
   if (!readMembership || (readMembership.role !== 'owner' && !readMembership.permissions.includes('site:view'))) return new Response(null, { status: 403 });
@@ -136,7 +129,7 @@ export async function loadSitesPage(input: {
   if (!await authorizeOrganization(env.MERCHANT_DB, merchant.userId, organizationId)) return new Response(JSON.stringify({ error: 'organization_forbidden' }), { status: 403 });
   const activeSiteIds = new Set([...activeBindings.map(binding => binding.siteId), ...stores.filter(connected).map(store => store.siteId)]);
   const archivedStores = stores.filter(store => !activeSiteIds.has(store.siteId));
-  const focusId = newKey?.siteId ?? shown?.siteId ?? null;
+  const focusId = shown?.siteId ?? null;
   const showingArchive = focusId ? !activeSiteIds.has(focusId) : input.view === 'archive';
   return {
     showingArchive,
@@ -147,7 +140,6 @@ export async function loadSitesPage(input: {
     isOwner: readMembership.role === 'owner',
     formAction: showingArchive ? '/account/sites/archive' : '/account/sites',
     organizationId,
-    newKey,
     shown,
     changedSite: input.url.searchParams.get('changed'),
     saved,

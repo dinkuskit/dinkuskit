@@ -60,18 +60,6 @@ export async function disconnectPlugin(db: D1Database, input: OwnerInput & { plu
   return (result?.meta?.changes ?? 0) > 0;
 }
 
-/** Makes a new store key, replacing any earlier one. Returns the key once, or null if not allowed. */
-export async function replaceStoreKey(db: D1Database, input: OwnerInput): Promise<string | null> {
-  const key = newStoreKey();
-  const result = await db.prepare(`INSERT INTO dinkuskit_store_key
-      (site_id, key_hash, created_by_user_id, created_at, last_used_at, window_start, window_count)
-    SELECT ?, ?, ?, ?, NULL, 0, 0 WHERE ${OWNER_OF_STORE}
-    ON CONFLICT(site_id) DO UPDATE SET key_hash = excluded.key_hash, created_by_user_id = excluded.created_by_user_id,
-      created_at = excluded.created_at, last_used_at = NULL, window_start = 0, window_count = 0`)
-    .bind(input.siteId, await hashKey(key), input.actorUserId, now(), ...ownerArgs(input)).run() as { meta?: { changes?: number } };
-  return (result.meta?.changes ?? 0) > 0 ? key : null;
-}
-
 /**
  * Turns Coupons or Ship on or off for a store. Turning on is the owner's consent and
  * creates or revives that service's grant; an operator cut-off stays until restored.
@@ -101,17 +89,15 @@ type KeyUse = { createdAt: number; lastUsedAt: number | null };
 export type StoreSetup = {
   siteId: string; siteOrigin: string;
   services: Record<StorePassService, StoreServiceState>;
-  key: KeyUse | null;
   /** Each plugin's own key from Connect, or null while that plugin is not connected. */
   plugins: Record<KeyedPlugin, KeyUse | null>;
 };
 
-/** Every store the business owns, with which Commerce services are on and whether it has a key. */
+/** Every store the business owns, with which Commerce services are on and which plugins are connected. */
 export async function listStoreSetup(db: D1Database, subject: string): Promise<StoreSetup[]> {
-  const stores = await db.prepare(`SELECT i.site_id, i.site_origin, k.created_at, k.last_used_at
-    FROM dinkuskit_store_identity i LEFT JOIN dinkuskit_store_key k ON k.site_id = i.site_id
+  const stores = await db.prepare(`SELECT i.site_id, i.site_origin FROM dinkuskit_store_identity i
     WHERE i.account_subject = ? ORDER BY i.created_at, i.site_id`).bind(subject)
-    .all<{ site_id: string; site_origin: string; created_at: number | null; last_used_at: number | null }>();
+    .all<{ site_id: string; site_origin: string }>();
   const rows: StoreSetup[] = [];
   for (const store of stores.results ?? []) {
     const grants = await db.prepare('SELECT service, revoked, revoked_by FROM dinkuskit_service_grant WHERE site_id = ?')
@@ -125,11 +111,7 @@ export async function listStoreSetup(db: D1Database, subject: string): Promise<S
       if (!(grant.service in services)) continue;
       services[grant.service as StorePassService] = grant.revoked !== 1 ? 'on' : grant.revoked_by === 'operator' ? 'cut_off' : 'off';
     }
-    rows.push({
-      siteId: store.site_id, siteOrigin: store.site_origin, services,
-      key: store.created_at == null ? null : { createdAt: store.created_at, lastUsedAt: store.last_used_at },
-      plugins,
-    });
+    rows.push({ siteId: store.site_id, siteOrigin: store.site_origin, services, plugins });
   }
   return rows;
 }
@@ -163,17 +145,17 @@ export async function issueStorePass(input: {
   if (!service && !settingsPass) return json(400, { error: 'invalid_request' });
 
   const minute = Math.floor(Date.now() / 60_000), hash = await hashKey(key);
-  const count = (table: string, plugin: string) => input.db.prepare(`UPDATE ${table} SET
+  // Only a plugin's own key from Connect: a key pasted before Connect no longer works (store-connect-no-paste-082).
+  const used = await input.db.prepare(`UPDATE dinkuskit_plugin_key SET
       window_count = CASE WHEN window_start = ? THEN window_count + 1 ELSE 1 END,
       window_start = ?, last_used_at = ?
-    WHERE key_hash = ? RETURNING site_id, ${plugin} AS plugin, window_count`)
-    .bind(minute, minute, now(), hash).first<{ site_id: string; plugin: KeyedPlugin | null; window_count: number }>();
-  const used = await count('dinkuskit_plugin_key', 'plugin') ?? await count('dinkuskit_store_key', 'NULL');
+    WHERE key_hash = ? RETURNING site_id, plugin, window_count`)
+    .bind(minute, minute, now(), hash).first<{ site_id: string; plugin: KeyedPlugin; window_count: number }>();
   if (!used) return json(401, { error: 'invalid_store_key' });
   if (used.window_count > STORE_PASS_LIMIT_PER_MINUTE) return json(429, { error: 'rate_limited' });
   if (used.site_id !== fields.site_id) return json(403, { error: 'site_mismatch' });
-  // A plugin's own key gets only its plugin's passes; only Commerce's reads checkout settings.
-  if (used.plugin ? !PLUGIN_KEY_SCOPES[used.plugin].includes(fields.scope as string) : settingsPass) return json(403, { error: 'scope_not_allowed' });
+  // A plugin's key gets only its plugin's passes; only Commerce's reads checkout settings.
+  if (!PLUGIN_KEY_SCOPES[used.plugin].includes(fields.scope as string)) return json(403, { error: 'scope_not_allowed' });
 
   const store = await input.db.prepare(`SELECT i.account_subject, i.site_origin, g.revoked, g.revoked_by,
       ${STORE_ACTIVE} AS store_active

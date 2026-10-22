@@ -8,7 +8,7 @@ import { startStoreConnection, consentStoreConnection, exchangeStoreConnectionTo
 import { createLocalTestKeys } from '../src/account/jwt.ts';
 import { revokeServiceGrant } from '../src/account/store.ts';
 import { cutOffStore, restoreStore } from '../src/account/operator-admin.ts';
-import { issueStorePass, listStoreSetup, replaceStoreKey, setOwnerService } from '../src/account/store-passes.ts';
+import { hashKey, issueStorePass, listStoreSetup, newStoreKey, setOwnerService } from '../src/account/store-passes.ts';
 import { checkoutSettingsJson, dollarsToMinor, loadCommerceSettings, readPaymentsBinding, saveCommerceSettings } from '../src/account/commerce-settings.ts';
 import {
   PAYMENTS_BETA_CALLBACK_PATH, PAYMENTS_BETA_PROOF_PATH, PAYMENTS_BETA_REGISTRY_IDENTITY,
@@ -52,6 +52,8 @@ const registrations = {
   inventory: { client: 'dinkus-inventory-emdash', callback: '/_emdash/admin/plugins/dinkus-inventory/inventory', audience: 'inventory', scope: 'inventory:admin' },
   payments: { client: 'dinkus-payments-emdash', callback: '/_emdash/admin/plugins/r_3brsc2on3bu673rn/status', audience: 'dinkus-payments', scope: 'payments:admin' },
   'payments-beta': { client: 'dinkus-payments-emdash', service: 'payments', callback: '/_emdash/admin/plugins/r_sffx6l4z6mpqliki/status', audience: 'dinkus-payments', scope: 'payments:admin' },
+  commerce: { client: 'dinkus-commerce-emdash', callback: '/_emdash/admin/plugins/r_gshdrqaldna3r7sn/settings' },
+  ship: { client: 'dinkus-ship-emdash', callback: '/_emdash/admin/plugins/r_ehdlg5cxkb3ffqvr/shipping' },
 };
 async function fixture() {
   const sqlite = new Database(':memory:');
@@ -97,11 +99,20 @@ async function exchange(f, c, extra = {}) {
   return exchangeStoreConnectionToken({ db: f.db, jwtPrivateJwk: JSON.stringify(f.keys.privateJwk), proofFetch: async () => ({ ok: true, transport: 'simulation', receipt: c.receipt }), body: { client_id: c.request.client_id, connection_id: c.body.connection_id, code_verifier: c.verifier, ...extra } });
 }
 const count = (f, table) => f.sqlite.prepare(`SELECT count(*) n FROM ${table}`).get().n;
+// Payments connects only once Commerce has (store-connect-flow-081); Commerce registers the store and turns no service on.
+async function commerceFirst(f, origin = 'https://store.example.test', user = 'alice') {
+  const c = await start(f, 'commerce', origin); assert.equal(c.response.status, 200, 'Commerce starts');
+  assert.equal((await consent(f, c, user)).ok, true, 'Commerce is approved');
+  const issued = await exchange(f, c); assert.equal(issued.status, 200, 'Commerce picks up its key');
+  return { ...c, key: (await issued.json()).store_key };
+}
 
 for (const order of [['inventory','payments'],['payments','inventory']]) test(`independent contract: ${order.join(' then ')} shares identity, never grants the second service implicitly`, async () => {
   const f = await fixture(); try {
+    const commerce = await commerceFirst(f);
     const first = await start(f, order[0]); assert.equal(first.response.status, 200); assert.equal(first.body.protocol_version, 2);
-    assert.equal(count(f,'dinkuskit_store_identity'), 0); assert.equal(count(f,'dinkuskit_service_grant'), 0);
+    assert.equal(first.body.site_id, commerce.body.site_id);
+    assert.equal(count(f,'dinkuskit_store_identity'), 1); assert.equal(count(f,'dinkuskit_service_grant'), 0);
     assert.equal((await consent(f, first)).ok, true); assert.equal(count(f,'dinkuskit_service_grant'), 1);
     const second = await start(f, order[1]); assert.equal(second.body.site_id, first.body.site_id);
     assert.equal((await exchange(f, second)).status, 400, 'an existing other-service grant does not approve this transaction');
@@ -130,22 +141,24 @@ test('independent contract: legacy records remain unchanged and confer no v2 aut
 
 test('independent contract: owner, organization and store boundaries hold despite matching origin receipt', async () => {
   const f = await fixture(); try {
+    await commerceFirst(f); await commerceFirst(f,'https://different.example.test');
     const first = await start(f); assert.equal((await consent(f,first)).ok,true);
-    const otherService = await start(f,'payments');
+    const otherService = await start(f,'payments'); assert.equal(otherService.response.status,200);
     assert.equal((await consent(f,otherService,'bob')).ok,false); assert.equal((await consent(f,otherService,'staff')).ok,false);
     assert.equal(count(f,'dinkuskit_service_grant'),1);
-    const otherStore = await start(f,'payments','https://different.example.test'); assert.notEqual(otherStore.body.site_id,first.body.site_id);
+    const otherStore = await start(f,'payments','https://different.example.test'); assert.equal(otherStore.response.status,200); assert.notEqual(otherStore.body.site_id,first.body.site_id);
     assert.equal((await consent(f,otherStore,'alice',{proofFetch:async()=>({ok:true,transport:'simulation',receipt:otherService.receipt})})).ok,false);
-    assert.equal(count(f,'dinkuskit_store_identity'),1);
+    assert.equal(count(f,'dinkuskit_store_identity'),2);
   } finally { f.close(); }
 });
 
 test('independent contract: wrong client and swapped proof cannot redeem or widen a grant', async () => {
   const f = await fixture(); try {
+    await commerceFirst(f);
     const c = await start(f); assert.equal((await consent(f,c)).ok,true);
     const wrong = await exchange(f,c,{client_id:registrations.payments.client}); assert.equal(wrong.status,400);
     assert.equal((await exchange(f,c)).status,200,'wrong client did not consume legitimate transaction');
-    const p = await start(f,'payments');
+    const p = await start(f,'payments'); assert.equal(p.response.status,200);
     for (const field of ['version','client_id','service','site_id','callback_uri','code_challenge','challenge','connection_id','expires_at']) {
       const receipt = {...p.receipt,[field]:typeof p.receipt[field] === 'number' ? p.receipt[field]+1 : 'wrong'};
       assert.equal((await consent(f,p,'alice',{proofFetch:async()=>({ok:true,transport:'simulation',receipt})})).ok,false,field);
@@ -156,15 +169,17 @@ test('independent contract: wrong client and swapped proof cannot redeem or wide
 
 test('independent contract: concurrent provisional identities cannot split one origin', async () => {
   const f = await fixture(); try {
-    const a = await start(f,'inventory'); const b = await start(f,'payments'); assert.notEqual(a.body.site_id,b.body.site_id);
+    const a = await start(f,'inventory'); const b = await start(f,'commerce'); assert.notEqual(a.body.site_id,b.body.site_id);
     const results = await Promise.all([consent(f,a),consent(f,b)]); assert.equal(results.filter(r=>r.ok).length,1);
-    assert.equal(count(f,'dinkuskit_store_identity'),1); assert.equal(count(f,'dinkuskit_service_grant'),1);
-    const retry = await start(f,results[0].ok?'payments':'inventory'); assert.equal((await consent(f,retry)).ok,true); assert.equal(count(f,'dinkuskit_service_grant'),2);
+    assert.equal(count(f,'dinkuskit_store_identity'),1); assert.equal(count(f,'dinkuskit_service_grant'),results[0].ok?1:0);
+    const retry = await start(f,results[0].ok?'commerce':'inventory'); assert.equal(retry.body.site_id,(results[0].ok?a:b).body.site_id);
+    assert.equal((await consent(f,retry)).ok,true); assert.equal(count(f,'dinkuskit_store_identity'),1); assert.equal(count(f,'dinkuskit_service_grant'),1);
   } finally { f.close(); }
 });
 
 test('independent contract: revocation is service-specific; an owner revoke needs fresh consent and an operator cut-off refuses until restored', async () => {
   const f = await fixture(); try {
+    await commerceFirst(f);
     const i = await start(f); assert.equal((await consent(f,i)).ok,true);
     const p = await start(f,'payments'); assert.equal((await consent(f,p)).ok,true);
     const siteId = i.body.site_id;
@@ -257,6 +272,7 @@ test('independent contract: production consent checks the store through the netw
     ['redirect', () => new Response(null, {status:302, headers:{location:'https://elsewhere.example.test/'}}), false],
   ]) {
     const f = await fixture(); try {
+      await commerceFirst(f);
       const c = await start(f, 'payments'); const requested = [];
       globalThis.fetch = async url => { requested.push(String(url)); return reply(c); };
       const result = await consent(f, c, 'alice', { proofFetch: fetchStoreProofReceipt });
@@ -272,6 +288,7 @@ test('independent contract: the Payments beta connects with its own callback and
   const original = globalThis.fetch;
   const betaProof = id => `https://store.example.test/_emdash/api/plugins/r_sffx6l4z6mpqliki/store-proof?connection_id=${id}`;
   const f = await fixture(); try {
+    await commerceFirst(f); await commerceFirst(f, 'https://stable.example.test');
     const c = await start(f, 'payments-beta'); assert.equal(c.response.status, 200);
     assert.equal(f.sqlite.prepare('SELECT callback_uri FROM dinkuskit_store_connection WHERE connection_id = ?').get(c.body.connection_id).callback_uri, 'https://store.example.test/_emdash/admin/plugins/r_sffx6l4z6mpqliki/status');
     const stableShaped = { ...c.receipt, callback_uri: `https://store.example.test${registrations.payments.callback}` };
@@ -283,7 +300,7 @@ test('independent contract: the Payments beta connects with its own callback and
     const response = await exchange(f, c); assert.equal(response.status, 200); const issued = await response.json();
     const { payload } = await jwtVerify(issued.access_token, createLocalJWKSet({ keys: [f.keys.publicJwk] }), { issuer: 'https://dinkuskit.com/account', audience: 'dinkus-payments' });
     assert.equal(payload.scope, 'payments:admin'); assert.equal(payload.site_id, c.body.site_id);
-    const stable = await start(f, 'payments', 'https://stable.example.test'); requested.length = 0;
+    const stable = await start(f, 'payments', 'https://stable.example.test'); assert.equal(stable.response.status, 200); requested.length = 0;
     globalThis.fetch = async url => { requested.push(String(url)); return new Response('not found', { status: 404 }); };
     assert.equal((await consent(f, stable, 'alice', { proofFetch: fetchStoreProofReceipt })).ok, false);
     assert.deepEqual(requested, [`https://stable.example.test/_emdash/api/plugins/r_3brsc2on3bu673rn/store-proof?connection_id=${stable.body.connection_id}`], 'a stable connection never reads the beta path');
@@ -307,6 +324,7 @@ test('independent contract: redemption rechecks authority after token preparatio
     f => f.sqlite.prepare("UPDATE dinkuskit_account SET disabled=1 WHERE user_id='alice'").run(),
   ]) {
     const f=await fixture(); try {
+      await commerceFirst(f);
       const c=await start(f,'payments'); assert.equal((await consent(f,c)).ok,true);
       const prepare=f.db.prepare.bind(f.db);
       f.db.prepare=sql=>{const q=prepare(sql);if(sql.includes("SET status = 'redeemed'")){const run=q.run,execute=q.execute;q.run=async()=>{mutate(f);return run();};q.execute=()=>{mutate(f);return execute();};}return q;};
@@ -316,36 +334,39 @@ test('independent contract: redemption rechecks authority after token preparatio
   }
 });
 
+// Commerce, Payments and Ship connected, each with its own key (store-connect-080); passes trade Commerce's key unless told otherwise.
 async function storeWithKey(f) {
+  const commerce = await commerceFirst(f);
+  const siteId = commerce.body.site_id, key = commerce.key;
   const c = await start(f, 'payments'); assert.equal((await consent(f, c)).ok, true);
-  const siteId = c.body.site_id;
+  const s = await start(f, 'ship'); assert.equal((await consent(f, s)).ok, true);
+  const shipKey = (await (await exchange(f, s)).json()).store_key; assert.match(shipKey, /^dk_store_[A-Za-z0-9_-]{43}$/);
   const owner = { subject: 'org-a', siteId, organizationId: 'a', actorUserId: 'alice' };
-  const key = await replaceStoreKey(f.db, owner); assert.match(key, /^dk_store_[A-Za-z0-9_-]{43}$/);
   const pass = async (scope, audience, overrides = {}) => {
     const response = await issueStorePass({ db: f.db, authorization: `Bearer ${overrides.key ?? key}`, body: overrides.body ?? { site_id: siteId, scope, audience }, privateJwkJson: JSON.stringify(f.keys.privateJwk) });
     return { status: response.status, body: await response.json() };
   };
-  return { siteId, owner, key, pass };
+  return { siteId, owner, key, shipKey, pass };
 }
 
-test('store passes: one key, a 5-minute pass for each service that is on, nothing for the rest', async () => {
+test('store passes: a 5-minute pass for each service that is on, nothing for the rest', async () => {
   const f = await fixture(); try {
-    const { siteId, owner, key, pass } = await storeWithKey(f);
-    assert.equal(f.sqlite.prepare('SELECT count(*) n FROM dinkuskit_store_key WHERE key_hash = ?').get(createHash('sha256').update(key).digest('hex')).n, 1, 'only the hash is kept');
-    assert.equal(f.sqlite.prepare('SELECT count(*) n FROM dinkuskit_store_key WHERE key_hash = ?').get(key).n, 0);
+    const { siteId, owner, key, shipKey, pass } = await storeWithKey(f);
+    assert.equal(f.sqlite.prepare("SELECT count(*) n FROM dinkuskit_plugin_key WHERE plugin = 'commerce' AND key_hash = ?").get(createHash('sha256').update(key).digest('hex')).n, 1, 'only the hash is kept');
+    assert.equal(f.sqlite.prepare('SELECT count(*) n FROM dinkuskit_plugin_key WHERE key_hash = ?').get(key).n, 0);
     const payments = await pass('payments:checkout', 'dinkus-payments'); assert.equal(payments.status, 200);
     const jwks = createLocalJWKSet({ keys: [f.keys.publicJwk] });
     const { payload } = await jwtVerify(payments.body.access_token, jwks, { issuer: 'https://dinkuskit.com/account', audience: 'dinkus-payments' });
     assert.deepEqual([payload.sub, payload.site_id, payload.scope, payload.exp - payload.iat], ['org-a', siteId, 'payments:checkout', 300]);
     assert.ok(payload.iat <= Math.floor(Date.now() / 1000) - 2, 'iat is dated back so no verifier sees it in the future');
     assert.deepEqual(payments.body.expires_in, 300);
-    assert.deepEqual(await pass('coupons:checkout', 'dinkus-coupons'), { status: 403, body: { error: 'service_not_enabled' } });
+    assert.deepEqual(await pass('coupons:checkout', 'dinkus-coupons'), { status: 403, body: { error: 'scope_not_allowed' } }, 'no plugin key trades for Coupons before v1 ships it');
     assert.deepEqual(await pass('ship:orders', 'dinkus-ship'), { status: 403, body: { error: 'service_not_enabled' } });
-    assert.deepEqual(await pass('ship:admin', 'dinkus-ship'), { status: 403, body: { error: 'service_not_enabled' } }, 'the Ship plugin needs Ship turned on too');
+    assert.deepEqual(await pass('ship:admin', 'dinkus-ship', { key: shipKey }), { status: 403, body: { error: 'service_not_enabled' } }, 'the Ship plugin needs Ship turned on too');
     assert.equal(await setOwnerService(f.db, { ...owner, service: 'ship', on: true }), 'on');
     const ship = await pass('ship:orders', 'dinkus-ship'); assert.equal(ship.status, 200);
     await jwtVerify(ship.body.access_token, jwks, { audience: 'dinkus-ship' });
-    const shipAdmin = await pass('ship:admin', 'dinkus-ship'); assert.equal(shipAdmin.status, 200);
+    const shipAdmin = await pass('ship:admin', 'dinkus-ship', { key: shipKey }); assert.equal(shipAdmin.status, 200);
     const { payload: admin } = await jwtVerify(shipAdmin.body.access_token, jwks, { issuer: 'https://dinkuskit.com/account', audience: 'dinkus-ship' });
     assert.deepEqual([admin.sub, admin.site_id, admin.site_origin, admin.scope, admin.exp - admin.iat, shipAdmin.body.expires_in],
       ['org-a', siteId, f.sqlite.prepare('SELECT site_origin FROM dinkuskit_store_identity WHERE site_id = ?').get(siteId).site_origin, 'ship:admin', 300, 300],
@@ -353,10 +374,10 @@ test('store passes: one key, a 5-minute pass for each service that is on, nothin
     assert.match(admin.site_origin, /^https:\/\//);
     assert.equal(await setOwnerService(f.db, { ...owner, service: 'ship', on: false }), 'off');
     assert.deepEqual(await pass('ship:orders', 'dinkus-ship'), { status: 403, body: { error: 'service_not_enabled' } });
-    assert.deepEqual(await pass('ship:admin', 'dinkus-ship'), { status: 403, body: { error: 'service_not_enabled' } });
+    assert.deepEqual(await pass('ship:admin', 'dinkus-ship', { key: shipKey }), { status: 403, body: { error: 'service_not_enabled' } });
     assert.equal(await setOwnerService(f.db, { ...owner, service: 'payments', on: true }), 'forbidden', 'Payments is turned on only by its own Connect');
     const listed = (await listStoreSetup(f.db, 'org-a'))[0];
-    assert.deepEqual(listed.services, { payments: 'on', coupons: 'off', ship: 'off' }); assert.ok(listed.key.lastUsedAt);
+    assert.deepEqual(listed.services, { payments: 'on', coupons: 'off', ship: 'off' }); assert.ok(listed.plugins.commerce.lastUsedAt); assert.ok(listed.plugins.ship.lastUsedAt);
   } finally { f.close(); }
 });
 
@@ -364,10 +385,10 @@ test('store passes: replaced, malformed and mismatched keys and requests are ref
   const f = await fixture(); try {
     const { siteId, owner, key, pass } = await storeWithKey(f);
     assert.equal(await setOwnerService(f.db, { ...owner, service: 'ship', on: true }), 'on');
-    assert.equal((await pass('ship:admin', 'dinkus-ship')).status, 200);
-    const replaced = await replaceStoreKey(f.db, owner); assert.notEqual(replaced, key);
+    assert.equal((await pass('ship:orders', 'dinkus-ship')).status, 200);
+    const replaced = (await commerceFirst(f)).key; assert.notEqual(replaced, key);
     assert.deepEqual(await pass('payments:checkout', 'dinkus-payments'), { status: 401, body: { error: 'invalid_store_key' } });
-    assert.deepEqual(await pass('ship:admin', 'dinkus-ship'), { status: 401, body: { error: 'invalid_store_key' } }, 'Replace key stops Ship plugin passes too');
+    assert.deepEqual(await pass('ship:orders', 'dinkus-ship'), { status: 401, body: { error: 'invalid_store_key' } }, 'Connect again stops Ship order passes too');
     assert.equal((await pass('payments:checkout', 'dinkus-payments', { key: replaced })).status, 200);
     assert.deepEqual(await pass('payments:checkout', 'dinkus-payments', { key: 'dk_store_' + 'A'.repeat(43) }), { status: 401, body: { error: 'invalid_store_key' } });
     assert.deepEqual(await pass('payments:checkout', 'dinkus-payments', { key: 'not-a-store-key' }), { status: 401, body: { error: 'invalid_store_key' } });
@@ -379,10 +400,8 @@ test('store passes: replaced, malformed and mismatched keys and requests are ref
     assert.deepEqual(await pass(null, null, { key: replaced, body: { site_id: 'some-other-store', scope: 'payments:checkout', audience: 'dinkus-payments' } }), { status: 403, body: { error: 'site_mismatch' } });
     const response = await issueStorePass({ db: f.db, authorization: null, body: { site_id: siteId, scope: 'payments:checkout', audience: 'dinkus-payments' } });
     assert.equal(response.status, 401);
-    assert.equal(await replaceStoreKey(f.db, { ...owner, organizationId: 'b', actorUserId: 'bob', subject: 'org-b' }), null, 'another business cannot make a key for this store');
-    assert.equal(await replaceStoreKey(f.db, { ...owner, actorUserId: 'staff' }), null, 'only the owner makes keys');
     assert.equal(await setOwnerService(f.db, { ...owner, actorUserId: 'staff', service: 'coupons', on: true }), 'forbidden');
-    f.sqlite.prepare('UPDATE dinkuskit_store_key SET window_start = ?, window_count = 1200').run(Math.floor(Date.now() / 60_000));
+    f.sqlite.prepare("UPDATE dinkuskit_plugin_key SET window_start = ?, window_count = 1200 WHERE plugin = 'commerce'").run(Math.floor(Date.now() / 60_000));
     assert.deepEqual(await pass('payments:checkout', 'dinkus-payments', { key: replaced }), { status: 429, body: { error: 'rate_limited' } });
     assert.deepEqual(await issueStorePass({ db: f.db, authorization: `Bearer ${replaced}`, body: { site_id: siteId, scope: 'payments:checkout', audience: 'dinkus-payments' } }).then(r => r.status), 429);
   } finally { f.close(); }
@@ -390,21 +409,23 @@ test('store passes: replaced, malformed and mismatched keys and requests are ref
 
 test('store passes: suspension, operator cut-off and restore are enforced at every trade', async () => {
   const f = await fixture(); try {
-    const { siteId, owner, pass } = await storeWithKey(f);
+    const { siteId, owner, shipKey, pass } = await storeWithKey(f);
     const operator = { userId: 'cms-admin', email: 'operator@example.test' };
-    assert.equal(await setOwnerService(f.db, { ...owner, service: 'coupons', on: true }), 'on');
-    assert.equal(await cutOffStore(f.db, siteId, 'coupons', operator), 1);
-    assert.deepEqual(await pass('coupons:checkout', 'dinkus-coupons'), { status: 403, body: { error: 'service_cut_off' } });
-    assert.equal(await setOwnerService(f.db, { ...owner, service: 'coupons', on: true }), 'cut_off', 'the owner cannot undo a cut-off');
-    assert.equal(await setOwnerService(f.db, { ...owner, service: 'coupons', on: false }), 'cut_off');
-    assert.equal((await pass('payments:checkout', 'dinkus-payments')).status, 200, 'a cut-off is per service');
-    assert.equal(await restoreStore(f.db, siteId, 'coupons', operator), 1);
-    assert.deepEqual(await pass('coupons:checkout', 'dinkus-coupons'), { status: 403, body: { error: 'service_not_enabled' } }, 'after restore the owner turns it on again');
-    assert.equal(await setOwnerService(f.db, { ...owner, service: 'coupons', on: true }), 'on');
-    assert.equal((await pass('coupons:checkout', 'dinkus-coupons')).status, 200);
     assert.equal(await setOwnerService(f.db, { ...owner, service: 'ship', on: true }), 'on');
     assert.equal(await cutOffStore(f.db, siteId, 'ship', operator), 1);
-    assert.deepEqual(await pass('ship:admin', 'dinkus-ship'), { status: 403, body: { error: 'service_cut_off' } }, 'an operator cut-off of Ship stops Ship plugin passes');
+    assert.deepEqual(await pass('ship:orders', 'dinkus-ship'), { status: 403, body: { error: 'service_cut_off' } });
+    assert.deepEqual(await pass('ship:admin', 'dinkus-ship', { key: shipKey }), { status: 403, body: { error: 'service_cut_off' } }, 'an operator cut-off of Ship stops Ship plugin passes');
+    assert.equal(await setOwnerService(f.db, { ...owner, service: 'ship', on: true }), 'cut_off', 'the owner cannot undo a cut-off');
+    assert.equal(await setOwnerService(f.db, { ...owner, service: 'ship', on: false }), 'cut_off');
+    assert.equal((await pass('payments:checkout', 'dinkus-payments')).status, 200, 'a cut-off is per service');
+    assert.equal(await restoreStore(f.db, siteId, 'ship', operator), 1);
+    assert.deepEqual(await pass('ship:orders', 'dinkus-ship'), { status: 403, body: { error: 'service_not_enabled' } }, 'after restore the owner turns it on again');
+    assert.equal(await setOwnerService(f.db, { ...owner, service: 'ship', on: true }), 'on');
+    assert.equal((await pass('ship:orders', 'dinkus-ship')).status, 200);
+    assert.equal((await pass('ship:admin', 'dinkus-ship', { key: shipKey })).status, 200);
+    assert.equal(await setOwnerService(f.db, { ...owner, service: 'coupons', on: true }), 'on');
+    assert.equal(await cutOffStore(f.db, siteId, 'coupons', operator), 1);
+    assert.equal(await setOwnerService(f.db, { ...owner, service: 'coupons', on: false }), 'cut_off', 'a Coupons cut-off holds too');
     f.sqlite.prepare("UPDATE dinkuskit_account SET disabled = 1 WHERE user_id = 'alice'").run();
     assert.deepEqual(await pass('payments:checkout', 'dinkus-payments'), { status: 403, body: { error: 'store_suspended' } });
     f.sqlite.prepare("UPDATE dinkuskit_account SET disabled = 0 WHERE user_id = 'alice'").run();

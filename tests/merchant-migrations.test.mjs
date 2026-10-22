@@ -277,7 +277,7 @@ test('merchant D1 migration 0013 preserves populated schema-12 Ship authority wi
   }
 });
 
-test('merchant D1 migration 0014 keeps a populated schema-13 store, its pasted key, grants and checkout choices', async () => {
+test('merchant D1 migration 0014 keeps a populated schema-13 store, grants and checkout choices, and its pasted key gets nothing', async () => {
   const persistTo = await mkdtemp(join(tmpdir(), 'dk-v13-keys-'));
   let runtime;
   const legacyKey = `dk_store_${randomBytes(32).toString('base64url')}`;
@@ -309,24 +309,24 @@ test('merchant D1 migration 0014 keeps a populated schema-13 store, its pasted k
     assert.equal((await request(runtime, new Map(), '/account/.well-known/jwks.json')).status, 200, 'compiled runtime applies 0014');
     assert.deepEqual(ledgerRows(persistTo), expectedLedger);
     assert.deepEqual(query('SELECT count(*) n FROM dinkuskit_plugin_key'), [{ n: 0 }], 'nothing is made up for old stores');
-    // The pasted key keeps every pass it had, and gets nothing new.
+    // The pasted key's row stays, but it trades for nothing (store-connect-no-paste-082): the store presses Connect.
     const trade = async (scope, audience) => {
       const response = await request(runtime, new Map(), '/api/store-passes', { method: 'POST', headers: { authorization: `Bearer ${legacyKey}` }, body: JSON.stringify({ site_id: 'keys-v13-site', scope, audience }) });
       return { status: response.status, body: await response.json() };
     };
-    assert.equal((await trade('payments:checkout', 'dinkus-payments')).status, 200);
-    assert.equal((await trade('ship:orders', 'dinkus-ship')).status, 200);
-    assert.equal((await trade('ship:admin', 'dinkus-ship')).status, 200);
-    assert.deepEqual(await trade('commerce:settings', 'dinkuskit'), { status: 403, body: { error: 'scope_not_allowed' } });
+    const gone = { status: 401, body: { error: 'invalid_store_key' } };
+    for (const [scope, audience] of [['payments:checkout', 'dinkus-payments'], ['ship:orders', 'dinkus-ship'], ['ship:admin', 'dinkus-ship'], ['commerce:settings', 'dinkuskit']]) {
+      assert.deepEqual(await trade(scope, audience), gone, scope);
+    }
     assert.deepEqual(query("SELECT shipping_mode, shipping_minor, shipping_revision, live FROM dinkuskit_commerce_settings WHERE site_id = 'keys-v13-site'"),
       [{ shipping_mode: 'flat', shipping_minor: 450, shipping_revision: 3, live: 0 }]);
     assert.deepEqual(query("SELECT service, revoked FROM dinkuskit_service_grant WHERE site_id = 'keys-v13-site' ORDER BY service"),
       [{ service: 'payments', revoked: 0 }, { service: 'ship', revoked: 0 }]);
-    assert.ok(query("SELECT last_used_at FROM dinkuskit_store_key WHERE site_id = 'keys-v13-site'")[0].last_used_at > 1);
+    assert.deepEqual(query("SELECT key_hash, last_used_at FROM dinkuskit_store_key WHERE site_id = 'keys-v13-site'"), [{ key_hash: keyHash, last_used_at: null }], 'the old row is kept, never used');
     const prior = runtime;
     await stopRuntime({ ...prior, ownedPersist: false }); runtime = undefined;
     runtime = await startMerchantTestRuntime({ persistTo, secret: prior.secret, jwt: prior.jwt });
-    assert.equal((await trade('payments:checkout', 'dinkus-payments')).status, 200, 'still works after a restart');
+    assert.deepEqual(await trade('payments:checkout', 'dinkus-payments'), gone, 'still refused after a restart');
     assert.deepEqual(ledgerRows(persistTo), expectedLedger, 'restart leaves additive migration idempotent');
     assert.deepEqual(query('PRAGMA foreign_key_check'), []);
   } finally {

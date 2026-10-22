@@ -77,12 +77,11 @@ const keyOnly = (clientId: string, service: 'commerce' | 'ship', page: string) =
  * keeps the callback it started with, and that callback alone picks the proof path its
  * store check reads.
  */
-// Payments still registers stores until the Commerce Connect release ships; then it too
-// needs Commerce connected first.
+// Payments, like Ship, needs Commerce connected first (store-connect-flow-081).
 export const REGISTERED_STORE_SERVICES: readonly RegisteredStoreService[] = [
   { clientId: INVENTORY_CLIENT_ID, service: INVENTORY_SERVICE, callbackPath: INVENTORY_CALLBACK_PATH, proofPath: INVENTORY_PROOF_PATH, audience: 'inventory', scope: INVENTORY_SCOPE, plugin: null, grants: true, registersStore: true },
-  { clientId: PAYMENTS_CLIENT_ID, service: PAYMENTS_SERVICE, callbackPath: PAYMENTS_CALLBACK_PATH, proofPath: PAYMENTS_PROOF_PATH, audience: 'dinkus-payments', scope: PAYMENTS_SCOPE, plugin: 'payments', grants: true, registersStore: true },
-  { clientId: PAYMENTS_CLIENT_ID, service: PAYMENTS_SERVICE, callbackPath: PAYMENTS_BETA_CALLBACK_PATH, proofPath: PAYMENTS_BETA_PROOF_PATH, audience: 'dinkus-payments', scope: PAYMENTS_SCOPE, plugin: 'payments', grants: true, registersStore: true },
+  { clientId: PAYMENTS_CLIENT_ID, service: PAYMENTS_SERVICE, callbackPath: PAYMENTS_CALLBACK_PATH, proofPath: PAYMENTS_PROOF_PATH, audience: 'dinkus-payments', scope: PAYMENTS_SCOPE, plugin: 'payments', grants: true, registersStore: false },
+  { clientId: PAYMENTS_CLIENT_ID, service: PAYMENTS_SERVICE, callbackPath: PAYMENTS_BETA_CALLBACK_PATH, proofPath: PAYMENTS_BETA_PROOF_PATH, audience: 'dinkus-payments', scope: PAYMENTS_SCOPE, plugin: 'payments', grants: true, registersStore: false },
   ...COMMERCE_REGISTRY_IDS.map(keyOnly(COMMERCE_CLIENT_ID, COMMERCE_SERVICE, 'settings')),
   ...SHIP_REGISTRY_IDS.map(keyOnly(SHIP_CLIENT_ID, SHIP_SERVICE, 'shipping')),
 ];

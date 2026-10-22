@@ -6,7 +6,7 @@ import { createHash, randomBytes } from 'node:crypto';
 import { stripTypeScriptTypes } from 'node:module';
 import { startStoreConnection, consentStoreConnection, exchangeStoreConnectionToken } from '../src/account/connect.ts';
 import { createLocalTestKeys } from '../src/account/jwt.ts';
-import { disconnectPlugin, issueStorePass, listStoreSetup, replaceStoreKey, setOwnerService } from '../src/account/store-passes.ts';
+import { disconnectPlugin, hashKey, issueStorePass, listStoreSetup, newStoreKey, setOwnerService } from '../src/account/store-passes.ts';
 import { saveCommerceSettings, serveCommerceSettings } from '../src/account/commerce-settings.ts';
 import { REGISTERED_STORE_SERVICES } from '../src/account/config.ts';
 
@@ -103,23 +103,23 @@ test('Commerce connects first: it registers the store and gets its own key, with
   } finally { f.close(); }
 });
 
-test('Ship waits for Commerce; Payments, Ship and the betas each get their own key', async () => {
+test('Payments and Ship wait for Commerce, then each plugin and beta gets its own key', async () => {
   const f = await fixture(); try {
-    const early = await start(f, 'ship');
-    assert.deepEqual([early.response.status, early.body], [409, { error: 'connect_commerce_first' }]);
+    for (const install of ['ship', 'payments']) {
+      const early = await start(f, install);
+      assert.deepEqual([early.response.status, early.body], [409, { error: 'connect_commerce_first' }], `${install} waits for Commerce`);
+    }
+    const commerce = await connect(f, 'commerce-beta');
     const payments = await connect(f, 'payments');
+    assert.equal(payments.issued.body.site_id, commerce.body.site_id, 'Payments joins the store Commerce registered');
     assert.equal(payments.issued.body.token_type, 'Bearer', 'Payments still gets its 5-minute admin pass');
     assert.match(payments.issued.body.store_key, /^dk_store_/, 'and its own store key for its status page');
-    const stillEarly = await start(f, 'ship');
-    assert.deepEqual([stillEarly.response.status, stillEarly.body.error], [409, 'connect_commerce_first'], 'a store ID from Payments is not enough');
-    const commerce = await connect(f, 'commerce-beta');
-    assert.equal(commerce.issued.body.site_id, payments.body.site_id, 'Commerce joins the store Payments registered');
     const ship = await connect(f, 'ship-beta');
     assert.deepEqual(Object.keys(ship.issued.body).sort(), ['site_id', 'store_key']);
     assert.equal(count(f, "dinkuskit_service_grant WHERE service = 'ship'"), 0, 'connecting the Ship plugin does not turn Ship on');
     const keys = [payments, commerce, ship].map(c => c.issued.body.store_key);
     assert.equal(new Set(keys).size, 3);
-    assert.equal(count(f, 'dinkuskit_plugin_key WHERE site_id = ?', payments.body.site_id), 3);
+    assert.equal(count(f, 'dinkuskit_plugin_key WHERE site_id = ?', commerce.body.site_id), 3);
   } finally { f.close(); }
 });
 
@@ -134,8 +134,8 @@ test('Ship approval refuses a store whose Commerce was disconnected after Connec
 
 test('each plugin key gets only its own plugin\'s passes', async () => {
   const f = await fixture(); try {
-    const payments = await connect(f, 'payments');
     const commerce = await connect(f, 'commerce');
+    const payments = await connect(f, 'payments');
     const siteId = commerce.body.site_id;
     const owner = { subject: 'org-a', siteId, organizationId: 'a', actorUserId: 'alice' };
     assert.equal(await setOwnerService(f.db, { ...owner, service: 'ship', on: true }), 'on');
@@ -160,10 +160,12 @@ test('each plugin key gets only its own plugin\'s passes', async () => {
     await check(shipKey, 'ship:admin', 'dinkus-ship', ok);
     await check(shipKey, 'payments:checkout', 'dinkus-payments', refused);
     await check(shipKey, 'ship:orders', 'dinkus-ship', refused);
-    const legacy = await replaceStoreKey(f.db, owner);
-    await check(legacy, 'payments:checkout', 'dinkus-payments', ok);
-    await check(legacy, 'ship:admin', 'dinkus-ship', ok);
-    await check(legacy, 'commerce:settings', 'dinkuskit', refused);
+    // A key pasted before Connect still has its row, but gets nothing (store-connect-no-paste-082).
+    const legacy = newStoreKey();
+    f.sqlite.prepare('INSERT INTO dinkuskit_store_key (site_id,key_hash,created_by_user_id,created_at,last_used_at,window_start,window_count) VALUES (?, ?, ?, 1, NULL, 0, 0)').run(siteId, await hashKey(legacy), 'alice');
+    const gone = { status: 401, body: { error: 'invalid_store_key' } };
+    for (const [scope, audience] of [['payments:checkout', 'dinkus-payments'], ['ship:orders', 'dinkus-ship'], ['ship:admin', 'dinkus-ship'], ['commerce:settings', 'dinkuskit']]) await check(legacy, scope, audience, gone);
+    assert.equal(f.sqlite.prepare('SELECT last_used_at FROM dinkuskit_store_key WHERE site_id = ?').get(siteId).last_used_at, null, 'an old key is never marked used');
     assert.equal(await setOwnerService(f.db, { ...owner, service: 'ship', on: false }), 'off');
     assert.deepEqual(await pass(shipKey, 'ship:admin', 'dinkus-ship'), { status: 403, body: { error: 'service_not_enabled' } }, 'the owner\'s Ship switch still decides');
     assert.deepEqual(await pass(commerceKey, 'payments:checkout', 'dinkus-other'), { status: 400, body: { error: 'invalid_request' } });
@@ -219,8 +221,8 @@ test('another business cannot connect a plugin to a store it does not own', asyn
 
 test('Commerce reads its checkout settings with its own pass, and nothing else can', async () => {
   const f = await fixture(); try {
-    const payments = await connect(f, 'payments');
     const commerce = await connect(f, 'commerce');
+    const payments = await connect(f, 'payments');
     const siteId = commerce.body.site_id;
     const pass = trader(f, siteId);
     const privateJwkJson = JSON.stringify(f.keys.privateJwk);

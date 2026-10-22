@@ -5,7 +5,7 @@
     "cadence": "sequential",
     "confirmed": false,
     "domain": "Connect to DinkusKit replaces the store key paste",
-    "started_at": "2026-10-22T13:35:47+00:00",
+    "started_at": "2026-10-22T13:59:12+00:00",
     "status": "grilling",
     "summary": "Reopen store-connect-flow-081: Ronald (13:35 UTC): Commerce is the base layer and connects first; Payments and Ship need Commerce, Commerce does not need them."
   },
@@ -3664,7 +3664,7 @@
           "to": "needs_reverification"
         },
         {
-          "at": "2026-10-22T13:24:26+00:00",
+          "at": "2026-10-22T13:59:12+00:00",
           "choice": "Set up Commerce on DinkusKit.com also shows the checkout settings to paste into Commerce: store ID, which Payments account, shipping charge, and test or live. A setup page inside Commerce comes after v1, when there is room.",
           "from": "needs_reverification",
           "implementation_ref": "file:migrations/merchant/0011_commerce_settings.sql;file:src/account/commerce-settings.ts;file:src/pages/account/sites.astro;file:docs/shared-store-connections.md",
@@ -3707,7 +3707,7 @@
       "review_source_identity": null,
       "status": "superseded",
       "superseded_by": "store-connect-checkout-settings-083",
-      "updated_at": "2026-10-22T13:24:26+00:00",
+      "updated_at": "2026-10-22T13:59:12+00:00",
       "verification_ref": null
     },
     {
@@ -7358,7 +7358,7 @@
           "to": "needs_reverification"
         },
         {
-          "at": "2026-10-22T13:24:26+00:00",
+          "at": "2026-10-22T13:59:12+00:00",
           "choice": "Each store gets one store key from Set up Commerce on DinkusKit.com and pastes it once into Commerce's settings in EmDash. Commerce shows that key only to DinkusKit.com, at POST /api/store-passes, and gets back a fresh 5-minute pass for one service whenever it needs one, signed like Connect passes. So Commerce talks to DinkusKit.com, which reverses the earlier picture where it never did. The key is shown once and only its hash is kept. Replace key makes a new one, and the old one stops working everywhere at once.",
           "from": "needs_reverification",
           "implementation_ref": "file:migrations/merchant/0010_store_keys.sql;file:src/account/store-passes.ts;file:src/pages/api/store-passes.ts;file:src/pages/account/sites.astro;file:src/account/jwt.ts;file:src/account/config.ts;file:docs/shared-store-connections.md",
@@ -7401,7 +7401,7 @@
       "review_source_identity": null,
       "status": "superseded",
       "superseded_by": "store-connect-per-plugin-key-080",
-      "updated_at": "2026-10-22T13:24:26+00:00",
+      "updated_at": "2026-10-22T13:59:12+00:00",
       "verification_ref": null
     },
     {
@@ -7474,7 +7474,7 @@
           "to": "needs_reverification"
         },
         {
-          "at": "2026-10-22T13:35:48+00:00",
+          "at": "2026-10-22T13:59:12+00:00",
           "choice": "Not in v1. A store key needs a DinkusKit store ID, which a store gets only by pressing Connect in the Payments (or Inventory) plugin, because that is how DinkusKit.com checks the store owns its web address. Every v1 store uses DinkusKit Payments, so it gets its ID there. Stores that bring their own payments plugin wait until after v1; a store ID given when DinkusKit itself creates a store is a possible later path.",
           "from": "needs_reverification",
           "implementation_ref": "file:src/account/store-passes.ts;file:docs/shared-store-connections.md",
@@ -7517,7 +7517,7 @@
       "review_source_identity": null,
       "status": "superseded",
       "superseded_by": "store-connect-flow-081",
-      "updated_at": "2026-10-22T13:35:48+00:00",
+      "updated_at": "2026-10-22T13:59:12+00:00",
       "verification_ref": null
     },
     {
@@ -9059,7 +9059,7 @@
           "verification_ref": null
         },
         {
-          "at": "2026-10-22T13:24:26+00:00",
+          "at": "2026-10-22T13:59:12+00:00",
           "choice": "DinkusKit.com signs scope ship:admin with audience dinkus-ship at POST /api/store-passes, exactly like ship:orders: ES256 from the account issuer, with sub, site_id, site_origin and a 5-minute life. It falls under the store's existing Ship grant (the owner's Ship switch) with the same refusals, so there is no new grant, page or setting. A store registered for the isolated Ship sandbox gets no ship:admin pass. The store key still goes only to /api/store-passes. Ship answers its admin routes only for this scope, and its order routes refuse it.",
           "from": "verified",
           "implementation_ref": "git:02f7e9c742e760c426f129f885c2a1a382284983",
@@ -9085,7 +9085,7 @@
       "review_source_identity": null,
       "status": "needs_reverification",
       "superseded_by": null,
-      "updated_at": "2026-10-22T13:24:26+00:00",
+      "updated_at": "2026-10-22T13:59:12+00:00",
       "verification_ref": "file:proof/ship-admin-pass/PROOF.md"
     },
     {
@@ -9248,14 +9248,14 @@
       "candidate_refs": [],
       "choice": "Pressing Connect in Commerce, Payments or Ship gives that plugin its own store key. DinkusKit.com hands it over at the end of Connect, straight into the plugin's encrypted settings; the owner never sees, copies or pastes it. Each key is limited to the passes its plugin needs: Commerce gets payments:checkout and ship:orders, the Payments plugin its status read, the Ship plugin ship:admin. Keys are still traded only at POST https://dinkuskit.com/api/store-passes for 5-minute passes and kept only as a hash. Connecting a plugin again replaces only that plugin's key. The owner's service switches (043) are unchanged.",
       "context_ref": "https://claude.ai/code/project/chan_01JLcLQeD34rfoMic23aaman?thread=cmsg_01JLcLQeD34rfoMic23aamanCBvyAFsykj4wHAKkvd8pTJ",
-      "created_at": "2026-10-22T13:24:25+00:00",
+      "created_at": "2026-10-22T13:59:11+00:00",
       "deferred_reason": null,
       "delivery_ref": null,
       "dependencies": [],
       "domain": "Connect to DinkusKit replaces the store key paste",
       "history": [
         {
-          "at": "2026-10-22T13:24:25+00:00",
+          "at": "2026-10-22T13:59:11+00:00",
           "choice": "Pressing Connect in Commerce, Payments or Ship gives that plugin its own store key. DinkusKit.com hands it over at the end of Connect, straight into the plugin's encrypted settings; the owner never sees, copies or pastes it. Each key is limited to the passes its plugin needs: Commerce gets payments:checkout and ship:orders, the Payments plugin its status read, the Ship plugin ship:admin. Keys are still traded only at POST https://dinkuskit.com/api/store-passes for 5-minute passes and kept only as a hash. Connecting a plugin again replaces only that plugin's key. The owner's service switches (043) are unchanged.",
           "from": "proposed",
           "implementation_ref": null,
@@ -9281,7 +9281,7 @@
       "review_source_identity": null,
       "status": "locked",
       "superseded_by": null,
-      "updated_at": "2026-10-22T13:24:25+00:00",
+      "updated_at": "2026-10-22T13:59:11+00:00",
       "verification_ref": null
     },
     {
@@ -9289,14 +9289,14 @@
       "candidate_refs": [],
       "choice": "Every plugin uses the protocol-2 Connect that Payments already has: the plugin shows Approve at DinkusKit.com with a link, the owner approves on DinkusKit.com's Connect a site page, and the plugin picks up the key by itself. An agent setting up a store hands the owner the same link. A store Admin presses Connect; only the business owner at DinkusKit.com may approve. Commerce connects first: its Connect runs the web-address check that proves the store owns its address and creates the store's DinkusKit ID. Payments and Ship need Commerce connected first and say so when it is not; Commerce works without either.",
       "context_ref": "https://claude.ai/code/project/chan_01JLcLQeD34rfoMic23aaman?thread=cmsg_01JLcLQeD34rfoMic23aamanCBvyAFsykj4wHAKkvd8pTJ",
-      "created_at": "2026-10-22T13:24:25+00:00",
+      "created_at": "2026-10-22T13:59:11+00:00",
       "deferred_reason": null,
       "delivery_ref": null,
       "dependencies": [],
       "domain": "Connect to DinkusKit replaces the store key paste",
       "history": [
         {
-          "at": "2026-10-22T13:24:26+00:00",
+          "at": "2026-10-22T13:59:11+00:00",
           "choice": "Every plugin uses the protocol-2 Connect that Payments already has: the plugin shows Approve at DinkusKit.com with a link, the owner approves on DinkusKit.com's Connect a site page, and the plugin picks up the key by itself. An agent setting up a store hands the owner the same link. A store Admin presses Connect; only the business owner at DinkusKit.com may approve. The store's DinkusKit ID still comes from the Payments Connect (045), so Commerce and Ship ask the owner to connect Payments first when it is not yet connected.",
           "from": "proposed",
           "implementation_ref": null,
@@ -9310,7 +9310,7 @@
           "verification_ref": null
         },
         {
-          "at": "2026-10-22T13:35:47+00:00",
+          "at": "2026-10-22T13:59:12+00:00",
           "choice": "Every plugin uses the protocol-2 Connect that Payments already has: the plugin shows Approve at DinkusKit.com with a link, the owner approves on DinkusKit.com's Connect a site page, and the plugin picks up the key by itself. An agent setting up a store hands the owner the same link. A store Admin presses Connect; only the business owner at DinkusKit.com may approve. The store's DinkusKit ID still comes from the Payments Connect (045), so Commerce and Ship ask the owner to connect Payments first when it is not yet connected.",
           "from": "locked",
           "implementation_ref": null,
@@ -9324,7 +9324,7 @@
           "verification_ref": null
         },
         {
-          "at": "2026-10-22T13:35:48+00:00",
+          "at": "2026-10-22T13:59:12+00:00",
           "choice": "Every plugin uses the protocol-2 Connect that Payments already has: the plugin shows Approve at DinkusKit.com with a link, the owner approves on DinkusKit.com's Connect a site page, and the plugin picks up the key by itself. An agent setting up a store hands the owner the same link. A store Admin presses Connect; only the business owner at DinkusKit.com may approve. The store's DinkusKit ID still comes from the Payments Connect (045), so Commerce and Ship ask the owner to connect Payments first when it is not yet connected.",
           "from": "reopened",
           "implementation_ref": null,
@@ -9350,23 +9350,23 @@
       "review_source_identity": null,
       "status": "locked",
       "superseded_by": null,
-      "updated_at": "2026-10-22T13:35:48+00:00",
+      "updated_at": "2026-10-22T13:59:12+00:00",
       "verification_ref": null
     },
     {
       "baseline_ref": null,
       "candidate_refs": [],
-      "choice": "No paste path. The store key boxes leave Commerce, Payments and Ship, and Set up Commerce stops showing store keys. Once the new plugin releases ship, DinkusKit.com stops accepting the old one-per-store keys. Stores with pasted keys (beta.sm0ky.dev, and the Authorize.net proof store if it has one) press Connect once in each plugin, and the beta store key in 1Password is retired. Replace key becomes Connect again in that plugin, and Your Stores shows each connected plugin with a Disconnect.",
+      "choice": "No paste path. The store key boxes leave Commerce, Payments and Ship, and Set up Commerce stops showing store keys. Once the new plugin releases ship, DinkusKit.com stops accepting the old one-per-store keys. Any store that still holds a pasted key presses Connect once in each plugin, and its old key stops working. Replace key becomes Connect again in that plugin, and Your Stores shows each connected plugin with a Disconnect.",
       "context_ref": "https://claude.ai/code/project/chan_01JLcLQeD34rfoMic23aaman?thread=cmsg_01JLcLQeD34rfoMic23aamanCBvyAFsykj4wHAKkvd8pTJ",
-      "created_at": "2026-10-22T13:24:25+00:00",
+      "created_at": "2026-10-22T13:59:11+00:00",
       "deferred_reason": null,
       "delivery_ref": null,
       "dependencies": [],
       "domain": "Connect to DinkusKit replaces the store key paste",
       "history": [
         {
-          "at": "2026-10-22T13:24:26+00:00",
-          "choice": "No paste path. The store key boxes leave Commerce, Payments and Ship, and Set up Commerce stops showing store keys. Once the new plugin releases ship, DinkusKit.com stops accepting the old one-per-store keys. Stores with pasted keys (beta.sm0ky.dev, and the Authorize.net proof store if it has one) press Connect once in each plugin, and the beta store key in 1Password is retired. Replace key becomes Connect again in that plugin, and Your Stores shows each connected plugin with a Disconnect.",
+          "at": "2026-10-22T13:59:11+00:00",
+          "choice": "No paste path. The store key boxes leave Commerce, Payments and Ship, and Set up Commerce stops showing store keys. Once the new plugin releases ship, DinkusKit.com stops accepting the old one-per-store keys. Any store that still holds a pasted key presses Connect once in each plugin, and its old key stops working. Replace key becomes Connect again in that plugin, and Your Stores shows each connected plugin with a Disconnect.",
           "from": "proposed",
           "implementation_ref": null,
           "note": "user accepted the scoped decision",
@@ -9382,7 +9382,7 @@
       "id": "store-connect-no-paste-082",
       "implementation_ref": null,
       "question": "What happens to pasted store keys and Replace key?",
-      "rationale": "Only beta (and possibly the proof store) holds a pasted key; playground uses a made-up key in a test and dinkuskit.com runs no Commerce. Ronald chose to deal with it now rather than keep a fallback (answer 6).",
+      "rationale": "Only a few test stores hold a pasted key today, so switching them now costs little and leaves no second setup path to keep. Ronald chose to deal with it now rather than keep a fallback (answer 6).",
       "repair_required": false,
       "review_classifications": [],
       "review_history": [],
@@ -9391,7 +9391,7 @@
       "review_source_identity": null,
       "status": "locked",
       "superseded_by": null,
-      "updated_at": "2026-10-22T13:24:26+00:00",
+      "updated_at": "2026-10-22T13:59:11+00:00",
       "verification_ref": null
     },
     {
@@ -9399,14 +9399,14 @@
       "candidate_refs": [],
       "choice": "Commerce fetches its checkout settings from DinkusKit.com itself with a 5-minute pass, so the owner never pastes them: store ID, Payments account, test or live, shipping, and whether Ship is on. A change on DinkusKit.com reaches Commerce without a paste, and Show checkout settings goes away. Commerce still refuses settings made for another site.",
       "context_ref": "https://claude.ai/code/project/chan_01JLcLQeD34rfoMic23aaman?thread=cmsg_01JLcLQeD34rfoMic23aamanCBvyAFsykj4wHAKkvd8pTJ",
-      "created_at": "2026-10-22T13:24:25+00:00",
+      "created_at": "2026-10-22T13:59:11+00:00",
       "deferred_reason": null,
       "delivery_ref": null,
       "dependencies": [],
       "domain": "Connect to DinkusKit replaces the store key paste",
       "history": [
         {
-          "at": "2026-10-22T13:24:26+00:00",
+          "at": "2026-10-22T13:59:12+00:00",
           "choice": "Commerce fetches its checkout settings from DinkusKit.com itself with a 5-minute pass, so the owner never pastes them: store ID, Payments account, test or live, shipping, and whether Ship is on. A change on DinkusKit.com reaches Commerce without a paste, and Show checkout settings goes away. Commerce still refuses settings made for another site.",
           "from": "proposed",
           "implementation_ref": null,
@@ -9432,7 +9432,7 @@
       "review_source_identity": null,
       "status": "locked",
       "superseded_by": null,
-      "updated_at": "2026-10-22T13:24:26+00:00",
+      "updated_at": "2026-10-22T13:59:12+00:00",
       "verification_ref": null
     },
     {
@@ -9440,14 +9440,14 @@
       "candidate_refs": [],
       "choice": "Before the final v1 release. One build thread owns dinkuskit/dinkuskit, payments, ship, commerce, template-store and live-journeys, landing in that order. The live journeys that paste the store key or checkout settings (Install plugins, DinkusKit.com connect, Commerce settings, Payments status, Ship settings) switch to pressing Connect and approving on DinkusKit.com; the e2e thread reviews that rework, and it lands in the same release as the new betas so the first Cut beta passes its own journeys. Commerce's side waits on the size work in Commerce's ledger (commerce-connect-size-20261022).",
       "context_ref": "https://claude.ai/code/project/chan_01JLcLQeD34rfoMic23aaman?thread=cmsg_01JLcLQeD34rfoMic23aamanCBvyAFsykj4wHAKkvd8pTJ",
-      "created_at": "2026-10-22T13:24:25+00:00",
+      "created_at": "2026-10-22T13:59:11+00:00",
       "deferred_reason": null,
       "delivery_ref": null,
       "dependencies": [],
       "domain": "Connect to DinkusKit replaces the store key paste",
       "history": [
         {
-          "at": "2026-10-22T13:24:26+00:00",
+          "at": "2026-10-22T13:59:12+00:00",
           "choice": "Before the final v1 release. One build thread owns dinkuskit/dinkuskit, payments, ship, commerce, template-store and live-journeys, landing in that order. The live journeys that paste the store key or checkout settings (Install plugins, DinkusKit.com connect, Commerce settings, Payments status, Ship settings) switch to pressing Connect and approving on DinkusKit.com; the e2e thread reviews that rework, and it lands in the same release as the new betas so the first Cut beta passes its own journeys. Commerce's side waits on the size work in Commerce's ledger (commerce-connect-size-20261022).",
           "from": "proposed",
           "implementation_ref": null,
@@ -9473,12 +9473,12 @@
       "review_source_identity": null,
       "status": "locked",
       "superseded_by": null,
-      "updated_at": "2026-10-22T13:24:26+00:00",
+      "updated_at": "2026-10-22T13:59:12+00:00",
       "verification_ref": null
     }
   ],
   "last_activation": {
-    "at": "2026-10-22T13:35:47+00:00",
+    "at": "2026-10-22T13:59:12+00:00",
     "mechanism": "implicit"
   },
   "last_pause": {
@@ -9505,5 +9505,5 @@
   "status": "active",
   "title": "Composed integration",
   "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5",
-  "updated_at": "2026-10-22T13:35:48+00:00"
+  "updated_at": "2026-10-22T13:59:12+00:00"
 }

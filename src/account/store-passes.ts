@@ -4,7 +4,7 @@ import {
 } from './config.ts';
 import { shipRecipient, shipClaims, shipTestMode, SHIP_SANDBOX_AUDIENCE, type ShipSandboxRegistration } from './ship-recipient.ts';
 import { signServicePass } from './jwt.ts';
-import { persistPublicJwk, revokeServiceGrant } from './store.ts';
+import { denyUnredeemedConnections, persistPublicJwk, revokeServiceGrant } from './store.ts';
 
 /**
  * Store keys and the passes plugins trade them for. Each plugin gets its own key at
@@ -33,6 +33,11 @@ const OWNER_OF_STORE = `EXISTS (SELECT 1 FROM dinkuskit_store_identity i WHERE i
     JOIN dinkuskit_user_selection s ON s.user_id = m.user_id AND s.organization_id = m.organization_id
     WHERE m.organization_id = ? AND m.user_id = ? AND m.role = 'owner' AND m.status = 'active'
       AND a.disabled = 0 AND o.status = 'active' AND o.authority_subject = ?)`;
+/** The business that owns store i is admitted and active, and its owner can still sign in. */
+export const STORE_ACTIVE = `EXISTS (SELECT 1 FROM dinkuskit_organization o JOIN dinkuskit_account a ON a.user_id = o.owner_user_id
+  JOIN dinkuskit_membership m ON m.organization_id = o.organization_id AND m.user_id = o.owner_user_id
+  WHERE o.authority_subject = i.account_subject AND o.status = 'active' AND o.admission_status <> 'pending_operator'
+    AND a.disabled = 0 AND m.role = 'owner' AND m.status = 'active')`;
 type OwnerInput = { subject: string; siteId: string; organizationId: string; actorUserId: string };
 const ownerArgs = (input: OwnerInput) => [input.siteId, input.subject, input.organizationId, input.actorUserId, input.subject];
 
@@ -41,12 +46,18 @@ export function newStoreKey(): string {
   return `${STORE_KEY_PREFIX}${base64url(crypto.getRandomValues(new Uint8Array(32)))}`;
 }
 
-/** Disconnect on Your Stores: the plugin's key stops working at once. */
+/**
+ * Disconnect on Your Stores: the plugin's key stops working at once, and an approved
+ * Connect for that plugin not yet picked up dies with it, so it cannot hand over a new key.
+ */
 export async function disconnectPlugin(db: D1Database, input: OwnerInput & { plugin: KeyedPlugin }): Promise<boolean> {
   if (!KEYED_PLUGINS.includes(input.plugin)) return false;
-  const result = await db.prepare(`DELETE FROM dinkuskit_plugin_key WHERE site_id = ? AND plugin = ? AND ${OWNER_OF_STORE}`)
-    .bind(input.siteId, input.plugin, ...ownerArgs(input)).run() as { meta?: { changes?: number } };
-  return (result.meta?.changes ?? 0) > 0;
+  const [result] = await db.batch([
+    db.prepare(`DELETE FROM dinkuskit_plugin_key WHERE site_id = ? AND plugin = ? AND ${OWNER_OF_STORE}`)
+      .bind(input.siteId, input.plugin, ...ownerArgs(input)),
+    denyUnredeemedConnections(db, input.siteId, input.plugin),
+  ]) as { meta?: { changes?: number } }[];
+  return (result?.meta?.changes ?? 0) > 0;
 }
 
 /** Makes a new store key, replacing any earlier one. Returns the key once, or null if not allowed. */
@@ -165,10 +176,7 @@ export async function issueStorePass(input: {
   if (used.plugin ? !PLUGIN_KEY_SCOPES[used.plugin].includes(fields.scope as string) : settingsPass) return json(403, { error: 'scope_not_allowed' });
 
   const store = await input.db.prepare(`SELECT i.account_subject, i.site_origin, g.revoked, g.revoked_by,
-      EXISTS (SELECT 1 FROM dinkuskit_organization o JOIN dinkuskit_account a ON a.user_id = o.owner_user_id
-        JOIN dinkuskit_membership m ON m.organization_id = o.organization_id AND m.user_id = o.owner_user_id
-        WHERE o.authority_subject = i.account_subject AND o.status = 'active' AND o.admission_status <> 'pending_operator'
-          AND a.disabled = 0 AND m.role = 'owner' AND m.status = 'active') AS store_active
+      ${STORE_ACTIVE} AS store_active
     FROM dinkuskit_store_identity i
     LEFT JOIN dinkuskit_service_grant g ON g.site_id = i.site_id AND g.service = ?
     WHERE i.site_id = ?`).bind(service?.service ?? '', used.site_id)

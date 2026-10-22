@@ -3,7 +3,7 @@ import { createLocalJWKSet, jwtVerify } from 'jose';
 import { ACCOUNT_ISSUER, COMMERCE_SETTINGS_PASS, COUPONS_ORIGIN, PAYMENTS_ORIGIN, STORE_PASS_SERVICES } from './config.ts';
 import { prepareServiceAccess } from './jwt.ts';
 import { listPublicJwks, persistPublicJwk } from './store.ts';
-import { listStoreSetup } from './store-passes.ts';
+import { listStoreSetup, STORE_ACTIVE } from './store-passes.ts';
 
 /**
  * The checkout settings Set up Commerce gives the owner to paste into Commerce's
@@ -176,6 +176,12 @@ export async function serveCommerceSettings(input: {
   } catch {
     return refuse(401, 'invalid_pass');
   }
+  // The pass may be up to five minutes old: check the store's business still stands before
+  // anything here signs a Payments pass on its behalf.
+  const active = await input.db.prepare(`SELECT ${STORE_ACTIVE} AS active FROM dinkuskit_store_identity i WHERE i.site_id = ? AND i.account_subject = ?`)
+    .bind(siteId, subject).first<{ active: number }>();
+  if (!active) return refuse(401, 'invalid_pass');
+  if (Number(active.active) !== 1) return refuse(403, 'store_suspended');
   const store = (await listStoreSetup(input.db, subject)).find(row => row.siteId === siteId);
   if (!store) return refuse(401, 'invalid_pass');
   const settings = await loadCommerceSettings(input.db, siteId);

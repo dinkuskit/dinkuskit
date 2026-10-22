@@ -20,8 +20,9 @@ Ship integration is outside this slice.
 
 The server selects these values from the registered client/service pair, never
 from arbitrary client-supplied proof URLs, scopes, or audiences. Payments consent
-includes status and processor setup; it is not read-only and does not grant
-`payments:checkout`. The Payments proof endpoint is a consumer contract requiring
+includes status and processor setup; it is not read-only. Since Connect hands the
+Payments plugin its own store key, that key can also trade for `payments:checkout`
+passes (see "Connect to DinkusKit: a store key per plugin"), and the consent page says so. The Payments proof endpoint is a consumer contract requiring
 separate implementation. These website changes do not prove live transport.
 
 Payments paths use the EmDash Registry installed ID `r_3brsc2on3bu673rn`, derived

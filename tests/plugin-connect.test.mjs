@@ -193,6 +193,19 @@ test('Connect again replaces only that plugin\'s key, and Disconnect stops it at
   } finally { f.close(); }
 });
 
+test('an approved Connect not yet picked up dies with Disconnect, so it cannot bring the key back', async () => {
+  const f = await fixture(); try {
+    const commerce = await connect(f, 'commerce');
+    const siteId = commerce.body.site_id;
+    const late = await start(f, 'commerce');
+    assert.equal((await consent(f, late)).ok, true, 'approved, but the plugin has not checked back yet');
+    assert.equal(await disconnectPlugin(f.db, { subject: 'org-a', siteId, organizationId: 'a', actorUserId: 'alice', plugin: 'commerce' }), true);
+    assert.deepEqual(await exchange(f, late), { status: 400, body: { error: 'access_denied' } });
+    assert.equal(count(f, "dinkuskit_plugin_key WHERE site_id = ? AND plugin = 'commerce'", siteId), 0);
+    assert.equal((await connect(f, 'commerce')).issued.status, 200, 'Connect again with fresh consent still works');
+  } finally { f.close(); }
+});
+
 test('another business cannot connect a plugin to a store it does not own', async () => {
   const f = await fixture(); try {
     await connect(f, 'commerce');
@@ -236,6 +249,20 @@ test('Commerce reads its checkout settings with its own pass, and nothing else c
     for (const token of [null, 'not-a-pass', paymentsPass, (await pass(payments.issued.body.store_key, 'payments:checkout', 'dinkus-payments')).body.access_token]) {
       assert.deepEqual(await read(token), { status: 401, cache: 'no-store', body: { error: 'invalid_pass' } });
     }
+    // A pass is good for five minutes: a business suspended or an owner disabled inside them
+    // gets no settings, and DinkusKit.com makes no Payments call for it.
+    for (const [suspend, restore] of [
+      ["UPDATE dinkuskit_organization SET status = 'suspended' WHERE organization_id = 'a'", "UPDATE dinkuskit_organization SET status = 'active' WHERE organization_id = 'a'"],
+      ["UPDATE dinkuskit_account SET disabled = 1 WHERE user_id = 'alice'", "UPDATE dinkuskit_account SET disabled = 0 WHERE user_id = 'alice'"],
+      ["UPDATE dinkuskit_membership SET status = 'suspended' WHERE user_id = 'alice'", "UPDATE dinkuskit_membership SET status = 'active' WHERE user_id = 'alice'"],
+    ]) {
+      f.sqlite.prepare(suspend).run();
+      const before = calls.length;
+      assert.deepEqual(await read(settingsPass), { status: 403, cache: 'no-store', body: { error: 'store_suspended' } });
+      assert.equal(calls.length, before, 'no Payments call for a suspended store');
+      f.sqlite.prepare(restore).run();
+    }
+    assert.equal((await read(settingsPass)).status, 200);
     f.sqlite.prepare("UPDATE dinkuskit_service_grant SET revoked = 1, revoked_by = 'owner' WHERE service = 'payments'").run();
     assert.deepEqual((await read(settingsPass)).body, { error: 'payments_not_connected' });
   } finally { f.close(); }

@@ -35,8 +35,9 @@ const staff = selected && canViewStaff ? await listStaff(env.MERCHANT_DB, select
 const selectedStatus = selected ? admissionStatuses.get(selected.organizationId) : undefined;
 let stores = merchant && selected && canViewStores && selectedStatus?.admission === 'admitted' ? await listStoreSetup(env.MERCHANT_DB, merchant.subject) : [];
 if (stores.length > 0 && merchant) {
+  // A store counts once any plugin has connected it: a Payments grant, or a plugin's own key (Commerce connects first).
   const connected = new Set((await listActiveBindings(env.MERCHANT_DB, merchant.subject)).map(binding => binding.siteId));
-  stores = stores.filter(store => connected.has(store.siteId));
+  stores = stores.filter(store => connected.has(store.siteId) || Object.values(store.plugins).some(Boolean));
 }
 const loginDeletion = await deletionGuard(env.MERCHANT_DB, login.userId);
 const showBusinesses = organizations.length > 1 || (!selected && organizations.length > 0);
@@ -125,7 +126,7 @@ const named = Astro.url.searchParams.get('named') === '1';
         <p role="status">Status: {approval(selected)}</p>
         {selectedStatus?.admission === 'pending' ? <p>We're reviewing this business. We'll email the owner when it's approved. A store can connect after that.</p> : null}
         {selectedStatus?.admission === 'admitted' && isOwner && stores.length === 0 ? (
-          <p>Install the DinkusKit Payments plugin in your EmDash store, open its setup page and press Connect. You'll come back here to approve it.</p>
+          <p>Install the DinkusKit Commerce plugin in your EmDash store, open Commerce Settings and press Connect. You'll come back here to approve it. Then do the same in Payments and Ship.</p>
         ) : null}
         {selectedStatus?.admission === 'admitted' && stores.length > 0 ? (
           <>

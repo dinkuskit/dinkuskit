@@ -13,11 +13,16 @@ Ship integration is outside this slice.
 | `inventory` | `dinkus-inventory-emdash` | `/_emdash/admin/plugins/dinkus-inventory/inventory` | `/_emdash/api/plugins/dinkus-inventory/store-proof` | `inventory` | `inventory:admin` |
 | `payments` | `dinkus-payments-emdash` | `/_emdash/admin/plugins/r_3brsc2on3bu673rn/status` | `/_emdash/api/plugins/r_3brsc2on3bu673rn/store-proof` | `dinkus-payments` | `payments:admin` |
 | `payments` (beta) | `dinkus-payments-emdash` | `/_emdash/admin/plugins/r_sffx6l4z6mpqliki/status` | `/_emdash/api/plugins/r_sffx6l4z6mpqliki/store-proof` | `dinkus-payments` | `payments:admin` |
+| `commerce` | `dinkus-commerce-emdash` | `/_emdash/admin/plugins/r_gshdrqaldna3r7sn/settings` | `/_emdash/api/plugins/r_gshdrqaldna3r7sn/store-proof` | none | none (store key only) |
+| `commerce` (beta) | `dinkus-commerce-emdash` | `/_emdash/admin/plugins/r_fjzjvld3ssb4j63o/settings` | `/_emdash/api/plugins/r_fjzjvld3ssb4j63o/store-proof` | none | none (store key only) |
+| `ship` | `dinkus-ship-emdash` | `/_emdash/admin/plugins/r_ehdlg5cxkb3ffqvr/shipping` | `/_emdash/api/plugins/r_ehdlg5cxkb3ffqvr/store-proof` | none | none (store key only) |
+| `ship` (beta) | `dinkus-ship-emdash` | `/_emdash/admin/plugins/r_nhb4yqdnowdmkxyu/shipping` | `/_emdash/api/plugins/r_nhb4yqdnowdmkxyu/store-proof` | none | none (store key only) |
 
 The server selects these values from the registered client/service pair, never
 from arbitrary client-supplied proof URLs, scopes, or audiences. Payments consent
-includes status and processor setup; it is not read-only and does not grant
-`payments:checkout`. The Payments proof endpoint is a consumer contract requiring
+includes status and processor setup; it is not read-only. Since Connect hands the
+Payments plugin its own store key, that key can also trade for `payments:checkout`
+passes (see "Connect to DinkusKit: a store key per plugin"), and the consent page says so. The Payments proof endpoint is a consumer contract requiring
 separate implementation. These website changes do not prove live transport.
 
 Payments paths use the EmDash Registry installed ID `r_3brsc2on3bu673rn`, derived
@@ -139,10 +144,63 @@ mean the service cannot currently issue credentials. No consumer may fall back
 to manual tokens or another service's token. This list describes expected
 classes; unknown errors also fail closed.
 
+## Connect to DinkusKit: a store key per plugin
+
+GrillTrack store-connect-080 to 084. Commerce, Payments and Ship each press the
+same protocol-2 Connect above, and each Connect hands that plugin its own store
+key at the end, in the `/api/store-connections/token` answer as `store_key`. The
+plugin saves it straight into its encrypted settings; the owner never sees,
+copies or pastes it. Only the key's SHA-256 is kept, in `dinkuskit_plugin_key`
+(one row per store and plugin). Connecting a plugin again replaces only that
+plugin's key, and **Disconnect** under Your stores deletes it, so it stops working
+at once.
+
+- **Commerce connects first.** Its Connect runs the store check that proves the
+  store owns its web address, and registers the store (its DinkusKit store ID)
+  with the business. It creates no service grant and no pass: the token answer is
+  `{"store_key", "site_id"}`.
+- **Ship** starts only once the store's Commerce has its key, and otherwise
+  answers 409 `connect_commerce_first`; approval rechecks it. Its answer is also
+  `{"store_key", "site_id"}`, and it turns nothing on: the owner's Ship switch
+  still decides.
+- **Payments** keeps its grant and 5-minute `payments:admin` pass, and its answer
+  adds `store_key` for its status page. Until the Commerce Connect release ships
+  it may still register a store, so stores keep working with today's plugins; then
+  it too needs Commerce connected first.
+
+Each plugin's key trades only for that plugin's passes, and anything else is 403
+`scope_not_allowed`:
+
+| Plugin | Passes |
+| --- | --- |
+| Commerce | `payments:checkout`, `ship:orders` (and the Ship sandbox audience), `commerce:settings` |
+| Payments | `payments:checkout` |
+| Ship | `ship:admin` |
+
+### Checkout settings read by Commerce
+
+`commerce:settings` with audience `dinkuskit` is a pass Commerce shows only to
+
+```
+GET /api/commerce-settings
+Authorization: Bearer <commerce:settings pass>
+```
+
+which answers the same `dinkuskit.commerce.registry-checkout/v1` JSON that
+**Show checkout settings** shows (below), built the same way from the owner's
+saved choices and Payments' status, `cache-control: no-store`. A change on
+DinkusKit.com reaches Commerce on its next read. Errors: 401 `invalid_pass`;
+409 `commerce_not_set_up` (no shipping or test-or-live choice saved yet),
+`payments_not_connected`, `payments_not_set_up`, `ship_test_required`; 503
+`payments_unreachable`, `signing_unavailable`.
+
+The pasted key below keeps working until the new plugin releases ship; then
+DinkusKit.com stops accepting it, and Set up Commerce stops showing store keys
+and checkout settings to paste (store-connect-no-paste-082).
+
 ## Store keys and passes for Commerce
 
-Commerce cannot press Connect (it has no room for that code), so it reaches the
-hosted services with a store key instead. On `/account/sites` the owner of a
+Before Connect, Commerce reached the hosted services with a pasted store key. On `/account/sites` the owner of a
 store's business sees **Set up Commerce** for each store that still has a
 service turned on. A store with nothing left on leaves that page for
 `/account/sites/archive`, which shows the same Set up Commerce row and says to

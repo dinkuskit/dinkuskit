@@ -176,7 +176,7 @@ test('merchant admission refresh isolates owner notifications, current members a
     assert.match(ownerSection, /We are sending you an email about this decision/);
     assert.match(ownerSection, /Whether or not the email arrives, the decision stands/);
     assert.match(ownerSection, /Connect your store/);
-    assert.match(ownerSection, /DinkusKit Payments plugin/);
+    assert.match(ownerSection, /DinkusKit Commerce plugin/);
     const saved = await state(id);
     for (const forbidden of [saved.audit.actor_user_id, saved.audit.actor_email, saved.notices[0].notification_id, 'delivery_failed', '+15555550123']) {
       assert.ok(!ownerSection.includes(forbidden), 'no raw audit, recipient, claim or error disclosure');

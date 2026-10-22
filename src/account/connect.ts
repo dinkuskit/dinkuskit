@@ -3,12 +3,13 @@ import {
   TOKEN_TTL_MAX_SECONDS, TOKEN_TTL_SECONDS, isRegisteredClient, registeredInstallation,
 } from './config.ts';
 import {
-  approveConnectionAndBind, denyOwnedStoreConnection, insertStoreConnection, loadActiveBinding,
+  approveConnectionAndBind, commerceConnected, denyOwnedStoreConnection, insertStoreConnection, loadActiveBinding,
   loadMerchantAccountBySubject, loadStoreConnection, persistPublicJwk, redeemStoreConnection,
   type StoreConnection,
 } from './store.ts';
 import { compareProofReceipt, parseCanonicalSiteOrigin, type ProofFetchFn, type StoreProofReceipt } from './proof-fetch.ts';
 import { prepareServiceAccess } from './jwt.ts';
+import { hashKey, newStoreKey } from './store-passes.ts';
 import type { ResolvedMerchant } from './session.ts';
 import { authorizeOrganization } from './organizations.ts';
 
@@ -41,6 +42,8 @@ export async function startStoreConnection(db: D1Database, body: unknown, baseUr
   if (!registered) return json(400, { error: 'invalid_callback' });
   const expectedCallback = `${origin.origin}${registered.callbackPath}`;
   const existing = await db.prepare('SELECT site_id FROM dinkuskit_store_identity WHERE site_origin = ?').bind(origin.origin).first<{ site_id: string }>();
+  // Commerce registers the store; the others connect only once Commerce has.
+  if (!registered.registersStore && (!existing || !await commerceConnected(db, existing.site_id))) return json(409, { error: 'connect_commerce_first' });
   const siteId = existing?.site_id ?? randomId();
   if (!/^[A-Za-z0-9_-]{1,200}$/.test(siteId)) return json(400, { error: 'invalid_site_id' });
   const now = Date.now(), connectionId = randomId(), challenge = randomId();
@@ -81,15 +84,28 @@ export async function exchangeStoreConnectionToken(input: {
     const membership = await authorizeOrganization(input.db, account.userId, connection.organizationId);
     if (!membership || membership.role !== 'owner' || membership.admissionStatus === 'pending_operator' || membership.authoritySubject !== connection.accountSubject) return json(403, { error: 'organization_forbidden' });
   }
-  const grant = await loadActiveBinding(input.db, connection.siteId, connection.service);
-  if (!grant || grant.revoked || grant.accountSubject !== connection.accountSubject || grant.siteOrigin !== connection.siteOrigin) return json(400, { error: 'grant_revoked' });
-  const prepared = await prepareServiceAccess({ subject: connection.accountSubject, siteId: connection.siteId, service: registered.service, privateJwkJson: input.jwtPrivateJwk, ttlSeconds: TOKEN_TTL_SECONDS });
-  if (!prepared.ok) return json(503, { error: prepared.reason === 'missing' ? 'signing_key_unavailable' : 'invalid_signing_key' });
-  const redeemed = await redeemStoreConnection(input.db, { connectionId: connection.connectionId, subject: connection.accountSubject, siteId: connection.siteId, siteOrigin: connection.siteOrigin, service: connection.service });
+  // Commerce and Ship only get their key; Inventory and Payments also need their grant on.
+  if (registered.grants) {
+    const grant = await loadActiveBinding(input.db, connection.siteId, connection.service);
+    if (!grant || grant.revoked || grant.accountSubject !== connection.accountSubject || grant.siteOrigin !== connection.siteOrigin) return json(400, { error: 'grant_revoked' });
+  }
+  const prepared = registered.grants
+    ? await prepareServiceAccess({ subject: connection.accountSubject, siteId: connection.siteId, service: registered.service, privateJwkJson: input.jwtPrivateJwk, ttlSeconds: TOKEN_TTL_SECONDS })
+    : null;
+  if (prepared && !prepared.ok) return json(503, { error: prepared.reason === 'missing' ? 'signing_key_unavailable' : 'invalid_signing_key' });
+  // The plugin's own store key goes back once, in this answer, and is never shown to anyone.
+  const storeKey = registered.plugin ? newStoreKey() : null;
+  const redeemed = await redeemStoreConnection(input.db, {
+    connectionId: connection.connectionId, subject: connection.accountSubject, siteId: connection.siteId, siteOrigin: connection.siteOrigin,
+    service: connection.service, grant: registered.grants,
+    ...(storeKey && registered.plugin ? { key: { plugin: registered.plugin, hash: await hashKey(storeKey), createdByUserId: account.userId } } : {}),
+  });
   if (redeemed === 'already_redeemed') return json(400, { error: 'already_redeemed' });
   if (redeemed !== 'ok') return json(400, { error: 'invalid_grant' });
+  const key = storeKey ? { store_key: storeKey } : {};
+  if (!prepared) return json(200, { ...key, site_id: connection.siteId });
   await persistPublicJwk(input.db, prepared.kid, prepared.publicJwk);
-  return json(200, { access_token: prepared.token, token_type: 'Bearer', expires_in: prepared.expiresIn, site_id: connection.siteId });
+  return json(200, { access_token: prepared.token, token_type: 'Bearer', expires_in: prepared.expiresIn, site_id: connection.siteId, ...key });
 }
 
 export async function consentStoreConnection(input: {
@@ -120,9 +136,12 @@ export async function consentStoreConnection(input: {
   if (mismatch) return { ok: false, reason: mismatch, status: 403 };
   if (proof.receipt.expires_at > Date.now() + CONNECTION_MAX_LIFETIME_MS) return { ok: false, reason: 'proof_expires_too_far', status: 403 };
   if (Date.now() > connection.expiresAt) return { ok: false, reason: 'expired_token', status: 400 };
+  const registered = registeredInstallation(connection.clientId, connection.service, connection.siteOrigin, connection.callbackUri);
+  if (!registered) return { ok: false, reason: 'invalid_client', status: 400 };
   const approved = await approveConnectionAndBind(input.db, {
     connectionId: connection.connectionId, subject: membership.authoritySubject, organizationId: input.organizationId,
     actorUserId: input.merchant.userId, siteId: connection.siteId, siteOrigin: connection.siteOrigin, service: connection.service,
+    grant: registered.grants, registersStore: registered.registersStore,
   });
   if (!approved.ok) return { ok: false, reason: approved.reason, status: 409 };
   return { ok: true, redirect: connection.callbackUri };

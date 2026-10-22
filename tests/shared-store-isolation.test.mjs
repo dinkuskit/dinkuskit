@@ -309,7 +309,7 @@ test('independent contract: redemption rechecks authority after token preparatio
     const f=await fixture(); try {
       const c=await start(f,'payments'); assert.equal((await consent(f,c)).ok,true);
       const prepare=f.db.prepare.bind(f.db);
-      f.db.prepare=sql=>{const q=prepare(sql);if(sql.includes("SET status = 'redeemed'")){const run=q.run;q.run=async()=>{mutate(f);return run();};}return q;};
+      f.db.prepare=sql=>{const q=prepare(sql);if(sql.includes("SET status = 'redeemed'")){const run=q.run,execute=q.execute;q.run=async()=>{mutate(f);return run();};q.execute=()=>{mutate(f);return execute();};}return q;};
       const response=await exchange(f,c);assert.equal(response.status,400);
       assert.equal(count(f,'dinkuskit_jwks'),0,'no public-key publication for denied issuance');
     } finally {f.close();}

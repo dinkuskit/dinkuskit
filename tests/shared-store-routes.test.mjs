@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { randomBytes, createHash } from 'node:crypto';
+import { spawnSync } from 'node:child_process';
 import { accountForm, request, signup, startMerchantTestRuntime, stopRuntime } from './helpers/merchant-harness.mjs';
 
 test('shared service routes require separate consent and display processor setup authority', async () => {
@@ -142,5 +143,117 @@ test('shared service routes require separate consent and display processor setup
     assert.equal((await shipToken({grant_type:'refresh_token',refresh_token:isolatedBody.refresh_token})).status,200);
     assert.equal((await request(runtime,owner,'/account/logout',{method:'POST'})).status,303);
     assert.deepEqual(await (await shipToken({grant_type:'refresh_token',refresh_token:legacyRefresh})).json(),{error:'invalid_grant'},'signing out of DinkusKit.com ends Ship\'s sign-in');
+  } finally { await stopRuntime(runtime); }
+});
+
+test('Connect to DinkusKit through the routes: Commerce first, a key per plugin, settings read, Disconnect', async () => {
+  const runtime = await startMerchantTestRuntime(); const owner = new Map();
+  try {
+    await signup(runtime,'plugin-owner@example.test',owner);
+    const origin = 'https://plugin-connect.example.test';
+    const paths = { commerce:['dinkus-commerce-emdash','r_gshdrqaldna3r7sn/settings'], payments:['dinkus-payments-emdash','r_3brsc2on3bu673rn/status'], ship:['dinkus-ship-emdash','r_ehdlg5cxkb3ffqvr/shipping'] };
+    const form = async (jar,fields)=>({method:'POST',headers:{'content-type':'application/x-www-form-urlencoded'},body:await accountForm(runtime,jar,new URLSearchParams(fields).toString())});
+    async function start(service) {
+      const verifier = randomBytes(32).toString('base64url'); const challenge = createHash('sha256').update(verifier).digest('base64url');
+      const [client, path] = paths[service]; const callback = `${origin}/_emdash/admin/plugins/${path}`;
+      const response = await request(runtime,new Map(),'/api/store-connections',{method:'POST',body:JSON.stringify({protocol_version:2,client_id:client,service,site_origin:origin,callback_uri:callback,code_challenge:challenge,code_challenge_method:'S256'})});
+      const body = await response.json();
+      if (response.status === 200) await request(runtime,new Map(),'/__proof/receipt',{method:'POST',body:JSON.stringify({version:2,connection_id:body.connection_id,challenge:body.challenge,client_id:client,service,site_id:body.site_id,site_origin:origin,callback_uri:callback,code_challenge:challenge,expires_at:body.expires_at})});
+      return { status: response.status, body, client, verifier, callback, path:`/account/connect?connection_id=${body.connection_id}` };
+    }
+    async function connect(service) {
+      const c = await start(service); assert.equal(c.status,200,`${service} starts`);
+      const page = await (await request(runtime,owner,c.path)).text();
+      assert.match(page,/own store key/,`the approval page says ${service} gets its own key`);
+      assert.equal((await request(runtime,owner,c.path,await form(owner,{action:'approve'}))).headers.get('location'),c.callback);
+      const token = await request(runtime,new Map(),'/api/store-connections/token',{method:'POST',body:JSON.stringify({client_id:c.client,connection_id:c.body.connection_id,code_verifier:c.verifier})});
+      assert.equal(token.status,200); return { ...c, issued: await token.json() };
+    }
+    const early = await start('ship'); assert.deepEqual([early.status, early.body], [409, { error: 'connect_commerce_first' }]);
+    const commerce = await connect('commerce'); assert.equal(commerce.issued.access_token, undefined); assert.match(commerce.issued.store_key, /^dk_store_/);
+    const siteId = commerce.issued.site_id;
+    const sites = await (await request(runtime,owner,'/account/sites')).text();
+    assert.match(sites,/plugin-connect\.example\.test/,'a store with only Commerce connected is on Your stores');
+    assert.match(sites,/Commerce plugin: connected/); assert.match(sites,/Disconnect Commerce/); assert.match(sites,/Payments plugin: not connected/);
+    assert.doesNotMatch(sites,/No store is connected yet/);
+    const home=await (await request(runtime,owner,'/account')).text();
+    assert.match(home,/Your store is connected/,'the account page counts a store Commerce alone connected'); assert.match(home,/plugin-connect\.example\.test/);
+    const payments = await connect('payments'); assert.equal(payments.issued.site_id, siteId); assert.match(payments.issued.store_key, /^dk_store_/);
+    const trade = (key,scope,audience)=>request(runtime,new Map(),'/api/store-passes',{method:'POST',headers:{authorization:`Bearer ${key}`},body:JSON.stringify({site_id:siteId,scope,audience})});
+    assert.equal((await trade(payments.issued.store_key,'payments:checkout','dinkus-payments')).status,200);
+    assert.deepEqual(await (await trade(payments.issued.store_key,'commerce:settings','dinkuskit')).json(),{error:'scope_not_allowed'});
+    assert.equal((await request(runtime,owner,'/account/sites',await form(owner,{action:'service',site_id:siteId,service:'ship',on:'1'}))).status,303);
+    const ship = await connect('ship'); assert.equal((await trade(ship.issued.store_key,'ship:admin','dinkus-ship')).status,200);
+    // Commerce reads its settings itself.
+    assert.equal((await request(runtime,owner,'/account/sites',await form(owner,{action:'checkout_settings',site_id:siteId,shipping_mode:'flat',shipping_amount:'4.00',payments_mode:'test'}))).status,200);
+    assert.equal((await request(runtime,new Map(),'/__proof/payments-status',{method:'POST',body:JSON.stringify({site_id:siteId,body:{state:'ready',bindingRef:'bind_plugin_1',connectionEvidence:{provider:'stripe',accountRef:'acct_1PluginTest'}}})})).status,200);
+    const settingsPass = (await (await trade(commerce.issued.store_key,'commerce:settings','dinkuskit')).json()).access_token;
+    const read = await request(runtime,new Map(),'/api/commerce-settings',{headers:{authorization:`Bearer ${settingsPass}`}});
+    assert.equal(read.status,200); const settings = await read.json();
+    assert.deepEqual([settings.siteId,settings.commerceOrigin,settings.bindingRef,settings.shipping.amount.minor,settings.ship.audience],[siteId,origin,'bind_plugin_1','400','dinkus-ship']);
+    assert.equal((await request(runtime,new Map(),'/api/commerce-settings')).status,401);
+    // Disconnect stops only that plugin's key.
+    assert.equal((await request(runtime,owner,'/account/sites',await form(owner,{action:'disconnect_plugin',site_id:siteId,plugin:'ship'}))).status,303);
+    assert.deepEqual(await (await trade(ship.issued.store_key,'ship:admin','dinkus-ship')).json(),{error:'invalid_store_key'});
+    assert.equal((await trade(commerce.issued.store_key,'ship:orders','dinkus-ship')).status,200);
+    assert.match(await (await request(runtime,owner,'/account/sites')).text(),/Ship plugin: not connected/);
+  } finally { await stopRuntime(runtime); }
+});
+
+test('Connect authority through the real Worker: another business, a late exchange after Disconnect, a suspended business', async () => {
+  const runtime = await startMerchantTestRuntime(); const owner = new Map(), other = new Map();
+  // Change the local D1 the Worker is using, as an operator action would.
+  const d1 = sql => { const r = spawnSync('node_modules/.bin/wrangler',['d1','execute','dinkuskit-merchant-local','--local','--persist-to',runtime.persistTo,'--config','wrangler.jsonc','--yes','--json','--command',sql],{encoding:'utf8'}); assert.equal(r.status,0,r.stderr); return JSON.parse(r.stdout).at(-1).results; };
+  try {
+    await signup(runtime,'authority-owner@example.test',owner);
+    await signup(runtime,'authority-other@example.test',other);
+    const origin = 'https://plugin-authority.example.test';
+    const paths = { commerce:['dinkus-commerce-emdash','r_gshdrqaldna3r7sn/settings'], payments:['dinkus-payments-emdash','r_3brsc2on3bu673rn/status'] };
+    const form = async (jar,fields)=>({method:'POST',headers:{'content-type':'application/x-www-form-urlencoded'},body:await accountForm(runtime,jar,new URLSearchParams(fields).toString())});
+    async function start(service) {
+      const verifier = randomBytes(32).toString('base64url'); const challenge = createHash('sha256').update(verifier).digest('base64url');
+      const [client, path] = paths[service]; const callback = `${origin}/_emdash/admin/plugins/${path}`;
+      const body = await (await request(runtime,new Map(),'/api/store-connections',{method:'POST',body:JSON.stringify({protocol_version:2,client_id:client,service,site_origin:origin,callback_uri:callback,code_challenge:challenge,code_challenge_method:'S256'})})).json();
+      await request(runtime,new Map(),'/__proof/receipt',{method:'POST',body:JSON.stringify({version:2,connection_id:body.connection_id,challenge:body.challenge,client_id:client,service,site_id:body.site_id,site_origin:origin,callback_uri:callback,code_challenge:challenge,expires_at:body.expires_at})});
+      return { body, client, verifier, path:`/account/connect?connection_id=${body.connection_id}` };
+    }
+    const approve = async (jar,c)=>request(runtime,jar,c.path,await form(jar,{action:'approve'}));
+    const exchange = async c=>{ const r = await request(runtime,new Map(),'/api/store-connections/token',{method:'POST',body:JSON.stringify({client_id:c.client,connection_id:c.body.connection_id,code_verifier:c.verifier})}); return { status:r.status, body:await r.json() }; };
+    const commerce = await start('commerce'); await approve(owner,commerce); const commerceKey = (await exchange(commerce)).body.store_key;
+    const payments = await start('payments'); await approve(owner,payments); assert.equal((await exchange(payments)).status,200);
+    const siteId = commerce.body.site_id;
+    const keys = () => d1(`SELECT plugin FROM dinkuskit_plugin_key WHERE site_id = '${siteId}' ORDER BY plugin`).map(r => r.plugin);
+    assert.deepEqual(keys(),['commerce','payments']);
+    const trade = (key,scope,audience)=>request(runtime,new Map(),'/api/store-passes',{method:'POST',headers:{authorization:`Bearer ${key}`},body:JSON.stringify({site_id:siteId,scope,audience})});
+
+    // Another business cannot approve a Connect for this store, so no key is handed over.
+    const foreign = await start('commerce');
+    await approve(other,foreign);
+    assert.deepEqual(await exchange(foreign),{status:400,body:{error:'authorization_pending',interval:5}});
+    assert.equal((await trade(commerceKey,'payments:checkout','dinkus-payments')).status,200,'the owner\'s key still works');
+
+    // A business suspended inside a settings pass's five minutes gets nothing, and no Payments call is made.
+    assert.equal((await request(runtime,owner,'/account/sites',await form(owner,{action:'checkout_settings',site_id:siteId,shipping_mode:'free',payments_mode:'test'}))).status,200);
+    await request(runtime,new Map(),'/__proof/payments-status',{method:'POST',body:JSON.stringify({site_id:siteId,body:{state:'ready',bindingRef:'bind_authority',connectionEvidence:{provider:'stripe',accountRef:'acct_1Authority'}}})});
+    const pass = (await (await trade(commerceKey,'commerce:settings','dinkuskit')).json()).access_token;
+    const read = () => request(runtime,new Map(),'/api/commerce-settings',{headers:{authorization:`Bearer ${pass}`}});
+    const lastCall = async () => (await (await request(runtime,new Map(),`/__proof/payments-status-call?site_id=${siteId}`)).json()).token;
+    assert.equal((await read()).status,200); const called = await lastCall(); assert.ok(called);
+    const subject = `(SELECT account_subject FROM dinkuskit_store_identity WHERE site_id = '${siteId}')`;
+    d1(`UPDATE dinkuskit_organization SET status = 'suspended' WHERE authority_subject = ${subject}`);
+    const suspended = await read();
+    assert.deepEqual([suspended.status, await suspended.json()],[403,{error:'store_suspended'}]);
+    assert.equal(await lastCall(),called,'no Payments status call for a suspended store');
+    assert.deepEqual(await (await trade(commerceKey,'commerce:settings','dinkuskit')).json(),{error:'store_suspended'});
+    d1(`UPDATE dinkuskit_organization SET status = 'active' WHERE authority_subject = ${subject}`);
+    assert.equal((await read()).status,200);
+
+    // An approved Connect not yet picked up dies with Disconnect.
+    const late = await start('commerce');
+    assert.equal((await approve(owner,late)).status,303);
+    assert.equal((await request(runtime,owner,'/account/sites',await form(owner,{action:'disconnect_plugin',site_id:siteId,plugin:'commerce'}))).status,303);
+    assert.deepEqual(await exchange(late),{status:400,body:{error:'access_denied'}});
+    assert.deepEqual(keys(),['payments'],'no Commerce key came back');
+    assert.deepEqual(await (await trade(commerceKey,'payments:checkout','dinkus-payments')).json(),{error:'invalid_store_key'});
   } finally { await stopRuntime(runtime); }
 });

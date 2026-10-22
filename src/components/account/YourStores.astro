@@ -10,6 +10,7 @@ const {
 } = Astro.props;
 const when = (seconds: number) => `${new Date(seconds * 1000).toISOString().slice(0, 16).replace('T', ' ')} UTC`;
 const SERVICE_LABEL = { payments: 'Payments', coupons: 'Coupons', ship: 'Ship' } as const;
+const PLUGIN_LABEL = { commerce: 'Commerce', payments: 'Payments', ship: 'Ship' } as const;
 const comingSoon = (service: string) => (COMING_SOON_SERVICES as readonly string[]).includes(service);
 const serviceNote = (binding: { revoked: boolean; revokedBy: string | null }) => !binding.revoked ? ''
   : binding.revokedBy === 'operator' ? ' (cut off by DinkusKit; contact DinkusKit to restore it)'
@@ -30,7 +31,7 @@ const serviceNote = (binding: { revoked: boolean; revokedBy: string | null }) =>
           ))}
         </ul>
       )
-    ) : visibleBindings.length === 0 ? <p>No store is connected yet. Install the DinkusKit Payments plugin in your EmDash store, open its setup page and press Connect. You'll come back here to approve it.</p> : (
+    ) : visibleBindings.length === 0 ? (visibleStores.length === 0 ? <p>No store is connected yet. Install the DinkusKit Commerce plugin in your EmDash store, open Commerce Settings and press Connect. You'll come back here to approve it. Then do the same in Payments and Ship.</p> : null) : (
       <ul>
         {visibleBindings.map(binding => (
           <li>
@@ -59,6 +60,25 @@ const serviceNote = (binding: { revoked: boolean; revokedBy: string | null }) =>
           <div class="account-form">
             <h3>{store.siteOrigin}</h3>
             <p>Store ID: <code>{store.siteId}</code></p>
+            <ul aria-label="Connected plugins">
+              {(['commerce', 'payments', 'ship'] as const).map(plugin => (
+                <li>
+                  {PLUGIN_LABEL[plugin]} plugin: {store.plugins[plugin]
+                    ? `connected ${when(store.plugins[plugin]!.createdAt)}, ${store.plugins[plugin]!.lastUsedAt ? `last used ${when(store.plugins[plugin]!.lastUsedAt!)}` : 'not used yet'}`
+                    : plugin === 'commerce' ? 'not connected. Press Connect in the Commerce plugin in EmDash.'
+                    : `not connected. Press Connect in the ${PLUGIN_LABEL[plugin]} plugin in EmDash, after Commerce.`}
+                  {isOwner && store.plugins[plugin] ? (
+                    <form method="post" action={formAction}>
+                      <input type="hidden" name="action" value="disconnect_plugin" />
+                      <input type="hidden" name="site_id" value={store.siteId} />
+                      <input type="hidden" name="plugin" value={plugin} />
+                      <input type="hidden" name="organization_id" value={organizationId} />
+                      <button type="submit">Disconnect {PLUGIN_LABEL[plugin]}</button>
+                    </form>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
             <ul>
               {(['payments', 'coupons', 'ship'] as const).map(service => (
                 <li>

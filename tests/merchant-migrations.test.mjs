@@ -23,6 +23,7 @@ const expectedLedger = [
   { version: 11, name: '0011_commerce_settings.sql' },
   { version: 12, name: '0012_ship_sign_in.sql' },
   { version: 13, name: '0013_ship_recipient.sql' },
+  { version: 14, name: '0014_plugin_keys.sql' },
 ];
 
 function wranglerD1(persistTo, args) {
@@ -276,6 +277,64 @@ test('merchant D1 migration 0013 preserves populated schema-12 Ship authority wi
   }
 });
 
+test('merchant D1 migration 0014 keeps a populated schema-13 store, its pasted key, grants and checkout choices', async () => {
+  const persistTo = await mkdtemp(join(tmpdir(), 'dk-v13-keys-'));
+  let runtime;
+  const legacyKey = `dk_store_${randomBytes(32).toString('base64url')}`;
+  const keyHash = createHash('sha256').update(legacyKey).digest('hex');
+  const query = sql => {
+    const answer = wranglerD1(persistTo, ['execute', '--yes', '--json', '--command', sql]);
+    assert.equal(answer.status, 0, 'local D1 query succeeds');
+    return JSON.parse(answer.stdout).at(-1).results;
+  };
+  try {
+    const schema = (await Promise.all(expectedLedger.filter(m => m.version <= 13).map(m => readFile(`migrations/merchant/${m.name}`, 'utf8')))).join('\n');
+    const seed = join(persistTo, 'schema13.sql');
+    await writeFile(seed, schema + `
+      INSERT INTO "user" (id,name,email,emailVerified,createdAt,updatedAt) VALUES ('keys-v13-user','Synthetic','keys-v13@example.test',1,1,1);
+      INSERT INTO dinkuskit_account (user_id,subject,created_at,updated_at) VALUES ('keys-v13-user','keys-v13-person',1,1);
+      INSERT INTO dinkuskit_organization (organization_id,name,status,owner_user_id,authority_subject,admission_status,created_by_user_id,created_at,updated_at)
+      VALUES ('keys-v13-org','Synthetic','active','keys-v13-user','keys-v13-subject','admitted','keys-v13-user',1,1);
+      INSERT INTO dinkuskit_membership VALUES ('keys-v13-org','keys-v13-user','owner','active','[]',1,1);
+      INSERT INTO dinkuskit_store_identity VALUES ('keys-v13-site','https://keys-v13.example.test','keys-v13-subject',1);
+      INSERT INTO dinkuskit_service_grant (site_id,service,revoked,granted_at) VALUES ('keys-v13-site','payments',0,1), ('keys-v13-site','ship',0,1);
+      INSERT INTO dinkuskit_commerce_settings VALUES ('keys-v13-site','flat',450,3,0,'keys-v13-user',1);
+      INSERT INTO dinkuskit_store_key (site_id,key_hash,created_by_user_id,created_at,last_used_at,window_start,window_count) VALUES ('keys-v13-site','${keyHash}','keys-v13-user',1,NULL,0,0);
+    `, { mode: 0o600 });
+    applySql(persistTo, seed);
+    assert.deepEqual(ledgerRows(persistTo), expectedLedger.filter(m => m.version <= 13));
+    assert.deepEqual(query("SELECT name FROM sqlite_master WHERE name = 'dinkuskit_plugin_key'"), []);
+
+    runtime = await startMerchantTestRuntime({ persistTo });
+    assert.equal((await request(runtime, new Map(), '/account/.well-known/jwks.json')).status, 200, 'compiled runtime applies 0014');
+    assert.deepEqual(ledgerRows(persistTo), expectedLedger);
+    assert.deepEqual(query('SELECT count(*) n FROM dinkuskit_plugin_key'), [{ n: 0 }], 'nothing is made up for old stores');
+    // The pasted key keeps every pass it had, and gets nothing new.
+    const trade = async (scope, audience) => {
+      const response = await request(runtime, new Map(), '/api/store-passes', { method: 'POST', headers: { authorization: `Bearer ${legacyKey}` }, body: JSON.stringify({ site_id: 'keys-v13-site', scope, audience }) });
+      return { status: response.status, body: await response.json() };
+    };
+    assert.equal((await trade('payments:checkout', 'dinkus-payments')).status, 200);
+    assert.equal((await trade('ship:orders', 'dinkus-ship')).status, 200);
+    assert.equal((await trade('ship:admin', 'dinkus-ship')).status, 200);
+    assert.deepEqual(await trade('commerce:settings', 'dinkuskit'), { status: 403, body: { error: 'scope_not_allowed' } });
+    assert.deepEqual(query("SELECT shipping_mode, shipping_minor, shipping_revision, live FROM dinkuskit_commerce_settings WHERE site_id = 'keys-v13-site'"),
+      [{ shipping_mode: 'flat', shipping_minor: 450, shipping_revision: 3, live: 0 }]);
+    assert.deepEqual(query("SELECT service, revoked FROM dinkuskit_service_grant WHERE site_id = 'keys-v13-site' ORDER BY service"),
+      [{ service: 'payments', revoked: 0 }, { service: 'ship', revoked: 0 }]);
+    assert.ok(query("SELECT last_used_at FROM dinkuskit_store_key WHERE site_id = 'keys-v13-site'")[0].last_used_at > 1);
+    const prior = runtime;
+    await stopRuntime({ ...prior, ownedPersist: false }); runtime = undefined;
+    runtime = await startMerchantTestRuntime({ persistTo, secret: prior.secret, jwt: prior.jwt });
+    assert.equal((await trade('payments:checkout', 'dinkus-payments')).status, 200, 'still works after a restart');
+    assert.deepEqual(ledgerRows(persistTo), expectedLedger, 'restart leaves additive migration idempotent');
+    assert.deepEqual(query('PRAGMA foreign_key_check'), []);
+  } finally {
+    if (runtime) await stopRuntime(runtime);
+    await rm(persistTo, { recursive: true, force: true });
+  }
+});
+
 test('merchant D1 migrations: a runtime checks the schema once and the next start repairs the ledger', async () => {
   const persistTo = await mkdtemp(join(tmpdir(), 'dk-check-once-'));
   const jwks = runtime => request(runtime, new Map(), '/account/.well-known/jwks.json');
@@ -284,7 +343,7 @@ test('merchant D1 migrations: a runtime checks the schema once and the next star
     runtime = await startMerchantTestRuntime({ persistTo });
     assert.equal((await jwks(runtime)).status, 200);
     assert.deepEqual(ledgerRows(persistTo), expectedLedger);
-    const removed = wranglerD1(persistTo, ['execute', '--yes', '--command', 'DELETE FROM dinkuskit_schema_migrations WHERE version = 13']);
+    const removed = wranglerD1(persistTo, ['execute', '--yes', '--command', 'DELETE FROM dinkuskit_schema_migrations WHERE version = 14']);
     assert.equal(removed.status, 0, removed.stderr || removed.stdout);
     assert.equal((await jwks(runtime)).status, 200);
     assert.deepEqual(ledgerRows(persistTo), expectedLedger.slice(0, -1), 'later requests in the same runtime skip the schema check');

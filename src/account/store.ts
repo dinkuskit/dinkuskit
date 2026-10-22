@@ -146,9 +146,21 @@ export async function denyOwnedStoreConnection(db: D1Database, connectionId: str
   return (result.meta?.changes ?? 0) > 0;
 }
 
+/** Whether the store's Commerce plugin has its key from Connect. */
+export async function commerceConnected(db: D1Database, siteId: string): Promise<boolean> {
+  return Boolean(await db.prepare("SELECT 1 AS ok FROM dinkuskit_plugin_key WHERE site_id = ? AND plugin = 'commerce'").bind(siteId).first());
+}
+
+/**
+ * The owner's approval of a pending connection. `grant` creates the service's grant
+ * (Inventory, Payments); without it the connection only hands the plugin its key.
+ * `registersStore` lets it register a store DinkusKit.com does not know yet.
+ */
 export async function approveConnectionAndBind(db: D1Database, input: {
   connectionId: string; subject: string; organizationId: string; actorUserId: string; siteId: string; siteOrigin: string; service: string;
+  grant?: boolean; registersStore?: boolean;
 }): Promise<{ ok: true } | { ok: false; reason: string }> {
+  const grant = input.grant ?? true, registersStore = input.registersStore ?? true;
   const now = nowSeconds();
   const connection = await loadStoreConnection(db, input.connectionId);
   if (!connection || connection.protocolVersion !== 2 || connection.siteId !== input.siteId || connection.siteOrigin !== input.siteOrigin || connection.service !== input.service) {
@@ -158,14 +170,15 @@ export async function approveConnectionAndBind(db: D1Database, input: {
     .bind(input.siteId, input.siteOrigin).first<{ site_id: string; site_origin: string; account_subject: string }>();
   if (identity && (identity.site_id !== input.siteId || identity.site_origin !== input.siteOrigin)) return { ok: false, reason: 'origin_id_conflict' };
   if (identity && identity.account_subject !== input.subject) return { ok: false, reason: 'ownership_conflict' };
+  if (!registersStore && (!identity || !await commerceConnected(db, input.siteId))) return { ok: false, reason: 'connect_commerce_first' };
   const existingGrant = await loadActiveBinding(db, input.siteId, input.service);
   // An owner's own disconnect, or a lifted operator cut-off, can be granted again by this
   // explicit consent; an operator cut-off refuses until an operator restores it.
   if (existingGrant?.revoked && existingGrant.revokedBy === 'operator') return { ok: false, reason: 'grant_revoked' };
   const expiresAt = Date.now();
   try {
-    await db.batch([
-      db.prepare(`INSERT OR IGNORE INTO dinkuskit_store_identity (site_id, site_origin, account_subject, created_at)
+    const statements = [
+      ...(registersStore ? [db.prepare(`INSERT OR IGNORE INTO dinkuskit_store_identity (site_id, site_origin, account_subject, created_at)
         SELECT ?, ?, ?, ? WHERE EXISTS (
           SELECT 1 FROM dinkuskit_organization o JOIN dinkuskit_membership m ON m.organization_id = o.organization_id
           JOIN dinkuskit_account a ON a.user_id = m.user_id JOIN dinkuskit_user_selection s ON s.user_id = m.user_id AND s.organization_id = m.organization_id
@@ -178,7 +191,7 @@ export async function approveConnectionAndBind(db: D1Database, input: {
         ) AND NOT EXISTS (
           SELECT 1 FROM dinkuskit_service_grant g WHERE g.site_id = ? AND g.service = ? AND g.revoked = 1 AND g.revoked_by = 'operator'
         )`).bind(input.siteId, input.siteOrigin, input.subject, now, input.organizationId, input.subject, input.actorUserId,
-          input.connectionId, expiresAt, input.subject, input.siteId, input.siteOrigin, input.service, input.siteId, input.service),
+          input.connectionId, expiresAt, input.subject, input.siteId, input.siteOrigin, input.service, input.siteId, input.service)] : []),
       db.prepare(`UPDATE dinkuskit_store_connection SET status = 'approved', account_subject = ?, organization_id = ?, consented_at = ?
         WHERE connection_id = ? AND status = 'pending' AND protocol_version = 2 AND expires_at > ?
           AND (account_subject IS NULL OR account_subject = ?) AND site_id = ? AND site_origin = ? AND service = ?
@@ -190,35 +203,55 @@ export async function approveConnectionAndBind(db: D1Database, input: {
               AND m.role = 'owner' AND m.status = 'active' AND o.status = 'active' AND o.admission_status <> 'pending_operator' AND a.disabled = 0)`)
         .bind(input.subject, input.organizationId, now, input.connectionId, expiresAt, input.subject, input.siteId, input.siteOrigin, input.service,
           input.siteId, input.siteOrigin, input.subject, input.siteId, input.service, input.organizationId, input.subject, input.actorUserId),
-      db.prepare(`INSERT INTO dinkuskit_service_grant (site_id, service, revoked, granted_at, revoked_at)
+      ...(grant ? [db.prepare(`INSERT INTO dinkuskit_service_grant (site_id, service, revoked, granted_at, revoked_at)
         SELECT ?, ?, 0, ?, NULL WHERE EXISTS (
           SELECT 1 FROM dinkuskit_store_connection WHERE connection_id = ? AND status = 'approved' AND protocol_version = 2
             AND account_subject = ? AND organization_id = ? AND site_id = ? AND site_origin = ? AND service = ?
         ) ON CONFLICT(site_id, service) DO UPDATE SET revoked = 0, granted_at = excluded.granted_at, revoked_at = NULL, revoked_by = NULL
           WHERE dinkuskit_service_grant.revoked = 0 OR dinkuskit_service_grant.revoked_by IS NOT 'operator'`)
-        .bind(input.siteId, input.service, now, input.connectionId, input.subject, input.organizationId, input.siteId, input.siteOrigin, input.service),
-    ]);
+        .bind(input.siteId, input.service, now, input.connectionId, input.subject, input.organizationId, input.siteId, input.siteOrigin, input.service)] : []),
+    ];
+    await db.batch(statements);
   } catch {
     return { ok: false, reason: 'ownership_conflict' };
   }
   const approved = await loadStoreConnection(db, input.connectionId);
-  const grant = await loadActiveBinding(db, input.siteId, input.service);
-  if (approved?.status !== 'approved' || approved.accountSubject !== input.subject || !grant || grant.accountSubject !== input.subject || grant.siteOrigin !== input.siteOrigin || grant.revoked) {
-    return { ok: false, reason: 'approval_failed' };
-  }
+  if (approved?.status !== 'approved' || approved.accountSubject !== input.subject) return { ok: false, reason: 'approval_failed' };
+  if (!grant) return { ok: true };
+  const bound = await loadActiveBinding(db, input.siteId, input.service);
+  if (!bound || bound.accountSubject !== input.subject || bound.siteOrigin !== input.siteOrigin || bound.revoked) return { ok: false, reason: 'approval_failed' };
   return { ok: true };
 }
-export async function redeemStoreConnection(db: D1Database, input: { connectionId: string; subject: string; siteId: string; siteOrigin: string; service: string }): Promise<'ok' | 'already_redeemed' | 'not_approved'> {
-  const result = await db.prepare(`UPDATE dinkuskit_store_connection SET status = 'redeemed', redeemed_at = ?
+/**
+ * Marks an approved connection used. With `grant`, the service's grant must still be on.
+ * With `key`, the plugin's new key is saved in the same batch, replacing its earlier one,
+ * and only if this call is the one that redeemed the connection.
+ */
+export async function redeemStoreConnection(db: D1Database, input: {
+  connectionId: string; subject: string; siteId: string; siteOrigin: string; service: string;
+  grant?: boolean; key?: { plugin: string; hash: string; createdByUserId: string };
+}): Promise<'ok' | 'already_redeemed' | 'not_approved'> {
+  const grant = input.grant ?? true;
+  const store = grant
+    ? `EXISTS (SELECT 1 FROM dinkuskit_store_identity i JOIN dinkuskit_service_grant g ON g.site_id = i.site_id
+        WHERE i.site_id = ? AND i.site_origin = ? AND i.account_subject = ? AND g.service = ? AND g.revoked = 0)`
+    : `EXISTS (SELECT 1 FROM dinkuskit_store_identity i WHERE i.site_id = ? AND i.site_origin = ? AND i.account_subject = ?)`;
+  const redeem = db.prepare(`UPDATE dinkuskit_store_connection SET status = 'redeemed', redeemed_at = ?
     WHERE connection_id = ? AND status = 'approved' AND protocol_version = 2 AND account_subject = ? AND service = ? AND site_id = ? AND site_origin = ? AND expires_at > ?
       AND EXISTS (SELECT 1 FROM dinkuskit_organization o JOIN dinkuskit_account a ON a.user_id = o.owner_user_id
         JOIN dinkuskit_membership m ON m.organization_id = o.organization_id AND m.user_id = o.owner_user_id
         WHERE o.authority_subject = ? AND o.status = 'active' AND o.admission_status <> 'pending_operator' AND a.disabled = 0 AND m.role = 'owner' AND m.status = 'active')
-      AND EXISTS (SELECT 1 FROM dinkuskit_store_identity i JOIN dinkuskit_service_grant g ON g.site_id = i.site_id
-        WHERE i.site_id = ? AND i.site_origin = ? AND i.account_subject = ? AND g.service = ? AND g.revoked = 0)`)
+      AND ${store}`)
     .bind(nowSeconds(), input.connectionId, input.subject, input.service, input.siteId, input.siteOrigin, Date.now(), input.subject,
-      input.siteId, input.siteOrigin, input.subject, input.service).run() as { meta?: { changes?: number } };
-  if ((result.meta?.changes ?? 0) > 0) return 'ok';
+      input.siteId, input.siteOrigin, input.subject, ...(grant ? [input.service] : []));
+  const key = input.key && db.prepare(`INSERT INTO dinkuskit_plugin_key
+      (site_id, plugin, key_hash, created_by_user_id, created_at, last_used_at, window_start, window_count)
+    SELECT ?, ?, ?, ?, ?, NULL, 0, 0 WHERE changes() > 0
+    ON CONFLICT(site_id, plugin) DO UPDATE SET key_hash = excluded.key_hash, created_by_user_id = excluded.created_by_user_id,
+      created_at = excluded.created_at, last_used_at = NULL, window_start = 0, window_count = 0`)
+    .bind(input.siteId, input.key.plugin, input.key.hash, input.key.createdByUserId, nowSeconds());
+  const [result] = await db.batch(key ? [redeem, key] : [redeem]) as { meta?: { changes?: number } }[];
+  if ((result?.meta?.changes ?? 0) > 0) return 'ok';
   const row = await loadStoreConnection(db, input.connectionId);
   if (row?.status === 'redeemed') return 'already_redeemed';
   return 'not_approved';

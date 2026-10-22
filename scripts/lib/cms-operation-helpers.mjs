@@ -14,6 +14,21 @@
  *   from `@emdash-cms/cloudflare` 1.0.1 `src/index.ts`.
  */
 
+export {
+  descendantPids,
+  killableOwnedPids,
+  leftoverOwned,
+  markReleasedPids,
+  mergeRecordedPids,
+  portReleased,
+  processAlive,
+  recordedPidsStillAlive,
+  rememberOwnedTree,
+  reservePort,
+  spawnLogged,
+  stopOwned,
+} from './owned-process.mjs';
+
 const SECRET_KEY = /cookie|set-cookie|authorization|proxy-authorization|jwt|token|session|passkey|credential|challenge|attestation|clientDataJSON|authenticatorData|signature|userHandle|nonce|astro-session|emdash_setup/i;
 const SECRET_LINE = /set-cookie|authorization:|cookie:|clientDataJSON|attestationObject|authenticatorData|"challenge"\s*:/i;
 

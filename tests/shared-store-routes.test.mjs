@@ -200,6 +200,53 @@ test('Connect to DinkusKit through the routes: Commerce first, a key per plugin,
   } finally { await stopRuntime(runtime); }
 });
 
+test('Connect authority through the real Worker: a cancelled or replaced Connect never gets a key, and a key is handed over once', async () => {
+  // Everything is read back over HTTP: the Worker owns its local D1 for the whole run.
+  const runtime = await startMerchantTestRuntime(); const owner = new Map();
+  try {
+    await signup(runtime,'cancel-owner@example.test',owner);
+    const origin = 'https://plugin-cancel.example.test', client = 'dinkus-commerce-emdash', callback = `${origin}/_emdash/admin/plugins/r_gshdrqaldna3r7sn/settings`;
+    const form = async (jar,fields)=>({method:'POST',headers:{'content-type':'application/x-www-form-urlencoded'},body:await accountForm(runtime,jar,new URLSearchParams(fields).toString())});
+    // Commerce's Connect as the plugin runs it: start, then its store-proof route answers with the receipt.
+    async function start() {
+      const verifier = randomBytes(32).toString('base64url'); const challenge = createHash('sha256').update(verifier).digest('base64url');
+      const body = await (await request(runtime,new Map(),'/api/store-connections',{method:'POST',body:JSON.stringify({protocol_version:2,client_id:client,service:'commerce',site_origin:origin,callback_uri:callback,code_challenge:challenge,code_challenge_method:'S256'})})).json();
+      await request(runtime,new Map(),'/__proof/receipt',{method:'POST',body:JSON.stringify({version:2,connection_id:body.connection_id,challenge:body.challenge,client_id:client,service:'commerce',site_id:body.site_id,site_origin:origin,callback_uri:callback,code_challenge:challenge,expires_at:body.expires_at})});
+      return { body, verifier, path:`/account/connect?connection_id=${body.connection_id}` };
+    }
+    // Cancel, or a newer Connect, in the plugin: its store-proof route stops vouching for this one.
+    const withdraw = c => request(runtime,new Map(),`/__proof/receipt?connection_id=${c.body.connection_id}`,{method:'DELETE'});
+    const approve = async c => request(runtime,owner,c.path,await form(owner,{action:'approve'}));
+    const exchange = async c => { const r = await request(runtime,new Map(),'/api/store-connections/token',{method:'POST',body:JSON.stringify({client_id:client,connection_id:c.body.connection_id,code_verifier:c.verifier})}); return { status:r.status, body:await r.json() }; };
+    const sites = async () => (await request(runtime,owner,'/account/sites')).text();
+
+    // Cancelled before the owner pressed Approve: Approve is refused, no store is made and no key is handed over.
+    const cancelled = await start();
+    assert.match(await (await request(runtime,owner,cancelled.path)).text(),/Approve commerce/);
+    await withdraw(cancelled);
+    const refused = await approve(cancelled);
+    assert.equal(refused.status,303); assert.match(refused.headers.get('location'),/error=/);
+    assert.deepEqual(await exchange(cancelled),{status:400,body:{error:'authorization_pending',interval:5}});
+    assert.doesNotMatch(await sites(),/plugin-cancel\.example\.test/,'a cancelled Connect makes no store');
+
+    // Connect again replaced a waiting Connect: only the newer one can be approved and redeemed.
+    const first = await start(), second = await start();
+    await withdraw(first);
+    assert.match((await approve(first)).headers.get('location'),/error=/);
+    assert.equal((await approve(second)).headers.get('location'),callback);
+    assert.deepEqual(await exchange(first),{status:400,body:{error:'authorization_pending',interval:5}},'the replaced Connect gets no key');
+    const issued = await exchange(second); assert.equal(issued.status,200); assert.match(issued.body.store_key,/^dk_store_/);
+    const siteId = issued.body.site_id;
+    const listed = await sites();
+    assert.match(listed,/plugin-cancel\.example\.test/); assert.equal(listed.match(/Commerce plugin: connected/g)?.length,1,'one store, one Commerce key');
+    // The key is handed over once: a second exchange, or the replaced Connect's verifier, gets nothing.
+    assert.deepEqual(await exchange(second),{status:400,body:{error:'already_redeemed'}});
+    assert.equal((await exchange({ ...second, verifier: first.verifier })).status,400);
+    const trade = key => request(runtime,new Map(),'/api/store-passes',{method:'POST',headers:{authorization:`Bearer ${key}`},body:JSON.stringify({site_id:siteId,scope:'commerce:settings',audience:'dinkuskit'})});
+    assert.equal((await trade(issued.body.store_key)).status,200,'the one key handed over is the one DinkusKit.com knows');
+  } finally { await stopRuntime(runtime); }
+});
+
 test('Connect authority through the real Worker: another business, a late exchange after Disconnect, a suspended business', async () => {
   const runtime = await startMerchantTestRuntime(); const owner = new Map(), other = new Map();
   // Change the local D1 the Worker is using, as an operator action would.

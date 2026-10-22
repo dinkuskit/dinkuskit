@@ -16,11 +16,12 @@ interface Props { steps: StartStepValue[] }
 const steps = Astro.props.steps.map(step => ({ ...step, href: safeHttpUrl(step.link_href), linkLabel: step.link_label?.trim() }));
 ---
 <ol class="start-steps">
-  {steps.map(step => {
+  {steps.map((step, index) => {
     const link = step.href && step.linkLabel ? <p><a href={step.href}>{step.linkLabel}</a></p> : null;
     return (
       <li class="start-step" data-start-step={step._key}>
         <label><input type="checkbox" data-start-check /> <span>{step.heading}</span></label>
+        <p id={`start-step-hint-${index + 1}`} class="start-hint" data-start-hint hidden></p>
         {step.body && <p>{step.body}</p>}
         {step.more_label ? (
           <details>
@@ -44,11 +45,43 @@ const steps = Astro.props.steps.map(step => ({ ...step, href: safeHttpUrl(step.l
   try { saved = JSON.parse(localStorage.getItem(KEY) ?? '[]'); } catch { saved = []; }
   const ticked = new Set(Array.isArray(saved) ? saved.filter(item => typeof item === 'string') : []);
   const render = () => {
-    const doneSteps = steps.filter(step => step.querySelector<HTMLInputElement>('[data-start-check]')?.checked);
-    const next = steps.find(step => !doneSteps.includes(step));
-    steps.forEach(step => {
-      step.classList.toggle('is-done', doneSteps.includes(step));
-      step.classList.toggle('is-next', step === next);
+    const firstUnticked = steps.findIndex(step => !step.querySelector<HTMLInputElement>('[data-start-check]')?.checked);
+    const doneCount = firstUnticked === -1 ? steps.length : firstUnticked;
+    const doneSteps = steps.slice(0, doneCount);
+    const hintText = `Finish step ${doneCount + 1} first`;
+    steps.forEach((step, index) => {
+      const isDone = index < doneCount;
+      const isNext = index === doneCount;
+      const locked = index > doneCount;
+      step.classList.toggle('is-done', isDone);
+      step.classList.toggle('is-next', isNext);
+      const box = step.querySelector<HTMLInputElement>('[data-start-check]');
+      const label = step.querySelector<HTMLElement>('label');
+      let hint = step.querySelector<HTMLElement>('[data-start-hint]');
+      if (!hint) {
+        hint = document.createElement('p');
+        hint.className = 'start-hint';
+        hint.dataset.startHint = '';
+        step.append(hint);
+      }
+      if (!hint.id) hint.id = `start-step-hint-${index + 1}`;
+      hint.textContent = locked ? hintText : '';
+      hint.hidden = !locked;
+      if (box) {
+        box.checked = isDone;
+        box.disabled = locked;
+        if (locked) {
+          box.title = hintText;
+          box.setAttribute('aria-describedby', hint.id);
+        } else {
+          box.removeAttribute('title');
+          box.removeAttribute('aria-describedby');
+        }
+      }
+      if (label) {
+        if (locked) label.title = hintText;
+        else label.removeAttribute('title');
+      }
     });
     const template = progress?.dataset.startProgress;
     if (progress && template) {

@@ -71,6 +71,8 @@ try {
   const html = await response.text();
   assert.match(html, /Edited in the admin/);
   assert.equal(html.match(/class="start-step"/g)?.length, 4, 'four steps');
+  assert.equal(html.match(/data-start-hint[^>]*hidden/g)?.length, 4, 'four hidden step hints for disabled checkboxes');
+  assert.doesNotMatch(html, /data-start-check[^>]*disabled/, 'checkboxes work with no JavaScript');
   assert.match(html, /data-start-progress="\{done\} of \{total\} done"/);
   assert.match(html, /<summary>Don(&#39;|')t have one yet\?<\/summary>/);
   assert.match(html, /href="\/account\/signup">Create account</);

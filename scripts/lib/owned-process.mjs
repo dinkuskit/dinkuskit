@@ -174,12 +174,19 @@ export async function stopOwned(
   rememberOwnedTree(proc, _processAlive, _descendantPids);
 
   const isRootReleased = () => (proc.releasedPids ?? []).includes(proc.pid);
+  const destroyPipes = () => {
+    if (!isRootReleased()) {
+      proc.child?.stdout?.destroy();
+      proc.child?.stderr?.destroy();
+    }
+  };
   const rootCanBeKilled = !isRootReleased() && proc.child && proc.child.exitCode === null && _processAlive(proc.pid);
   const rootDone = isRootReleased() || !proc.child || proc.child.exitCode !== null || !_processAlive(proc.pid);
 
   const initialLive = killableOwnedPids(proc, _processAlive);
   if (initialLive.length === 0 && rootDone) {
     proc.stoppedInFinally = proc.stoppedInFinally || finallyBlock;
+    destroyPipes();
     if (isRootReleased() || !proc.exit) {
       return { code: proc.exitCode ?? null, signal: proc.signal ?? null };
     }
@@ -253,6 +260,7 @@ export async function stopOwned(
 
   rememberOwnedTree(proc, _processAlive, _descendantPids);
   proc.stoppedInFinally = proc.stoppedInFinally || finallyBlock;
+  destroyPipes();
 
   // Verify no recorded survivors remain
   const survivors = killableOwnedPids(proc, _processAlive);

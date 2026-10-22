@@ -200,6 +200,14 @@ async function proofRoutes(request, env, ctx) {
     return json(200, { stored: true, transport: 'simulation' });
   }
 
+  // The plugin's store-proof route stops answering for a Connect it cancelled or replaced.
+  if (request.method === 'DELETE' && url.pathname === '/__proof/receipt') {
+    const connectionId = url.searchParams.get('connection_id');
+    if (!connectionId) return json(400, { error: 'invalid_receipt' });
+    await env.MERCHANT_PROOF_SIMULATION.delete(connectionId);
+    return json(200, { withdrawn: true, transport: 'simulation' });
+  }
+
   if (request.method === 'POST' && url.pathname === '/__proof/payments-status') {
     const body = await request.json();
     if (!body?.site_id) return json(400, { error: 'invalid_site' });

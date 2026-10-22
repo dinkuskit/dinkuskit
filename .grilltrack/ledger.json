@@ -4,11 +4,11 @@
   "current_focus": {
     "cadence": "frontier-batch",
     "confirmed": true,
-    "confirmed_at": "2026-10-21T03:07:00+00:00",
-    "domain": "Docs stay current after merges",
-    "started_at": "2026-10-21T02:30:00+00:00",
+    "confirmed_at": "2026-10-22T01:00:54+00:00",
+    "domain": "Plugin beta cadence and release branches",
+    "started_at": "2026-10-22T01:00:53+00:00",
     "status": "confirmed",
-    "summary": "Ronald said 'lock it' in the project thread on 21 Oct 2026 03:06 UTC after the five-question batch: docs stay current after merges per decision 077."
+    "summary": "Ronald said 'Lock it' in the Beta release cadence project thread on 22 Oct 2026 00:59 UTC after answer 1 'agreed' and choosing 2b (release branches)."
   },
   "decisions": [
     {
@@ -8661,6 +8661,20 @@
           "review_source_identity": null,
           "to": "locked",
           "verification_ref": null
+        },
+        {
+          "at": "2026-10-22T01:00:54+00:00",
+          "choice": "A manual Cut beta workflow, run by Ronald or an agent with his go, publishes x.y.z-beta.N from current main under the plugin's separate -beta Registry package. x.y.z is the version the pending changesets would release; N is one more than the highest beta tag or Registry beta version. No Changesets pre mode, no beta on ordinary merges, and no release PR or ClawSweeper round per beta. One beta store runs every plugin's newest beta; when several plugins have betas waiting, finals release one at a time with the journeys rerun between them. A final release PR (ci: release) is opened only by a manual promote step for a beta whose Running journeys passed on the beta store (recorded proof naming that beta version), and it names that beta version and main commit. If main gains a new changeset after the pass, the release PR waits for the next beta's pass. The release PR gets a hand-started ClawSweeper review, and Ronald's merge of the reviewed commit is the only stable publish. Every plugin repo runs the same release files, copied from Commerce with only package names changed, plus a check that fails when a copy drifts. Journeys stay one cross-plugin suite in SaariusSkills, tagged with the plugins each touches.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "Betas are cut onto release/X.Y.Z branches and stable publishes from the branch, so main no longer has to sit at the beta tag; the rest of 071 is restated in 079.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "superseded",
+          "verification_ref": null
         }
       ],
       "id": "release-beta-cut-071",
@@ -8673,9 +8687,9 @@
       "review_ref": null,
       "review_result": null,
       "review_source_identity": null,
-      "status": "locked",
-      "superseded_by": null,
-      "updated_at": "2026-10-17T22:26:17+00:00",
+      "status": "superseded",
+      "superseded_by": "release-branches-079",
+      "updated_at": "2026-10-22T01:00:54+00:00",
       "verification_ref": null
     },
     {
@@ -8733,6 +8747,20 @@
           "review_source_identity": null,
           "to": "verified",
           "verification_ref": null
+        },
+        {
+          "at": "2026-10-22T01:00:54+00:00",
+          "choice": "Exactly two Payments installations connect for client dinkus-payments-emdash: stable r_3brsc2on3bu673rn (slug dinkus-payments) and beta r_sffx6l4z6mpqliki (slug dinkus-payments-beta), both from publisher did:plc:ekk4pjmkh3k3ql2kfoex3qt4, each with its own fixed callback and proof path. The callback a connection starts with selects its installation and is stored; consent reads the store check only at that installation's proof path, never one a caller names. Audience dinkus-payments, scope payments:admin, protocol version 2 and the single Payments grant per store stay the same. No other installation, slug or publisher is accepted.",
+          "from": "verified",
+          "implementation_ref": "git:1954410a1597ddcc83bdedbef71c3f4fdb00f90c",
+          "note": "dependency release-beta-cut-071 changed: Betas are cut onto release/X.Y.Z branches and stable publishes from the branch, so main no longer has to sit at the beta tag; the rest of 071 is restated in 079.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "needs_reverification",
+          "verification_ref": "file:proof/payments-beta-connect/PROOF.md"
         }
       ],
       "id": "website-payments-beta-connect-072",
@@ -8745,9 +8773,9 @@
       "review_ref": null,
       "review_result": null,
       "review_source_identity": null,
-      "status": "verified",
+      "status": "needs_reverification",
       "superseded_by": null,
-      "updated_at": "2026-10-18T21:12:04+00:00",
+      "updated_at": "2026-10-22T01:00:54+00:00",
       "verification_ref": "file:proof/payments-beta-connect/PROOF.md"
     },
     {
@@ -9075,6 +9103,90 @@
       "superseded_by": null,
       "updated_at": "2026-10-21T03:07:09+00:00",
       "verification_ref": "url:https://github.com/dinkuskit/dinkuskit/pull/65"
+    },
+    {
+      "baseline_ref": null,
+      "candidate_refs": [],
+      "choice": "Cut beta is a release candidate, pressed when a batch is worth giving a store: a finished feature, or a fix a store owner would notice. There is no calendar. Ordinary PRs merge to main with their changesets and ship nothing on their own. Docs, tests and CI-only changes (empty changesets) never get a beta, and a beta is never cut when nothing version-bumping has merged since the last release. One version may get as many betas as it needs: a fix found on beta becomes beta.N+1 of the same version, not a new cycle.",
+      "context_ref": "file:docs/plans/release-process.md",
+      "created_at": "2026-10-22T01:00:54+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [],
+      "domain": "Plugin beta cadence and release branches",
+      "history": [
+        {
+          "at": "2026-10-22T01:00:54+00:00",
+          "choice": "Cut beta is a release candidate, pressed when a batch is worth giving a store: a finished feature, or a fix a store owner would notice. There is no calendar. Ordinary PRs merge to main with their changesets and ship nothing on their own. Docs, tests and CI-only changes (empty changesets) never get a beta, and a beta is never cut when nothing version-bumping has merged since the last release. One version may get as many betas as it needs: a fix found on beta becomes beta.N+1 of the same version, not a new cycle.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        }
+      ],
+      "id": "release-beta-cadence-078",
+      "implementation_ref": null,
+      "question": "When is Cut beta pressed for a DinkusKit plugin?",
+      "rationale": "Between 15 and 21 Oct 2026 the three plugins cut 13 betas and 7 releases, about one of each per feature, and Payments 0.2.11-beta.1 was the same code as 0.2.10. OpenClaw ships a stable every 3 to 7 days, often with several betas per version (2026.7.1 beta.1 to beta.6). Ronald agreed (answer 1) 21 Oct 23:49 UTC.",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [],
+      "review_ref": null,
+      "review_result": null,
+      "review_source_identity": null,
+      "status": "locked",
+      "superseded_by": null,
+      "updated_at": "2026-10-22T01:00:54+00:00",
+      "verification_ref": null
+    },
+    {
+      "baseline_ref": null,
+      "candidate_refs": [],
+      "choice": "Release branches, the OpenClaw way. (1) Every change is still a normal PR to main, reviewed by ClawSweeper; main never waits for a beta. (2) Cut beta creates release/X.Y.Z from main at the commit it is pressed on, tags vX.Y.Z-beta.1 there, publishes the -beta package from the branch and presses the journeys. (3) A fix found on beta merges to main through its normal reviewed PR; an 'Add fix to beta' action copies that exact merged commit onto release/X.Y.Z (git cherry-pick -x) and cuts the next beta.N from the branch. A copy that does not apply cleanly stops; nothing reaches a release branch except copies of reviewed main commits and the release bot's version commit. No PR ever targets a release branch, so ClawSweeper (default-branch PRs only) needs no change. (4) Promote, for a beta whose journeys passed, works out the version and changelog on release/X.Y.Z and opens the one 'ci: release vX.Y.Z' PR to main carrying only that version, that changelog section and the removal of the changesets the release consumed. ClawSweeper reviews it and Ronald's merge stays the stable publish yes. On that merge the workflow writes the same version files onto release/X.Y.Z, refuses unless the branch then differs from the beta tag only in the version files, tags vX.Y.Z on the branch, and publishes stable from it. (5) A bug in a released version: the fix merges to main, then is copied onto release/X.Y.(Z+1), made from the vX.Y.Z tag, which cuts X.Y.(Z+1)-beta.1; journeys, then Promote as above. (6) release/* branches accept pushes only from the release GitHub App. Kept from release-beta-cut-071: separate -beta Registry packages, one beta store with every plugin's newest beta, a recorded @running journeys pass naming the beta gates Promote, Cut beta and Promote are pressed on Ronald's word, and every plugin repo runs the same release files with a drift check.",
+      "context_ref": "file:docs/plans/release-process.md",
+      "created_at": "2026-10-22T01:00:54+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [
+        "release-beta-cadence-078"
+      ],
+      "domain": "Plugin beta cadence and release branches",
+      "history": [
+        {
+          "at": "2026-10-22T01:00:54+00:00",
+          "choice": "Release branches, the OpenClaw way. (1) Every change is still a normal PR to main, reviewed by ClawSweeper; main never waits for a beta. (2) Cut beta creates release/X.Y.Z from main at the commit it is pressed on, tags vX.Y.Z-beta.1 there, publishes the -beta package from the branch and presses the journeys. (3) A fix found on beta merges to main through its normal reviewed PR; an 'Add fix to beta' action copies that exact merged commit onto release/X.Y.Z (git cherry-pick -x) and cuts the next beta.N from the branch. A copy that does not apply cleanly stops; nothing reaches a release branch except copies of reviewed main commits and the release bot's version commit. No PR ever targets a release branch, so ClawSweeper (default-branch PRs only) needs no change. (4) Promote, for a beta whose journeys passed, works out the version and changelog on release/X.Y.Z and opens the one 'ci: release vX.Y.Z' PR to main carrying only that version, that changelog section and the removal of the changesets the release consumed. ClawSweeper reviews it and Ronald's merge stays the stable publish yes. On that merge the workflow writes the same version files onto release/X.Y.Z, refuses unless the branch then differs from the beta tag only in the version files, tags vX.Y.Z on the branch, and publishes stable from it. (5) A bug in a released version: the fix merges to main, then is copied onto release/X.Y.(Z+1), made from the vX.Y.Z tag, which cuts X.Y.(Z+1)-beta.1; journeys, then Promote as above. (6) release/* branches accept pushes only from the release GitHub App. Kept from release-beta-cut-071: separate -beta Registry packages, one beta store with every plugin's newest beta, a recorded @running journeys pass naming the beta gates Promote, Cut beta and Promote are pressed on Ronald's word, and every plugin repo runs the same release files with a drift check.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        }
+      ],
+      "id": "release-branches-079",
+      "implementation_ref": null,
+      "question": "How do betas get tested and released without holding main?",
+      "rationale": "Promote today refuses unless the beta tag is main's tip, so every merge during a beta forces another beta. OpenClaw tests and publishes from release/YYYY.M.PATCH, copies only already-merged main commits onto it to fix a blocker, and brings the shipped version back to main in a reviewed close-out PR. ClawSweeper reviews only PRs to the default branch, which this design never needs to change. Ronald chose 2b on 22 Oct 00:55 UTC.",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [],
+      "review_ref": null,
+      "review_result": null,
+      "review_source_identity": null,
+      "status": "locked",
+      "superseded_by": null,
+      "updated_at": "2026-10-22T01:00:54+00:00",
+      "verification_ref": null
     }
   ],
   "last_activation": {
@@ -9105,5 +9217,5 @@
   "status": "active",
   "title": "Composed integration",
   "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5",
-  "updated_at": "2026-10-21T03:07:09+00:00"
+  "updated_at": "2026-10-22T01:00:54+00:00"
 }

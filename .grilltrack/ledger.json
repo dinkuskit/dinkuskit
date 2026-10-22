@@ -3,11 +3,12 @@
   "created_at": "2026-10-11T23:54:00+00:00",
   "current_focus": {
     "cadence": "sequential",
-    "confirmed": false,
+    "confirmed": true,
+    "confirmed_at": "2026-10-22T15:57:23+00:00",
     "domain": "Connect to DinkusKit replaces the store key paste",
     "started_at": "2026-10-22T13:59:12+00:00",
-    "status": "grilling",
-    "summary": "Reopen store-connect-flow-081: Ronald (13:35 UTC): Commerce is the base layer and connects first; Payments and Ship need Commerce, Commerce does not need them."
+    "status": "confirmed",
+    "summary": "Ronald confirmed the /start landing page shape on 22 Oct 2026 15:43-15:50 (agreed answers 1, 2, 3, 5; '1 yes' to the CMS page; ok to run one command for the one-time load with Publish)."
   },
   "decisions": [
     {
@@ -9475,6 +9476,75 @@
       "superseded_by": null,
       "updated_at": "2026-10-22T13:59:12+00:00",
       "verification_ref": null
+    },
+    {
+      "baseline_ref": null,
+      "candidate_refs": [],
+      "choice": "dinkuskit.com/start is a CMS page: the pages entry 'start', drawn by three block types of its own (Account buttons, Checklist heading, Checklist step) plus the existing Text section. Every word, each step and the step order are edited in the EmDash admin; code only draws the blocks, keeps a visitor's ticks in their own browser, and picks the account buttons (Create account and Sign in when signed out; the signed-in email, Your stores and Your account when signed in). The page connects nothing; Connect starts from the store admin. The top menu links it as 'Start your store'. The four steps are: have an EmDash site (with a 'Don't have one yet?' fold-out to the EmDash install guide), add Commerce, Payments and Ship from the Registry, press Connect to DinkusKit (Commerce first, then Payments and Ship), add a product and place a test order with card 4242. Until the Connect releases ship, step 3 carries the note 'The Connect button arrives with the next Commerce, Payments and Ship releases.', removed in the admin when they ship. The live site gets the page once through scripts/pages-import.mjs in the owner's deploy paste (adding block types is an Admin action; service tokens stay Editors), which adds only what is missing, never overwrites, and publishes the page only when that run added it. Standing rule behind it: every frontend page on an EmDash site maps to a page manageable in the CMS.",
+      "context_ref": "https://claude.ai/code/project/chan_01JLcLQeD34rfoMic23aaman?thread=cmsg_01JLcLQeD34rfoMic23aamanSyGA3rqUbpqGwQBAEzC5XQ",
+      "created_at": "2026-10-22T15:33:39+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [],
+      "domain": "Connect to DinkusKit replaces the store key paste",
+      "history": [
+        {
+          "at": "2026-10-22T15:56:59+00:00",
+          "choice": "A code page at dinkuskit.com/start, linked as 'Start your store' in the top menu. It opens 'You've tried the playground. Now run your own.' and shows four steps a visitor can tick off, remembered only in their browser: have an EmDash site (with a 'Don't have one yet?' branch to the EmDash install guide), add Commerce, Payments and Ship from the Registry, press Connect to DinkusKit (Commerce first, then Payments and Ship), add a product and place a test order with card 4242. Signed out it offers Create account and Sign in; signed in it names the account and links Your stores. The page connects nothing; Connect starts from the store admin. Until the Connect releases ship, step 3 says the button arrives with the next Commerce, Payments and Ship releases; that note is removed when they ship.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-22T15:57:23+00:00",
+          "choice": "dinkuskit.com/start is a CMS page: the pages entry 'start', drawn by three block types of its own (Account buttons, Checklist heading, Checklist step) plus the existing Text section. Every word, each step and the step order are edited in the EmDash admin; code only draws the blocks, keeps a visitor's ticks in their own browser, and picks the account buttons (Create account and Sign in when signed out; the signed-in email, Your stores and Your account when signed in). The page connects nothing; Connect starts from the store admin. The top menu links it as 'Start your store'. The four steps are: have an EmDash site (with a 'Don't have one yet?' fold-out to the EmDash install guide), add Commerce, Payments and Ship from the Registry, press Connect to DinkusKit (Commerce first, then Payments and Ship), add a product and place a test order with card 4242. Until the Connect releases ship, step 3 carries the note 'The Connect button arrives with the next Commerce, Payments and Ship releases.', removed in the admin when they ship. The live site gets the page once through scripts/pages-import.mjs in the owner's deploy paste (adding block types is an Admin action; service tokens stay Editors), which adds only what is missing, never overwrites, and publishes the page only when that run added it. Standing rule behind it: every frontend page on an EmDash site maps to a page manageable in the CMS.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-22T15:57:24+00:00",
+          "choice": "dinkuskit.com/start is a CMS page: the pages entry 'start', drawn by three block types of its own (Account buttons, Checklist heading, Checklist step) plus the existing Text section. Every word, each step and the step order are edited in the EmDash admin; code only draws the blocks, keeps a visitor's ticks in their own browser, and picks the account buttons (Create account and Sign in when signed out; the signed-in email, Your stores and Your account when signed in). The page connects nothing; Connect starts from the store admin. The top menu links it as 'Start your store'. The four steps are: have an EmDash site (with a 'Don't have one yet?' fold-out to the EmDash install guide), add Commerce, Payments and Ship from the Registry, press Connect to DinkusKit (Commerce first, then Payments and Ship), add a product and place a test order with card 4242. Until the Connect releases ship, step 3 carries the note 'The Connect button arrives with the next Commerce, Payments and Ship releases.', removed in the admin when they ship. The live site gets the page once through scripts/pages-import.mjs in the owner's deploy paste (adding block types is an Admin action; service tokens stay Editors), which adds only what is missing, never overwrites, and publishes the page only when that run added it. Standing rule behind it: every frontend page on an EmDash site maps to a page manageable in the CMS.",
+          "from": "implemented",
+          "implementation_ref": "git:60ba6d3bea945474538edcc814111097df5eb7a6",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": null
+        }
+      ],
+      "id": "start-landing-page-20261022",
+      "implementation_ref": "git:60ba6d3bea945474538edcc814111097df5eb7a6",
+      "question": "Where do the playground's 'Start your real store' buttons land on dinkuskit.com, and what does that page do?",
+      "rationale": "Ronald 22 Oct 2026 15:43-15:50: 'agreed' to path /start with a menu link (1), four tick-off steps (2), account buttons with Connect starting in the store admin (3), the Connect note (5); rejected a code page (4) as against his core rule that every frontend page maps to a CMS page, then '1 yes' to the CMS page; 'I'm okay with running one command' for the one-time load with Publish.",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [],
+      "review_ref": null,
+      "review_result": null,
+      "review_source_identity": null,
+      "status": "verified",
+      "superseded_by": null,
+      "updated_at": "2026-10-22T15:57:24+00:00",
+      "verification_ref": "git:60ba6d3bea945474538edcc814111097df5eb7a6: astro check 0 errors; npm run build; test:pages-import (older database: three block types added, page added and published, rerun keeps an admin edit, signed-in and signed-out buttons drawn from the CMS); test:docs-routes PASS x4; tests/start-page.test.mjs (Worker signed-in check, private no-store); audit:repo; desktop and phone screenshots of the CMS-drawn page in the project thread"
     }
   ],
   "last_activation": {
@@ -9505,5 +9575,5 @@
   "status": "active",
   "title": "Composed integration",
   "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5",
-  "updated_at": "2026-10-22T13:59:12+00:00"
+  "updated_at": "2026-10-22T15:57:24+00:00"
 }

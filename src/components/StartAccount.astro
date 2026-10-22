@@ -1,0 +1,28 @@
+---
+import type { BlockValue } from 'emdash/ui';
+
+type StartAccountValue = BlockValue & {
+  signed_out_text?: string;
+  create_label?: string;
+  sign_in_label?: string;
+  signed_in_text?: string;
+  stores_label?: string;
+  account_label?: string;
+};
+
+interface Props { value: StartAccountValue; signedInAs: string | null }
+const { value, signedInAs } = Astro.props;
+---
+<section class="start-account">
+  {signedInAs ? (
+    <>
+      <p>{value.signed_in_text} <strong>{signedInAs}</strong></p>
+      <p class="start-actions"><a class="start-button" href="/account/sites">{value.stores_label}</a><a href="/account">{value.account_label}</a></p>
+    </>
+  ) : (
+    <>
+      <p>{value.signed_out_text}</p>
+      <p class="start-actions"><a class="start-button" href="/account/signup">{value.create_label}</a><a href="/account/sign-in">{value.sign_in_label}</a></p>
+    </>
+  )}
+</section>

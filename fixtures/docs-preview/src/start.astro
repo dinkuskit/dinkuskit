@@ -1,0 +1,8 @@
+---
+import ContentPage from '../../../src/components/ContentPage.astro';
+
+// Fixture only: ?as= stands in for the Worker's signed-in check, which needs
+// the account database this fixture does not have.
+const signedInAs = Astro.url.searchParams.get('as');
+---
+<ContentPage slug="start" signedInAs={signedInAs} />

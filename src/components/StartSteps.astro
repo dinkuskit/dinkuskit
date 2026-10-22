@@ -1,0 +1,68 @@
+---
+import type { BlockValue } from 'emdash/ui';
+import { safeHttpUrl } from '../../scripts/lib/safe-http-url.mjs';
+
+type StartStepValue = BlockValue & {
+  heading?: string;
+  body?: string;
+  more_label?: string;
+  more_body?: string;
+  link_href?: string;
+  link_label?: string;
+  note?: string;
+};
+
+interface Props { steps: StartStepValue[] }
+const steps = Astro.props.steps.map(step => ({ ...step, href: safeHttpUrl(step.link_href), linkLabel: step.link_label?.trim() }));
+---
+<ol class="start-steps">
+  {steps.map(step => {
+    const link = step.href && step.linkLabel ? <p><a href={step.href}>{step.linkLabel}</a></p> : null;
+    return (
+      <li class="start-step" data-start-step={step._key}>
+        <label><input type="checkbox" data-start-check /> <span>{step.heading}</span></label>
+        {step.body && <p>{step.body}</p>}
+        {step.more_label ? (
+          <details>
+            <summary>{step.more_label}</summary>
+            {step.more_body && <p>{step.more_body}</p>}
+            {link}
+          </details>
+        ) : link}
+        {step.note && <p class="start-note">{step.note}</p>}
+      </li>
+    );
+  })}
+</ol>
+<script>
+  // Ticks are a convenience kept in this browser only; the page works without them.
+  const KEY = 'dinkuskit-start-steps';
+  const steps = Array.from(document.querySelectorAll<HTMLElement>('[data-start-step]'));
+  const progress = document.querySelector<HTMLElement>('[data-start-progress]');
+  const done = document.querySelector<HTMLElement>('[data-start-done]');
+  let saved: unknown = [];
+  try { saved = JSON.parse(localStorage.getItem(KEY) ?? '[]'); } catch { saved = []; }
+  const ticked = new Set(Array.isArray(saved) ? saved.filter(item => typeof item === 'string') : []);
+  const render = () => {
+    const doneSteps = steps.filter(step => step.querySelector<HTMLInputElement>('[data-start-check]')?.checked);
+    const next = steps.find(step => !doneSteps.includes(step));
+    steps.forEach(step => {
+      step.classList.toggle('is-done', doneSteps.includes(step));
+      step.classList.toggle('is-next', step === next);
+    });
+    const template = progress?.dataset.startProgress;
+    if (progress && template) {
+      progress.hidden = false;
+      progress.textContent = template.replace('{done}', String(doneSteps.length)).replace('{total}', String(steps.length));
+    }
+    if (done) done.hidden = doneSteps.length !== steps.length;
+    try { localStorage.setItem(KEY, JSON.stringify(doneSteps.map(step => step.dataset.startStep))); } catch { /* not saved */ }
+  };
+  steps.forEach(step => {
+    const box = step.querySelector<HTMLInputElement>('[data-start-check]');
+    if (!box) return;
+    box.checked = ticked.has(step.dataset.startStep ?? '');
+    box.addEventListener('change', render);
+  });
+  if (steps.length) render();
+</script>

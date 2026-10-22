@@ -1,0 +1,11 @@
+---
+import type { BlockComponentProps, BlockValue } from 'emdash/ui';
+
+type StartChecklistValue = BlockValue & { heading?: string; progress_text?: string; done_message?: string };
+const { value } = Astro.props as BlockComponentProps<StartChecklistValue>;
+---
+<div class="start-checklist-head">
+  {value.heading && <h2>{value.heading}</h2>}
+  <p class="start-progress" data-start-progress={value.progress_text ?? ''} aria-live="polite" hidden></p>
+  {value.done_message && <p class="start-done" data-start-done hidden>{value.done_message}</p>}
+</div>

@@ -35,6 +35,8 @@ export default defineConfig({
             ['/docs/search.json', 'src/pages/docs/search.json.ts'],
             ['/docs/markdown/[...slug]', 'src/pages/docs/markdown/[...slug].ts'],
             ['/llms.txt', 'src/pages/llms.txt.ts'],
+            // The CMS-drawn part of /start, without its Worker-only sign-in check.
+            ['/start', 'fixtures/docs-preview/src/start.astro'],
           ]) injectRoute({ pattern, entrypoint: fileURLToPath(new URL(path, root)) });
         },
       },

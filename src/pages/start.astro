@@ -1,0 +1,22 @@
+---
+import ContentPage from '../components/ContentPage.astro';
+import { getMerchantEnv } from '../account/bindings.ts';
+import { createMerchantRuntime } from '../account/auth.ts';
+import { resolveLogin } from '../account/session.ts';
+
+// Where the playground's "Start your real store" buttons land. Its words live in
+// the CMS (pages entry "start"); this reads who is signed in only to pick the
+// account buttons, and anything that fails shows the signed-out ones.
+export const prerender = false;
+Astro.response.headers.set('cache-control', 'private, no-store');
+let signedInAs: string | null = null;
+if (Astro.request.headers.get('cookie')) {
+  try {
+    const env = await getMerchantEnv();
+    signedInAs = (await resolveLogin(createMerchantRuntime(env).auth, env.MERCHANT_DB, Astro.request))?.email ?? null;
+  } catch {
+    signedInAs = null;
+  }
+}
+---
+<ContentPage slug="start" signedInAs={signedInAs} />

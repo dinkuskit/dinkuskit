@@ -174,6 +174,9 @@ test('Connect to DinkusKit through the routes: Commerce first, a key per plugin,
     const sites = await (await request(runtime,owner,'/account/sites')).text();
     assert.match(sites,/plugin-connect\.example\.test/,'a store with only Commerce connected is on Your stores');
     assert.match(sites,/Commerce plugin: connected/); assert.match(sites,/Disconnect Commerce/); assert.match(sites,/Payments plugin: not connected/);
+    assert.doesNotMatch(sites,/No store is connected yet/);
+    const home=await (await request(runtime,owner,'/account')).text();
+    assert.match(home,/Your store is connected/,'the account page counts a store Commerce alone connected'); assert.match(home,/plugin-connect\.example\.test/);
     const payments = await connect('payments'); assert.equal(payments.issued.site_id, siteId); assert.match(payments.issued.store_key, /^dk_store_/);
     const trade = (key,scope,audience)=>request(runtime,new Map(),'/api/store-passes',{method:'POST',headers:{authorization:`Bearer ${key}`},body:JSON.stringify({site_id:siteId,scope,audience})});
     assert.equal((await trade(payments.issued.store_key,'payments:checkout','dinkus-payments')).status,200);

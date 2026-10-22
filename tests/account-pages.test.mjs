@@ -30,7 +30,7 @@ test('account page: next step, business name, staff list and plain messages', as
     assert.match(html, /Name your business/);
     assert.match(html, /Status: Approved/);
     assert.match(html, /Connect your store/);
-    assert.match(html, /DinkusKit Payments plugin/);
+    assert.match(html, /DinkusKit Commerce plugin/);
     assert.doesNotMatch(visibleText(html), /admission|identity is separate|Inventory overview/i);
 
     for (const name of ['   ', 'x'.repeat(121)]) {
@@ -82,7 +82,7 @@ test('account page: next step, business name, staff list and plain messages', as
     const sites = await page(runtime, owner.jar, '/account/sites');
     assert.match(sites, /<a href="\/account\/sites" aria-current="page">Your stores<\/a>/, 'the header marks Your stores as the current page');
     assert.match(sites, /<h1[^>]*>Your stores<\/h1>/);
-    assert.match(sites, /No store is connected yet\. Install the DinkusKit Payments plugin/);
+    assert.match(sites, /No store is connected yet\. Install the DinkusKit Commerce plugin/);
     assert.ok(!sites.includes(orgId), 'Your stores never shows the business ID');
   } finally {
     await stopRuntime(runtime);

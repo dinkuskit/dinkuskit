@@ -31,7 +31,7 @@ const serviceNote = (binding: { revoked: boolean; revokedBy: string | null }) =>
           ))}
         </ul>
       )
-    ) : visibleBindings.length === 0 ? <p>No store is connected yet. Install the DinkusKit Payments plugin in your EmDash store, open its setup page and press Connect. You'll come back here to approve it.</p> : (
+    ) : visibleBindings.length === 0 ? (visibleStores.length === 0 ? <p>No store is connected yet. Install the DinkusKit Commerce plugin in your EmDash store, open Commerce Settings and press Connect. You'll come back here to approve it. Then do the same in Payments and Ship.</p> : null) : (
       <ul>
         {visibleBindings.map(binding => (
           <li>

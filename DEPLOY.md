@@ -208,6 +208,28 @@ published; `https://dinkuskit.com/docs/search.json` stays `[]` until an editor
 presses **Publish** on an article in `/_emdash/admin`, which shows it at its
 `/docs/...` address with no deploy. **Unpublish** hides it again.
 
+## Load the Start page (existing website database, once)
+
+`/start` (where the playground's "Start your real store" buttons land) is the
+`pages` entry `start`, drawn with three block types of its own: Account
+buttons, Checklist heading and Checklist step. A database that finished setup
+before the page existed gets them once, right after the deploy that carries
+the `/start` code:
+
+```sh
+export CF_ACCESS_TOKEN="$(cloudflared access login https://dinkuskit.com/_emdash/admin >/dev/null && cloudflared access token -app=https://dinkuskit.com/_emdash/admin)"
+npm run pages:import -- --url https://dinkuskit.com --page start --publish
+unset CF_ACCESS_TOKEN
+```
+
+The owner signs in to Access: adding block types is an Admin action, and
+service tokens stay Editors. The script adds only what is missing and never
+overwrites; `--publish` publishes the page only when this run added it, so a
+rerun prints "Kept existing" and leaves edited wording alone. Leave
+`--publish` off to review the draft in `/_emdash/admin` first. Until the page
+is published, `/start` answers HTTP 503 "Content is not available yet". After
+that its words, steps and their order are edited in the admin like any page.
+
 ## Post-deploy checks
 
 ```sh

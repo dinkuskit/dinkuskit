@@ -50,6 +50,139 @@
           ]
         }
       ]
+    },
+    {
+      "slug": "start_account",
+      "label": "Account buttons",
+      "category": "Start page",
+      "description": "Create account and Sign in when signed out; the signed-in account and Your stores when signed in.",
+      "currentVersion": 1,
+      "versions": [
+        {
+          "version": 1,
+          "fields": [
+            {
+              "slug": "signed_out_text",
+              "label": "Text when signed out",
+              "type": "text",
+              "required": true
+            },
+            {
+              "slug": "create_label",
+              "label": "Create account button",
+              "type": "string",
+              "required": true
+            },
+            {
+              "slug": "sign_in_label",
+              "label": "Sign in link",
+              "type": "string",
+              "required": true
+            },
+            {
+              "slug": "signed_in_text",
+              "label": "Text before the signed-in email",
+              "type": "string",
+              "required": true
+            },
+            {
+              "slug": "stores_label",
+              "label": "Your stores button",
+              "type": "string",
+              "required": true
+            },
+            {
+              "slug": "account_label",
+              "label": "Account link",
+              "type": "string",
+              "required": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "start_checklist",
+      "label": "Checklist heading",
+      "category": "Start page",
+      "description": "Heads the steps that follow it. Visitors can tick steps off; ticks stay in their browser.",
+      "currentVersion": 1,
+      "versions": [
+        {
+          "version": 1,
+          "fields": [
+            {
+              "slug": "heading",
+              "label": "Heading",
+              "type": "string",
+              "required": true
+            },
+            {
+              "slug": "progress_text",
+              "label": "Progress, with {done} and {total}",
+              "type": "string",
+              "required": true
+            },
+            {
+              "slug": "done_message",
+              "label": "Message when every step is ticked",
+              "type": "text",
+              "required": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "start_step",
+      "label": "Checklist step",
+      "category": "Start page",
+      "description": "One step a visitor can tick off. Steps are numbered in the order they appear.",
+      "currentVersion": 1,
+      "versions": [
+        {
+          "version": 1,
+          "fields": [
+            {
+              "slug": "heading",
+              "label": "Step",
+              "type": "string",
+              "required": true
+            },
+            {
+              "slug": "body",
+              "label": "What to do",
+              "type": "text",
+              "required": true
+            },
+            {
+              "slug": "more_label",
+              "label": "Fold-out question",
+              "type": "string"
+            },
+            {
+              "slug": "more_body",
+              "label": "Fold-out answer",
+              "type": "text"
+            },
+            {
+              "slug": "link_href",
+              "label": "Link URL",
+              "type": "url"
+            },
+            {
+              "slug": "link_label",
+              "label": "Link label",
+              "type": "string"
+            },
+            {
+              "slug": "note",
+              "label": "Small note",
+              "type": "text"
+            }
+          ]
+        }
+      ]
     }
   ],
   "collections": [
@@ -79,7 +212,10 @@
           "type": "blocks",
           "validation": {
             "allowedTypes": [
-              "text_section"
+              "text_section",
+              "start_account",
+              "start_checklist",
+              "start_step"
             ],
             "maxItems": 20
           }
@@ -249,6 +385,80 @@
               "_key": "getting-started-3",
               "heading": "Trial access",
               "body": "Initial hosted Inventory access is planned as a trial without payment details and is not a prerequisite for Commerce. Trial duration, usage limits and pricing have not been set."
+            }
+          ]
+        }
+      },
+      {
+        "id": "start",
+        "slug": "start",
+        "status": "published",
+        "data": {
+          "title": "You've tried the playground. Now run your own.",
+          "description": "Your store is an EmDash site you own. DinkusKit adds the shop: Commerce for products and orders, Payments for card checkout, and Ship for postage. Four steps get you from nothing to a test order.",
+          "layout": [
+            {
+              "_type": "start_account",
+              "_version": 1,
+              "_key": "start-0",
+              "signed_out_text": "Your store connects to a DinkusKit account.",
+              "create_label": "Create account",
+              "sign_in_label": "Sign in",
+              "signed_in_text": "Signed in as",
+              "stores_label": "Your stores",
+              "account_label": "Your account"
+            },
+            {
+              "_type": "start_checklist",
+              "_version": 1,
+              "_key": "start-1",
+              "heading": "Your four steps",
+              "progress_text": "{done} of {total} done",
+              "done_message": "That's a working store in test mode. Live payments open after DinkusKit's own real-store proof."
+            },
+            {
+              "_type": "start_step",
+              "_version": 1,
+              "_key": "start-2",
+              "heading": "Have an EmDash site",
+              "body": "DinkusKit runs inside your own EmDash site, so you keep your site, your content and your customers.",
+              "more_label": "Don't have one yet?",
+              "more_body": "Follow the EmDash install guide. It creates a site you can run on Cloudflare in a few minutes. Pick any theme; you can change it later.",
+              "link_href": "https://docs.emdashcms.com/getting-started/",
+              "link_label": "Create your first EmDash site"
+            },
+            {
+              "_type": "start_step",
+              "_version": 1,
+              "_key": "start-3",
+              "heading": "Add Commerce, Payments and Ship",
+              "body": "In your store admin, open the plugin Registry and install DinkusKit Commerce, DinkusKit Payments and DinkusKit Ship. Ship is optional if you'd rather mark orders shipped by hand."
+            },
+            {
+              "_type": "start_step",
+              "_version": 1,
+              "_key": "start-4",
+              "heading": "Press Connect to DinkusKit",
+              "body": "Connect Commerce first; it registers your store with your DinkusKit account. Then press Connect in Payments and in Ship. Each press asks you to sign in here, and the business owner approves the store once.",
+              "note": "The Connect button arrives with the next Commerce, Payments and Ship releases."
+            },
+            {
+              "_type": "start_step",
+              "_version": 1,
+              "_key": "start-5",
+              "heading": "Add a product and place a test order",
+              "body": "Add a product with a price, open your shop, and check out with the test card 4242 4242 4242 4242, any future date and any three digits. The order shows up in Commerce, ready to ship."
+            },
+            {
+              "_type": "text_section",
+              "_version": 1,
+              "_key": "start-6",
+              "heading": "Want to look around first?",
+              "body": "Go back to the playground, or read how DinkusKit fits together.",
+              "link_href": "https://playground.dinkuskit.com/",
+              "link_label": "Back to the playground",
+              "second_link_href": "https://dinkuskit.com/getting-started",
+              "second_link_label": "Getting started"
             }
           ]
         }

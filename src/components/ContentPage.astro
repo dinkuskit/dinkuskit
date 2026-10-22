@@ -3,11 +3,25 @@ import { getEmDashEntry } from 'emdash';
 import { Blocks, type BlockValue } from 'emdash/ui';
 import Site from '../layouts/Site.astro';
 import TextSection from './TextSection.astro';
+import StartAccount from './StartAccount.astro';
+import StartChecklist from './StartChecklist.astro';
+import StartSteps from './StartSteps.astro';
 
-interface Props { slug: string }
+interface Props { slug: string; signedInAs?: string | null }
 const { entry } = await getEmDashEntry('pages', Astro.props.slug);
 const page = entry?.data as { title?: string; description?: string; layout?: BlockValue[] } | undefined;
 if (!page) Astro.response.status = 503;
+
+// Consecutive checklist steps share one numbered list; the account block needs
+// who is signed in, which only the page knows. Everything else is native blocks.
+type Segment = { kind: 'blocks' | 'steps'; blocks: BlockValue[] } | { kind: 'account'; block: BlockValue };
+const segments: Segment[] = [];
+for (const block of page?.layout ?? []) {
+  const last = segments.at(-1);
+  if (block._type === 'start_account') segments.push({ kind: 'account', block });
+  else if (block._type === 'start_step') last?.kind === 'steps' ? last.blocks.push(block) : segments.push({ kind: 'steps', blocks: [block] });
+  else last?.kind === 'blocks' ? last.blocks.push(block) : segments.push({ kind: 'blocks', blocks: [block] });
+}
 ---
 <Site title={page?.title ?? 'Content unavailable'} description={page?.description ?? 'The DinkusKit website is being prepared.'}>
   {page ? (
@@ -18,7 +32,11 @@ if (!page) Astro.response.status = 503;
         <p class="lead">{page.description}</p>
       </div>
       <div class="page-sections" data-native-blocks>
-        <Blocks value={page.layout ?? []} components={{ text_section: TextSection }} />
+        {segments.map(segment => segment.kind === 'account'
+          ? <StartAccount value={segment.block} signedInAs={Astro.props.signedInAs ?? null} />
+          : segment.kind === 'steps'
+            ? <StartSteps steps={segment.blocks} />
+            : <Blocks value={segment.blocks} components={{ text_section: TextSection, start_checklist: StartChecklist }} />)}
       </div>
     </>
   ) : (

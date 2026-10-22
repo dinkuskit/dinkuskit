@@ -10,7 +10,9 @@ Status: **plan only, nothing implemented yet**. Decided by Ryan (owner), 2026-10
 | One release-PR merge does tag + GitHub Release + Registry publish | `release-publish-on-merge-064` |
 | pkg.pr.new previews stay | `release-pr-previews-065` |
 | ~~Betas under a separate beta plugin name on the demo store; passing e2e opens final release PR~~ (superseded by `release-beta-cut-071`) | `release-beta-flow-066` |
-| Betas cut on demand with a Cut beta button; a recorded journeys pass gates the final release PR; same release files in every plugin repo | `release-beta-cut-071` |
+| ~~Betas cut on demand with a Cut beta button; a recorded journeys pass gates the final release PR; same release files in every plugin repo~~ (superseded by `release-branches-079`) | `release-beta-cut-071` |
+| Cut beta when a batch is worth giving a store; no calendar; never for docs/tests/CI only or same code | `release-beta-cadence-078` |
+| Betas and stable releases come from `release/X.Y.Z` branches; fixes are copies of reviewed main commits; main never waits | `release-branches-079` |
 | Tagging starts at v0.2.0; version from package.json | `release-baseline-067` |
 | Separate Changesets release workflow with its own GitHub App | `release-bot-068` |
 | No release-environment approver; Ryan's merge is the gate | `release-approver-069` |
@@ -64,7 +66,20 @@ Contrast: RepoGlance uses tag-only versions. A hand-pushed tag triggers its `rel
 
 ## Release flow
 
-> **Superseded for betas (2026-10-17, `release-beta-cut-071`).** The pre-mode beta steps below describe `release-beta-flow-066`, which `release-beta-cut-071` replaces. The current beta flow:
+> **Current flow (2026-10-22, `release-beta-cadence-078` and `release-branches-079`).** This replaces the `release-beta-cut-071` steps in the next note. OpenClaw's release process is the model (docs.openclaw.ai/reference/RELEASING and `openclaw/openclaw` `.agents/skills/release-openclaw-maintainer`). Not built yet: until the release files change, the 071 buttons still work as described in each repo's RELEASING.md.
+>
+> **When to press Cut beta.** When a batch is worth giving a store: a finished feature, or a fix a store owner would notice. There is no calendar. Ordinary PRs merge to main and ship nothing on their own. Docs, tests and CI-only changes never get a beta, and a beta is never cut when nothing version-bumping has merged since the last release.
+>
+> 1. **Every change is a PR to main.** ClawSweeper reviews it as today. Main keeps taking merges while a beta is on test.
+> 2. **Cut beta** creates `release/X.Y.Z` from main, tags `vX.Y.Z-beta.1` on it, publishes the `-beta` package from the branch, and presses the journeys.
+> 3. **A fix found on beta** merges to main through its normal PR. Then **Add fix to beta** copies that exact merged commit onto `release/X.Y.Z` and cuts the next `beta.N`. If the copy doesn't apply cleanly, it stops. Nothing reaches a release branch except copies of reviewed main commits and the release bot's version commit. No PR targets a release branch, so ClawSweeper needs no change.
+> 4. **Promote** (journeys passed on that beta) works out the version and changelog on the branch and opens the one `ci: release vX.Y.Z` PR to main. That PR carries only the version, the changelog section, and the removal of the changesets the release used. ClawSweeper reviews it, and Ronald's merge is the stable publish yes. On merge, the workflow writes the same version files onto the branch, checks that the branch differs from the beta tag only in those files, tags `vX.Y.Z` on the branch, and publishes stable from it.
+> 5. **A bug in a released version**: the fix merges to main, then gets copied onto `release/X.Y.(Z+1)`, made from the `vX.Y.Z` tag. That cuts `X.Y.(Z+1)-beta.1`, the journeys run, then Promote as above.
+> 6. `release/*` branches take pushes only from the release GitHub App.
+>
+> Unchanged from 071: separate `-beta` Registry packages, one beta store running every plugin's newest beta, a recorded `@running` journeys pass naming the beta gates Promote, Cut beta and Promote are pressed on Ronald's word, and every plugin repo runs the same release files with a drift check.
+
+> **Superseded by the note above (was current 2026-10-17, `release-beta-cut-071`).** The pre-mode beta steps below describe `release-beta-flow-066`, which `release-beta-cut-071` replaces. The current beta flow:
 >
 > 1. A manual **Cut beta** workflow, run by Ryan or an agent with his go, publishes `x.y.z-beta.N` from current `main` under the plugin's separate `-beta` Registry package. `x.y.z` is the version the pending changesets would release; `N` is one more than the highest beta tag or Registry beta version. No Changesets pre mode, no beta on ordinary merges, and no release PR or ClawSweeper round per beta.
 > 2. One beta store runs every plugin's newest beta. With several betas waiting, finals release one at a time and the journeys rerun between them.

@@ -1,18 +1,27 @@
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { setTimeout as sleep } from 'node:timers/promises';
-import { contentFieldData, contentProof, d1PersistPaths, kvOnlyPersist, localBindingTable, sanitizeText, sanitizeValue, unwrapApiData, unwrapContentEnvelope, workerdReady } from './lib/cms-operation-helpers.mjs';
 import {
+  contentFieldData,
+  contentProof,
+  d1PersistPaths,
   descendantPids,
   killableOwnedPids,
+  kvOnlyPersist,
   leftoverOwned,
+  localBindingTable,
   mergeRecordedPids,
   processAlive,
   recordedPidsStillAlive,
   rememberOwnedTree,
+  sanitizeText,
+  sanitizeValue,
   spawnLogged,
   stopOwned,
-} from './lib/owned-process.mjs';
+  unwrapApiData,
+  unwrapContentEnvelope,
+  workerdReady,
+} from './lib/cms-operation-helpers.mjs';
 
 const checks = [];
 const record = (check) => {
@@ -345,6 +354,8 @@ record('stopOwned fails closed and throws when recorded survivors remain alive a
 
     const res = await stopOwned(proc, { termWaitMs: 150, killWaitMs: 1000 });
     assert.equal(processAlive(childPid), false, 'Descendant must be terminated by stopOwned');
+    assert.equal(proc.child.stdout.destroyed, true, 'stdout pipe must be destroyed on stopOwned');
+    assert.equal(proc.child.stderr.destroyed, true, 'stderr pipe must be destroyed on stopOwned');
     assert.deepEqual(killableOwnedPids(proc), [], 'No killable owned PIDs may remain');
     assert.deepEqual(leftoverOwned([proc]), [], 'No leftover owned processes may remain');
     record('stopOwned cleans up recorded descendants surviving normal parent exit 0, escalating past ignored SIGTERM');
@@ -383,6 +394,8 @@ record('stopOwned fails closed and throws when recorded survivors remain alive a
     const res = await stopOwned(proc, { termWaitMs: 150, killWaitMs: 1000 });
     assert.equal(processAlive(childPid), false, 'Descendant must be terminated after escalation');
     assert.equal(processAlive(proc.pid), false, 'Parent must be terminated');
+    assert.equal(proc.child.stdout.destroyed, true, 'stdout pipe must be destroyed on stopOwned');
+    assert.equal(proc.child.stderr.destroyed, true, 'stderr pipe must be destroyed on stopOwned');
     assert.deepEqual(killableOwnedPids(proc), [], 'No killable owned PIDs may remain');
     assert.deepEqual(leftoverOwned([proc]), [], 'No leftover owned processes may remain');
     record('stopOwned escalates to SIGKILL independently of parent exit when descendant ignores SIGTERM');

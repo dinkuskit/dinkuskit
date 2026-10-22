@@ -9,6 +9,7 @@ import { createServer } from 'node:net';
 import { once } from 'node:events';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { fileURLToPath } from 'node:url';
+import { rememberOwnedTree, spawnLogged, stopOwned } from './lib/cms-operation-helpers.mjs';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const persistTo = await mkdtemp(join(tmpdir(), 'dk-smoke-'));
@@ -59,35 +60,36 @@ function writeFixtureConfig() {
 }
 
 async function startWorker(label, config, port) {
-  const child = spawn(join(root, 'node_modules/.bin/wrangler'), [
-    'dev', '--local', '--persist-to', persistTo,
-    '--port', String(port), '--ip', '127.0.0.1', '--config', config,
-  ], {
-    cwd: root,
-    env: { ...process.env },
-    stdio: ['ignore', 'pipe', 'pipe'],
+  const record = spawnLogged(children, spawn, {
+    label,
+    command: join(root, 'node_modules/.bin/wrangler'),
+    args: [
+      'dev', '--local', '--persist-to', persistTo,
+      '--port', String(port), '--ip', '127.0.0.1', '--config', config,
+    ],
+    options: {
+      cwd: root,
+      env: { ...process.env },
+      stdio: ['ignore', 'pipe', 'pipe'],
+    },
   });
-  let logs = '';
-  const capture = chunk => { logs = (logs + chunk.toString()).slice(-200_000); };
-  child.stdout.on('data', capture);
-  child.stderr.on('data', capture);
-  let exited = false;
-  const exit = new Promise(resolve => {
-    child.once('exit', () => { exited = true; resolve(); });
-    child.once('error', error => { logs += String(error); exited = true; resolve(); });
-  });
-  const record = { label, child, logs: () => logs, exited: () => exited, exit, port };
-  children.push(record);
+  record.logs = () => record.output().slice(-200_000);
+  record.exited = () =>
+    record.exitCode !== null ||
+    record.signal !== null ||
+    record.child.exitCode !== null ||
+    record.child.signalCode !== null;
+  record.port = port;
   return record;
 }
 
 async function stopWorker(record) {
-  if (!record || record.exited()) return;
-  record.child.kill('SIGTERM');
-  await Promise.race([record.exit, sleep(5000)]);
-  if (!record.exited()) {
-    record.child.kill('SIGKILL');
-    await record.exit;
+  if (!record) return;
+  try {
+    await stopOwned(record, { termWaitMs: 5000, killWaitMs: 5000 });
+  } finally {
+    record.child?.stdout?.destroy();
+    record.child?.stderr?.destroy();
   }
 }
 
@@ -101,13 +103,16 @@ function request(base, path, options = {}) {
 
 async function waitReady(record, base) {
   for (let attempt = 0; attempt < 120 && !record.exited(); attempt++) {
+    rememberOwnedTree(record);
     try {
       await request(base, '/');
+      rememberOwnedTree(record);
       return true;
     } catch {
       await sleep(500);
     }
   }
+  rememberOwnedTree(record);
   return false;
 }
 
@@ -279,6 +284,7 @@ try {
   checks.push('Production worker does not expose proof mail take');
   assert.equal((await request(base, '/not-a-real-page')).status, 404);
   checks.push('Unknown public route still returns 404');
+  await stopWorker(production);
   console.log(checks.map(check => `PASS ${check}`).join('\n'));
   await mkdir(workRoot, { recursive: true });
   await writeFile(join(workRoot, 'smoke-server.log'), [fresh, fixture, production].map(item => `# ${item.label}\n${item.logs()}`).join('\n\n'));

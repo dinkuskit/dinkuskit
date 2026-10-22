@@ -304,3 +304,68 @@ test('Connect authority through the real Worker: another business, a late exchan
     assert.deepEqual(await (await trade(commerceKey,'payments:checkout','dinkus-payments')).json(),{error:'invalid_store_key'});
   } finally { await stopRuntime(runtime); }
 });
+
+test('Payments key authority through the real Worker: its own passes only, this store only, the owner only, and gone after Connect again or Disconnect', async () => {
+  const runtime = await startMerchantTestRuntime(); const owner = new Map(), other = new Map();
+  try {
+    await signup(runtime,'payments-key-owner@example.test',owner);
+    await signup(runtime,'payments-key-other@example.test',other);
+    const paths = { commerce:['dinkus-commerce-emdash','r_gshdrqaldna3r7sn/settings'], payments:['dinkus-payments-emdash','r_3brsc2on3bu673rn/status'] };
+    const form = async (jar,fields)=>({method:'POST',headers:{'content-type':'application/x-www-form-urlencoded'},body:await accountForm(runtime,jar,new URLSearchParams(fields).toString())});
+    // The plugin's Connect: start, then its store-proof route answers with the receipt.
+    async function start(service, origin) {
+      const verifier = randomBytes(32).toString('base64url'); const challenge = createHash('sha256').update(verifier).digest('base64url');
+      const [client, path] = paths[service]; const callback = `${origin}/_emdash/admin/plugins/${path}`;
+      const body = await (await request(runtime,new Map(),'/api/store-connections',{method:'POST',body:JSON.stringify({protocol_version:2,client_id:client,service,site_origin:origin,callback_uri:callback,code_challenge:challenge,code_challenge_method:'S256'})})).json();
+      await request(runtime,new Map(),'/__proof/receipt',{method:'POST',body:JSON.stringify({version:2,connection_id:body.connection_id,challenge:body.challenge,client_id:client,service,site_id:body.site_id,site_origin:origin,callback_uri:callback,code_challenge:challenge,expires_at:body.expires_at})});
+      return { body, client, verifier, path:`/account/connect?connection_id=${body.connection_id}` };
+    }
+    const approve = async (jar,c)=>request(runtime,jar,c.path,await form(jar,{action:'approve'}));
+    const exchange = async c=>{ const r = await request(runtime,new Map(),'/api/store-connections/token',{method:'POST',body:JSON.stringify({client_id:c.client,connection_id:c.body.connection_id,code_verifier:c.verifier})}); return { status:r.status, body:await r.json() }; };
+    const connect = async (service, origin, jar = owner) => { const c = await start(service, origin); await approve(jar,c); const issued = await exchange(c); assert.equal(issued.status,200,`${service} connects`); return issued.body; };
+    const trade = async (key,siteId,scope,audience)=>{ const r = await request(runtime,new Map(),'/api/store-passes',{method:'POST',headers:{authorization:`Bearer ${key}`},body:JSON.stringify({site_id:siteId,scope,audience})}); return { status:r.status, body:await r.json() }; };
+
+    const north = 'https://payments-north.example.test', south = 'https://payments-south.example.test';
+    const commerce = await connect('commerce', north), siteId = commerce.site_id;
+    const payments = await connect('payments', north); assert.equal(payments.site_id, siteId);
+    const key = payments.store_key;
+
+    // Allowed: the Payments key gets a five-minute payments:checkout pass for its own store.
+    const allowed = await trade(key,siteId,'payments:checkout','dinkus-payments');
+    assert.equal(allowed.status,200); assert.equal(allowed.body.expires_in,300);
+    const claims = JSON.parse(Buffer.from(allowed.body.access_token.split('.')[1],'base64url').toString());
+    assert.deepEqual([claims.site_id, claims.scope, claims.aud], [siteId, 'payments:checkout', 'dinkus-payments']);
+
+    // Forbidden scopes: nothing another plugin's key would get.
+    for (const [scope, audience] of [['commerce:settings','dinkuskit'],['ship:orders','dinkus-ship'],['ship:admin','dinkus-ship'],['coupons:checkout','dinkus-coupons']])
+      assert.deepEqual(await trade(key,siteId,scope,audience),{status:403,body:{error:'scope_not_allowed'}},`no ${scope} pass for the Payments key`);
+    // payments:admin is never a store-key pass: only a signed-in owner gets one.
+    assert.deepEqual(await trade(key,siteId,'payments:admin','dinkus-payments'),{status:400,body:{error:'invalid_request'}});
+
+    // Cross-store: the key gets nothing for the owner's other store, nor that store's Payments key for this one.
+    const southCommerce = await connect('commerce', south), southSite = southCommerce.site_id; assert.notEqual(southSite, siteId);
+    const southPayments = await connect('payments', south);
+    const crossed = await trade(key,southSite,'payments:checkout','dinkus-payments');
+    assert.deepEqual(crossed,{status:403,body:{error:'site_mismatch'}});
+    const crossedBack = await trade(southPayments.store_key,siteId,'payments:checkout','dinkus-payments');
+    assert.deepEqual(crossedBack,{status:403,body:{error:'site_mismatch'}});
+
+    // Not the owner: another business's Approve leaves the Connect waiting and hands over no key.
+    const foreign = await start('payments', north);
+    await approve(other, foreign);
+    assert.deepEqual(await exchange(foreign),{status:400,body:{error:'authorization_pending',interval:5}});
+    assert.equal((await trade(key,siteId,'payments:checkout','dinkus-payments')).status,200,'the owner\'s key still works');
+
+    // Reassigned: Connect again hands Payments a new key, and the old one stops at once.
+    const again = await connect('payments', north);
+    assert.notEqual(again.store_key, key);
+    assert.deepEqual(await trade(key,siteId,'payments:checkout','dinkus-payments'),{status:401,body:{error:'invalid_store_key'}});
+    assert.equal((await trade(again.store_key,siteId,'payments:checkout','dinkus-payments')).status,200);
+
+    // Revoked: Disconnect Payments stops its key; Commerce's key for the same store keeps working.
+    assert.equal((await request(runtime,owner,'/account/sites',await form(owner,{action:'disconnect_plugin',site_id:siteId,plugin:'payments'}))).status,303);
+    assert.deepEqual(await trade(again.store_key,siteId,'payments:checkout','dinkus-payments'),{status:401,body:{error:'invalid_store_key'}});
+    assert.equal((await trade(commerce.store_key,siteId,'payments:checkout','dinkus-payments')).status,200);
+    assert.equal((await trade(southPayments.store_key,southSite,'payments:checkout','dinkus-payments')).status,200,'the other store is untouched');
+  } finally { await stopRuntime(runtime); }
+});

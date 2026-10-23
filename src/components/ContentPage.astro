@@ -36,7 +36,7 @@ const action = {
 <Site title={page?.title ?? 'Content unavailable'} description={page?.description ?? 'The DinkusKit website is being prepared.'}>
   {page ? (
     <div class:list={['content-page', { 'content-split': split }]}>
-      {split && <div class="fx-wash" data-fx-wash aria-hidden="true"></div>}
+      <div class="fx-wash" data-fx-wash aria-hidden="true"></div>
       <div class="intro">
         <p class="eyebrow">Commerce for EmDash</p>
         <h1>{page.title}</h1>

@@ -123,7 +123,7 @@ footer { margin-top: 2.5rem; font-size: .85rem; color: var(--muted); }
 .content-split .text-section h2 { margin: 0 0 .5rem; }
 .content-split .text-section p { margin: 0; }
 @media (max-width: 860px) { .content-split { grid-template-columns: 1fr; padding-top: 2rem; } .content-split .intro { position: static; } }
-/* Surface effects (src/fx/surface-fx.ts): a dithered wash behind the whole
+/* Surface effects (src/fx/surface-fx.ts): a dithered wash behind every CMS
    page that runs from emerald to ultraviolet, and topic cards that carry an
    emerald dither and lean toward a nearby mouse. Without the script the wash
    is empty and the cards are plain. */

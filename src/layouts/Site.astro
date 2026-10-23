@@ -5,6 +5,13 @@ interface Props { title: string; description: string; wide?: boolean; noindex?: 
 const { title, description, wide = false, noindex = false } = Astro.props;
 const hasDocs = (await getVisibleDocs()).length > 0;
 const canonical = new URL(Astro.url.pathname, Astro.site);
+// Round 3 type lock (Stitch F1): served from this site, not a font CDN.
+import '@fontsource/inter/400.css';
+import '@fontsource/inter/500.css';
+import '@fontsource/inter/600.css';
+import '@fontsource/space-grotesk/600.css';
+import '@fontsource/space-grotesk/700.css';
+import '@fontsource/space-mono/700.css';
 import '../styles/site.css';
 import { Role } from '@emdash-cms/auth';
 ---

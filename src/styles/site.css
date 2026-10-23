@@ -10,6 +10,10 @@
   --button: #065f46; --button-ink: #ecfdf5; --button-hover: #047857;
   --error: #8a1f1f;
   --commerce: #10b981; --payments: #38bdf8; --inventory: #f59e0b; --ship: #f97316;
+  /* Type: round 3 lock, Stitch F1 (Space Grotesk headings, Inter body, Space Mono labels). */
+  --font-display: 'Space Grotesk', system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+  --font-label: 'Space Mono', ui-monospace, monospace;
 }
 /* Dark mode follows the visitor's system setting (Stitch's dark half of the same lock). */
 @media (prefers-color-scheme: dark) {
@@ -22,7 +26,7 @@
     --error: #fca5a5;
   }
 }
-:root { color-scheme: light dark; font-family: system-ui, sans-serif; color: var(--ink); background: var(--paper); line-height: 1.6; }
+:root { color-scheme: light dark; font-family: var(--font-body); color: var(--ink); background: var(--paper); line-height: 1.6; }
 * { box-sizing: border-box; }
 body { margin: 0; }
 a { color: var(--accent); text-underline-offset: .2em; }
@@ -31,18 +35,19 @@ a:focus-visible { outline: 3px solid var(--focus); outline-offset: 5px; }
 header, main, footer { max-width: 1100px; margin: auto; padding: 1.5rem clamp(1.25rem, 5vw, 4rem); }
 header, nav, footer { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; flex-wrap: wrap; }
 header { border-bottom: 1px solid var(--line); }
-.brand { font-size: 1.3rem; font-weight: 750; text-decoration: none; color: inherit; }
-.brand span { margin-left: .4rem; color: var(--mark); }
+.brand { font-family: var(--font-display); letter-spacing: -.02em; font-size: 1.3rem; font-weight: 700; text-decoration: none; color: inherit; }
+.brand span { font-family: var(--font-label); margin-left: .4rem; color: var(--mark); }
 nav { font-size: .95rem; gap: .4rem 1.6rem; }
 nav a { text-decoration: none; }
 nav a:hover, nav a[aria-current] { text-decoration: underline; }
 .intro { padding: 3rem 0 2.5rem; max-width: 760px; }
-.eyebrow { color: var(--accent); font-size: .8rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
-h1 { font-size: clamp(2.1rem, 5vw, 3.7rem); line-height: 1.1; letter-spacing: -.04em; margin: .6rem 0 1.4rem; text-wrap: balance; }
+.eyebrow { font-family: var(--font-label); color: var(--accent); font-size: .8rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+h2, h3 { font-family: var(--font-display); letter-spacing: -.01em; }
+h1 { font-family: var(--font-display); font-weight: 700; font-size: clamp(2.5rem, 4.6vw, 3.9rem); line-height: 1.1; letter-spacing: -.04em; margin: .6rem 0 1.4rem; text-wrap: balance; }
 .lead { font-size: 1.2rem; color: var(--muted); }
 .page-sections { border-top: 1px solid var(--line); }
 .text-section { display: grid; grid-template-columns: minmax(160px, 1fr) 2fr; gap: 2rem; padding: 1.4rem 0; border-bottom: 1px solid var(--line); }
-.text-section h2 { font-size: 1.15rem; }
+.text-section h2 { font-family: var(--font-display); font-weight: 600; letter-spacing: -.02em; font-size: 1.15rem; }
 .text-section p { color: var(--muted); max-width: 65ch; }
 .text-section-copy { min-width: 0; }
 .text-section-links { margin: .6rem 0 0; padding: 0; list-style: none; max-width: 65ch; }

@@ -123,13 +123,13 @@ footer { margin-top: 2.5rem; font-size: .85rem; color: var(--muted); }
 .content-split .text-section h2 { margin: 0 0 .5rem; }
 .content-split .text-section p { margin: 0; }
 @media (max-width: 860px) { .content-split { grid-template-columns: 1fr; padding-top: 2rem; } .content-split .intro { position: static; } }
-/* Surface effects (src/fx/surface-fx.ts): a dithered wash behind the split
-   intro and a dithered glare on tilting cards. Without the script the wash is
-   empty and the cards stay flat. */
-body { overflow-x: clip; }
-.content-split { position: relative; isolation: isolate; }
-.fx-wash { position: absolute; z-index: -1; top: -3rem; left: calc(50% - 50vw); width: 100vw; height: 640px; opacity: .28; pointer-events: none; -webkit-mask-image: linear-gradient(#000 35%, transparent); mask-image: linear-gradient(#000 35%, transparent); }
-.content-split .text-section.fx-tilt { position: relative; overflow: hidden; transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); transition: transform .2s ease-out; }
-.content-split .text-section.fx-tilt::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(circle at var(--glare-x, 50%) var(--glare-y, 50%), var(--mark), transparent 60%); -webkit-mask-image: var(--fx-dots); mask-image: var(--fx-dots); -webkit-mask-size: 12px 12px; mask-size: 12px 12px; opacity: 0; transition: opacity .25s ease-out; }
-.content-split .text-section.fx-tilt:hover::after { opacity: .55; }
-.content-split .text-section.fx-tilt > * { position: relative; z-index: 1; }
+/* Surface effects (src/fx/surface-fx.ts): a dithered wash behind the whole
+   page that runs from emerald to ultraviolet, and topic cards that carry an
+   emerald dither and lean toward a nearby mouse. Without the script the wash
+   is empty and the cards are plain. */
+.fx-wash { position: fixed; inset: 0; z-index: -1; opacity: .26; pointer-events: none; -webkit-mask-image: linear-gradient(transparent 60px, #000 160px); mask-image: linear-gradient(transparent 60px, #000 160px); }
+.fx-wash::after { content: ""; position: absolute; inset: 0; background: linear-gradient(160deg, var(--focus) 5%, var(--mark) 70%); mix-blend-mode: color; }
+.content-split .text-section.fx-card { position: relative; overflow: hidden; }
+.content-split .text-section.fx-card::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(circle at var(--glare-x, 50%) var(--glare-y, 140%), var(--focus), transparent 65%); -webkit-mask-image: var(--fx-dots); mask-image: var(--fx-dots); -webkit-mask-size: 12px 12px; mask-size: 12px 12px; opacity: calc(.3 + var(--near, 0) * .4); transition: opacity .2s ease-out; }
+.content-split .text-section.fx-card > * { position: relative; z-index: 1; }
+.content-split .text-section.fx-tilt { transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); transition: transform .2s ease-out; }

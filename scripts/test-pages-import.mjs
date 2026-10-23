@@ -83,6 +83,8 @@ try {
   assert.match(html, /<section class="plugin-row">.*<h2>Three plugins make the shop<\/h2>/s);
   assert.deepEqual([...html.matchAll(/<li><img src="\/brand\/(\w+)\.webp" alt=""/g)].map(match => match[1]), ['commerce', 'payments', 'ship'], 'the plugin row shows the picked plugins in order');
   assert.match(html, /data-start-bar aria-hidden="true" hidden/);
+  assert.equal(html.match(/data-start-hint[^>]*hidden/g)?.length, 4, 'four hidden step hints for disabled checkboxes');
+  assert.doesNotMatch(html, /data-start-check[^>]*disabled/, 'checkboxes work with no JavaScript');
   assert.match(html, /data-start-progress="\{done\} of \{total\} done"/);
   assert.match(html, /<summary>Don(&#39;|')t have one yet\?<\/summary>/);
   assert.match(html, /href="\/account\/signup">Create account</);

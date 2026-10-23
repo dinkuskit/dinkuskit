@@ -49,10 +49,11 @@ are not from a browser form still get the JSON errors.
 
 The heading is "Your stores" and the page names the business. It lists a
 store only while that store still has a service turned on. With no store
-connected, it says to install the DinkusKit Payments plugin in the EmDash
-store, open its setup page and press Connect. Set up Commerce, store keys and
-checkout settings are unchanged, and that section is only for those connected
-stores.
+connected, it says to install the DinkusKit Commerce plugin in the EmDash
+store, open Commerce Settings and press Connect, then do the same in Payments
+and Ship. Set up Commerce shows which plugins are connected and the checkout
+settings Commerce reads by itself; there is no store key to make or paste.
+That section is only for those connected stores.
 
 Revoke still turns one service off. It does not delete the store or add a
 remove button. When nothing is left on, the store leaves this page.

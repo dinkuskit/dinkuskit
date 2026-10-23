@@ -1,11 +1,11 @@
 import { readShipSandboxRegistration, SHIP_SANDBOX_AUDIENCE } from '../src/account/ship-recipient.ts';
-import { issueStorePass, replaceStoreKey } from '../src/account/store-passes.ts';
+import { issueStorePass } from '../src/account/store-passes.ts';
 import { checkoutSettingsJson } from '../src/account/commerce-settings.ts';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash, randomBytes } from 'node:crypto';
 import { createLocalJWKSet, jwtVerify } from 'jose';
-import { fixture, SITE, OTHER_SITE, mintSandboxPass, mintShipAdminPasses } from './helpers/ship-issuer-fixture.mjs';
+import { fixture, SITE, OTHER_SITE, mintSandboxPass, mintShipAdminPasses, pluginKey } from './helpers/ship-issuer-fixture.mjs';
 import { exchangeShipToken, shipLabelAccess, startShipSignIn } from '../src/account/ship-sign-in.ts';
 import { setEmployeePermissions } from '../src/account/organizations.ts';
 import { SESSION_EXPIRES_IN_SECONDS, SHIP_SIGN_IN_CALLBACK, STORE_PASS_SERVICES, safeAccountPath, shipSignInPath, shipSignInRequest } from '../src/account/config.ts';
@@ -218,7 +218,7 @@ test('sandbox registration is absent by default and accepts only exact bounded s
 test('sandbox machine passes require registered site, expected generation, TEST settings and existing key/grant', async () => {
   const f = await fixture(); try {
     enableSandbox(f);
-    const key = await replaceStoreKey(f.db, { siteId: SITE, subject: 'org-a', organizationId: 'a', actorUserId: 'alice' });
+    const key = await pluginKey(f, SITE, 'commerce');
     const request = { site_id: SITE, audience: SHIP_SANDBOX_AUDIENCE, scope: 'ship:orders', generation: REGISTRATION.generation };
     const send = (body, registration = f.registration) => issueStorePass({ db: f.db, authorization: `Bearer ${key}`, body, registration, privateJwkJson: f.privateJwkJson });
     const ok = await send(request); assert.equal(ok.status, 200); await sandboxClaims(f, await ok.json(), 'ship:orders');

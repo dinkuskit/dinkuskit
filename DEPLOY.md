@@ -178,9 +178,9 @@ deploy with Access:
    **Sample content** under "How do you want to start?", and finish. Here
    "Sample content" is this repository's `seed/seed.json`: the homepage, the
    Getting started page and the documentation articles as unpublished drafts.
-3. Check that `https://dinkuskit.com/` shows "Commerce that belongs in EmDash."
-   and `https://dinkuskit.com/getting-started` shows "Your site. One connected
-   experience."
+3. Check that `https://dinkuskit.com/` shows "Run your store with an agent, on a
+   site you own." and `https://dinkuskit.com/getting-started` shows "Your site.
+   One connected experience."
 
 Setup runs once. Later deploys keep the pages, and later edits to
 `seed/seed.json` do not change a database that already has them; edit the pages
@@ -234,7 +234,7 @@ that its words, steps and their order are edited in the admin like any page.
 
 ```sh
 curl --fail --silent --show-error https://dinkuskit.com/health
-curl --fail --silent --show-error https://dinkuskit.com/ | grep -c 'Commerce that belongs in EmDash'
+curl --fail --silent --show-error https://dinkuskit.com/ | grep -c 'Run your store with an agent, on a site you own'
 curl --fail --silent --show-error \
   https://dinkuskit.com/account/.well-known/jwks.json
 curl --include --silent https://dinkuskit.com/_emdash

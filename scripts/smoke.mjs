@@ -184,7 +184,7 @@ try {
   assert.equal(hashPersist(persistTo), beforeMutations, 'Fresh production CMS probes must not mutate D1');
   const freshHome = await request(base, '/');
   const freshHomeBody = await freshHome.text();
-  assert.ok(!/Commerce that belongs in EmDash/.test(freshHomeBody), 'Fresh production must not already contain seeded marketing copy');
+  assert.ok(!/Run your store with an agent, on a site you own/.test(freshHomeBody), 'Fresh production must not already contain seeded marketing copy');
   checks.push('Fresh production /_emdash GET/POST, spoofed Host/Origin/forwarded/cookie/query, encoded variants, and media are denied before any setup mutation');
   // Draft documentation must never become a public corpus, even through a guessed URL.
   assert.deepEqual(await (await request(base, '/docs/search.json')).json(), []);
@@ -229,7 +229,7 @@ try {
   const production = await startWorker('production-seeded', join(root, 'dist/server/wrangler.json'), port);
   assert.ok(await waitReady(production, base), `Seeded production workerd failed to start: ${production.logs().slice(-3000)}`);
   for (const [path, heading, body] of [
-    ['/', 'Commerce that belongs in EmDash.', 'Inventory, coming soon'],
+    ['/', 'Run your store with an agent, on a site you own.', 'Ask the agent, or do it by hand'],
     ['/getting-started', 'Your site. One connected experience.', 'Trial access'],
   ]) {
     const response = await request(base, path);

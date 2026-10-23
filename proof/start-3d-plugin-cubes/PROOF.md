@@ -1,6 +1,6 @@
 # dinkuskit.com 3D plugin cubes on `/start`
 
-Source: branch `agy/start-3d-plugin-cubes` at `git:62d9a3b26802a05ab59ea6175dfd90ffd6e843aa` (base `main` `3cea4e5e6e4854c3f05a217663d1e3a07400e994`, including merged #80, #81, #82, and #83), ledger entry `start-3d-plugin-cubes-20261023`.
+Source: branch `agy/start-3d-plugin-cubes` at `git:f0cc9120278ae34e6f607d8a1a8466476d7c5e87` (base `main` `3cea4e5e6e4854c3f05a217663d1e3a07400e994`, including merged #80, #81, #82, and #83), ledger entry `start-3d-plugin-cubes-20261023`.
 
 ## What a visitor gets
 
@@ -47,10 +47,10 @@ Published to release [`dinkuskit-start-3d-plugin-cubes-20261023-93d79e7617d9`](h
 ## Also run
 
 - `./scripts/grilltrack --project . validate` — `valid`
-- `npm run audit:repo` — `Repository path/manifest checks passed (452 files).`
+- `npm run audit:repo` — `Repository path/manifest checks passed (451 files).`
 - `npm run typecheck` — `0 errors, 0 warnings` across 108 files; zero `/\bany\b/u` matches in `src/fx/plugin-cubes-3d.ts` and `src/components/PluginCube3D.astro`
 - `npm run build` — server build completed cleanly
-- `node --experimental-strip-types --test tests/start-page.test.mjs` — 3/3 pass (`start checklist`, `start page`, `plugin 3D .glb cubes: binary glTF 2.0 assets, zero-any runtime, and reusable component contract`)
+- `node --experimental-strip-types --test tests/start-page.test.mjs` — 3/3 pass (`start checklist`, `start page`, `plugin 3D .glb cubes: glTF 2.0 assets, vendor provenance, zero-any runtime, and reusable component contract`)
 - `npm run test:theme-switch` — 4/4 pass
 - `npm run test:pages-import` — pass (`added four block types and the card logo field, allowed them, registered six brand .webp media items in /_emdash/api/media, added and published /start, added the footer menus and site title and tagline; a rerun keeps everything`)
 - `npm run test:docs-routes` — 4/4 pass

@@ -216,3 +216,102 @@ test('start page: the signed-in check never breaks the page and nothing is cache
     await stopRuntime(runtime);
   }
 });
+
+test('plugin 3D .glb cubes: glTF 2.0 assets, vendor provenance, zero-any runtime, and reusable component contract', async () => {
+  const { PLUGIN_LOGOS, PLUGIN_MODELS } = await import('../src/components/plugin-logos.ts');
+  function readGlbJson(relPath) {
+    const buf = readFileSync(new URL(relPath, import.meta.url));
+    assert.equal(buf.includes(0), false, `${relPath} contains zero null bytes so Git diffs remain text-auditable`);
+    if (buf.toString('ascii', 0, 4) === 'glTF') {
+      const jsonLen = buf.readUInt32LE(12);
+      assert.equal(buf.toString('ascii', 16, 20), 'JSON');
+      return JSON.parse(buf.toString('utf8', 20, 20 + jsonLen));
+    }
+    return JSON.parse(buf.toString('utf8'));
+  }
+  for (const name of ['Commerce', 'Payments', 'Inventory', 'Ship']) {
+    assert.ok(PLUGIN_LOGOS[name], `2D fallback logo exists for ${name}`);
+    assert.equal(PLUGIN_MODELS[name], `/models/plugins/${name.toLowerCase()}.glb`);
+    const glbBytes = readFileSync(new URL(`../public${PLUGIN_MODELS[name]}`, import.meta.url));
+    assert.ok(glbBytes.byteLength > 50_000, `${name} .glb has substantive PBR mesh payload`);
+    const gltf = readGlbJson(`../public${PLUGIN_MODELS[name]}`);
+    assert.equal(gltf.asset?.version, '2.0', `${name} .glb declares glTF 2.0 asset version`);
+    assert.ok(Array.isArray(gltf.buffers) && gltf.buffers.length >= 1, `${name} .glb has embedded buffers`);
+    const decodedBuffers = gltf.buffers.map((b, i) => {
+      assert.match(b.uri, /^data:application\/octet-stream;base64,/, `${name} buffer[${i}] uses embedded base64 URI`);
+      const raw = Buffer.from(b.uri.slice('data:application/octet-stream;base64,'.length), 'base64');
+      assert.equal(raw.byteLength, b.byteLength, `${name} buffer[${i}] decoded length matches byteLength`);
+      return raw;
+    });
+    for (const [bvIdx, bv] of (gltf.bufferViews ?? []).entries()) {
+      const targetBuf = decodedBuffers[bv.buffer];
+      assert.ok(targetBuf, `${name} bufferView[${bvIdx}] references valid buffer`);
+      assert.ok((bv.byteOffset ?? 0) + bv.byteLength <= targetBuf.byteLength, `${name} bufferView[${bvIdx}] fits within buffer`);
+    }
+  }
+  const threeSource = readFileSync(new URL('../public/vendor/three.min.js', import.meta.url), 'utf8');
+  const gltfLoaderSource = readFileSync(new URL('../public/vendor/GLTFLoader.js', import.meta.url), 'utf8');
+  const provenanceDoc = readFileSync(new URL('../docs/provenance.md', import.meta.url), 'utf8');
+  assert.match(threeSource, /SPDX-License-Identifier:\s*MIT/, 'three.min.js carries MIT SPDX license header');
+  assert.match(gltfLoaderSource, /SPDX-License-Identifier:\s*MIT/, 'GLTFLoader.js carries MIT SPDX license header');
+  assert.match(provenanceDoc, /public\/vendor\/three\.min\.js/, 'docs/provenance.md documents three.min.js');
+  assert.match(provenanceDoc, /public\/vendor\/GLTFLoader\.js/, 'docs/provenance.md documents GLTFLoader.js');
+  const runtimeSource = readFileSync(new URL('../src/fx/plugin-cubes-3d.ts', import.meta.url), 'utf8');
+  const cubeComponentSource = readFileSync(new URL('../src/components/PluginCube3D.astro', import.meta.url), 'utf8');
+  const pluginRowSource = readFileSync(new URL('../src/components/PluginRow.astro', import.meta.url), 'utf8');
+  assert.doesNotMatch(runtimeSource, /\bany\b/u, 'plugin-cubes-3d.ts obeys the zero-any TypeScript contract');
+  assert.doesNotMatch(cubeComponentSource, /\bany\b/u, 'PluginCube3D.astro obeys the zero-any TypeScript contract');
+  assert.doesNotMatch(runtimeSource, /plugin-cubes-glb\.js/, 'plugin-cubes-3d.ts does not load a duplicate base64 bundle over HTTP/HTTPS');
+  assert.match(
+    runtimeSource,
+    /loader\.load\(modelUrl,\s*onModelLoaded,\s*undefined,\s*onModelError\)/,
+    'plugin-cubes-3d.ts passes onModelError to GLTFLoader.load so failed .glb requests clean up WebGL resources and keep 2D fallback visible',
+  );
+  assert.match(
+    runtimeSource,
+    /renderer\.dispose\(\)/,
+    'plugin-cubes-3d.ts disposes WebGLRenderer on .glb load failure',
+  );
+  assert.match(
+    runtimeSource,
+    /reduceMotion\.addEventListener\('change',\s*syncReducedMotion\)/,
+    'plugin-cubes-3d.ts listens for live prefers-reduced-motion: reduce changes and halts rAF / restores 2D fallback',
+  );
+  assert.match(cubeComponentSource, /data-plugin-cube=\{plugin\}/);
+  assert.match(cubeComponentSource, /data-plugin-model=\{modelSrc\}/);
+  assert.match(cubeComponentSource, /data-plugin-cube-fallback/);
+  assert.match(pluginRowSource, /data-plugin-cube-fallback/);
+
+  const shipGltf = readGlbJson('../public/models/plugins/ship.glb');
+  const shipNodeNames = shipGltf.nodes.map(n => n.name);
+  assert.deepEqual(
+    shipNodeNames,
+    ['parcel_body', 'flap_left', 'flap_right', 'edge_inlay', 'tape_back', 'tape_top', 'tape_front', 'DinkusPluginCubeRoot'],
+    'ship.glb exposes articulated left/right top flaps and dual-side (-Z back, top, +Z front) kraft tape nodes',
+  );
+  const parcelBodyMesh = shipGltf.meshes[shipGltf.nodes.find(n => n.name === 'parcel_body').mesh];
+  const parcelPosAccessor = shipGltf.accessors[parcelBodyMesh.primitives[0].attributes.POSITION];
+  assert.ok(parcelPosAccessor.max[1] >= 0.935, 'parcel_body walls extend up to the top neon edge frame without a floating gap');
+  const shipMatNames = shipGltf.materials.map(m => m.name);
+  assert.ok(shipMatNames.includes('ship_kraft_rim'), 'ship.glb uses warm cut-kraft rim material on inner flap lips');
+  const tapeBackNode = shipGltf.nodes.find(n => n.name === 'tape_back');
+  const tapeFrontNode = shipGltf.nodes.find(n => n.name === 'tape_front');
+  assert.equal(tapeBackNode.translation[2], -0.88, 'tape_back hinges over the -Z back edge');
+  assert.equal(tapeFrontNode.translation[2], 0.88, 'tape_front hinges over the +Z front edge');
+  assert.match(runtimeSource, /const shipT = t - inst\.phaseOffset;/, 'Ship cycle time is independent of DOM card index');
+  assert.match(runtimeSource, /inst\.tapeBack\.rotation\.x = \(1(?:\.0)? - tapeBackP\) \* 0\.48;/, 'tape_back folds outward on -Z');
+  assert.match(runtimeSource, /inst\.tapeFront\.rotation\.x = -\(1(?:\.0)? - tapeFrontP\) \* 0\.55;/, 'tape_front folds outward on +Z');
+
+  const commerceGltf = readGlbJson('../public/models/plugins/commerce.glb');
+  const commerceMats = commerceGltf.materials.map(m => m.name);
+  assert.ok(commerceMats.includes('commerce_asterisk_floor'), 'commerce.glb defines commerce_asterisk_floor');
+  assert.ok(commerceMats.includes('commerce_asterisk_wall'), 'commerce.glb defines commerce_asterisk_wall');
+  const wallMat = commerceGltf.materials.find(m => m.name === 'commerce_asterisk_wall');
+  const wallEmSum = (wallMat.emissiveFactor ?? [0, 0, 0]).reduce((a, b) => a + b, 0);
+  assert.ok(wallEmSum < 0.08, 'commerce_asterisk_wall stays below the isGlow threshold so recessed walls remain dark');
+  for (const token of ['flap_left', 'flap_right', 'tape_back', 'tape_top', 'tape_front', 'commerce_asterisk_floor']) {
+    assert.ok(runtimeSource.includes(token), `plugin-cubes-3d.ts binds ${token}`);
+  }
+});
+
+

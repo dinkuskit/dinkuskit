@@ -58,6 +58,9 @@ try {
   for (const slug of START_TYPES) assert.match(imported.output, new RegExp(`^Added block type ${slug}$`, 'm'));
   assert.match(imported.output, /^Added plugin_logo to block type text_section$/m);
   assert.match(imported.output, /^Allowed plugin_row, start_account, start_checklist, start_step in the pages layout$/m);
+  for (const file of ['commerce.webp', 'payments.webp', 'inventory.webp', 'ship.webp', 'dinkuskit-f3-cube.webp', 'dinkuskit-f3-trio.webp']) {
+    assert.match(imported.output, new RegExp(`^Uploaded media ${file.replace(/\./g, '\\.')}$`, 'm'));
+  }
   assert.match(imported.output, /^Added draft page start$/m);
   assert.match(imported.output, /^Published page start$/m);
   assert.match(imported.output, /^Added menu footer-get-started with 3 links$/m);
@@ -80,9 +83,32 @@ try {
   const again = await runImport(development.base, token, '--footer', '--publish');
   assert.equal(again.code, 0, again.output);
   assert.equal(again.output.match(/^Kept existing /gm)?.length, 9, again.output);
+  assert.equal(again.output.match(/^Kept media /gm)?.length, 6, again.output);
   assert.match(again.output, /^Kept site tagline "Edited tagline"$/m);
-  assert.doesNotMatch(again.output, /Added|Allowed|Published|Set site/);
-  console.log('PASS import script: added four block types and the card logo field, allowed them, added and published /start, added the footer menus and site title and tagline; a rerun keeps everything');
+  assert.doesNotMatch(again.output, /Added|Allowed|Published|Set site|Uploaded/);
+
+  const mediaResponse = await api('/media');
+  assert.equal(mediaResponse.status, 200);
+  const mediaList = await mediaResponse.json();
+  const mediaItems = mediaList.data?.items ?? [];
+  assert.deepEqual(
+    mediaItems.map(item => item.filename).sort(),
+    ['commerce.webp', 'dinkuskit-f3-cube.webp', 'dinkuskit-f3-trio.webp', 'inventory.webp', 'payments.webp', 'ship.webp'],
+    '/_emdash/admin Media Library lists all 6 brand and plugin 2D .webp assets',
+  );
+  for (const item of mediaItems) {
+    assert.equal(item.mimeType, 'image/webp');
+    assert.equal(item.status, 'ready');
+    assert.ok(item.width > 0 && item.height > 0, `${item.filename} has dimensions`);
+    assert.ok(item.alt?.startsWith('DinkusKit '), `${item.filename} has descriptive alt text`);
+    assert.match(item.contentHash ?? '', /^sha1:/, `${item.filename} has SHA-1 contentHash`);
+    assert.match(item.url ?? '', /^\/_emdash\/api\/media\/file\//, `${item.filename} has Media Library file URL`);
+  }
+  const commerceMedia = mediaItems.find(item => item.filename === 'commerce.webp');
+  const commerceFileResponse = await development.request(commerceMedia.url);
+  assert.equal(commerceFileResponse.status, 200);
+  assert.equal(commerceFileResponse.headers.get('content-type'), 'image/webp');
+  console.log('PASS import script: added four block types and the card logo field, allowed them, registered six brand .webp media items in /_emdash/api/media, added and published /start, added the footer menus and site title and tagline; a rerun keeps everything');
 
 
   const response = await development.request('/start');
@@ -94,6 +120,7 @@ try {
   assert.equal(html.match(/class="start-step"/g)?.length, 4, 'four steps');
   assert.match(html, /<section class="plugin-row">.*<h2>Three plugins make the shop<\/h2>/s);
   assert.deepEqual([...html.matchAll(/<li><img src="\/brand\/(\w+)\.webp" alt=""/g)].map(match => match[1]), ['commerce', 'payments', 'ship'], 'the plugin row shows the picked plugins in order');
+  assert.deepEqual([...html.matchAll(/data-plugin-cube="(\w+)"/g)].map(match => match[1]), ['Commerce', 'Payments', 'Ship'], 'the plugin row mounts rotatable 3D .glb cube slots for the picked plugins');
   assert.match(html, /data-start-bar aria-hidden="true" hidden/);
   assert.equal(html.match(/data-start-hint[^>]*hidden/g)?.length, 4, 'four hidden step hints for disabled checkboxes');
   assert.doesNotMatch(html, /data-start-check[^>]*disabled/, 'checkboxes work with no JavaScript');

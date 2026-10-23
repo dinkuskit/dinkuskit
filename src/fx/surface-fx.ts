@@ -29,12 +29,15 @@ if (wash) {
   matchMedia('(prefers-color-scheme: dark)').addEventListener('change', mount);
 }
 
+// Every graphite card carries the dither; only the split pages' topic cards
+// lean, since a card as wide as the page would swing too far.
+const dithered = [...document.querySelectorAll<HTMLElement>('.content-page .text-section')];
 const cards = [...document.querySelectorAll<HTMLElement>('.content-split .text-section')];
-if (cards.length) {
+if (dithered.length) {
   // One Bayer tile (4 cells of 3px) masks the card glow into the wash's dither.
   const dots = fx.ditherPatternSvg({ density: 0.5, cellSize: 3, bayer: 4, fg: '#000' }).replace('width="100%" height="100%"', 'width="12" height="12"');
   document.documentElement.style.setProperty('--fx-dots', `url("data:image/svg+xml;utf8,${encodeURIComponent(dots)}")`);
-  for (const card of cards) card.classList.add('fx-card');
+  for (const card of dithered) card.classList.add('fx-card');
 }
 if (cards.length && matchMedia('(hover: hover) and (pointer: fine)').matches && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
   // Like the skill's mountHoverTilt, but a card starts to respond within NEAR

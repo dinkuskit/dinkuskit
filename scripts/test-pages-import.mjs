@@ -9,7 +9,7 @@ import { WORK, resetDatabase, start, unusedPort } from './lib/docs-preview.mjs';
 // the block types, the logo field and a draft, a rerun keeps them, and Publish
 // shows the page with no rebuild.
 const OLD_SEED = new URL('../.emdash/seed.json', import.meta.url);
-const START_TYPES = ['start_account', 'start_checklist', 'start_step'];
+const START_TYPES = ['plugin_row', 'start_account', 'start_checklist', 'start_step'];
 
 function runImport(base, token, ...extra) {
   return new Promise((resolve, reject) => {
@@ -54,7 +54,7 @@ try {
   assert.equal(imported.code, 0, imported.output);
   for (const slug of START_TYPES) assert.match(imported.output, new RegExp(`^Added block type ${slug}$`, 'm'));
   assert.match(imported.output, /^Added plugin_logo to block type text_section$/m);
-  assert.match(imported.output, /^Allowed start_account, start_checklist, start_step in the pages layout$/m);
+  assert.match(imported.output, /^Allowed plugin_row, start_account, start_checklist, start_step in the pages layout$/m);
   assert.match(imported.output, /^Added draft page start$/m);
   assert.match(imported.output, /^Published page start$/m);
 
@@ -68,9 +68,9 @@ try {
   assert.equal((await api(`/content/pages/${entry.id}/publish`, { method: 'POST' })).status, 200);
   const again = await runImport(development.base, token, '--publish');
   assert.equal(again.code, 0, again.output);
-  assert.equal(again.output.match(/^Kept existing /gm)?.length, 5, again.output);
+  assert.equal(again.output.match(/^Kept existing /gm)?.length, 6, again.output);
   assert.doesNotMatch(again.output, /Added|Allowed|Published/);
-  console.log('PASS import script: added three block types and the card logo field, allowed them, added and published /start; a rerun keeps everything');
+  console.log('PASS import script: added four block types and the card logo field, allowed them, added and published /start; a rerun keeps everything');
 
 
   const response = await development.request('/start');
@@ -80,6 +80,9 @@ try {
   assert.equal(html.match(/class="text-section-logo"/g)?.length, 1, 'the text section shows the picked logo');
   assert.match(html, /<img class="text-section-logo" src="\/brand\/commerce\.webp" alt="DinkusKit Commerce"/);
   assert.equal(html.match(/class="start-step"/g)?.length, 4, 'four steps');
+  assert.match(html, /<section class="plugin-row">.*<h2>Three plugins make the shop<\/h2>/s);
+  assert.deepEqual([...html.matchAll(/<li><img src="\/brand\/(\w+)\.webp" alt=""/g)].map(match => match[1]), ['commerce', 'payments', 'ship'], 'the plugin row shows the picked plugins in order');
+  assert.match(html, /data-start-bar aria-hidden="true" hidden/);
   assert.match(html, /data-start-progress="\{done\} of \{total\} done"/);
   assert.match(html, /<summary>Don(&#39;|')t have one yet\?<\/summary>/);
   assert.match(html, /href="\/account\/signup">Create account</);

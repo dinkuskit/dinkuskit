@@ -84,30 +84,64 @@ footer { margin-top: 2.5rem; font-size: .85rem; color: var(--muted); }
 .operator-note { color: var(--muted); font-size: .9rem; max-width: 75ch; }
 @media (max-width: 600px) { .text-section { grid-template-columns: 1fr; gap: 0; } .intro { padding-top: 2rem; } header { flex-direction: column; align-items: flex-start; gap: .9rem; } nav { justify-content: flex-start; gap: .5rem 1.4rem; } }
 @media (max-width: 700px) { .operator-grid { grid-template-columns: 1fr; } .detail-grid { grid-template-columns: 1fr; gap: .15rem; } .detail-grid dd { margin-bottom: .55rem; } }
-.start-account { padding: 1.4rem 0; border-bottom: 1px solid var(--line); }
-.start-account p { margin: .3rem 0; }
+/* Start your store (round 7: S9's account bar, progress board and step cards,
+   with S6's plugin row). Pages with blocks other than text sections stack
+   their blocks; a text section there is a graphite card like the home cards. */
+.content-page:not(.content-split) .page-sections { border-top: 0; display: grid; gap: 1.25rem; padding-bottom: 1rem; }
+.start-account { display: flex; justify-content: space-between; align-items: center; gap: .8rem 1.25rem; flex-wrap: wrap; padding: 1.1rem 1.4rem; background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--focus); }
+.start-account p { margin: 0; }
+.start-account > p:first-child { display: flex; align-items: center; gap: .8rem; font-weight: 500; }
+.start-account > p:first-child::before { content: ""; flex: none; width: 9px; height: 9px; border-radius: 50%; background: var(--focus); box-shadow: 0 0 0 4px color-mix(in srgb, var(--focus) 22%, transparent); }
 .start-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem 1.4rem; }
-.start-actions .start-button { margin-top: .5rem; }
-.start-button { display: inline-block; background: var(--button); color: var(--button-ink); padding: .7rem 1.2rem; text-decoration: none; font-weight: 600; }
+.start-button { display: inline-block; background: var(--button); color: var(--button-ink); padding: .6rem 1.15rem; text-decoration: none; font-weight: 600; }
 .start-button:hover { background: var(--button-hover); }
-.start-checklist-head { display: flex; justify-content: space-between; align-items: baseline; gap: .4rem 1rem; flex-wrap: wrap; padding-top: 1.4rem; max-width: 760px; }
-.start-checklist-head h2 { font-size: 1.15rem; margin: 0; }
-.start-progress { margin: 0; color: var(--accent); font-weight: 700; font-size: .9rem; }
-.start-done { flex-basis: 100%; margin: .6rem 0 0; padding: 1rem 1.2rem; background: var(--accent-wash); border: 1px solid var(--accent-line); font-weight: 600; }
-.start-steps { list-style: none; counter-reset: step; margin: 1rem 0 1.4rem; padding: 0; max-width: 760px; }
-.start-step { counter-increment: step; position: relative; padding: 1.1rem 1.2rem 1.1rem 3.6rem; margin-bottom: .8rem; background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--line); }
-.start-step::before { content: counter(step); position: absolute; left: 1.1rem; top: 1.05rem; width: 1.7rem; height: 1.7rem; border-radius: 50%; background: var(--line-soft); color: var(--accent); font-weight: 700; display: grid; place-items: center; font-size: .9rem; }
-.start-step.is-next { border-left-color: var(--focus); }
+.start-checklist-head { display: flex; justify-content: space-between; align-items: baseline; gap: .85rem 1rem; flex-wrap: wrap; margin-top: .75rem; padding: 1.3rem 1.5rem; background: var(--surface-soft); border: 1px solid var(--line); }
+.start-checklist-head h2 { font-size: 1.15rem; font-weight: 700; margin: 0; }
+.start-progress { margin: 0; font: 700 .85rem/1.4 var(--font-label); letter-spacing: .06em; text-transform: uppercase; color: var(--accent); }
+.start-bar { flex-basis: 100%; display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: .55rem; }
+.start-bar[hidden] { display: none; }
+.start-bar span { height: 7px; border-radius: 1px; background: var(--line); transition: background .2s ease; }
+.start-bar span.is-next { background: color-mix(in srgb, var(--focus) 35%, var(--line)); }
+.start-bar span.is-done { background: var(--focus); }
+.start-done { flex-basis: 100%; margin: .2rem 0 0; padding: 1rem 1.2rem; background: var(--accent-wash); border: 1px solid var(--accent-line); border-left: 5px solid var(--accent); font-weight: 600; }
+.start-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 1rem; }
+.start-step { position: relative; padding: 1.4rem 1.5rem; background: var(--surface); border: 1px solid var(--line); transition: border-color .15s ease; }
+.start-step:hover { border-color: var(--accent-line); }
+.start-step.is-next { box-shadow: inset 4px 0 0 var(--focus); }
 .start-step.is-done { background: var(--surface-soft); }
-.start-step.is-done::before { content: '✓'; background: var(--accent); color: white; }
 .start-step.is-done > label span { text-decoration: line-through; text-decoration-color: var(--muted); }
-.start-step label { display: flex; align-items: flex-start; gap: .6rem; font-weight: 700; font-size: 1.05rem; cursor: pointer; }
-.start-step input { width: 1.15rem; height: 1.15rem; margin-top: .3rem; accent-color: var(--accent); flex: none; }
-.start-step p { color: var(--muted); margin: .5rem 0 0; max-width: 62ch; }
-.start-step details { margin-top: .6rem; }
-.start-step summary { cursor: pointer; color: var(--accent); font-weight: 600; }
+.start-step label { display: flex; align-items: flex-start; gap: 1.1rem; font-family: var(--font-display); font-weight: 700; font-size: 1.15rem; line-height: 1.3; cursor: pointer; }
+.start-step input { width: 1.25rem; height: 1.25rem; margin: .05rem 0 0; accent-color: var(--accent); flex: none; }
+.start-step > :not(label) { margin-left: 2.35rem; }
+.start-step p { color: var(--muted); margin-block: .45rem 0; max-width: 68ch; font-size: .95rem; }
+.start-step details { margin-top: .75rem; }
+.start-step summary { cursor: pointer; color: var(--accent); font-weight: 600; font-size: .9rem; }
 .start-note { font-size: .9rem; font-style: italic; }
-@media (max-width: 600px) { .start-step { padding-left: 3.2rem; } .start-step::before { left: .8rem; } }
+.plugin-row { display: flex; justify-content: space-between; align-items: center; gap: 1.25rem 2rem; flex-wrap: wrap; padding: 1.25rem 1.5rem; background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--accent); }
+.plugin-row-copy { max-width: 26rem; }
+.plugin-row h2 { margin: 0 0 .2rem; font-size: 1.05rem; font-weight: 700; }
+.plugin-row p { margin: 0; font-size: .9rem; color: var(--muted); }
+.plugin-row-list { display: flex; align-items: center; gap: 2.75rem; margin: 0; padding: 0; list-style: none; }
+.plugin-row-list li { position: relative; display: grid; justify-items: center; gap: .35rem; font: 700 .7rem/1 var(--font-label); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.plugin-row-list img { display: block; width: 52px; height: 52px; object-fit: contain; }
+.plugin-row-list li + li::before { content: "+"; position: absolute; left: -1.375rem; top: 26px; transform: translate(-50%, -50%); font: 400 1.2rem/1 var(--font-body); color: var(--muted); opacity: .6; }
+.content-page:not(.content-split) .text-section { margin-top: .75rem; padding: 1.6rem 2rem; align-items: center; background: var(--graphite); border: 1px solid var(--graphite-line); color: var(--graphite-ink); }
+.content-page:not(.content-split) .text-section h2 { margin: 0; font-size: 1.2rem; }
+.content-page:not(.content-split) .text-section p { margin: 0; color: var(--graphite-muted); }
+.content-page:not(.content-split) .text-section-links { display: flex; flex-wrap: wrap; gap: .4rem 1.4rem; margin-top: .75rem; }
+.content-page:not(.content-split) .text-section-links a { color: var(--highlight); font-weight: 600; text-decoration: none; }
+.content-page:not(.content-split) .text-section-links a::after { content: " \2192"; }
+.content-page:not(.content-split) .text-section-links a:hover { text-decoration: underline; }
+/* On a phone the plugin row reads like a list: one plugin a row, plus signs between. */
+@media (max-width: 600px) {
+  .start-step { padding: 1.2rem; }
+  .start-step > :not(label) { margin-left: 0; }
+  .plugin-row-list { flex-direction: column; align-items: stretch; gap: 1.2rem; width: 100%; }
+  .plugin-row-list li { display: flex; align-items: center; gap: .9rem; padding: .55rem .8rem; background: var(--surface-soft); border: 1px solid var(--line-soft); font-size: .8rem; }
+  .plugin-row-list img { width: 40px; height: 40px; }
+  .plugin-row-list li + li::before { left: 50%; top: -.6rem; font-size: 1rem; }
+  .content-page:not(.content-split) .text-section { padding: 1.4rem; gap: .6rem; }
+}
 
 /* Split pages (round 1 lock L3): intro left, text sections as cards right. */
 .intro-action { display: inline-flex; align-items: center; gap: .5rem; margin-top: .6rem; padding: .75rem 1.25rem; background: var(--button); color: var(--button-ink); font-weight: 600; text-decoration: none; }
@@ -138,7 +172,7 @@ footer { margin-top: 2.5rem; font-size: .85rem; color: var(--muted); }
    is empty and the cards are plain. */
 .fx-wash { position: fixed; inset: 0; z-index: -1; opacity: .26; pointer-events: none; -webkit-mask-image: linear-gradient(transparent 60px, #000 160px); mask-image: linear-gradient(transparent 60px, #000 160px); }
 .fx-wash::after { content: ""; position: absolute; inset: 0; background: linear-gradient(160deg, var(--focus) 5%, var(--mark) 70%); mix-blend-mode: color; }
-.content-split .text-section.fx-card { position: relative; overflow: hidden; }
-.content-split .text-section.fx-card::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(circle at var(--glare-x, 50%) var(--glare-y, 140%), var(--focus), transparent 65%); -webkit-mask-image: var(--fx-dots); mask-image: var(--fx-dots); -webkit-mask-size: 12px 12px; mask-size: 12px 12px; opacity: calc(.3 + var(--near, 0) * .4); transition: opacity .2s ease-out; }
-.content-split .text-section.fx-card > * { position: relative; z-index: 1; }
+.text-section.fx-card { position: relative; overflow: hidden; }
+.text-section.fx-card::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(circle at var(--glare-x, 50%) var(--glare-y, 140%), var(--focus), transparent 65%); -webkit-mask-image: var(--fx-dots); mask-image: var(--fx-dots); -webkit-mask-size: 12px 12px; mask-size: 12px 12px; opacity: calc(.3 + var(--near, 0) * .4); transition: opacity .2s ease-out; }
+.text-section.fx-card > * { position: relative; z-index: 1; }
 .content-split .text-section.fx-tilt { transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); transition: transform .2s ease-out; }

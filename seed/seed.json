@@ -147,6 +147,45 @@
       ]
     },
     {
+      "slug": "plugin_row",
+      "label": "Plugin row",
+      "category": "Content",
+      "description": "A heading and a line of text beside the picked plugin logos, joined by plus signs.",
+      "currentVersion": 1,
+      "versions": [
+        {
+          "version": 1,
+          "fields": [
+            {
+              "slug": "heading",
+              "label": "Heading",
+              "type": "string",
+              "required": true
+            },
+            {
+              "slug": "body",
+              "label": "Body",
+              "type": "text"
+            },
+            {
+              "slug": "plugins",
+              "label": "Plugins",
+              "type": "multiSelect",
+              "required": true,
+              "validation": {
+                "options": [
+                  "Commerce",
+                  "Payments",
+                  "Inventory",
+                  "Ship"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
       "slug": "start_step",
       "label": "Checklist step",
       "category": "Start page",
@@ -238,7 +277,8 @@
               "text_section",
               "start_account",
               "start_checklist",
-              "start_step"
+              "start_step",
+              "plugin_row"
             ],
             "maxItems": 20
           }
@@ -425,6 +465,18 @@
           "title": "You've tried the playground. Now run your own.",
           "description": "Your store is an EmDash site you own. DinkusKit adds the shop: Commerce for products and orders, Payments for card checkout, and Ship for postage. Four steps get you from nothing to a test order.",
           "layout": [
+            {
+              "_type": "plugin_row",
+              "_version": 1,
+              "_key": "start-7",
+              "heading": "Three plugins make the shop",
+              "body": "Each one installs from the plugin Registry in your EmDash admin.",
+              "plugins": [
+                "Commerce",
+                "Payments",
+                "Ship"
+              ]
+            },
             {
               "_type": "start_account",
               "_version": 1,

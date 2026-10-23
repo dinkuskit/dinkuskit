@@ -3,6 +3,7 @@ import { getEmDashEntry } from 'emdash';
 import { Blocks, type BlockValue } from 'emdash/ui';
 import Site from '../layouts/Site.astro';
 import TextSection from './TextSection.astro';
+import PluginRow from './PluginRow.astro';
 import StartAccount from './StartAccount.astro';
 import StartChecklist from './StartChecklist.astro';
 import StartSteps from './StartSteps.astro';
@@ -48,7 +49,7 @@ const action = {
           ? <StartAccount value={segment.block} signedInAs={Astro.props.signedInAs ?? null} />
           : segment.kind === 'steps'
             ? <StartSteps steps={segment.blocks} />
-            : <Blocks value={segment.blocks} components={{ text_section: TextSection, start_checklist: StartChecklist }} />)}
+            : <Blocks value={segment.blocks} components={{ text_section: TextSection, start_checklist: StartChecklist, plugin_row: PluginRow }} />)}
       </div>
     </div>
   ) : (

@@ -1,6 +1,7 @@
 ---
 import type { BlockComponentProps, BlockValue } from 'emdash/ui';
 import { safeHttpUrl } from '../../scripts/lib/safe-http-url.mjs';
+import { PLUGIN_LOGOS } from './plugin-logos.ts';
 
 type TextSectionValue = BlockValue & {
   heading?: string;
@@ -10,14 +11,6 @@ type TextSectionValue = BlockValue & {
   second_link_href?: string;
   second_link_label?: string;
   plugin_logo?: string;
-};
-
-// The plugin logos an editor can put on a card; the files are in public/brand.
-const PLUGIN_LOGOS: Record<string, string> = {
-  Commerce: '/brand/commerce.webp',
-  Payments: '/brand/payments.webp',
-  Inventory: '/brand/inventory.webp',
-  Ship: '/brand/ship.webp',
 };
 
 const { value } = Astro.props as BlockComponentProps<TextSectionValue>;

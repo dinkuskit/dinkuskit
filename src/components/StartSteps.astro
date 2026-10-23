@@ -40,16 +40,22 @@ const steps = Astro.props.steps.map(step => ({ ...step, href: safeHttpUrl(step.l
   const steps = Array.from(document.querySelectorAll<HTMLElement>('[data-start-step]'));
   const progress = document.querySelector<HTMLElement>('[data-start-progress]');
   const done = document.querySelector<HTMLElement>('[data-start-done]');
+  // One bar segment per step, filled as that step is ticked.
+  const bar = document.querySelector<HTMLElement>('[data-start-bar]');
+  const segments = steps.map(() => bar?.appendChild(document.createElement('span')));
   let saved: unknown = [];
   try { saved = JSON.parse(localStorage.getItem(KEY) ?? '[]'); } catch { saved = []; }
   const ticked = new Set(Array.isArray(saved) ? saved.filter(item => typeof item === 'string') : []);
   const render = () => {
     const doneSteps = steps.filter(step => step.querySelector<HTMLInputElement>('[data-start-check]')?.checked);
     const next = steps.find(step => !doneSteps.includes(step));
-    steps.forEach(step => {
+    steps.forEach((step, index) => {
       step.classList.toggle('is-done', doneSteps.includes(step));
       step.classList.toggle('is-next', step === next);
+      segments[index]?.classList.toggle('is-done', doneSteps.includes(step));
+      segments[index]?.classList.toggle('is-next', step === next);
     });
+    if (bar) bar.hidden = false;
     const template = progress?.dataset.startProgress;
     if (progress && template) {
       progress.hidden = false;

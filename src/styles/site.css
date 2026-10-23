@@ -26,6 +26,10 @@
     --error: #fca5a5;
   }
 }
+/* EmDash's own content components (Portable Text tables, embeds) read these
+   names and fall back to light grays; point them at the palette so they follow
+   dark mode too. */
+:root { --color-surface: var(--surface-soft); --color-bg-subtle: var(--surface-soft); --color-border: var(--line); --color-muted: var(--muted); }
 :root { color-scheme: light dark; font-family: var(--font-body); color: var(--ink); background: var(--paper); line-height: 1.6; }
 * { box-sizing: border-box; }
 body { margin: 0; }

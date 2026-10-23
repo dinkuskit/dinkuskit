@@ -12,8 +12,12 @@ type DitherHandle = { destroy(): void };
 type SurfaceFxWindow = Window & {
   mountDitherShader(host: Element, options: Record<string, unknown>): DitherHandle | null;
   ditherPatternSvg(options: Record<string, unknown>): string;
+  defaultViewportPool: { rebalance(): void };
 };
 const fx = window as unknown as SurfaceFxWindow;
+// Visitors can switch reduced motion on while a page is open; both effects
+// follow the switch straight away.
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
 
 const wash = document.querySelector<HTMLElement>('[data-fx-wash]');
 if (wash) {
@@ -27,6 +31,9 @@ if (wash) {
   };
   mount();
   matchMedia('(prefers-color-scheme: dark)').addEventListener('change', mount);
+  // The pool stops the wash on a still frame under reduced motion and
+  // restarts it when the preference is lifted.
+  reduceMotion.addEventListener('change', () => fx.defaultViewportPool.rebalance());
 }
 
 // Every graphite card carries the dither; only the split pages' topic cards
@@ -39,7 +46,7 @@ if (dithered.length) {
   document.documentElement.style.setProperty('--fx-dots', `url("data:image/svg+xml;utf8,${encodeURIComponent(dots)}")`);
   for (const card of dithered) card.classList.add('fx-card');
 }
-if (cards.length && matchMedia('(hover: hover) and (pointer: fine)').matches && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+if (cards.length && matchMedia('(hover: hover) and (pointer: fine)').matches) {
   // Like the skill's mountHoverTilt, but a card starts to respond within NEAR
   // pixels of the mouse instead of only under it.
   const NEAR = 160;
@@ -49,6 +56,7 @@ if (cards.length && matchMedia('(hover: hover) and (pointer: fine)').matches && 
   let frame = 0;
   const update = () => {
     frame = 0;
+    if (reduceMotion.matches) return;
     for (const card of cards) {
       const r = card.getBoundingClientRect();
       const gap = Math.hypot(Math.max(r.left - x, 0, x - r.right), Math.max(r.top - y, 0, y - r.bottom));
@@ -65,7 +73,17 @@ if (cards.length && matchMedia('(hover: hover) and (pointer: fine)').matches && 
     }
   };
   const queue = () => { frame ||= requestAnimationFrame(update); };
-  for (const card of cards) card.classList.add('fx-tilt');
+  // Reduced motion: flat, resting cards (the static dither stays).
+  const follow = () => {
+    if (reduceMotion.matches && frame) { cancelAnimationFrame(frame); frame = 0; }
+    for (const card of cards) {
+      card.classList.toggle('fx-tilt', !reduceMotion.matches);
+      if (reduceMotion.matches) for (const name of ['--near', '--rx', '--ry', '--glare-x', '--glare-y']) card.style.removeProperty(name);
+    }
+    if (!reduceMotion.matches) queue();
+  };
+  follow();
+  reduceMotion.addEventListener('change', follow);
   addEventListener('pointermove', event => {
     if (event.pointerType !== 'mouse') return;
     x = event.clientX;

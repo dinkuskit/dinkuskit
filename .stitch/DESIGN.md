@@ -67,8 +67,7 @@ my favorite").
 
 ## Brand images
 
-From Ronald's vote pack (private `dinkuskit/dinkus-pr-assets`, branch
-`brand/dinkuskit-final-vote-pack`), resized for the web into `public/brand/`.
+Owner-supplied brand files, resized for the web into `public/brand/`.
 The DinkusKit logo is not final: F3 ultraviolet is used for the grill.
 
 - Header: the F3 trio (`dinkuskit-f3-trio.webp`) beside the wordmark.

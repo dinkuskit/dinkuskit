@@ -1,7 +1,8 @@
 # dinkuskit.com design: home (H4) and Start your store
 
 Source: branch `claude/project-thread-9pyz0c` at `10edce5` (main merged in,
-including #80's home copy), ledger entry `website-design-20261023`.
+including #80's home copy), ledger entry `website-design-20261023`. The review
+fixes below were checked on the commit that adds this section.
 
 ## How it was captured
 
@@ -36,6 +37,24 @@ was stretched to the page height.
 `home-{light,dark}-{desktop,phone}.webp`,
 `start-{light,dark}-{desktop,phone}.webp`, and `bar-two-ticked.webp` (the
 checklist head after two ticks).
+
+## Review fixes (ClawSweeper on `9573485` and `5ebc2d8`)
+
+Same local server, after the three fixes:
+
+| Check | Result |
+| --- | --- |
+| Design notes | `.stitch/DESIGN.md` now calls the brand images owner-supplied; no repository or branch is named |
+| Docs in dark mode (`/docs/troubleshooting`, search for "Stripe") | search box `rgb(23, 34, 32)` behind `rgb(236, 253, 245)` text; table header `rgb(20, 29, 27)` (it was EmDash's light `#f5f5f5` fallback); phone menu `rgb(17, 24, 23)` (it was `#f7f8f4`). Light mode keeps light surfaces. `docs-dark-desktop.webp`, `docs-dark-phone-menu.webp` |
+| Reduced motion switched on with the page open (Playwright `emulateMedia`) | mouse on card 2: card tilted (`--ry` 2.80deg), wash running (1 live). After the switch: no tilt class, tilt variables cleared, `transform: none`, wash stopped (0 live), and moving the mouse changes nothing. Switching back restores both |
+| Reduced motion from the first load | no tilt with the mouse on a card, wash not running |
+
+`src/docs/docs.css` now uses the site's color tokens, and `site.css` points
+EmDash's own content-component colors (`--color-surface`, `--color-border`,
+`--color-muted`, `--color-bg-subtle`) at the palette, so Portable Text tables
+follow dark mode. `src/fx/surface-fx.ts` listens for reduced-motion changes:
+the cards drop their tilt and any pending frame, and the viewport pool stops or
+restarts the wash.
 
 ## Also run on this head
 

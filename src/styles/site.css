@@ -35,8 +35,8 @@ a:focus-visible { outline: 3px solid var(--focus); outline-offset: 5px; }
 header, main, footer { max-width: 1100px; margin: auto; padding: 1.5rem clamp(1.25rem, 5vw, 4rem); }
 header, nav, footer { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; flex-wrap: wrap; }
 header { border-bottom: 1px solid var(--line); }
-.brand { font-family: var(--font-display); letter-spacing: -.02em; font-size: 1.3rem; font-weight: 700; text-decoration: none; color: inherit; }
-.brand span { font-family: var(--font-label); margin-left: .4rem; color: var(--mark); }
+.brand { display: inline-flex; align-items: center; gap: .55rem; font-family: var(--font-display); letter-spacing: -.02em; font-size: 1.3rem; font-weight: 700; text-decoration: none; color: inherit; }
+.brand img { display: block; height: 24px; width: auto; }
 nav { font-size: .95rem; gap: .4rem 1.6rem; }
 nav a { text-decoration: none; }
 nav a:hover, nav a[aria-current] { text-decoration: underline; }

@@ -1,6 +1,6 @@
 # dinkuskit.com 3D plugin cubes on `/start`
 
-Source: branch `agy/start-3d-plugin-cubes` at `git:93d79e7617d92957798d7e879bb4946f32c64319` (base `main` `3cea4e5e6e4854c3f05a217663d1e3a07400e994`, including merged #80, #81, #82, and #83), ledger entry `start-3d-plugin-cubes-20261023`.
+Source: branch `agy/start-3d-plugin-cubes` at `git:62d9a3b26802a05ab59ea6175dfd90ffd6e843aa` (base `main` `3cea4e5e6e4854c3f05a217663d1e3a07400e994`, including merged #80, #81, #82, and #83), ledger entry `start-3d-plugin-cubes-20261023`.
 
 ## What a visitor gets
 

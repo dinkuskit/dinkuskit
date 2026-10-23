@@ -4,10 +4,11 @@ import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node
 import { WORK, resetDatabase, start, unusedPort } from './lib/docs-preview.mjs';
 
 // Drives the one-time page load on the docs preview fixture (its own EmDash
-// SQLite database). The fixture starts from the seed as it was before /start
-// and the cards' plugin logo, as dinkuskit.com's database is; the script adds
-// the block types, the logo field and a draft, a rerun keeps them, and Publish
-// shows the page with no rebuild.
+// SQLite database). The fixture starts from the seed as it was before /start,
+// the cards' plugin logo and the footer menus, as dinkuskit.com's database is;
+// the script adds the block types, the logo field, a draft, the footer menus
+// and an empty site title and tagline, a rerun keeps them, and Publish shows
+// the page with no rebuild.
 const OLD_SEED = new URL('../.emdash/seed.json', import.meta.url);
 const START_TYPES = ['plugin_row', 'start_account', 'start_checklist', 'start_step'];
 
@@ -34,6 +35,8 @@ seed.content.pages = seed.content.pages.filter(page => page.slug !== 'start');
 const textSection = seed.blockTypes.find(type => type.slug === 'text_section').versions[0];
 textSection.fields = textSection.fields.filter(field => field.slug !== 'plugin_logo');
 for (const page of seed.content.pages) for (const block of page.data.layout ?? []) delete block.plugin_logo;
+delete seed.menus;
+delete seed.settings;
 mkdirSync(new URL('./', OLD_SEED), { recursive: true });
 writeFileSync(OLD_SEED, JSON.stringify(seed));
 
@@ -50,13 +53,18 @@ try {
   });
   assert.equal((await development.request('/start')).status, 503, 'an older database has no start page');
 
-  const imported = await runImport(development.base, token, '--publish');
+  const imported = await runImport(development.base, token, '--footer', '--publish');
   assert.equal(imported.code, 0, imported.output);
   for (const slug of START_TYPES) assert.match(imported.output, new RegExp(`^Added block type ${slug}$`, 'm'));
   assert.match(imported.output, /^Added plugin_logo to block type text_section$/m);
   assert.match(imported.output, /^Allowed plugin_row, start_account, start_checklist, start_step in the pages layout$/m);
   assert.match(imported.output, /^Added draft page start$/m);
   assert.match(imported.output, /^Published page start$/m);
+  assert.match(imported.output, /^Added menu footer-get-started with 3 links$/m);
+  assert.match(imported.output, /^Added menu footer-plugins with 3 links$/m);
+  assert.match(imported.output, /^Added menu footer-dinkuskit with 4 links$/m);
+  assert.match(imported.output, /^Set site title "DinkusKit"$/m);
+  assert.match(imported.output, /^Set site tagline "Built with EmDash\. Growing in the open\."$/m);
 
   // An editor's later wording survives a rerun, even one asking to publish.
   const found = await (await api('/content/pages/start')).json();
@@ -66,11 +74,15 @@ try {
   const edited = { ...entry.data, title: 'Edited in the admin', layout: entry.data.layout.map(block => block._type === 'text_section' ? { ...block, plugin_logo: 'Commerce' } : block) };
   assert.equal((await api(`/content/pages/${entry.id}`, { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ data: edited, _rev: found.data?._rev }) })).status, 200);
   assert.equal((await api(`/content/pages/${entry.id}/publish`, { method: 'POST' })).status, 200);
-  const again = await runImport(development.base, token, '--publish');
+  // An editor's footer link and tagline survive a rerun too.
+  assert.equal((await api('/menus/footer-dinkuskit/items', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ type: 'custom', label: 'Status', customUrl: '/health' }) })).status, 201);
+  assert.equal((await api('/settings', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ tagline: 'Edited tagline' }) })).status, 200);
+  const again = await runImport(development.base, token, '--footer', '--publish');
   assert.equal(again.code, 0, again.output);
-  assert.equal(again.output.match(/^Kept existing /gm)?.length, 6, again.output);
-  assert.doesNotMatch(again.output, /Added|Allowed|Published/);
-  console.log('PASS import script: added four block types and the card logo field, allowed them, added and published /start; a rerun keeps everything');
+  assert.equal(again.output.match(/^Kept existing /gm)?.length, 9, again.output);
+  assert.match(again.output, /^Kept site tagline "Edited tagline"$/m);
+  assert.doesNotMatch(again.output, /Added|Allowed|Published|Set site/);
+  console.log('PASS import script: added four block types and the card logo field, allowed them, added and published /start, added the footer menus and site title and tagline; a rerun keeps everything');
 
 
   const response = await development.request('/start');
@@ -90,11 +102,21 @@ try {
   assert.match(html, /href="\/account\/signup">Create account</);
   assert.match(html, /href="https:\/\/playground\.dinkuskit\.com\/">Back to the playground</);
   assert.doesNotMatch(html, /Your stores</);
+  // The footer (pick 3B): title and tagline from Settings, the dither strip, a column per footer menu.
+  const footer = html.match(/<footer class="site-footer">.*<\/footer>/s)?.[0] ?? '';
+  assert.match(footer, /<p class="site-footer-name">DinkusKit<\/p>/);
+  assert.match(footer, /<p class="site-footer-tagline">Edited tagline<\/p>/);
+  assert.match(footer, /<div class="fx-strip" aria-hidden="true"><\/div>/);
+  assert.deepEqual([...footer.matchAll(/<h2>([^<]+)<\/h2>/g)].map(match => match[1]), ['Get started', 'Plugins', 'DinkusKit']);
+  assert.deepEqual([...footer.matchAll(/<img src="\/brand\/(\w+)\.webp" alt="" width="20" height="20"/g)].map(match => match[1]), ['commerce', 'payments', 'ship'], 'plugin links show their logos');
+  assert.match(footer, /href="\/docs\/reference\/commerce"/);
+  assert.match(footer, /href="\/health"[^>]*>\s*Status/, 'the editor\'s link shows');
+  assert.doesNotMatch(footer, /dinkuskit-f3/, 'no DinkusKit logo in the footer');
   const signedIn = await (await development.request('/start?as=owner%40example.com')).text();
   assert.match(signedIn, /Signed in as <strong>owner@example\.com<\/strong>/);
   assert.match(signedIn, /href="\/account\/sites">Your stores</);
   assert.doesNotMatch(signedIn, /href="\/account\/signup"/);
-  console.log('PASS development: /start is drawn from the CMS with no rebuild, and keeps the editor\'s wording and logo pick');
+  console.log('PASS development: /start is drawn from the CMS with no rebuild, and keeps the editor\'s wording and logo pick; the footer shows the menus and settings');
 } finally {
   await development.stop();
   rmSync(OLD_SEED, { force: true });

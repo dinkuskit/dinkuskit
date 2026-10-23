@@ -1,0 +1,40 @@
+---
+import { getMenu, getSiteSettings } from 'emdash';
+import { PLUGIN_LOGOS } from './plugin-logos.ts';
+
+// Footer (Stitch round 8, pick 3B): the site title set large with the tagline,
+// the wash's dither as a strip, then one link column per footer menu. Editors
+// change the words in Settings and the links in Menus; a column whose menu is
+// missing or empty is left out. Plugin links show their plugin's logo.
+const MENUS = ['footer-get-started', 'footer-plugins', 'footer-dinkuskit'];
+const [settings, ...menus] = await Promise.all([getSiteSettings(), ...MENUS.map(name => getMenu(name))]);
+const columns = menus.filter((menu): menu is NonNullable<typeof menu> => Boolean(menu?.items.length));
+const title = settings.title?.trim() || 'DinkusKit';
+const tagline = settings.tagline?.trim();
+---
+<footer class="site-footer">
+  <div class="site-footer-head">
+    <p class="site-footer-name">{title}</p>
+    {tagline && <p class="site-footer-tagline">{tagline}</p>}
+  </div>
+  <div class="fx-strip" aria-hidden="true"></div>
+  {columns.length > 0 && (
+    <nav class="site-footer-columns" aria-label="Footer">
+      {columns.map(menu => (
+        <div class="site-footer-group">
+          <h2>{menu.label}</h2>
+          <ul>
+            {menu.items.map(item => (
+              <li>
+                <a href={item.url} target={item.target || undefined} title={item.titleAttr || undefined}>
+                  {Object.hasOwn(PLUGIN_LOGOS, item.label) && <img src={PLUGIN_LOGOS[item.label]} alt="" width="20" height="20" />}
+                  {item.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </nav>
+  )}
+</footer>

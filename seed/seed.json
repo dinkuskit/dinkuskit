@@ -5,6 +5,10 @@
     "name": "DinkusKit website scaffold",
     "description": "Public starter content; no customer or account fixtures."
   },
+  "settings": {
+    "title": "DinkusKit",
+    "tagline": "Built with EmDash. Growing in the open."
+  },
   "blockTypes": [
     {
       "slug": "text_section",
@@ -360,6 +364,76 @@
           "type": "portableText",
           "required": true,
           "searchable": true
+        }
+      ]
+    }
+  ],
+  "menus": [
+    {
+      "name": "footer-get-started",
+      "label": "Get started",
+      "items": [
+        {
+          "type": "custom",
+          "label": "Start your store",
+          "url": "/start"
+        },
+        {
+          "type": "custom",
+          "label": "Getting started",
+          "url": "/getting-started"
+        },
+        {
+          "type": "custom",
+          "label": "Docs",
+          "url": "/docs"
+        }
+      ]
+    },
+    {
+      "name": "footer-plugins",
+      "label": "Plugins",
+      "items": [
+        {
+          "type": "custom",
+          "label": "Commerce",
+          "url": "/docs/reference/commerce"
+        },
+        {
+          "type": "custom",
+          "label": "Payments",
+          "url": "/docs/reference/payments"
+        },
+        {
+          "type": "custom",
+          "label": "Ship",
+          "url": "/docs/reference/ship"
+        }
+      ]
+    },
+    {
+      "name": "footer-dinkuskit",
+      "label": "DinkusKit",
+      "items": [
+        {
+          "type": "custom",
+          "label": "Account",
+          "url": "/account"
+        },
+        {
+          "type": "custom",
+          "label": "Terms of Service",
+          "url": "/terms"
+        },
+        {
+          "type": "custom",
+          "label": "GitHub",
+          "url": "https://github.com/dinkuskit"
+        },
+        {
+          "type": "custom",
+          "label": "Website source",
+          "url": "https://github.com/dinkuskit/dinkuskit"
         }
       ]
     }

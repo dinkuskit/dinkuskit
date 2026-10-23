@@ -14,6 +14,7 @@ import '@fontsource/space-grotesk/700.css';
 import '@fontsource/space-mono/700.css';
 import '../styles/site.css';
 import { Role } from '@emdash-cms/auth';
+import SiteFooter from '../components/SiteFooter.astro';
 ---
 <!doctype html>
 <html lang="en">
@@ -40,9 +41,6 @@ import { Role } from '@emdash-cms/auth';
       </nav>
     </header>
     <main id="main" class:list={{ 'docs-main': wide }}><slot /></main>
-    <footer>
-      <p>Built with EmDash. Growing in the open.</p>
-      <a href="https://github.com/dinkuskit/dinkuskit">Website source</a>
-    </footer>
+    <SiteFooter />
   </body>
 </html>

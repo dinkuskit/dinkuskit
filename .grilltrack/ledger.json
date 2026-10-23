@@ -9614,6 +9614,79 @@
       "superseded_by": null,
       "updated_at": "2026-10-23T03:55:43+00:00",
       "verification_ref": "file:proof/website-design/PROOF.md"
+    },
+    {
+      "baseline_ref": null,
+      "candidate_refs": [
+        "url:https://claude.ai/artifact/Bo3AHvtZhQSsujQiH6qo6z"
+      ],
+      "choice": "Stitch round 8 pick 3B: the site title set large with the tagline, the site's emerald-to-ultraviolet dither strip as the divider, then three link columns (Get started; Plugins with their logos; DinkusKit). The columns are EmDash menus footer-get-started, footer-plugins and footer-dinkuskit (menu label = column heading); title and tagline are the site settings. No DinkusKit logo in the footer. pages-import --footer adds missing footer menus and fills an empty title or tagline, never overwriting.",
+      "context_ref": null,
+      "created_at": "2026-10-23T04:59:59+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [
+        "website-design-20261023"
+      ],
+      "domain": "dinkuskit.com design with the EmDash UI skills",
+      "history": [
+        {
+          "at": "2026-10-23T04:59:59+00:00",
+          "choice": "Stitch round 8 pick 3B: the site title set large with the tagline, the site's emerald-to-ultraviolet dither strip as the divider, then three link columns (Get started; Plugins with their logos; DinkusKit). The columns are EmDash menus footer-get-started, footer-plugins and footer-dinkuskit (menu label = column heading); title and tagline are the site settings. No DinkusKit logo in the footer. pages-import --footer adds missing footer menus and fills an empty title or tagline, never overwriting.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-23T04:59:59+00:00",
+          "choice": "Stitch round 8 pick 3B: the site title set large with the tagline, the site's emerald-to-ultraviolet dither strip as the divider, then three link columns (Get started; Plugins with their logos; DinkusKit). The columns are EmDash menus footer-get-started, footer-plugins and footer-dinkuskit (menu label = column heading); title and tagline are the site settings. No DinkusKit logo in the footer. pages-import --footer adds missing footer menus and fills an empty title or tagline, never overwriting.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-23T05:00:20+00:00",
+          "choice": "Stitch round 8 pick 3B: the site title set large with the tagline, the site's emerald-to-ultraviolet dither strip as the divider, then three link columns (Get started; Plugins with their logos; DinkusKit). The columns are EmDash menus footer-get-started, footer-plugins and footer-dinkuskit (menu label = column heading); title and tagline are the site settings. No DinkusKit logo in the footer. pages-import --footer adds missing footer menus and fills an empty title or tagline, never overwriting.",
+          "from": "implemented",
+          "implementation_ref": "file:src/components/SiteFooter.astro",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": null
+        }
+      ],
+      "id": "website-footer-20261023",
+      "implementation_ref": "file:src/components/SiteFooter.astro",
+      "question": "What footer does dinkuskit.com show on every page, and how do editors change it?",
+      "rationale": "Ronald picked 3B on 23 Oct 2026 04:51 UTC.",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [],
+      "review_ref": null,
+      "review_result": null,
+      "review_source_identity": null,
+      "status": "verified",
+      "superseded_by": null,
+      "updated_at": "2026-10-23T05:00:20+00:00",
+      "verification_ref": "file:proof/website-footer/PROOF.md"
     }
   ],
   "last_activation": {
@@ -9644,5 +9717,5 @@
   "status": "active",
   "title": "Composed integration",
   "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5",
-  "updated_at": "2026-10-23T03:55:43+00:00"
+  "updated_at": "2026-10-23T05:00:20+00:00"
 }

@@ -1,6 +1,6 @@
 // One-time load of a new seed page into an existing EmDash site.
 //
-//   node --experimental-strip-types scripts/pages-import.mjs --url <site origin> --page <slug> [--page <slug>] [--publish]
+//   node --experimental-strip-types scripts/pages-import.mjs --url <site origin> [--page <slug>]... [--footer] [--publish]
 //
 // Setup applies seed/seed.json only to a new database, so a page added to the
 // seed later (such as /start) reaches a running site through this script, once,
@@ -10,6 +10,9 @@
 // overwrites: anything that already exists is kept as it is.
 // With --publish it also publishes the pages it added in this run, and never
 // one that was already there; without it an editor presses Publish in the admin.
+// With --footer it adds the seed's footer menus the site lacks (an existing menu
+// is kept with its links) and fills an empty site title or tagline from the
+// seed; the footer shows the title, tagline and those menus.
 // Authenticates with EMDASH_TOKEN (an EmDash API token) or CF_ACCESS_TOKEN
 // (a Cloudflare Access token from `cloudflared access token`).
 import { readFileSync } from 'node:fs';
@@ -21,7 +24,7 @@ const LAYOUT = 'layout';
 
 const ok = status => status === 200 || status === 201;
 
-async function push(origin, slugs, publish) {
+async function push(origin, { slugs, footer, publish }) {
   const base = new URL(origin);
   if (base.protocol !== 'https:' && !['127.0.0.1', 'localhost'].includes(base.hostname)) throw new Error('Use an https site origin');
   const headers = { 'content-type': 'application/json', 'x-emdash-request': '1' };
@@ -35,6 +38,8 @@ async function push(origin, slugs, publish) {
     return { status: response.status, data: payload?.data ?? payload };
   };
   const seed = JSON.parse(readFileSync(SEED, 'utf8'));
+  if (footer) await pushFooter(api, seed);
+  if (!slugs.length) return;
   const pages = slugs.map(slug => {
     const page = seed.content[COLLECTION].find(entry => entry.slug === slug);
     if (!page) throw new Error(`seed/seed.json has no ${COLLECTION} entry "${slug}"`);
@@ -104,9 +109,36 @@ async function push(origin, slugs, publish) {
   }
 }
 
-const { values } = parseArgs({ options: { url: { type: 'string' }, page: { type: 'string', multiple: true }, publish: { type: 'boolean' } } });
-if (values.url && values.page?.length) await push(values.url, values.page, values.publish === true);
+// Footer menus are added whole; one the site already has is never changed.
+// Site settings are an Admin change, like adding a block type.
+async function pushFooter(api, seed) {
+  const listed = await api('GET', '/menus');
+  if (listed.status !== 200) throw new Error(`Reading menus failed: HTTP ${listed.status} (check the sign-in token)`);
+  const have = new Set((Array.isArray(listed.data) ? listed.data : listed.data?.items ?? []).map(menu => menu.name));
+  for (const menu of seed.menus.filter(item => item.name.startsWith('footer-'))) {
+    if (have.has(menu.name)) { console.log(`Kept existing menu ${menu.name}`); continue; }
+    const created = await api('POST', '/menus', { name: menu.name, label: menu.label });
+    if (!ok(created.status)) throw new Error(`Adding menu ${menu.name} failed: HTTP ${created.status} ${JSON.stringify(created.data)}`);
+    for (const [sortOrder, item] of menu.items.entries()) {
+      const added = await api('POST', `/menus/${menu.name}/items`, { type: 'custom', label: item.label, customUrl: item.url, sortOrder });
+      if (!ok(added.status)) throw new Error(`Adding ${item.label} to menu ${menu.name} failed: HTTP ${added.status} ${JSON.stringify(added.data)}`);
+    }
+    console.log(`Added menu ${menu.name} with ${menu.items.length} links`);
+  }
+  const settings = await api('GET', '/settings');
+  if (settings.status !== 200) throw new Error(`Reading site settings failed: HTTP ${settings.status}`);
+  for (const key of ['title', 'tagline']) {
+    const current = settings.data?.[key]?.trim();
+    if (current) { console.log(`Kept site ${key} "${current}"`); continue; }
+    const updated = await api('POST', '/settings', { [key]: seed.settings[key] });
+    if (!ok(updated.status)) throw new Error(`Setting the site ${key} failed: HTTP ${updated.status} ${JSON.stringify(updated.data)}`);
+    console.log(`Set site ${key} "${seed.settings[key]}"`);
+  }
+}
+
+const { values } = parseArgs({ options: { url: { type: 'string' }, page: { type: 'string', multiple: true }, footer: { type: 'boolean' }, publish: { type: 'boolean' } } });
+if (values.url && (values.page?.length || values.footer)) await push(values.url, { slugs: values.page ?? [], footer: values.footer === true, publish: values.publish === true });
 else {
-  console.error('Usage: pages-import.mjs --url <site origin> --page <slug> [--page <slug>] [--publish]');
+  console.error('Usage: pages-import.mjs --url <site origin> [--page <slug>]... [--footer] [--publish]');
   process.exit(2);
 }

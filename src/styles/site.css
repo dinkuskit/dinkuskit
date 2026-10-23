@@ -29,6 +29,9 @@
 /* EmDash's own content components (Portable Text tables, embeds) read these
    names and fall back to light grays; point them at the palette so they follow
    dark mode too. */
+/* The 12px Bayer tile the wash, cards and footer strip share; the effects
+   script sets the same tile from the skill on CMS pages. */
+:root { --fx-dots: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12'%3E%3Cpath d='M0 0h3v3H0zM6 0h3v3H6zM3 3h3v3H3zM9 3h3v3H9zM0 6h3v3H0zM6 6h3v3H6zM3 9h3v3H3zM9 9h3v3H9z'/%3E%3C/svg%3E"); }
 :root { --color-surface: var(--surface-soft); --color-bg-subtle: var(--surface-soft); --color-border: var(--line); --color-muted: var(--muted); }
 :root { color-scheme: light dark; font-family: var(--font-body); color: var(--ink); background: var(--paper); line-height: 1.6; }
 * { box-sizing: border-box; }
@@ -37,7 +40,7 @@ a { color: var(--accent); text-underline-offset: .2em; }
 a:hover { text-decoration-thickness: 2px; }
 a:focus-visible { outline: 3px solid var(--focus); outline-offset: 5px; }
 header, main, footer { max-width: 1100px; margin: auto; padding: 1.5rem clamp(1.25rem, 5vw, 4rem); }
-header, nav, footer { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; flex-wrap: wrap; }
+header, nav { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; flex-wrap: wrap; }
 header { border-bottom: 1px solid var(--line); }
 .brand { display: inline-flex; align-items: center; gap: .55rem; font-family: var(--font-display); letter-spacing: -.02em; font-size: 1.3rem; font-weight: 700; text-decoration: none; color: inherit; }
 .brand img { display: block; height: 24px; width: auto; }
@@ -56,7 +59,20 @@ h1 { font-family: var(--font-display); font-weight: 700; font-size: clamp(2.5rem
 .text-section-copy { min-width: 0; }
 .text-section-links { margin: .6rem 0 0; padding: 0; list-style: none; max-width: 65ch; }
 .text-section-links li { margin: .2rem 0; }
-footer { margin-top: 2.5rem; font-size: .85rem; color: var(--muted); }
+/* Footer (Stitch round 8, pick 3B): the site title set large with the
+   tagline, the wash's dither as a strip, then the footer menus as columns. */
+.site-footer { margin-top: 4rem; padding-top: 2rem; padding-bottom: 3rem; border-top: 1px solid var(--line); }
+.site-footer-head { display: flex; align-items: baseline; justify-content: space-between; gap: .75rem 1.5rem; flex-wrap: wrap; }
+.site-footer-name { margin: 0; font-family: var(--font-display); font-size: clamp(2.5rem, 5.5vw, 4.5rem); font-weight: 700; letter-spacing: -.04em; line-height: 1; }
+.site-footer-tagline { margin: 0; color: var(--muted); }
+.fx-strip { height: 9px; margin: 28px 0 36px; background: linear-gradient(90deg, var(--focus), var(--mark)); -webkit-mask-image: var(--fx-dots); mask-image: var(--fx-dots); -webkit-mask-size: 12px 12px; mask-size: 12px 12px; opacity: .7; }
+.site-footer-columns { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: start; gap: 2rem; }
+.site-footer-group h2 { margin: 0 0 1rem; font-family: var(--font-label); font-size: .8rem; letter-spacing: .12em; text-transform: uppercase; }
+.site-footer-group ul { display: grid; gap: .65rem; margin: 0; padding: 0; list-style: none; }
+.site-footer-group a { display: inline-flex; align-items: center; gap: .55rem; color: var(--muted); font-size: .95rem; text-decoration: none; }
+.site-footer-group a:hover { color: var(--accent); text-decoration: underline; }
+.site-footer-group img { width: 20px; height: 20px; object-fit: contain; }
+@media (max-width: 720px) { .site-footer-head { flex-direction: column; align-items: flex-start; } .site-footer-columns { grid-template-columns: 1fr; gap: 1.75rem; } }
 .skip-link { position: absolute; left: 1rem; top: -5rem; background: var(--surface); padding: .8rem; z-index: 10; }
 .skip-link:focus { top: .5rem; }
 .account-panel { padding: 3rem 0 2.5rem; max-width: 760px; }

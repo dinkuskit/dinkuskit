@@ -88,6 +88,17 @@ The DinkusKit logo is not final: F3 ultraviolet is used for the grill.
 - Idea for later: the plugin logos as slowly turning 3D models (.glb) in
   the same spots, still for visitors who ask for less motion.
 
+## Footer, round 8 pick 3B (23 Oct 2026)
+
+- The site title set large in the display font with the tagline beside it
+  (stacked on a phone), then the wash's dither as a 9px strip from emerald to
+  ultraviolet, then three link columns: Get started, Plugins (each with its
+  logo) and DinkusKit. One column on a phone.
+- From FT3 (big wordmark) with FT4's dither strip; the strip sits between the
+  wordmark row and the links. No DinkusKit logo in the footer.
+- Editable: title and tagline are site settings; the columns are the menus
+  `footer-get-started`, `footer-plugins` and `footer-dinkuskit`.
+
 ## Pages, in grill order
 
 1. Home (`/`, CMS page `home`)

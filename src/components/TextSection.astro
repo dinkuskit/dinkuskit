@@ -9,6 +9,15 @@ type TextSectionValue = BlockValue & {
   link_label?: string;
   second_link_href?: string;
   second_link_label?: string;
+  plugin_logo?: string;
+};
+
+// The plugin logos an editor can put on a card; the files are in public/brand.
+const PLUGIN_LOGOS: Record<string, string> = {
+  Commerce: '/brand/commerce.webp',
+  Payments: '/brand/payments.webp',
+  Inventory: '/brand/inventory.webp',
+  Ship: '/brand/ship.webp',
 };
 
 const { value } = Astro.props as BlockComponentProps<TextSectionValue>;
@@ -17,8 +26,12 @@ const links = [
   { href: safeHttpUrl(value.link_href), label: value.link_label?.trim() },
   { href: safeHttpUrl(value.second_link_href), label: value.second_link_label?.trim() },
 ].filter((link): link is { href: string; label: string } => Boolean(link.href && link.label));
+const logo = value.plugin_logo && Object.hasOwn(PLUGIN_LOGOS, value.plugin_logo)
+  ? { src: PLUGIN_LOGOS[value.plugin_logo], alt: `DinkusKit ${value.plugin_logo}` }
+  : undefined;
 ---
-<section class="text-section">
+<section class:list={['text-section', { 'has-logo': logo }]}>
+  {logo && <img class="text-section-logo" src={logo.src} alt={logo.alt} width="56" height="56" />}
   {value.heading && <h2>{value.heading}</h2>}
   {(value.body || links.length > 0) && (
     <div class="text-section-copy">

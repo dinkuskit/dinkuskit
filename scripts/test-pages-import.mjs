@@ -4,9 +4,10 @@ import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node
 import { WORK, resetDatabase, start, unusedPort } from './lib/docs-preview.mjs';
 
 // Drives the one-time page load on the docs preview fixture (its own EmDash
-// SQLite database). The fixture starts from the seed as it was before /start,
-// as dinkuskit.com's database is; the script adds the block types and a draft,
-// a rerun keeps them, and Publish shows the page with no rebuild.
+// SQLite database). The fixture starts from the seed as it was before /start
+// and the cards' plugin logo, as dinkuskit.com's database is; the script adds
+// the block types, the logo field and a draft, a rerun keeps them, and Publish
+// shows the page with no rebuild.
 const OLD_SEED = new URL('../.emdash/seed.json', import.meta.url);
 const START_TYPES = ['start_account', 'start_checklist', 'start_step'];
 
@@ -30,6 +31,9 @@ seed.blockTypes = seed.blockTypes.filter(type => !START_TYPES.includes(type.slug
 const layout = seed.collections.find(item => item.slug === 'pages').fields.find(field => field.slug === 'layout');
 layout.validation.allowedTypes = layout.validation.allowedTypes.filter(slug => !START_TYPES.includes(slug));
 seed.content.pages = seed.content.pages.filter(page => page.slug !== 'start');
+const textSection = seed.blockTypes.find(type => type.slug === 'text_section').versions[0];
+textSection.fields = textSection.fields.filter(field => field.slug !== 'plugin_logo');
+for (const page of seed.content.pages) for (const block of page.data.layout ?? []) delete block.plugin_logo;
 mkdirSync(new URL('./', OLD_SEED), { recursive: true });
 writeFileSync(OLD_SEED, JSON.stringify(seed));
 
@@ -49,6 +53,7 @@ try {
   const imported = await runImport(development.base, token, '--publish');
   assert.equal(imported.code, 0, imported.output);
   for (const slug of START_TYPES) assert.match(imported.output, new RegExp(`^Added block type ${slug}$`, 'm'));
+  assert.match(imported.output, /^Added plugin_logo to block type text_section$/m);
   assert.match(imported.output, /^Allowed start_account, start_checklist, start_step in the pages layout$/m);
   assert.match(imported.output, /^Added draft page start$/m);
   assert.match(imported.output, /^Published page start$/m);
@@ -57,19 +62,23 @@ try {
   const found = await (await api('/content/pages/start')).json();
   const entry = found.data?.item;
   assert.ok(entry?.id, 'entry found by slug');
-  const edited = { ...entry.data, title: 'Edited in the admin' };
+  // The new logo field reaches pages too: the editor also picks one for the text section.
+  const edited = { ...entry.data, title: 'Edited in the admin', layout: entry.data.layout.map(block => block._type === 'text_section' ? { ...block, plugin_logo: 'Commerce' } : block) };
   assert.equal((await api(`/content/pages/${entry.id}`, { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ data: edited, _rev: found.data?._rev }) })).status, 200);
   assert.equal((await api(`/content/pages/${entry.id}/publish`, { method: 'POST' })).status, 200);
   const again = await runImport(development.base, token, '--publish');
   assert.equal(again.code, 0, again.output);
   assert.equal(again.output.match(/^Kept existing /gm)?.length, 5, again.output);
   assert.doesNotMatch(again.output, /Added|Allowed|Published/);
-  console.log('PASS import script: added three block types, allowed them, added and published /start; a rerun keeps everything');
+  console.log('PASS import script: added three block types and the card logo field, allowed them, added and published /start; a rerun keeps everything');
+
 
   const response = await development.request('/start');
   assert.equal(response.status, 200);
   const html = await response.text();
   assert.match(html, /Edited in the admin/);
+  assert.equal(html.match(/class="text-section-logo"/g)?.length, 1, 'the text section shows the picked logo');
+  assert.match(html, /<img class="text-section-logo" src="\/brand\/commerce\.webp" alt="DinkusKit Commerce"/);
   assert.equal(html.match(/class="start-step"/g)?.length, 4, 'four steps');
   assert.match(html, /data-start-progress="\{done\} of \{total\} done"/);
   assert.match(html, /<summary>Don(&#39;|')t have one yet\?<\/summary>/);
@@ -80,7 +89,7 @@ try {
   assert.match(signedIn, /Signed in as <strong>owner@example\.com<\/strong>/);
   assert.match(signedIn, /href="\/account\/sites">Your stores</);
   assert.doesNotMatch(signedIn, /href="\/account\/signup"/);
-  console.log('PASS development: /start is drawn from the CMS with no rebuild, and keeps the editor\'s wording');
+  console.log('PASS development: /start is drawn from the CMS with no rebuild, and keeps the editor\'s wording and logo pick');
 } finally {
   await development.stop();
   rmSync(OLD_SEED, { force: true });

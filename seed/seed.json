@@ -46,6 +46,19 @@
               "slug": "second_link_label",
               "label": "Second link label",
               "type": "string"
+            },
+            {
+              "slug": "plugin_logo",
+              "label": "Plugin logo",
+              "type": "select",
+              "validation": {
+                "options": [
+                  "Commerce",
+                  "Payments",
+                  "Inventory",
+                  "Ship"
+                ]
+              }
             }
           ]
         }
@@ -327,6 +340,7 @@
               "_type": "text_section",
               "_version": 1,
               "_key": "home-0",
+              "plugin_logo": "Commerce",
               "heading": "An EmDash foundation",
               "body": "Keep your storefront and content in EmDash. DinkusKit is building the catalog, checkout, inventory and payments connections around it."
             },
@@ -334,6 +348,7 @@
               "_type": "text_section",
               "_version": 1,
               "_key": "home-1",
+              "plugin_logo": "Inventory",
               "heading": "Inventory, coming soon",
               "body": "Hosted Inventory is coming soon and is not required to start with Commerce. You will keep stock in EmDash when that service is ready. An open-source self-host path will be documented; neither path is provisioned on this website today."
             },
@@ -341,6 +356,7 @@
               "_type": "text_section",
               "_version": 1,
               "_key": "home-2",
+              "plugin_logo": "Payments",
               "heading": "Your Stripe account",
               "body": "The planned Payments plugin connects your own Stripe account through hosted setup. Customers pay your business through Stripe."
             },

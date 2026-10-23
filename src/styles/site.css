@@ -123,6 +123,15 @@ footer { margin-top: 2.5rem; font-size: .85rem; color: var(--muted); }
 .content-split .text-section h2 { margin: 0 0 .5rem; }
 .content-split .text-section p { margin: 0; }
 @media (max-width: 860px) { .content-split { grid-template-columns: 1fr; padding-top: 2rem; } .content-split .intro { position: static; } }
+/* Plugin logos on cards (round 7 pick H4): a column on the left, centered top
+   to bottom; cards without a logo keep their text in line with the others.
+   On a phone the logo sits above the heading. */
+.text-section-logo { display: block; width: 56px; height: 56px; object-fit: contain; grid-column: 1 / -1; }
+.content-split .text-section.has-logo { display: grid; grid-template-columns: 56px minmax(0, 1fr); gap: 0 1.25rem; align-content: center; }
+.content-split .text-section.has-logo > .text-section-logo { grid-column: 1; grid-row: 1 / span 2; align-self: center; }
+.content-split .text-section.has-logo > :not(.text-section-logo) { grid-column: 2; }
+.content-split .page-sections:has(.has-logo) .text-section:not(.has-logo) { padding-left: calc(1.6rem + 56px + 1.25rem); }
+@media (max-width: 480px) { .content-split .text-section.has-logo { display: block; } .content-split .text-section-logo { margin-bottom: .9rem; } .content-split .page-sections:has(.has-logo) .text-section:not(.has-logo) { padding-left: 1.6rem; } }
 /* Surface effects (src/fx/surface-fx.ts): a dithered wash behind every CMS
    page that runs from emerald to ultraviolet, and topic cards that carry an
    emerald dither and lean toward a nearby mouse. Without the script the wash

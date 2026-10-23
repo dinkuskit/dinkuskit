@@ -2,7 +2,7 @@ import Database from 'better-sqlite3';
 import { readFile, readdir } from 'node:fs/promises';
 import { randomBytes } from 'node:crypto';
 import { createLocalTestKeys } from '../../src/account/jwt.ts';
-import { issueStorePass, replaceStoreKey } from '../../src/account/store-passes.ts';
+import { hashKey, issueStorePass, newStoreKey } from '../../src/account/store-passes.ts';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 export const SITE = '7d0c3f0e-5d8b-4f43-9e43-2f9ad2c1a001';
@@ -45,13 +45,20 @@ export async function fixture() {
   return { sqlite, db, session, keys, privateJwkJson: JSON.stringify(keys.privateJwk), close() { sqlite.close(); } };
 }
 
+/** A plugin's own key, as Connect would save it (store-connect-080): only its hash is kept. */
+export async function pluginKey(f, siteId, plugin, user = 'alice') {
+  const key = newStoreKey();
+  f.sqlite.prepare('INSERT OR REPLACE INTO dinkuskit_plugin_key (site_id, plugin, key_hash, created_by_user_id, created_at) VALUES (?, ?, ?, ?, 1)').run(siteId, plugin, await hashKey(key), user);
+  return key;
+}
+
 /** Synthetic local issuer producer for cross-repository contract proof. Never logs credentials. */
 export async function mintSandboxPass(generation = 'test-generation-1') {
   const f = await fixture();
   try {
     const registration = { siteId: SITE, generation };
     f.sqlite.prepare("INSERT INTO dinkuskit_commerce_settings (site_id,shipping_mode,shipping_minor,shipping_revision,live,updated_by_user_id,updated_at) VALUES (?, 'free', 0, 1, 0, 'alice', 1)").run(SITE);
-    const key = await replaceStoreKey(f.db, { siteId: SITE, subject: 'org-a', organizationId: 'a', actorUserId: 'alice' });
+    const key = await pluginKey(f, SITE, 'commerce');
     const response = await issueStorePass({ db: f.db, authorization: `Bearer ${key}`, body: { site_id: SITE, scope: 'ship:orders', audience: 'dinkus-ship-sandbox', generation }, registration, privateJwkJson: f.privateJwkJson });
     if (response.status !== 200) throw new Error('synthetic_issuer_failed');
     const body = await response.json();
@@ -69,15 +76,15 @@ export async function mintShipAdminPasses() {
   const f = await fixture();
   try {
     f.sqlite.prepare("INSERT INTO dinkuskit_service_grant (site_id, service, revoked, granted_at) VALUES (?, 'ship', 0, 1)").run(OTHER_SITE);
-    const key = await replaceStoreKey(f.db, { siteId: SITE, subject: 'org-a', organizationId: 'a', actorUserId: 'alice' });
-    const otherKey = await replaceStoreKey(f.db, { siteId: OTHER_SITE, subject: 'org-b', organizationId: 'b', actorUserId: 'bob' });
+    const key = await pluginKey(f, SITE, 'ship'), ordersKey = await pluginKey(f, SITE, 'commerce');
+    const otherKey = await pluginKey(f, OTHER_SITE, 'ship', 'bob');
     const mint = async (storeKey, siteId, scope) => {
       const response = await issueStorePass({ db: f.db, authorization: `Bearer ${storeKey}`, body: { site_id: siteId, scope, audience: 'dinkus-ship' }, privateJwkJson: f.privateJwkJson });
       if (response.status !== 200) throw new Error('synthetic_issuer_failed');
       return (await response.json()).access_token;
     };
     const admin = await mint(key, SITE, 'ship:admin');
-    const orders = await mint(key, SITE, 'ship:orders');
+    const orders = await mint(ordersKey, SITE, 'ship:orders');
     const otherAdmin = await mint(otherKey, OTHER_SITE, 'ship:admin');
     const now = Date.now;
     Date.now = () => now() - 10 * 60 * 1000;

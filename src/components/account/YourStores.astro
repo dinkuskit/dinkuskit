@@ -6,7 +6,7 @@ import type { SitesPageView } from '../../account/sites-page.ts';
 type Props = SitesPageView;
 const {
   showingArchive, businessName, visibleBindings, visibleStores, showArchiveLink, isOwner,
-  formAction, organizationId, newKey, shown, changedSite, saved,
+  formAction, organizationId, shown, changedSite, saved,
 } = Astro.props;
 const when = (seconds: number) => `${new Date(seconds * 1000).toISOString().slice(0, 16).replace('T', ' ')} UTC`;
 const SERVICE_LABEL = { payments: 'Payments', coupons: 'Coupons', ship: 'Ship' } as const;
@@ -55,7 +55,7 @@ const serviceNote = (binding: { revoked: boolean; revokedBy: string | null }) =>
     {visibleStores.length === 0 ? null : (
       <section aria-labelledby="commerce-setup">
         <h2 id="commerce-setup">Set up Commerce</h2>
-        <p>Commerce uses one store key to reach the DinkusKit services you turn on below. Paste the key once into Commerce's settings in EmDash.</p>
+        <p>Each plugin connects itself: press Connect in Commerce first, then in Payments and Ship. Commerce reads the checkout settings you choose here by itself.</p>
         {visibleStores.map(store => (
           <div class="account-form">
             <h3>{store.siteOrigin}</h3>
@@ -98,15 +98,6 @@ const serviceNote = (binding: { revoked: boolean; revokedBy: string | null }) =>
                 </li>
               ))}
             </ul>
-            <p>Store key: {store.key ? `created ${when(store.key.createdAt)}, ${store.key.lastUsedAt ? `last used ${when(store.key.lastUsedAt)}` : 'not used yet'}` : 'none yet'}</p>
-            {newKey?.siteId === store.siteId ? (
-              <div class="new-store-key">
-                <p>Your new store key: <code id={`store-key-${store.siteId}`}>{newKey.key}</code></p>
-                <button type="button" data-copy-target={`store-key-${store.siteId}`} data-copy-status={`store-key-status-${store.siteId}`} hidden>Copy store key</button>
-                <p id={`store-key-status-${store.siteId}`} role="status" aria-live="polite"></p>
-                <p>Copy it into Commerce's settings in EmDash now. It will not be shown again. If this store had a key before, that key has stopped working.</p>
-              </div>
-            ) : null}
             {isOwner ? (
               <form method="post" action={formAction}>
                 <input type="hidden" name="action" value="checkout_settings" />
@@ -124,25 +115,17 @@ const serviceNote = (binding: { revoked: boolean; revokedBy: string | null }) =>
                   <label><input type="radio" name="payments_mode" value="test" checked={!saved.get(store.siteId)?.live} /> Test (no real money)</label>
                   <label><input type="radio" name="payments_mode" value="live" checked={saved.get(store.siteId)?.live === true} /> Live (takes real money once Payments is live too)</label>
                 </fieldset>
-                <button type="submit">Show checkout settings</button>
+                <button type="submit">Save checkout settings</button>
               </form>
             ) : null}
-            {changedSite === store.siteId ? <p role="status">You changed which services are on. Show the checkout settings again and paste them into Commerce, so Commerce uses the change.</p> : null}
+            {changedSite === store.siteId ? <p role="status">You changed which services are on. Commerce picks up the change within 5 minutes, or at once when you press Get checkout settings in Commerce.</p> : null}
             {shown?.siteId === store.siteId && shown.error ? <p class="account-error" role="alert">{shown.error}</p> : null}
             {shown?.siteId === store.siteId && shown.json ? (
               <div role="status">
-                <p>Paste this into Commerce's checkout settings in EmDash, replacing what is there:</p>
+                <p>Saved. Commerce reads these itself within 5 minutes, or at once when you press Get checkout settings in Commerce. This is what it gets:</p>
                 <pre><code>{shown.json}</code></pre>
                 {shown.note ? <p>{shown.note}</p> : null}
               </div>
-            ) : null}
-            {isOwner ? (
-              <form method="post" action={formAction}>
-                <input type="hidden" name="action" value="store_key" />
-                <input type="hidden" name="site_id" value={store.siteId} />
-                <input type="hidden" name="organization_id" value={organizationId} />
-                <button type="submit">{store.key ? 'Replace key' : 'Create store key'}</button>
-              </form>
             ) : null}
           </div>
         ))}
@@ -151,7 +134,3 @@ const serviceNote = (binding: { revoked: boolean; revokedBy: string | null }) =>
     <p><a href="/account">Back to account</a></p>
   </div>
 </Site>
-<script>
-  import { wireCopyButtons } from '../../account/copy-secret.ts';
-  wireCopyButtons(document, document, window);
-</script>

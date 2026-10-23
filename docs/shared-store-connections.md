@@ -164,9 +164,8 @@ at once.
   `{"store_key", "site_id"}`, and it turns nothing on: the owner's Ship switch
   still decides.
 - **Payments** keeps its grant and 5-minute `payments:admin` pass, and its answer
-  adds `store_key` for its status page. Until the Commerce Connect release ships
-  it may still register a store, so stores keep working with today's plugins; then
-  it too needs Commerce connected first.
+  adds `store_key` for its status page. Like Ship, it starts only once the store's
+  Commerce has its key (409 `connect_commerce_first`), and approval rechecks it.
 
 Each plugin's key trades only for that plugin's passes, and anything else is 403
 `scope_not_allowed`:
@@ -187,20 +186,21 @@ Authorization: Bearer <commerce:settings pass>
 ```
 
 which answers the same `dinkuskit.commerce.registry-checkout/v1` JSON that
-**Show checkout settings** shows (below), built the same way from the owner's
+**Save checkout settings** shows (below), built the same way from the owner's
 saved choices and Payments' status, `cache-control: no-store`. A change on
 DinkusKit.com reaches Commerce on its next read. Errors: 401 `invalid_pass`;
 409 `commerce_not_set_up` (no shipping or test-or-live choice saved yet),
 `payments_not_connected`, `payments_not_set_up`, `ship_test_required`; 503
 `payments_unreachable`, `signing_unavailable`.
 
-The pasted key below keeps working until the new plugin releases ship; then
-DinkusKit.com stops accepting it, and Set up Commerce stops showing store keys
-and checkout settings to paste (store-connect-no-paste-082).
+A store key pasted before Connect is no longer accepted: it gets 401
+`invalid_store_key` for every pass, and is never marked used. Its row in
+`dinkuskit_store_key` is left in place. Every store, beta included, presses
+Connect once (store-connect-no-paste-082).
 
-## Store keys and passes for Commerce
+## Set up Commerce and store passes
 
-Before Connect, Commerce reached the hosted services with a pasted store key. On `/account/sites` the owner of a
+On `/account/sites` the owner of a
 store's business sees **Set up Commerce** for each store that still has a
 service turned on. A store with nothing left on leaves that page for
 `/account/sites/archive`, which shows the same Set up Commerce row and says to
@@ -215,12 +215,11 @@ There is no delete. The owner can:
   as coming soon and cannot be turned on yet (`COMING_SOON_SERVICES`), because
   Commerce's v1 Registry build refuses every coupon code to stay under the
   Registry size limit. The route still answers `coupons:checkout` for a store
-  that has Coupons on, so turning it back on later is only a page change;
-- create or replace the store key. The key is `dk_store_` followed by 32
-  random bytes in base64url. It is shown once and only its SHA-256 hash is
-  kept. Replace key overwrites it, so the old key stops working at once.
+  that has Coupons on, once a plugin key is allowed to ask for it;
+- see which plugins are connected, and press **Disconnect** for one.
 
-Commerce trades the key for a pass whenever it needs one:
+Each key is `dk_store_` followed by 32 random bytes in base64url. Each plugin
+trades its own key for a pass whenever it needs one:
 
 ```
 POST /api/store-passes
@@ -230,8 +229,8 @@ Authorization: Bearer <store key>
 
 The allowed pairs are `payments:checkout` with `dinkus-payments`,
 `coupons:checkout` with `dinkus-coupons`, and `ship:orders` and `ship:admin` with
-`dinkus-ship`. `ship:admin` is for the Ship plugin in the store admin, which
-trades the same key; it is on and off with the store's Ship switch, like
+`dinkus-ship`, each only for the plugin keys in the table above. `ship:admin` is
+for the Ship plugin in the store admin, which trades its own key; it is on and off with the store's Ship switch, like
 `ship:orders`, and Ship answers its admin routes only for that scope.
 The answer is `{"access_token", "token_type": "Bearer", "expires_in": 300}`: an
 ES256 pass from the same issuer and keys as Connect passes, with `sub` the
@@ -246,25 +245,26 @@ redirects. Every trade checks, in this order:
 
 | Status | Error | Meaning |
 | --- | --- | --- |
-| 401 | `invalid_store_key` | missing, malformed, unknown or replaced key |
+| 401 | `invalid_store_key` | missing, malformed, unknown, replaced or disconnected key, or a key pasted before Connect |
 | 400 | `invalid_request` | body is not exactly `site_id`, `scope`, `audience`, or the pair is not allowed |
 | 429 | `rate_limited` | more than 1,200 trades for this key in the current minute |
 | 403 | `site_mismatch` | the key belongs to another store |
+| 403 | `scope_not_allowed` | the key's plugin may not have that pass |
 | 403 | `store_suspended` | the business is suspended, waiting for approval, or its owner is suspended |
 | 403 | `service_cut_off` | an operator cut that service off |
 | 403 | `service_not_enabled` | the service is not on for this store |
 | 503 | `signing_unavailable` | passes cannot be signed right now |
 
-A store that has no store ID cannot get a key: the store ID still comes only
-from pressing Connect in the Payments or Inventory plugin.
+A store gets its store ID only from pressing Connect in
+Commerce (or Inventory).
 
-### Checkout settings to paste
+### Checkout settings
 
-Commerce also needs its `installedCheckout` setting: one JSON text in
-Commerce's `dinkuskit.commerce.registry-checkout/v1` shape, which refuses any
-missing, extra or malformed key. Under **Set up Commerce** the owner picks a
-shipping charge (free, or a flat amount in dollars) and Test or Live, then
-presses **Show checkout settings**. The page then:
+Commerce reads its checkout settings itself with `commerce:settings` (above):
+one JSON text in Commerce's `dinkuskit.commerce.registry-checkout/v1` shape,
+which refuses any missing, extra or malformed key. Under **Set up Commerce** the
+owner picks a shipping charge (free, or a flat amount in dollars) and Test or
+Live, then presses **Save checkout settings**. The page then:
 
 1. saves the choices in `dinkuskit_commerce_settings` (one row per store). The
    shipping `revision` starts at 1 and goes up only when the charge changes,
@@ -276,7 +276,7 @@ presses **Show checkout settings**. The page then:
    `connectionEvidence.provider` and, for Stripe, `connectionEvidence.accountRef`
    come from that answer. It is only asked while the store's Payments grant is
    active;
-3. shows the JSON with keys in this order: `schema`, `enabled`,
+3. shows the JSON Commerce will read, with keys in this order: `schema`, `enabled`,
    `commerceOrigin` (the store's origin from Connect), `siteId`, `issuer`,
    `paymentsOrigin`, `audience` (`dinkus-payments`), `bindingRef`,
    `providerId` (`stripe` or `authorize_net`), `stripeAccountId` (Stripe only),
@@ -285,8 +285,9 @@ presses **Show checkout settings**. The page then:
 
 `mode` is `test` unless the owner picks Live, and a store takes real money only
 when Payments says live too. Turning Coupons or Ship on or off after settings
-were shown leads back to the page with a note to show and paste them again,
-because Commerce only calls the services its settings name. The page names the
+were saved leads back to the page with a note that Commerce picks up the change
+within 5 minutes, or at once when the owner presses **Get checkout settings** in
+Commerce, because Commerce only calls the services its settings name. The page names the
 problem instead of showing settings when Payments is not connected, has not
 finished setting up the account, or cannot be reached.
 

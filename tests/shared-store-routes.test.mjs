@@ -12,7 +12,7 @@ test('shared service routes require separate consent and display processor setup
     async function start(service) {
       const verifier = randomBytes(32).toString('base64url'); const challenge = createHash('sha256').update(verifier).digest('base64url');
       const client = `dinkus-${service}-emdash`;
-      const callback = `${origin}/_emdash/admin/plugins/${service === 'payments' ? 'r_3brsc2on3bu673rn/status' : 'dinkus-inventory/inventory'}`;
+      const callback = `${origin}/_emdash/admin/plugins/${{ payments:'r_3brsc2on3bu673rn/status', commerce:'r_gshdrqaldna3r7sn/settings' }[service] ?? 'dinkus-inventory/inventory'}`;
       const response = await request(runtime,new Map(),'/api/store-connections',{method:'POST',body:JSON.stringify({protocol_version:2,client_id:client,service,site_origin:origin,callback_uri:callback,code_challenge:challenge,code_challenge_method:'S256'})});
       assert.equal(response.status,200); const body=await response.json();
       assert.equal(body.protocol_version,2);
@@ -23,6 +23,12 @@ test('shared service routes require separate consent and display processor setup
     async function approve(c,jar=owner) { return request(runtime,jar,c.path,{method:'POST',headers:{'content-type':'application/x-www-form-urlencoded'},body:await accountForm(runtime,jar,'action=approve')}); }
     async function token(c) { return request(runtime,new Map(),'/api/store-connections/token',{method:'POST',body:JSON.stringify({client_id:c.client,connection_id:c.body.connection_id,code_verifier:c.verifier})}); }
     const inventory=await start('inventory'); assert.equal((await approve(inventory)).headers.get('location'),inventory.callback);
+    // Payments joins a store Commerce has connected (store-connect-flow-081).
+    const early=await request(runtime,new Map(),'/api/store-connections',{method:'POST',body:JSON.stringify({protocol_version:2,client_id:'dinkus-payments-emdash',service:'payments',site_origin:'https://no-commerce.example.test',callback_uri:'https://no-commerce.example.test/_emdash/admin/plugins/r_3brsc2on3bu673rn/status',code_challenge:'c'.repeat(43),code_challenge_method:'S256'})});
+    assert.deepEqual([early.status,await early.json()],[409,{error:'connect_commerce_first'}]);
+    const commerce=await start('commerce'); assert.equal(commerce.body.site_id,inventory.body.site_id);
+    assert.equal((await approve(commerce)).headers.get('location'),commerce.callback);
+    const commerceKey=(await (await token(commerce)).json()).store_key; assert.match(commerceKey,/^dk_store_/);
     const payments=await start('payments'); assert.equal(payments.body.site_id,inventory.body.site_id);
     assert.equal((await token(payments)).status,400);
     const consent=await request(runtime,owner,payments.path); assert.equal(consent.status,200); const html=await consent.text();
@@ -36,42 +42,42 @@ test('shared service routes require separate consent and display processor setup
     const again=await start('payments'); assert.equal((await token(again)).status,400,'revoked Payments needs fresh consent');
     assert.equal((await approve(again)).headers.get('location'),again.callback,'the owner reconnects Payments by explicit consent'); assert.equal((await token(again)).status,200);
 
-    // Set up Commerce: one store key, traded for passes for the services that are on.
+    // Set up Commerce: Commerce's own key from Connect, traded for passes for the services that are on.
     const siteId=payments.body.site_id;
     const post=async (jar,fields)=>request(runtime,jar,'/account/sites',{method:'POST',headers:{'content-type':'application/x-www-form-urlencoded'},body:await accountForm(runtime,jar,new URLSearchParams(fields).toString())});
-    const createKey=async ()=>{ const page=await post(owner,{action:'store_key',site_id:siteId}); assert.equal(page.status,200); assert.equal(page.headers.get('cache-control'),'private, no-store'); const html=await page.text(); assert.ok(/<button type="button" data-copy-target="store-key-[^"]+" data-copy-status="store-key-status-[^"]+" hidden[^>]*>Copy store key<\/button>/.test(html),'the key has a Copy button'); assert.ok(/<p id="store-key-status-[^"]+" role="status" aria-live="polite"[^>]*><\/p>/.test(html),'copy feedback has a live region'); assert.ok(/<script type="module">[\s\S]*clipboard[\s\S]*<\/script>/.test(html),'the copy handler is bundled into the page'); return html.match(/<code id="store-key-[^"]+"[^>]*>(dk_store_[A-Za-z0-9_-]{43})<\/code>/)?.[1]; };
     const trade=(key,scope,audience)=>request(runtime,new Map(),'/api/store-passes',{method:'POST',headers:{authorization:`Bearer ${key}`},body:JSON.stringify({site_id:siteId,scope,audience})});
     const setup=await (await request(runtime,owner,'/account/sites')).text();
-    assert.match(setup,/Set up Commerce/); assert.match(setup,/Create store key/); assert.match(setup,/Turn on Ship/);
+    assert.match(setup,/Set up Commerce/); assert.match(setup,/Turn on Ship/); assert.match(setup,/press Connect in Commerce first/);
+    assert.doesNotMatch(setup,/Create store key|Replace key|Store key:|[Pp]aste/,'no store key to make or paste');
+    assert.equal((await post(owner,{action:'store_key',site_id:siteId})).status,303,'the old Create store key button does nothing');
     assert.match(setup,/Coupons: Coming soon/); assert.doesNotMatch(setup,/Turn on Coupons/,'Commerce takes no coupon codes in v1');
-    const key=await createKey(); assert.ok(key,'the new key is shown once');
-    assert.doesNotMatch(await (await request(runtime,owner,'/account/sites')).text(),new RegExp(key),'the key is never shown again');
+    const key=commerceKey;
+    assert.doesNotMatch(setup,new RegExp(key),'the key is never shown');
     const pass=await trade(key,'payments:checkout','dinkus-payments'); assert.equal(pass.status,200);
     const issued=await pass.json(); assert.equal(issued.token_type,'Bearer'); assert.equal(issued.expires_in,300);
     const claims=JSON.parse(Buffer.from(issued.access_token.split('.')[1],'base64url').toString());
     assert.equal(claims.aud,'dinkus-payments'); assert.equal(claims.scope,'payments:checkout'); assert.equal(claims.site_id,siteId); assert.equal(claims.iss,'https://dinkuskit.com/account');
     assert.equal(claims.site_origin,origin,'the pass carries the store address Connect checked, for Payments return pages');
     assert.equal((await post(outsider,{action:'service',site_id:siteId,service:'ship',on:'1'})).status,303);
-    assert.equal((await post(outsider,{action:'store_key',site_id:siteId})).status,303,'another business cannot make a key for this store');
     assert.deepEqual(await (await trade(key,'ship:orders','dinkus-ship')).json(),{error:'service_not_enabled'},'another business cannot turn on Ship for this store');
     assert.equal((await post(owner,{action:'service',site_id:siteId,service:'coupons',on:'1'})).status,303);
-    assert.deepEqual(await (await trade(key,'coupons:checkout','dinkus-coupons')).json(),{error:'service_not_enabled'},'Coupons cannot be turned on while it is coming soon');
+    assert.deepEqual(await (await trade(key,'coupons:checkout','dinkus-coupons')).json(),{error:'scope_not_allowed'},'Commerce\'s key gets no coupon passes while Coupons is coming soon');
     assert.equal((await post(owner,{action:'service',site_id:siteId,service:'ship',on:'1'})).status,303);
     const shipPass=await trade(key,'ship:orders','dinkus-ship'); assert.equal(shipPass.status,200);
     assert.equal(JSON.parse(Buffer.from((await shipPass.json()).access_token.split('.')[1],'base64url').toString()).site_origin,origin);
     assert.match(await (await request(runtime,owner,'/account/sites')).text(),/Turn off Ship/);
-    const replaced=await createKey(); assert.notEqual(replaced,key);
-    assert.deepEqual(await (await trade(key,'payments:checkout','dinkus-payments')).json(),{error:'invalid_store_key'},'Replace key stops the old key');
+    const reconnect=await start('commerce'); await approve(reconnect); const replaced=(await (await token(reconnect)).json()).store_key; assert.notEqual(replaced,key);
+    assert.deepEqual(await (await trade(key,'payments:checkout','dinkus-payments')).json(),{error:'invalid_store_key'},'Connect again stops the old key');
     assert.equal((await trade(replaced,'payments:checkout','dinkus-payments')).status,200);
     assert.doesNotMatch(await (await request(runtime,outsider,'/account/sites')).text(),/Set up Commerce/);
 
-    // Checkout settings: read from Payments' own status and shown to paste into Commerce.
+    // Checkout settings: read from Payments' own status, saved for Commerce to read, and shown.
     const unescape=text=>text.replace(/&quot;/g,'"').replace(/&#39;/g,"'").replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&');
     const showSettings=async (jar,fields={})=>{ const page=await post(jar,{action:'checkout_settings',site_id:siteId,shipping_mode:'flat',shipping_amount:'5.00',payments_mode:'test',...fields}); return {status:page.status,html:await page.text()}; };
     assert.match((await showSettings(owner)).html,/could not reach Payments/,'Payments did not answer');
     assert.match((await showSettings(owner,{shipping_amount:'five'})).html,/Enter the flat shipping charge in dollars/);
     assert.equal((await request(runtime,new Map(),'/__proof/payments-status',{method:'POST',body:JSON.stringify({site_id:siteId,body:{state:'ready',bindingRef:'bind_route_1',connectionEvidence:{provider:'stripe',accountRef:'acct_1RouteTest'}}})})).status,200);
-    const shown=await showSettings(owner); assert.equal(shown.status,200);
+    const shown=await showSettings(owner); assert.equal(shown.status,200); assert.match(shown.html,/Saved. Commerce reads these itself/);
     const settings=JSON.parse(unescape(shown.html.match(/<pre><code>([\s\S]*?)<\/code><\/pre>/)[1]));
     assert.equal(settings.schema,'dinkuskit.commerce.registry-checkout/v1'); assert.equal(settings.commerceOrigin,origin); assert.equal(settings.siteId,siteId);
     assert.deepEqual([settings.bindingRef,settings.providerId,settings.stripeAccountId,settings.mode],['bind_route_1','stripe','acct_1RouteTest','test']);
@@ -84,7 +90,7 @@ test('shared service routes require separate consent and display processor setup
     assert.match(await (await request(runtime,owner,'/account/sites')).text(),/value="5\.00"/,'the saved charge is kept, not the outsider\'s');
     const turnOffShip=await post(owner,{action:'service',site_id:siteId,service:'ship',on:'0'});
     assert.equal(turnOffShip.headers.get('location'),`/account/sites?changed=${siteId}`);
-    assert.match(await (await request(runtime,owner,`/account/sites?changed=${siteId}`)).text(),/paste them into Commerce/);
+    assert.match(await (await request(runtime,owner,`/account/sites?changed=${siteId}`)).text(),/Commerce picks up the change within 5 minutes/);
     const withoutShip=JSON.parse(unescape((await showSettings(owner)).html.match(/<pre><code>([\s\S]*?)<\/code><\/pre>/)[1]));
     assert.equal('ship' in withoutShip,false,'Ship is left out once it is off'); assert.equal(withoutShip.shipping.revision,1,'the charge did not change');
 

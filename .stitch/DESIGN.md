@@ -1,6 +1,7 @@
 # DinkusKit.com design system
 
-Status: layout (L3 page + L5 header), color, type and effects locked; brand images in. Each value gets locked in its own
+Status: layout (L3 page + L5 header), color, type and effects locked; brand images in;
+home (H4) and Start your store (S9 with S6's plugin row) picked in round 7 and built. Each value gets locked in its own
 GrillTrack round (layout, then palette, then type) per `emdash-stitch-design`.
 The green look approved on 30 Sep 2026 is replaced by the brand palette above.
 
@@ -71,9 +72,22 @@ From Ronald's vote pack (private `dinkuskit/dinkus-pr-assets`, branch
 The DinkusKit logo is not final: F3 ultraviolet is used for the grill.
 
 - Header: the F3 trio (`dinkuskit-f3-trio.webp`) beside the wordmark.
-- Hero: the F3 cube (`dinkuskit-f3-cube.webp`).
+- No DinkusKit logo in page bodies (round 7): every variant's hero cube was
+  turned down, so the F3 cube stays out of pages for now.
 - Plugin logos (final): `commerce.webp`, `payments.webp`, `inventory.webp`,
   `ship.webp`. No Coupons logo yet.
+
+## Round 7 picks (23 Oct 2026)
+
+- Home, H4: a card may carry a plugin logo (Text section's Plugin logo
+  field), in a left column centered top to bottom; cards without one keep
+  their text in line; on a phone the logo sits above the heading.
+- Start your store: S9's account bar, progress bar (one segment per step)
+  and step cards, with S6's plugin row (Plugin row block: heading, text and
+  the picked plugins joined by plus signs; one plugin a row on a phone).
+  Stitch's made-up tags and the extra test-card box are left out.
+- Idea for later: the plugin logos as slowly turning 3D models (.glb) in
+  the same spots, still for visitors who ask for less motion.
 
 ## Pages, in grill order
 

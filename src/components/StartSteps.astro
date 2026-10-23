@@ -20,7 +20,24 @@ const steps = Astro.props.steps.map(step => ({ ...step, href: safeHttpUrl(step.l
     const link = step.href && step.linkLabel ? <p><a href={step.href}>{step.linkLabel}</a></p> : null;
     return (
       <li class="start-step" data-start-step={step._key}>
-        <label><input type="checkbox" data-start-check /> <span>{step.heading}</span></label>
+        <label>
+          <span class="start-step-check-wrap">
+            <input type="checkbox" data-start-check />
+            <svg class="start-step-check-svg" viewBox="0 0 20 20" aria-hidden="true">
+              <path d="M 4.5 10.5 L 8.5 14.5 L 15.8 6.2" />
+            </svg>
+          </span>
+          <span class="start-step-heading">
+            {step.heading}
+            <svg class="start-step-strike-svg" viewBox="0 0 240 12" preserveAspectRatio="none" aria-hidden="true">
+              <path d="M 0 6 Q 120 4.5 240 6.5" />
+            </svg>
+            <svg class="start-step-rough-focus" viewBox="0 0 240 14" preserveAspectRatio="none" aria-hidden="true">
+              <path class="rough-pass-1" d="M 2 9 Q 118 5 238 10" />
+              <path class="rough-pass-2" d="M 6 12 Q 124 14 234 8" />
+            </svg>
+          </span>
+        </label>
         <p id={`start-step-hint-${index + 1}`} class="start-hint" data-start-hint hidden></p>
         {step.body && <p>{step.body}</p>}
         {step.more_label ? (
@@ -91,8 +108,14 @@ const steps = Astro.props.steps.map(step => ({ ...step, href: safeHttpUrl(step.l
     if (bar) bar.hidden = false;
     const template = progress?.dataset.startProgress;
     if (progress && template) {
+      const nextText = template.replace('{done}', String(doneSteps.length)).replace('{total}', String(steps.length));
+      const changed = !progress.hidden && progress.textContent !== nextText;
       progress.hidden = false;
-      progress.textContent = template.replace('{done}', String(doneSteps.length)).replace('{total}', String(steps.length));
+      progress.textContent = nextText;
+      if (changed) {
+        progress.dataset.bump = 'true';
+        if (typeof setTimeout === 'function') setTimeout(() => { delete progress.dataset.bump; }, 220);
+      }
     }
     if (done) done.hidden = doneSteps.length !== steps.length;
     try { localStorage.setItem(KEY, JSON.stringify(doneSteps.map(step => step.dataset.startStep))); } catch { /* not saved */ }

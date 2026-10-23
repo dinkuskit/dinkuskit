@@ -114,10 +114,15 @@ test('start checklist: locks later steps, cascades unticks, and trims out-of-ord
     'server HTML leaves checkboxes enabled so the page works without JavaScript',
   );
 
+  assert.match(startStepsSource, /class="start-step-check-svg"/);
+  assert.match(startStepsSource, /class="start-step-strike-svg"/);
+  assert.match(startStepsSource, /class="start-step-rough-focus"/);
+
   // Fresh browser: only step 1 can be ticked; steps 2-4 are disabled with a clear hint.
   const fresh = createChecklistHarness();
   assert.equal(fresh.progress.hidden, false);
   assert.equal(fresh.progress.textContent, '0 of 4 done');
+  assert.equal(fresh.progress.dataset.bump, undefined);
   assert.equal(fresh.done.hidden, true);
   assert.deepEqual(fresh.steps.map(s => s.box.checked), [false, false, false, false]);
   assert.deepEqual(fresh.steps.map(s => s.box.disabled), [false, true, true, true]);
@@ -139,6 +144,7 @@ test('start checklist: locks later steps, cascades unticks, and trims out-of-ord
   // Ticking step 1 enables step 2, updates progress and updates later hints.
   fresh.steps[0].box.change(true);
   assert.equal(fresh.progress.textContent, '1 of 4 done');
+  assert.equal(fresh.progress.dataset.bump, 'true');
   assert.deepEqual(fresh.steps.map(s => s.box.checked), [true, false, false, false]);
   assert.deepEqual(fresh.steps.map(s => s.box.disabled), [false, false, true, true]);
   assert.deepEqual(fresh.steps.map(s => s.classList.contains('is-done')), [true, false, false, false]);

@@ -1,0 +1,12 @@
+{
+  "note": "Owner-supplied brand images for Stitch rounds. Stitch's generator replaces <img> sources with generated images, so every variant goes through .stitch/asset-lock.py before anyone sees it.",
+  "base": "https://raw.githubusercontent.com/dinkuskit/dinkuskit/claude/project-thread-9pyz0c/public",
+  "assets": [
+    { "id": "f3-trio", "path": "/brand/dinkuskit-f3-trio.webp", "role": "header mark beside the DinkusKit wordmark", "alt": "DinkusKit F3 trio mark", "match": ["trio", "mark"] },
+    { "id": "f3-cube", "path": "/brand/dinkuskit-f3-cube.webp", "role": "hero logo (keep it modest, never page-dominating)", "alt": "DinkusKit F3 cube", "match": ["f3", "cube", "hero", "insignia", "dinkuskit"] },
+    { "id": "commerce", "path": "/brand/commerce.webp", "role": "Commerce plugin logo", "alt": "DinkusKit Commerce logo", "match": ["commerce", "storefront"] },
+    { "id": "payments", "path": "/brand/payments.webp", "role": "Payments plugin logo", "alt": "DinkusKit Payments logo", "match": ["payments", "stripe", "card"] },
+    { "id": "inventory", "path": "/brand/inventory.webp", "role": "Inventory plugin logo", "alt": "DinkusKit Inventory logo", "match": ["inventory", "stock"] },
+    { "id": "ship", "path": "/brand/ship.webp", "role": "Ship plugin logo", "alt": "DinkusKit Ship logo", "match": ["ship", "postage", "parcel"] }
+  ]
+}

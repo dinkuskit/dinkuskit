@@ -1,0 +1,31 @@
+---
+// Light/dark switch in the header (Ronald, 23 Oct 2026). Until a visitor
+// presses it the site follows their system setting; a press picks the other
+// mode and this browser keeps it. Site.astro's head script applies a kept
+// choice before the page paints, so a reload never flashes the other mode.
+// Without scripts the switch stays hidden and the system setting rules.
+---
+<button type="button" class="theme-switch" data-theme-switch aria-label="Dark mode" aria-pressed="false" hidden>
+  <svg class="theme-switch-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z" /></svg>
+  <svg class="theme-switch-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4" /><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8" /></svg>
+</button>
+<script>
+  // Keep the key in step with the head script in Site.astro.
+  const KEY = 'dinkuskit-theme';
+  const root = document.documentElement;
+  const system = matchMedia('(prefers-color-scheme: dark)');
+  const button = document.querySelector<HTMLButtonElement>('[data-theme-switch]');
+  if (button) {
+    const dark = () => (root.dataset.theme ? root.dataset.theme === 'dark' : system.matches);
+    const show = () => button.setAttribute('aria-pressed', String(dark()));
+    button.addEventListener('click', () => {
+      const next = dark() ? 'light' : 'dark';
+      root.dataset.theme = next;
+      try { localStorage.setItem(KEY, next); } catch { /* Private windows can refuse storage; the choice then lasts for this page. */ }
+      show();
+    });
+    system.addEventListener('change', show);
+    show();
+    button.hidden = false;
+  }
+</script>

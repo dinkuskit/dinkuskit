@@ -1,31 +1,26 @@
 /* Colors: round 2 lock, Stitch "Expressive Emerald & Ultraviolet" (emerald
    buttons and focus, ultraviolet links and mark, deep green-graphite cards).
-   Change them here only; .stitch/DESIGN.md records the roles. */
+   Change them here only; .stitch/DESIGN.md records the roles. Each color is
+   light-dark(light, dark): Stitch's light half and its dark half of the same
+   lock. The page follows the visitor's system setting until they press the
+   light/dark switch, which sets data-theme on <html> (ThemeSwitch.astro). */
 :root {
-  --paper: #f9faf8; --ink: #131718; --muted: #4e5856; --line: #e2e6e3; --line-soft: #ebefeb;
-  --surface: #ffffff; --surface-soft: #f3f6f3;
+  --paper: light-dark(#f9faf8, #111817); --ink: light-dark(#131718, #ecfdf5); --muted: light-dark(#4e5856, #9db3ac);
+  --line: light-dark(#e2e6e3, #233532); --line-soft: light-dark(#ebefeb, #1a2826);
+  --surface: light-dark(#ffffff, #172220); --surface-soft: light-dark(#f3f6f3, #141d1b);
   --graphite: #172220; --graphite-ink: #ecfdf5; --graphite-muted: #9db3ac; --graphite-line: #233532;
-  --accent: #7e22ce; --mark: #a855f7; --focus: #10b981; --highlight: #a7f3d0;
-  --accent-wash: #f3e8ff; --accent-line: #d8b4fe;
-  --button: #065f46; --button-ink: #ecfdf5; --button-hover: #047857;
-  --error: #8a1f1f;
+  --accent: light-dark(#7e22ce, #c084fc); --mark: #a855f7; --focus: #10b981; --highlight: #a7f3d0;
+  --accent-wash: light-dark(#f3e8ff, #2a1f3a); --accent-line: light-dark(#d8b4fe, #7e22ce);
+  --button: light-dark(#065f46, #10b981); --button-ink: light-dark(#ecfdf5, #06231a); --button-hover: light-dark(#047857, #34d399);
+  --error: light-dark(#8a1f1f, #fca5a5);
   --commerce: #10b981; --payments: #38bdf8; --inventory: #f59e0b; --ship: #f97316;
   /* Type: round 3 lock, Stitch F1 (Space Grotesk headings, Inter body, Space Mono labels). */
   --font-display: 'Space Grotesk', system-ui, sans-serif;
   --font-body: 'Inter', system-ui, sans-serif;
   --font-label: 'Space Mono', ui-monospace, monospace;
 }
-/* Dark mode follows the visitor's system setting (Stitch's dark half of the same lock). */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --paper: #111817; --ink: #ecfdf5; --muted: #9db3ac; --line: #233532; --line-soft: #1a2826;
-    --surface: #172220; --surface-soft: #141d1b;
-    --graphite: #172220; --graphite-ink: #ecfdf5; --graphite-muted: #9db3ac; --graphite-line: #233532;
-    --accent: #c084fc; --accent-wash: #2a1f3a; --accent-line: #7e22ce;
-    --button: #10b981; --button-ink: #06231a; --button-hover: #34d399;
-    --error: #fca5a5;
-  }
-}
+:root[data-theme="light"] { color-scheme: light; }
+:root[data-theme="dark"] { color-scheme: dark; }
 /* EmDash's own content components (Portable Text tables, embeds) read these
    names and fall back to light grays; point them at the palette so they follow
    dark mode too. */
@@ -47,6 +42,13 @@ header { border-bottom: 1px solid var(--line); }
 nav { font-size: .95rem; gap: .4rem 1.6rem; }
 nav a { text-decoration: none; }
 nav a:hover, nav a[aria-current] { text-decoration: underline; }
+.theme-switch { display: inline-grid; place-items: center; width: 2.25rem; height: 2.25rem; padding: 0; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; }
+.theme-switch[hidden] { display: none; }
+.theme-switch:hover { border-color: var(--accent-line); color: var(--accent); }
+.theme-switch:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+.theme-switch svg { width: 1.15rem; height: 1.15rem; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+/* The icon shows the mode a press switches to. */
+.theme-switch[aria-pressed="true"] .theme-switch-moon, .theme-switch[aria-pressed="false"] .theme-switch-sun { display: none; }
 .intro { padding: 3rem 0 2.5rem; max-width: 760px; }
 .eyebrow { font-family: var(--font-label); color: var(--accent); font-size: .8rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
 h2, h3 { font-family: var(--font-display); letter-spacing: -.01em; }

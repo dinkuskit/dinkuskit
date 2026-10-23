@@ -9687,6 +9687,77 @@
       "superseded_by": null,
       "updated_at": "2026-10-23T05:00:20+00:00",
       "verification_ref": "file:proof/website-footer/PROOF.md"
+    },
+    {
+      "baseline_ref": null,
+      "candidate_refs": [],
+      "choice": "A light/dark switch at the end of the header menu on every page that uses the site layout. Until pressed, the site follows the visitor's system setting; a press picks the other mode and the browser keeps it (localStorage dinkuskit-theme), applied by a head script before paint. Palette colors become light-dark(light, dark) pairs with color-scheme set by data-theme on <html>, as in the emdash-stitch-design skill's visual cycle; the colors themselves are unchanged. The switch is a toggle button named Dark mode (pressed when dark) with a moon or sun icon, hidden without scripts.",
+      "context_ref": null,
+      "created_at": "2026-10-23T13:42:58+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [
+        "website-design-20261023"
+      ],
+      "domain": "dinkuskit.com design with the EmDash UI skills",
+      "history": [
+        {
+          "at": "2026-10-23T13:42:58+00:00",
+          "choice": "A light/dark switch at the end of the header menu on every page that uses the site layout. Until pressed, the site follows the visitor's system setting; a press picks the other mode and the browser keeps it (localStorage dinkuskit-theme), applied by a head script before paint. Palette colors become light-dark(light, dark) pairs with color-scheme set by data-theme on <html>, as in the emdash-stitch-design skill's visual cycle; the colors themselves are unchanged. The switch is a toggle button named Dark mode (pressed when dark) with a moon or sun icon, hidden without scripts.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-23T13:42:58+00:00",
+          "choice": "A light/dark switch at the end of the header menu on every page that uses the site layout. Until pressed, the site follows the visitor's system setting; a press picks the other mode and the browser keeps it (localStorage dinkuskit-theme), applied by a head script before paint. Palette colors become light-dark(light, dark) pairs with color-scheme set by data-theme on <html>, as in the emdash-stitch-design skill's visual cycle; the colors themselves are unchanged. The switch is a toggle button named Dark mode (pressed when dark) with a moon or sun icon, hidden without scripts.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-23T13:42:59+00:00",
+          "choice": "A light/dark switch at the end of the header menu on every page that uses the site layout. Until pressed, the site follows the visitor's system setting; a press picks the other mode and the browser keeps it (localStorage dinkuskit-theme), applied by a head script before paint. Palette colors become light-dark(light, dark) pairs with color-scheme set by data-theme on <html>, as in the emdash-stitch-design skill's visual cycle; the colors themselves are unchanged. The switch is a toggle button named Dark mode (pressed when dark) with a moon or sun icon, hidden without scripts.",
+          "from": "implemented",
+          "implementation_ref": "file:src/components/ThemeSwitch.astro",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": null
+        }
+      ],
+      "id": "website-theme-switch-20261023",
+      "implementation_ref": "file:src/components/ThemeSwitch.astro",
+      "question": "How do visitors choose light or dark on dinkuskit.com?",
+      "rationale": "Ronald asked for the switch on 23 Oct 2026 13:32 UTC (\"We should probably start a new PR to introduce that switch\").",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [],
+      "review_ref": null,
+      "review_result": null,
+      "review_source_identity": null,
+      "status": "verified",
+      "superseded_by": null,
+      "updated_at": "2026-10-23T13:42:59+00:00",
+      "verification_ref": "file:proof/website-theme-switch/PROOF.md"
     }
   ],
   "last_activation": {
@@ -9717,5 +9788,5 @@
   "status": "active",
   "title": "Composed integration",
   "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5",
-  "updated_at": "2026-10-23T05:00:20+00:00"
+  "updated_at": "2026-10-23T13:42:59+00:00"
 }

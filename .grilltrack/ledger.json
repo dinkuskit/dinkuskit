@@ -9584,6 +9584,20 @@
           "review_source_identity": null,
           "to": "implemented",
           "verification_ref": null
+        },
+        {
+          "at": "2026-10-23T03:55:43+00:00",
+          "choice": "dinkuskit.com is redesigned with the emdash-stitch-design and emdash-surface-fx skills, and every page stays a CMS page. Layout: a page made only of text sections is a split (intro with an optional button on the left, topic cards on the right); a page with other blocks stacks them. The header is the F3 trio beside the DinkusKit name, and no DinkusKit logo appears in page bodies. Colors: Stitch's Expressive Emerald and Ultraviolet, light, plus a dark mode that follows the visitor's setting. Type: Space Grotesk, Inter and Space Mono, served from the site. Effects: a dithered emerald-to-ultraviolet wash behind every CMS page and an emerald dither on graphite cards; split-page cards lean toward a nearby mouse; nothing moves for visitors who ask for less motion. Home (pick H4): a card may show a plugin logo, centered on its left. Start your store: an account bar, a progress bar with one segment per step, step cards, and a plugin row (logos joined by plus signs, a list on phones). CMS shape: pages gain optional action_label and action_href (the intro button); Text section gains an optional Plugin logo select (Commerce, Payments, Inventory, Ship); a new Plugin row block holds a heading, optional text and a plugins multi-select. The live CMS gets the fields and block once through scripts/pages-import.mjs in the owner's deploy paste, which adds optional fields to block types the site already has and never overwrites pages; an editor then picks card logos and adds the Plugin row to /start.",
+          "from": "implemented",
+          "implementation_ref": "git:dinkuskit/dinkuskit@cc8bd70 (branch claude/project-thread-9pyz0c)",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": null
         }
       ],
       "id": "website-design-20261023",
@@ -9596,10 +9610,10 @@
       "review_ref": null,
       "review_result": null,
       "review_source_identity": null,
-      "status": "implemented",
+      "status": "verified",
       "superseded_by": null,
-      "updated_at": "2026-10-23T03:54:05+00:00",
-      "verification_ref": null
+      "updated_at": "2026-10-23T03:55:43+00:00",
+      "verification_ref": "file:proof/website-design/PROOF.md"
     }
   ],
   "last_activation": {
@@ -9630,5 +9644,5 @@
   "status": "active",
   "title": "Composed integration",
   "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5",
-  "updated_at": "2026-10-23T03:54:05+00:00"
+  "updated_at": "2026-10-23T03:55:43+00:00"
 }

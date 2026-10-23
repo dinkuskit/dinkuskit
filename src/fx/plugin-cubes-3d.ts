@@ -582,13 +582,6 @@ async function initPluginCubes(): Promise<void> {
   if (!win.THREE?.GLTFLoader) {
     await loadScript('/vendor/GLTFLoader.js');
   }
-  if (window.location.protocol === 'file:' && !win.DINKUS_PLUGIN_CUBES_GLB_B64) {
-    try {
-      await loadScript('/vendor/plugin-cubes-glb.js');
-    } catch {
-      // Fallback to direct .glb network loading via GLTFLoader.load.
-    }
-  }
 
   const THREE = win.THREE;
   if (!THREE || !THREE.GLTFLoader) return;

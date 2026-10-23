@@ -114,10 +114,23 @@ test('start checklist: locks later steps, cascades unticks, and trims out-of-ord
     'server HTML leaves checkboxes enabled so the page works without JavaScript',
   );
 
+  assert.match(startStepsSource, /class="start-step-check-svg"/);
+  assert.match(startStepsSource, /class="start-step-strike-svg"/);
+  assert.match(startStepsSource, /class="start-step-rough-focus"/);
+
+  const siteCss = readFileSync(new URL('../src/styles/site.css', import.meta.url), 'utf8');
+  assert.match(siteCss, /\.start-step input:checked \{/, 'checked boxes fill without JavaScript');
+  assert.match(siteCss, /\.start-step input:checked \+ \.start-step-check-svg/, 'the tick draws from :checked without JavaScript');
+  assert.match(siteCss, /label:has\(input:checked\) \.start-step-strike-svg path/, 'the strikethrough draws from :checked without JavaScript');
+  const reducedMotion = siteCss.match(/@media \(prefers-reduced-motion: reduce\) \{ \.start-progress[^}]*\}/)?.[0] ?? '';
+  assert.match(reducedMotion, /\.start-step\.is-next \.start-step-rough-focus \.rough-pass-1/, 'reduced motion matches the active underline selector');
+  assert.match(reducedMotion, /\.start-step\.is-next \.start-step-rough-focus \.rough-pass-2/, 'reduced motion matches the active underline selector');
+
   // Fresh browser: only step 1 can be ticked; steps 2-4 are disabled with a clear hint.
   const fresh = createChecklistHarness();
   assert.equal(fresh.progress.hidden, false);
   assert.equal(fresh.progress.textContent, '0 of 4 done');
+  assert.equal(fresh.progress.dataset.bump, undefined);
   assert.equal(fresh.done.hidden, true);
   assert.deepEqual(fresh.steps.map(s => s.box.checked), [false, false, false, false]);
   assert.deepEqual(fresh.steps.map(s => s.box.disabled), [false, true, true, true]);
@@ -139,6 +152,7 @@ test('start checklist: locks later steps, cascades unticks, and trims out-of-ord
   // Ticking step 1 enables step 2, updates progress and updates later hints.
   fresh.steps[0].box.change(true);
   assert.equal(fresh.progress.textContent, '1 of 4 done');
+  assert.equal(fresh.progress.dataset.bump, 'true');
   assert.deepEqual(fresh.steps.map(s => s.box.checked), [true, false, false, false]);
   assert.deepEqual(fresh.steps.map(s => s.box.disabled), [false, false, true, true]);
   assert.deepEqual(fresh.steps.map(s => s.classList.contains('is-done')), [true, false, false, false]);

@@ -308,36 +308,36 @@
         "slug": "home",
         "status": "published",
         "data": {
-          "title": "Commerce that belongs in EmDash.",
-          "description": "Open-source commerce tools for your EmDash site, with hosted services being built to make setup simpler.",
+          "title": "Run your store with an agent, on a site you own.",
+          "description": "A professional online store where one chat box with an agent handles products, orders, payments, shipping labels and your site's pages, and you can do any of it by hand in the CMS too. You keep your own EmDash site and your own Stripe account.",
           "layout": [
             {
               "_type": "text_section",
               "_version": 1,
               "_key": "home-0",
-              "heading": "An EmDash foundation",
-              "body": "Keep your storefront and content in EmDash. DinkusKit is building the catalog, checkout, inventory and payments connections around it."
+              "heading": "Ask the agent, or do it by hand",
+              "body": "Use one chat box to add products, change prices, check orders, buy shipping labels or update a page, or do the same work yourself in the EmDash CMS. If you are moving from WordPress/WooCommerce, Shopify or BigCommerce to an agent-run setup, you get a professional online store without having to learn the technical side of running one. You bring your products and pages over with your agent or by hand; automated store import tools are not built yet."
             },
             {
               "_type": "text_section",
               "_version": 1,
               "_key": "home-1",
-              "heading": "Inventory, coming soon",
-              "body": "Hosted Inventory is coming soon and is not required to start with Commerce. You will keep stock in EmDash when that service is ready. An open-source self-host path will be documented; neither path is provisioned on this website today."
+              "heading": "Products, orders and USPS labels",
+              "body": "Commerce, Payments and Ship are live on the EmDash Registry today. Commerce handles your products, prices, cart, checkout, orders and shopper accounts, while Ship buys and prints USPS shipping labels and writes tracking back to the order. Inventory and Coupons are planned and are not needed to run your store."
             },
             {
               "_type": "text_section",
               "_version": 1,
               "_key": "home-2",
-              "heading": "Your Stripe account",
-              "body": "The planned Payments plugin connects your own Stripe account through hosted setup. Customers pay your business through Stripe."
+              "heading": "Your site and your Stripe account",
+              "body": "Your storefront and pages run on your own EmDash site, so you keep your site, your content and your customer relationships. Payments connects your business's own Stripe account for card checkout, so customers pay you directly through Stripe. You can place test orders first before opening your store to live payments."
             },
             {
               "_type": "text_section",
               "_version": 1,
               "_key": "home-3",
-              "heading": "Follow the build",
-              "body": "You can create a local DinkusKit account on this website. Hosted inventory and payments activation are still being prepared. Explore the source on GitHub and read Getting started for the intended installation experience."
+              "heading": "Connect in a few clicks",
+              "body": "Install Commerce, Payments and Ship from the EmDash Registry, then press Connect to DinkusKit in each plugin and approve the store on your DinkusKit account. There are no secret keys or checkout settings to copy and paste between screens. Open Start your store for the four-step checklist from a new site to your first test order."
             }
           ]
         }

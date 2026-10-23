@@ -296,12 +296,12 @@ const named = Astro.url.searchParams.get('named') === '1';
   .account-top { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
   .account-nav { margin: 0 0 1rem; }
   .account-top h1 { overflow-wrap: anywhere; }
-  .account-card { border: 1px solid #d4ddd3; background: white; padding: 1.25rem; margin: 1.25rem 0; }
+  .account-card { border: 1px solid var(--line); background: var(--surface); padding: 1.25rem; margin: 1.25rem 0; }
   .account-card h2 { margin-top: 0; }
   .account-card summary { cursor: pointer; font-weight: 600; }
   .staff-list { list-style: none; margin: 0; padding: 0; }
-  .staff-list li { padding: .75rem 0; border-top: 1px solid #e6ece4; overflow-wrap: anywhere; }
+  .staff-list li { padding: .75rem 0; border-top: 1px solid var(--line-soft); overflow-wrap: anywhere; }
   .staff-list p { margin: .2rem 0; }
-  .staff-can { color: #42594b; font-size: .9rem; }
-  .account-panel .button-quiet { background: transparent; color: #8a1f1f; padding: .3rem 0; text-decoration: underline; }
+  .staff-can { color: var(--muted); font-size: .9rem; }
+  .account-panel .button-quiet { background: transparent; color: var(--error); padding: .3rem 0; text-decoration: underline; }
 </style>

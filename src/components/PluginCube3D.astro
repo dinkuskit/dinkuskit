@@ -1,0 +1,37 @@
+---
+import { PLUGIN_LOGOS, PLUGIN_MODELS } from './plugin-logos.ts';
+
+interface Props {
+  plugin: string;
+  size?: number;
+  standalone?: boolean;
+}
+
+const { plugin, size = 84, standalone = false } = Astro.props as Props;
+const logoSrc = Object.hasOwn(PLUGIN_LOGOS, plugin) ? PLUGIN_LOGOS[plugin] : undefined;
+const modelSrc = Object.hasOwn(PLUGIN_MODELS, plugin) ? PLUGIN_MODELS[plugin] : undefined;
+---
+{modelSrc && (
+  standalone ? (
+    <span class="plugin-cube-standalone" data-plugin-cube-host>
+      {logoSrc && <img class="plugin-cube-fallback" src={logoSrc} alt={`DinkusKit ${plugin}`} width={size} height={size} data-plugin-cube-fallback />}
+      <span
+        class="plugin-cube-3d"
+        data-plugin-cube={plugin}
+        data-plugin-model={modelSrc}
+        style={`--cube-size: ${size}px`}
+        hidden
+        aria-hidden="true"
+      ></span>
+    </span>
+  ) : (
+    <span
+      class="plugin-cube-3d"
+      data-plugin-cube={plugin}
+      data-plugin-model={modelSrc}
+      style={`--cube-size: ${size}px`}
+      hidden
+      aria-hidden="true"
+    ></span>
+  )
+)}

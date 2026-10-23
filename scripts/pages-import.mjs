@@ -21,15 +21,24 @@ import { parseArgs } from 'node:util';
 const SEED = new URL('../seed/seed.json', import.meta.url);
 const COLLECTION = 'pages';
 const LAYOUT = 'layout';
+const BRAND_MEDIA = [
+  { file: 'commerce.webp', alt: 'DinkusKit Commerce' },
+  { file: 'payments.webp', alt: 'DinkusKit Payments' },
+  { file: 'inventory.webp', alt: 'DinkusKit Inventory' },
+  { file: 'ship.webp', alt: 'DinkusKit Ship' },
+  { file: 'dinkuskit-f3-cube.webp', alt: 'DinkusKit cube mark' },
+  { file: 'dinkuskit-f3-trio.webp', alt: 'DinkusKit trio mark' },
+];
 
 const ok = status => status === 200 || status === 201;
 
 async function push(origin, { slugs, footer, publish }) {
   const base = new URL(origin);
   if (base.protocol !== 'https:' && !['127.0.0.1', 'localhost'].includes(base.hostname)) throw new Error('Use an https site origin');
-  const headers = { 'content-type': 'application/json', 'x-emdash-request': '1' };
-  if (process.env.EMDASH_TOKEN) headers.authorization = `Bearer ${process.env.EMDASH_TOKEN}`;
-  if (process.env.CF_ACCESS_TOKEN) headers['cf-access-token'] = process.env.CF_ACCESS_TOKEN;
+  const authHeaders = { 'x-emdash-request': '1' };
+  if (process.env.EMDASH_TOKEN) authHeaders.authorization = `Bearer ${process.env.EMDASH_TOKEN}`;
+  if (process.env.CF_ACCESS_TOKEN) authHeaders['cf-access-token'] = process.env.CF_ACCESS_TOKEN;
+  const headers = { 'content-type': 'application/json', ...authHeaders };
   const api = async (method, path, body) => {
     const response = await fetch(new URL(`/_emdash/api${path}`, base), {
       method, headers, redirect: 'manual', body: body && JSON.stringify(body),
@@ -93,6 +102,23 @@ async function push(origin, { slugs, footer, publish }) {
     const updated = await api('PUT', `/schema/collections/${COLLECTION}/fields/${LAYOUT}`, { validation: { ...validation, allowedTypes: [...allowed, ...missing] } });
     if (!ok(updated.status)) throw new Error(`Allowing ${missing.join(', ')} in ${COLLECTION} failed: HTTP ${updated.status} ${JSON.stringify(updated.data)}`);
     console.log(`Allowed ${missing.join(', ')} in the ${COLLECTION} ${LAYOUT}`);
+  }
+
+  // Register the 2D brand and plugin poster .webp assets in /_emdash/api/media
+  // (deduplicated by SHA-1 contentHash) so /_emdash/admin Media Library lists them.
+  for (const { file, alt } of BRAND_MEDIA) {
+    const bytes = readFileSync(new URL(`../public/brand/${file}`, import.meta.url));
+    const form = new FormData();
+    form.set('file', new File([bytes], file, { type: 'image/webp' }));
+    form.set('alt', alt);
+    form.set('deduplicate', 'true');
+    const response = await fetch(new URL('/_emdash/api/media', base), {
+      method: 'POST', headers: authHeaders, redirect: 'manual', body: form,
+    });
+    const payload = await response.json().catch(() => null);
+    const data = payload?.data ?? payload;
+    if (!ok(response.status)) throw new Error(`Uploading media ${file} failed: HTTP ${response.status} ${JSON.stringify(data)}`);
+    console.log(data?.deduplicated ? `Kept media ${file}` : `Uploaded media ${file}`);
   }
 
   for (const page of pages) {

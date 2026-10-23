@@ -119,3 +119,8 @@
 {"action": "decision_locked", "at": "2026-10-23T13:42:58+00:00", "data": {"decision_id": "website-theme-switch-20261023"}, "event_id": "55f7c1ec-904c-46cb-99d4-b43eae2eac2e"}
 {"action": "decision_implemented", "at": "2026-10-23T13:42:58+00:00", "data": {"decision_id": "website-theme-switch-20261023"}, "event_id": "e0d2bda8-7471-4250-9f1b-ac0a0397e00b"}
 {"action": "decision_verified", "at": "2026-10-23T13:42:59+00:00", "data": {"decision_id": "website-theme-switch-20261023"}, "event_id": "0a8ff023-c73c-4b20-ac50-194dbf3bcb13"}
+{"action": "decision_proposed", "at": "2026-10-23T20:29:03+00:00", "data": {"decision_id": "start-3d-plugin-cubes-20261023"}, "event_id": "a31195a9-7404-4de2-a9fa-28cf471969cb"}
+{"action": "decision_locked", "at": "2026-10-23T20:29:04+00:00", "data": {"decision_id": "start-3d-plugin-cubes-20261023"}, "event_id": "6d97594d-786d-4ae4-9813-9568a25e8177"}
+{"action": "shared_understanding_confirmed", "at": "2026-10-23T20:29:05+00:00", "data": {"summary": "Build all 4 rotatable 3D .glb plugin cubes and mount them on /start with 2D .webp fallback posters registered in /_emdash/api/media."}, "event_id": "cc7bd493-1c3c-4ca7-b333-cd0c34f64a65"}
+{"action": "decision_implemented", "at": "2026-10-23T20:29:05+00:00", "data": {"decision_id": "start-3d-plugin-cubes-20261023"}, "event_id": "3becb102-2332-41bb-9ce8-f28db6eb831a"}
+{"action": "decision_verified", "at": "2026-10-23T20:29:06+00:00", "data": {"decision_id": "start-3d-plugin-cubes-20261023"}, "event_id": "76e76a19-f419-44db-b8af-c8902eb96e8f"}

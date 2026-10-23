@@ -1,7 +1,7 @@
 # dinkuskit.com design: home (H4) and Start your store
 
-Source: branch `claude/project-thread-9pyz0c` at `cc8bd70` (main merged in),
-ledger entry `website-design-20261023`.
+Source: branch `claude/project-thread-9pyz0c` at `10edce5` (main merged in,
+including #80's home copy), ledger entry `website-design-20261023`.
 
 ## How it was captured
 
@@ -9,13 +9,15 @@ ledger entry `website-design-20261023`.
 database. That database predates this branch's seed, so it was brought up to
 date the way the live CMS will be: `scripts/pages-import.mjs --page home` and
 `--page start` added the Plugin logo field and the Plugin row block, then the
-admin API picked Commerce, Inventory and Payments on the first three home
-cards and put the seed's Plugin row at the top of /start, as an editor would.
+admin API loaded the seed's home and /start content (#80's home words with
+Commerce, Ship and Payments picked on the first three cards; the Plugin row at
+the top of /start; no Connect note on step 3), as an editor would.
 Chromium (headless, Playwright) took full-page shots at 1280x900 and 390x844
 (phones at 2x, saved at 390 wide), light and dark. The wash and card dither
-are the real effects, so each shot holds one frame of them; the fixed wash
-covers the first screen of a full-page shot and follows the scroll in a
-browser.
+are the real effects, so each shot holds one frame of them. The wash is fixed
+to the window, so a visitor sees it behind the whole page as they scroll; a
+full-page shot would paint it only on the first screen, so for these shots it
+was stretched to the page height.
 
 ## What it showed
 

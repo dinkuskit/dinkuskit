@@ -48,7 +48,7 @@ entry `home`, replaces the fields with the words below, and presses **Publish**:
      ```
    - **Body** (`body`):
      ```text
-     Commerce, Payments and Ship are live on the EmDash Registry today. Commerce handles your products, prices, cart, checkout, orders and shopper accounts, while Ship buys and prints USPS shipping labels and writes tracking back to the order. Inventory and Coupons are planned and are not needed to run your store.
+     Commerce, Payments and Ship are live on the EmDash Registry today. Commerce handles your products, prices, cart, checkout, orders and shopper accounts, while Ship buys and prints USPS shipping labels and writes tracking back to the order (in test mode until live postage opens). Inventory and Coupons are planned and are not needed to run your store.
      ```
 
 3. **`home-2`** (`text_section`)

@@ -323,7 +323,7 @@
               "_version": 1,
               "_key": "home-1",
               "heading": "Products, orders and USPS labels",
-              "body": "Commerce, Payments and Ship are live on the EmDash Registry today. Commerce handles your products, prices, cart, checkout, orders and shopper accounts, while Ship buys and prints USPS shipping labels and writes tracking back to the order. Inventory and Coupons are planned and are not needed to run your store."
+              "body": "Commerce, Payments and Ship are live on the EmDash Registry today. Commerce handles your products, prices, cart, checkout, orders and shopper accounts, while Ship buys and prints USPS shipping labels and writes tracking back to the order (in test mode until live postage opens). Inventory and Coupons are planned and are not needed to run your store."
             },
             {
               "_type": "text_section",

@@ -118,6 +118,14 @@ test('start checklist: locks later steps, cascades unticks, and trims out-of-ord
   assert.match(startStepsSource, /class="start-step-strike-svg"/);
   assert.match(startStepsSource, /class="start-step-rough-focus"/);
 
+  const siteCss = readFileSync(new URL('../src/styles/site.css', import.meta.url), 'utf8');
+  assert.match(siteCss, /\.start-step input:checked \{/, 'checked boxes fill without JavaScript');
+  assert.match(siteCss, /\.start-step input:checked \+ \.start-step-check-svg/, 'the tick draws from :checked without JavaScript');
+  assert.match(siteCss, /label:has\(input:checked\) \.start-step-strike-svg path/, 'the strikethrough draws from :checked without JavaScript');
+  const reducedMotion = siteCss.match(/@media \(prefers-reduced-motion: reduce\) \{ \.start-progress[^}]*\}/)?.[0] ?? '';
+  assert.match(reducedMotion, /\.start-step\.is-next \.start-step-rough-focus \.rough-pass-1/, 'reduced motion matches the active underline selector');
+  assert.match(reducedMotion, /\.start-step\.is-next \.start-step-rough-focus \.rough-pass-2/, 'reduced motion matches the active underline selector');
+
   // Fresh browser: only step 1 can be ticked; steps 2-4 are disabled with a clear hint.
   const fresh = createChecklistHarness();
   assert.equal(fresh.progress.hidden, false);

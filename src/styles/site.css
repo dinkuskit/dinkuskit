@@ -138,20 +138,20 @@ h1 { font-family: var(--font-display); font-weight: 700; font-size: clamp(2.5rem
 .start-step-check-wrap { position: relative; display: inline-grid; place-items: center; width: 1.25rem; height: 1.25rem; margin: .05rem 0 0; flex: none; }
 .start-step input { appearance: none; -webkit-appearance: none; width: 1.25rem; height: 1.25rem; margin: 0; border: 2px solid var(--muted); border-radius: 3px; background: var(--surface); cursor: inherit; transition: border-color .18s ease, background-color .18s ease; }
 .start-step.is-next input { border-color: var(--focus); }
-.start-step.is-done input { border-color: var(--accent); background: var(--accent); }
+.start-step.is-done input, .start-step input:checked { border-color: var(--accent); background: var(--accent); }
 .start-step-check-svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; fill: none; stroke: var(--paper); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 24; stroke-dashoffset: 24; transition: stroke-dashoffset .32s cubic-bezier(.22, 1, .36, 1); }
-.start-step.is-done .start-step-check-svg { stroke-dashoffset: 0; }
+.start-step.is-done .start-step-check-svg, .start-step input:checked + .start-step-check-svg { stroke-dashoffset: 0; }
 .start-step-heading { position: relative; display: inline-block; transition: color .2s ease; }
 .start-step-strike-svg { position: absolute; left: -1px; right: -2px; top: 52%; width: calc(100% + 3px); height: 10px; transform: translateY(-50%); pointer-events: none; overflow: visible; fill: none; stroke: var(--muted); stroke-width: 2.1; stroke-linecap: round; }
 .start-step-strike-svg path { stroke-dasharray: 250; stroke-dashoffset: 250; transition: stroke-dashoffset .38s cubic-bezier(.22, 1, .36, 1); }
-.start-step.is-done .start-step-strike-svg path { stroke-dashoffset: 0; }
+.start-step.is-done .start-step-strike-svg path, .start-step label:has(input:checked) .start-step-strike-svg path { stroke-dashoffset: 0; }
 .start-step-rough-focus { position: absolute; left: -2px; right: -4px; bottom: -7px; width: calc(100% + 6px); height: 12px; pointer-events: none; overflow: visible; fill: none; stroke: var(--focus); stroke-width: 2.1; stroke-linecap: round; opacity: 0; }
 .start-step-rough-focus .rough-pass-1, .start-step-rough-focus .rough-pass-2 { stroke-dasharray: 250; stroke-dashoffset: 250; }
 .start-step-rough-focus .rough-pass-2 { stroke: var(--mark); opacity: .65; }
 .start-step.is-next .start-step-rough-focus { opacity: 1; }
 .start-step.is-next .start-step-rough-focus .rough-pass-1 { stroke-dashoffset: 0; transition: stroke-dashoffset .55s cubic-bezier(.22, 1, .36, 1); }
 .start-step.is-next .start-step-rough-focus .rough-pass-2 { stroke-dashoffset: 0; transition: stroke-dashoffset .52s cubic-bezier(.22, 1, .36, 1) .22s; }
-@media (prefers-reduced-motion: reduce) { .start-progress, .start-step-check-svg, .start-step-strike-svg path, .start-step-rough-focus .rough-pass-1, .start-step-rough-focus .rough-pass-2 { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .start-progress, .start-step-check-svg, .start-step-strike-svg path, .start-step.is-next .start-step-rough-focus .rough-pass-1, .start-step.is-next .start-step-rough-focus .rough-pass-2 { transition: none; } }
 .start-step > :not(label) { margin-left: 2.35rem; }
 .start-step p { color: var(--muted); margin-block: .45rem 0; max-width: 68ch; font-size: .95rem; }
 .start-step .start-hint { font-size: .85rem; margin-top: .25rem; }

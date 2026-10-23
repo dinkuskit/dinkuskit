@@ -28,7 +28,7 @@ The production issuer is the configured `https://dinkuskit.com/account` value, n
 
 ## Current scaffold slice
 
-Deliver an independently versioned, runnable EmDash website foundation, public homepage/getting-started content, native-block readiness, local merchant account routes, and durable product decisions. Hosted trial activation and Stripe connection are still not implemented and must not be presented as working.
+Deliver an independently versioned, runnable EmDash website foundation, public homepage/getting-started content, native-block readiness, local merchant account routes, and durable product decisions. Connect to DinkusKit and the Stripe test-mode connection shipped in the Registry releases Commerce 0.5.0, Payments 0.4.0 and Ship 0.3.0 and may be described as working. Live payments open only after DinkusKit's own real-store proof and must not be presented as available before then. Hosted trial activation is still not implemented.
 
 Keep styling minimal and accessible. Bobby approved the current colors and simple layout for the public introduction. See design.md and docs/public-launch.md for the accepted release scope. Do not add duplicate inventory, test tenants presented as live customers, analytics, live email sending, payments or remote infrastructure. The public site and merchant routes run on the Cloudflare Workers adapter with separate CMS D1 and merchant D1. Cloudflare Email Sending is a delivery boundary only; missing delivery is unavailable, not a sent claim. Local proof uses an isolated test-entry sink.
 

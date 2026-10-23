@@ -1,5 +1,6 @@
 ---
 import type { BlockComponentProps, BlockValue } from 'emdash/ui';
+import PluginCube3D from './PluginCube3D.astro';
 import { PLUGIN_LOGOS } from './plugin-logos.ts';
 
 type PluginRowValue = BlockValue & { heading?: string; body?: string; plugins?: string[] };
@@ -16,7 +17,7 @@ const plugins = Object.keys(PLUGIN_LOGOS).filter(name => picked.has(name));
   {plugins.length > 0 && (
     <ul class="plugin-row-list">
       {plugins.map(name => (
-        <li><img src={PLUGIN_LOGOS[name]} alt="" width="52" height="52" /> <span>{name}</span></li>
+        <li><img src={PLUGIN_LOGOS[name]} alt="" width="52" height="52" data-plugin-cube-fallback /><PluginCube3D plugin={name} size={84} /> <span>{name}</span></li>
       ))}
     </ul>
   )}

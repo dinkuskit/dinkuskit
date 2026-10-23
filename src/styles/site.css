@@ -10,7 +10,9 @@ header, nav, footer { display: flex; align-items: center; justify-content: space
 header { border-bottom: 1px solid #d4ddd3; }
 .brand { font-size: 1.3rem; font-weight: 750; text-decoration: none; color: inherit; }
 .brand span { margin-left: .4rem; color: #477451; }
-nav { font-size: .95rem; }
+nav { font-size: .95rem; gap: .4rem 1.6rem; }
+nav a { text-decoration: none; }
+nav a:hover, nav a[aria-current] { text-decoration: underline; }
 .intro { padding: 3rem 0 2.5rem; max-width: 760px; }
 .eyebrow { color: #356047; font-size: .8rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
 h1 { font-size: clamp(2.1rem, 5vw, 3.7rem); line-height: 1.1; letter-spacing: -.04em; margin: .6rem 0 1.4rem; text-wrap: balance; }
@@ -52,7 +54,7 @@ footer { margin-top: 2.5rem; font-size: .85rem; color: #42594b; }
 .detail-grid dt { color: #42594b; font-weight: 700; }
 .detail-grid dd { margin: 0; overflow-wrap: anywhere; }
 .operator-note { color: #42594b; font-size: .9rem; max-width: 75ch; }
-@media (max-width: 600px) { .text-section { grid-template-columns: 1fr; gap: 0; } .intro { padding-top: 2rem; } nav { gap: 1rem; } }
+@media (max-width: 600px) { .text-section { grid-template-columns: 1fr; gap: 0; } .intro { padding-top: 2rem; } header { flex-direction: column; align-items: flex-start; gap: .9rem; } nav { justify-content: flex-start; gap: .5rem 1.4rem; } }
 @media (max-width: 700px) { .operator-grid { grid-template-columns: 1fr; } .detail-grid { grid-template-columns: 1fr; gap: .15rem; } .detail-grid dd { margin-bottom: .55rem; } }
 .start-account { padding: 1.4rem 0; border-bottom: 1px solid #d4ddd3; }
 .start-account p { margin: .3rem 0; }
@@ -78,3 +80,16 @@ footer { margin-top: 2.5rem; font-size: .85rem; color: #42594b; }
 .start-step summary { cursor: pointer; color: #215d43; font-weight: 600; }
 .start-note { font-size: .9rem; font-style: italic; }
 @media (max-width: 600px) { .start-step { padding-left: 3.2rem; } .start-step::before { left: .8rem; } }
+
+/* Split pages (round 1 lock L3): intro left, text sections as cards right. */
+.intro-action { display: inline-flex; align-items: center; gap: .5rem; margin-top: .6rem; padding: .75rem 1.25rem; background: #215d43; color: white; font-weight: 600; text-decoration: none; }
+.intro-action::after { content: "\2192"; }
+.intro-action:hover { background: #1a4a35; }
+.intro-action:focus-visible { outline: 3px solid #30764f; outline-offset: 3px; }
+.content-split { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: clamp(2rem, 5vw, 4rem); align-items: start; padding: 3rem 0 1rem; }
+.content-split .intro { padding: 0; position: sticky; top: 2rem; }
+.content-split .page-sections { border-top: 0; display: grid; gap: 1rem; }
+.content-split .text-section { display: block; padding: 1.4rem 1.6rem; background: white; border: 1px solid #d4ddd3; }
+.content-split .text-section h2 { margin: 0 0 .5rem; }
+.content-split .text-section p { margin: 0; }
+@media (max-width: 860px) { .content-split { grid-template-columns: 1fr; padding-top: 2rem; } .content-split .intro { position: static; } }

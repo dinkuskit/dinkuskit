@@ -207,6 +207,16 @@
           "type": "text"
         },
         {
+          "slug": "action_label",
+          "label": "Button label",
+          "type": "string"
+        },
+        {
+          "slug": "action_href",
+          "label": "Button link",
+          "type": "string"
+        },
+        {
           "slug": "layout",
           "label": "Layout",
           "type": "blocks",
@@ -310,6 +320,8 @@
         "data": {
           "title": "Commerce that belongs in EmDash.",
           "description": "Open-source commerce tools for your EmDash site, with hosted services being built to make setup simpler.",
+          "action_label": "Start your store",
+          "action_href": "/start",
           "layout": [
             {
               "_type": "text_section",

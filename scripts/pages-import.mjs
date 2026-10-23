@@ -54,6 +54,18 @@ async function push(origin, slugs, publish) {
     console.log(`Added block type ${slug}`);
   }
 
+  // Page fields added to the seed later (such as the intro button) are added
+  // empty; an editor fills them in on pages that already exist.
+  const fieldList = await api('GET', `/schema/collections/${COLLECTION}/fields`);
+  if (fieldList.status !== 200) throw new Error(`Reading the ${COLLECTION} fields failed: HTTP ${fieldList.status}`);
+  const haveFields = new Set((fieldList.data?.items ?? fieldList.data?.fields ?? []).map(item => item.slug));
+  for (const seedField of seed.collections.find(item => item.slug === COLLECTION).fields) {
+    if (haveFields.has(seedField.slug)) continue;
+    const added = await api('POST', `/schema/collections/${COLLECTION}/fields`, seedField);
+    if (!ok(added.status)) throw new Error(`Adding the ${COLLECTION} field ${seedField.slug} failed: HTTP ${added.status} ${JSON.stringify(added.data)}`);
+    console.log(`Added ${COLLECTION} field ${seedField.slug}`);
+  }
+
   const field = await api('GET', `/schema/collections/${COLLECTION}/fields/${LAYOUT}`);
   if (field.status !== 200) throw new Error(`Reading the ${COLLECTION} ${LAYOUT} field failed: HTTP ${field.status}`);
   const validation = field.data?.item?.validation ?? {};

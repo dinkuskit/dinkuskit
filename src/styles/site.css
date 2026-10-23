@@ -72,8 +72,10 @@ footer { margin-top: 2.5rem; font-size: .85rem; color: #42594b; }
 .start-step.is-done::before { content: '✓'; background: #215d43; color: white; }
 .start-step.is-done > label span { text-decoration: line-through; text-decoration-color: #8aa596; }
 .start-step label { display: flex; align-items: flex-start; gap: .6rem; font-weight: 700; font-size: 1.05rem; cursor: pointer; }
+.start-step label:has(input:disabled) { cursor: default; }
 .start-step input { width: 1.15rem; height: 1.15rem; margin-top: .3rem; accent-color: #215d43; flex: none; }
 .start-step p { color: #42594b; margin: .5rem 0 0; max-width: 62ch; }
+.start-step .start-hint { font-size: .85rem; margin-top: .25rem; }
 .start-step details { margin-top: .6rem; }
 .start-step summary { cursor: pointer; color: #215d43; font-weight: 600; }
 .start-note { font-size: .9rem; font-style: italic; }

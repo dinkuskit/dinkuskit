@@ -15,6 +15,7 @@ import '@fontsource/space-mono/700.css';
 import '../styles/site.css';
 import { Role } from '@emdash-cms/auth';
 import SiteFooter from '../components/SiteFooter.astro';
+import ThemeSwitch from '../components/ThemeSwitch.astro';
 ---
 <!doctype html>
 <html lang="en">
@@ -25,6 +26,10 @@ import SiteFooter from '../components/SiteFooter.astro';
     {noindex && <meta name="robots" content="noindex, nofollow" />}
     <link rel="canonical" href={canonical} />
     <title>{title} · DinkusKit</title>
+    <script is:inline>
+      // A light/dark choice made with the header switch (ThemeSwitch.astro), applied before the page paints.
+      try { const theme = localStorage.getItem('dinkuskit-theme'); if (theme === 'light' || theme === 'dark') document.documentElement.dataset.theme = theme; } catch {}
+    </script>
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
@@ -38,6 +43,7 @@ import SiteFooter from '../components/SiteFooter.astro';
         {Astro.locals.merchant ? <a href="/account/sites" aria-current={Astro.url.pathname === '/account/sites' || Astro.url.pathname === '/account/sites/archive' ? 'page' : undefined}>Your stores</a> : null}
         {Astro.locals.user?.role === Role.ADMIN && !Astro.locals.user.disabled ? <a href={OPERATOR_APPROVALS_PATH}>Operator admin</a> : null}
         <a href="https://github.com/dinkuskit">GitHub</a>
+        <ThemeSwitch />
       </nav>
     </header>
     <main id="main" class:list={{ 'docs-main': wide }}><slot /></main>

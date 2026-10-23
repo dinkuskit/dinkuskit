@@ -115,3 +115,7 @@
 {"action": "decision_locked", "at": "2026-10-23T04:59:59+00:00", "data": {"decision_id": "website-footer-20261023"}, "event_id": "2860e997-4493-4e06-b93e-077c6095cc95"}
 {"action": "decision_implemented", "at": "2026-10-23T04:59:59+00:00", "data": {"decision_id": "website-footer-20261023"}, "event_id": "3f3dcf4c-6cf6-4ac5-a164-a330a17d83e8"}
 {"action": "decision_verified", "at": "2026-10-23T05:00:20+00:00", "data": {"decision_id": "website-footer-20261023"}, "event_id": "f4899314-8474-4502-877a-0d90e985d60c"}
+{"action": "decision_proposed", "at": "2026-10-23T13:42:58+00:00", "data": {"decision_id": "website-theme-switch-20261023"}, "event_id": "28a7df08-40a0-4926-8751-9e99ebb343e6"}
+{"action": "decision_locked", "at": "2026-10-23T13:42:58+00:00", "data": {"decision_id": "website-theme-switch-20261023"}, "event_id": "55f7c1ec-904c-46cb-99d4-b43eae2eac2e"}
+{"action": "decision_implemented", "at": "2026-10-23T13:42:58+00:00", "data": {"decision_id": "website-theme-switch-20261023"}, "event_id": "e0d2bda8-7471-4250-9f1b-ac0a0397e00b"}
+{"action": "decision_verified", "at": "2026-10-23T13:42:59+00:00", "data": {"decision_id": "website-theme-switch-20261023"}, "event_id": "0a8ff023-c73c-4b20-ac50-194dbf3bcb13"}

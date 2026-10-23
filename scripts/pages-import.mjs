@@ -5,8 +5,9 @@
 // Setup applies seed/seed.json only to a new database, so a page added to the
 // seed later (such as /start) reaches a running site through this script, once,
 // after the deploy that carries its code. It adds the seed's block types the
-// site lacks, lets the pages layout field use them, and adds each named page as
-// a draft. It never overwrites: anything that already exists is kept as it is.
+// site lacks (and optional fields the seed added to ones it has), lets the
+// pages layout field use them, and adds each named page as a draft. It never
+// overwrites: anything that already exists is kept as it is.
 // With --publish it also publishes the pages it added in this run, and never
 // one that was already there; without it an editor presses Publish in the admin.
 // Authenticates with EMDASH_TOKEN (an EmDash API token) or CF_ACCESS_TOKEN
@@ -44,14 +45,38 @@ async function push(origin, slugs, publish) {
 
   const listed = await api('GET', '/schema/block-types');
   if (listed.status !== 200) throw new Error(`Reading block types failed: HTTP ${listed.status} (check the sign-in token)`);
-  const have = new Set((listed.data?.items ?? []).map(type => type.slug));
+  const have = new Map((listed.data?.items ?? []).map(type => [type.slug, type]));
   for (const type of seed.blockTypes.filter(type => used.has(type.slug))) {
-    if (have.has(type.slug)) { console.log(`Kept existing block type ${type.slug}`); continue; }
     const fields = type.versions.find(version => version.version === type.currentVersion).fields;
+    const existing = have.get(type.slug);
+    if (existing) {
+      // Optional fields added to the seed later (such as a card's plugin logo)
+      // join the site's active version; its other fields are kept as they are.
+      const active = existing.versions.find(version => version.version === existing.currentVersion);
+      const known = new Set(active.fields.map(field => field.slug));
+      const added = fields.filter(field => !known.has(field.slug) && !field.required);
+      if (!added.length) { console.log(`Kept existing block type ${type.slug}`); continue; }
+      const updated = await api('PUT', `/schema/block-types/${type.slug}`, { expectedFingerprint: active.fingerprint, fields: [...active.fields, ...added] });
+      if (!ok(updated.status)) throw new Error(`Adding ${added.map(field => field.slug).join(', ')} to block type ${type.slug} failed: HTTP ${updated.status} ${JSON.stringify(updated.data)}`);
+      console.log(`Added ${added.map(field => field.slug).join(', ')} to block type ${type.slug}`);
+      continue;
+    }
     const { slug, label, description, icon, category } = type;
     const created = await api('POST', '/schema/block-types', { slug, label, description, icon, category, fields });
     if (!ok(created.status)) throw new Error(`Adding block type ${slug} failed: HTTP ${created.status} ${JSON.stringify(created.data)}`);
     console.log(`Added block type ${slug}`);
+  }
+
+  // Page fields added to the seed later (such as the intro button) are added
+  // empty; an editor fills them in on pages that already exist.
+  const fieldList = await api('GET', `/schema/collections/${COLLECTION}/fields`);
+  if (fieldList.status !== 200) throw new Error(`Reading the ${COLLECTION} fields failed: HTTP ${fieldList.status}`);
+  const haveFields = new Set((fieldList.data?.items ?? fieldList.data?.fields ?? []).map(item => item.slug));
+  for (const seedField of seed.collections.find(item => item.slug === COLLECTION).fields) {
+    if (haveFields.has(seedField.slug)) continue;
+    const added = await api('POST', `/schema/collections/${COLLECTION}/fields`, seedField);
+    if (!ok(added.status)) throw new Error(`Adding the ${COLLECTION} field ${seedField.slug} failed: HTTP ${added.status} ${JSON.stringify(added.data)}`);
+    console.log(`Added ${COLLECTION} field ${seedField.slug}`);
   }
 
   const field = await api('GET', `/schema/collections/${COLLECTION}/fields/${LAYOUT}`);

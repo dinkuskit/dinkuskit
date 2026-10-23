@@ -268,7 +268,7 @@ export class MerchantUnavailableError extends Error {
   }
 }
 
-const SETUP_PAGE = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex"><title>Accounts are being set up | DinkusKit</title><style>body{font:16px/1.5 system-ui,sans-serif;margin:0;padding:3rem 1rem;color:#18231c;background:#f7f8f4}main{max-width:32rem;margin:0 auto}a{color:#215d43}</style></head><body><main><p><a href="/">DinkusKit</a></p><h1>Accounts are being set up</h1><p>Sign-up and sign-in on DinkusKit.com are not switched on yet. Please try again soon.</p></main></body></html>`;
+const SETUP_PAGE = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex"><title>Accounts are being set up | DinkusKit</title><style>body{font:16px/1.5 system-ui,sans-serif;margin:0;padding:3rem 1rem;color:#15171c;background:#f7f6f3}main{max-width:32rem;margin:0 auto}a{color:#7e22ce}</style></head><body><main><p><a href="/">DinkusKit</a></p><h1>Accounts are being set up</h1><p>Sign-up and sign-in on DinkusKit.com are not switched on yet. Please try again soon.</p></main></body></html>`;
 
 /** Browsers get a plain page; API and service callers keep the JSON error. */
 function wantsPage(request?: Request): boolean {

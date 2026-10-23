@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1" name="viewport"/><title>Commerce that belongs in EmDash. · DinkusKit</title><link href="https://fonts.googleapis.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@600;700&amp;family=Space+Mono:wght@700&amp;display=swap" rel="stylesheet"/><style id="site">/* Colors: round 2 lock, Stitch "Expressive Emerald & Ultraviolet" (emerald
+   buttons and focus, ultraviolet links and mark, deep green-graphite cards).
+   Change them here only; .stitch/DESIGN.md records the roles. */
+:root {
+  --paper: #f9faf8; --ink: #131718; --muted: #4e5856; --line: #e2e6e3; --line-soft: #ebefeb;
+  --surface: #ffffff; --surface-soft: #f3f6f3;
+  --graphite: #172220; --graphite-ink: #ecfdf5; --graphite-muted: #9db3ac; --graphite-line: #233532;
+  --accent: #7e22ce; --mark: #a855f7; --focus: #10b981; --highlight: #a7f3d0;
+  --accent-wash: #f3e8ff; --accent-line: #d8b4fe;
+  --button: #065f46; --button-ink: #ecfdf5; --button-hover: #047857;
+  --error: #8a1f1f;
+  --commerce: #10b981; --payments: #38bdf8; --inventory: #f59e0b; --ship: #f97316;
+  /* Type: round 3 lock, Stitch F1 (Space Grotesk headings, Inter body, Space Mono labels). */
+  --font-display: 'Space Grotesk', system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+  --font-label: 'Space Mono', ui-monospace, monospace;
+}
+/* Dark mode follows the visitor's system setting (Stitch's dark half of the same lock). */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #111817; --ink: #ecfdf5; --muted: #9db3ac; --line: #233532; --line-soft: #1a2826;
+    --surface: #172220; --surface-soft: #141d1b;
+    --graphite: #172220; --graphite-ink: #ecfdf5; --graphite-muted: #9db3ac; --graphite-line: #233532;
+    --accent: #c084fc; --accent-wash: #2a1f3a; --accent-line: #7e22ce;
+    --button: #10b981; --button-ink: #06231a; --button-hover: #34d399;
+    --error: #fca5a5;
+  }
+}
+:root { color-scheme: light dark; font-family: var(--font-body); color: var(--ink); background: var(--paper); line-height: 1.6; }
+* { box-sizing: border-box; }
+body { margin: 0; }
+a { color: var(--accent); text-underline-offset: .2em; }
+a:hover { text-decoration-thickness: 2px; }
+a:focus-visible { outline: 3px solid var(--focus); outline-offset: 5px; }
+header, main, footer { max-width: 1100px; margin: auto; padding: 1.5rem clamp(1.25rem, 5vw, 4rem); }
+header, nav, footer { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; flex-wrap: wrap; }
+header { border-bottom: 1px solid var(--line); }
+.brand { display: inline-flex; align-items: center; gap: .55rem; font-family: var(--font-display); letter-spacing: -.02em; font-size: 1.3rem; font-weight: 700; text-decoration: none; color: inherit; }
+.brand img { display: block; height: 24px; width: auto; }
+nav { font-size: .95rem; gap: .4rem 1.6rem; }
+nav a { text-decoration: none; }
+nav a:hover, nav a[aria-current] { text-decoration: underline; }
+.intro { padding: 3rem 0 2.5rem; max-width: 760px; }
+.eyebrow { font-family: var(--font-label); color: var(--accent); font-size: .8rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+h2, h3 { font-family: var(--font-display); letter-spacing: -.01em; }
+h1 { font-family: var(--font-display); font-weight: 700; font-size: clamp(2.5rem, 4.6vw, 3.9rem); line-height: 1.1; letter-spacing: -.04em; margin: .6rem 0 1.4rem; text-wrap: balance; }
+.lead { font-size: 1.2rem; color: var(--muted); }
+.page-sections { border-top: 1px solid var(--line); }
+.text-section { display: grid; grid-template-columns: minmax(160px, 1fr) 2fr; gap: 2rem; padding: 1.4rem 0; border-bottom: 1px solid var(--line); }
+.text-section h2 { font-family: var(--font-display); font-weight: 600; letter-spacing: -.02em; font-size: 1.15rem; }
+.text-section p { color: var(--muted); max-width: 65ch; }
+.text-section-copy { min-width: 0; }
+.text-section-links { margin: .6rem 0 0; padding: 0; list-style: none; max-width: 65ch; }
+.text-section-links li { margin: .2rem 0; }
+footer { margin-top: 2.5rem; font-size: .85rem; color: var(--muted); }
+.skip-link { position: absolute; left: 1rem; top: -5rem; background: var(--surface); padding: .8rem; z-index: 10; }
+.skip-link:focus { top: .5rem; }
+.account-panel { padding: 3rem 0 2.5rem; max-width: 760px; }
+.account-form { display: grid; gap: .7rem; max-width: 24rem; margin: 1.4rem 0; }
+.account-form label { font-weight: 600; }
+.account-form select { min-width: 0; width: 100%; max-width: 100%; }
+.account-form input { padding: .65rem .7rem; border: 1px solid var(--line); background: var(--surface); }
+.account-form button, .account-panel button { background: var(--button); color: var(--button-ink); border: 0; padding: .7rem 1rem; font: inherit; cursor: pointer; }
+.account-form button:focus-visible, .account-panel button:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+.account-error { color: var(--error); }
+.new-store-key code { overflow-wrap: anywhere; user-select: all; }
+.operator-dashboard, .operator-detail { padding: 3rem 0 2.5rem; }
+.operator-dashboard { max-width: 1000px; }
+.operator-detail { max-width: 760px; }
+.operator-detail h1, .directory-list a { overflow-wrap: anywhere; }
+.operator-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem; }
+.directory-search { max-width: 32rem; }
+.directory-search select { padding: .65rem .7rem; border: 1px solid var(--line); background: var(--surface); }
+.directory-card { border: 1px solid var(--line); background: var(--surface); padding: 1.25rem; }
+.directory-card h2 { margin-top: 0; }
+.count { color: var(--muted); font-size: .85rem; font-weight: 400; }
+.directory-list { list-style: none; margin: 0; padding: 0; }
+.directory-list li { display: flex; flex-direction: column; gap: .15rem; padding: .75rem 0; border-top: 1px solid var(--line-soft); }
+.directory-list li > span { color: var(--muted); font-size: .9rem; overflow-wrap: anywhere; }
+.pagination { display: flex; gap: 1rem; margin-top: 1rem; align-items: center; font-size: .9rem; }
+.detail-grid { display: grid; grid-template-columns: minmax(9rem, 1fr) 2fr; gap: .55rem 1rem; border-top: 1px solid var(--line); padding-top: 1rem; }
+.detail-grid dt { color: var(--muted); font-weight: 700; }
+.detail-grid dd { margin: 0; overflow-wrap: anywhere; }
+.operator-note { color: var(--muted); font-size: .9rem; max-width: 75ch; }
+@media (max-width: 600px) { .text-section { grid-template-columns: 1fr; gap: 0; } .intro { padding-top: 2rem; } header { flex-direction: column; align-items: flex-start; gap: .9rem; } nav { justify-content: flex-start; gap: .5rem 1.4rem; } }
+@media (max-width: 700px) { .operator-grid { grid-template-columns: 1fr; } .detail-grid { grid-template-columns: 1fr; gap: .15rem; } .detail-grid dd { margin-bottom: .55rem; } }
+.start-account { padding: 1.4rem 0; border-bottom: 1px solid var(--line); }
+.start-account p { margin: .3rem 0; }
+.start-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem 1.4rem; }
+.start-actions .start-button { margin-top: .5rem; }
+.start-button { display: inline-block; background: var(--button); color: var(--button-ink); padding: .7rem 1.2rem; text-decoration: none; font-weight: 600; }
+.start-button:hover { background: var(--button-hover); }
+.start-checklist-head { display: flex; justify-content: space-between; align-items: baseline; gap: .4rem 1rem; flex-wrap: wrap; padding-top: 1.4rem; max-width: 760px; }
+.start-checklist-head h2 { font-size: 1.15rem; margin: 0; }
+.start-progress { margin: 0; color: var(--accent); font-weight: 700; font-size: .9rem; }
+.start-done { flex-basis: 100%; margin: .6rem 0 0; padding: 1rem 1.2rem; background: var(--accent-wash); border: 1px solid var(--accent-line); font-weight: 600; }
+.start-steps { list-style: none; counter-reset: step; margin: 1rem 0 1.4rem; padding: 0; max-width: 760px; }
+.start-step { counter-increment: step; position: relative; padding: 1.1rem 1.2rem 1.1rem 3.6rem; margin-bottom: .8rem; background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--line); }
+.start-step::before { content: counter(step); position: absolute; left: 1.1rem; top: 1.05rem; width: 1.7rem; height: 1.7rem; border-radius: 50%; background: var(--line-soft); color: var(--accent); font-weight: 700; display: grid; place-items: center; font-size: .9rem; }
+.start-step.is-next { border-left-color: var(--focus); }
+.start-step.is-done { background: var(--surface-soft); }
+.start-step.is-done::before { content: '✓'; background: var(--accent); color: white; }
+.start-step.is-done > label span { text-decoration: line-through; text-decoration-color: var(--muted); }
+.start-step label { display: flex; align-items: flex-start; gap: .6rem; font-weight: 700; font-size: 1.05rem; cursor: pointer; }
+.start-step input { width: 1.15rem; height: 1.15rem; margin-top: .3rem; accent-color: var(--accent); flex: none; }
+.start-step p { color: var(--muted); margin: .5rem 0 0; max-width: 62ch; }
+.start-step details { margin-top: .6rem; }
+.start-step summary { cursor: pointer; color: var(--accent); font-weight: 600; }
+.start-note { font-size: .9rem; font-style: italic; }
+@media (max-width: 600px) { .start-step { padding-left: 3.2rem; } .start-step::before { left: .8rem; } }
+
+/* Split pages (round 1 lock L3): intro left, text sections as cards right. */
+.intro-action { display: inline-flex; align-items: center; gap: .5rem; margin-top: .6rem; padding: .75rem 1.25rem; background: var(--button); color: var(--button-ink); font-weight: 600; text-decoration: none; }
+.intro-action::after { content: "\2192"; }
+.intro-action:hover { background: var(--button-hover); }
+.intro-action:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+.content-split { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: clamp(2rem, 5vw, 4rem); align-items: start; padding: 3rem 0 1rem; }
+.content-split .intro { padding: 0; position: sticky; top: 2rem; }
+.content-split .page-sections { border-top: 0; display: grid; gap: 1rem; }
+.content-split .text-section { display: block; padding: 1.4rem 1.6rem; background: var(--graphite); border: 1px solid var(--graphite-line); color: var(--graphite-ink); }
+.content-split .text-section p { color: var(--graphite-muted); }
+.content-split .text-section a { color: var(--highlight); }
+.content-split .text-section h2 { margin: 0 0 .5rem; }
+.content-split .text-section p { margin: 0; }
+@media (max-width: 860px) { .content-split { grid-template-columns: 1fr; padding-top: 2rem; } .content-split .intro { position: static; } }
+/* Surface effects (src/fx/surface-fx.ts): a dithered wash behind every CMS
+   page that runs from emerald to ultraviolet, and topic cards that carry an
+   emerald dither and lean toward a nearby mouse. Without the script the wash
+   is empty and the cards are plain. */
+.fx-wash { position: fixed; inset: 0; z-index: -1; opacity: .26; pointer-events: none; -webkit-mask-image: linear-gradient(transparent 60px, #000 160px); mask-image: linear-gradient(transparent 60px, #000 160px); }
+.fx-wash::after { content: ""; position: absolute; inset: 0; background: linear-gradient(160deg, var(--focus) 5%, var(--mark) 70%); mix-blend-mode: color; }
+.content-split .text-section.fx-card { position: relative; overflow: hidden; }
+.content-split .text-section.fx-card::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(circle at var(--glare-x, 50%) var(--glare-y, 140%), var(--focus), transparent 65%); -webkit-mask-image: var(--fx-dots); mask-image: var(--fx-dots); -webkit-mask-size: 12px 12px; mask-size: 12px 12px; opacity: calc(.3 + var(--near, 0) * .4); transition: opacity .2s ease-out; }
+.content-split .text-section.fx-card > * { position: relative; z-index: 1; }
+.content-split .text-section.fx-tilt { transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); transition: transform .2s ease-out; }
+</style><style id="fx-mock">:root{--fx-dots:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12'%3E%3Cpath d='M0 0h3v3H0zM6 0h3v3H6zM3 3h3v3H3zM9 3h3v3H9zM0 6h3v3H0zM6 6h3v3H6zM3 9h3v3H3zM9 9h3v3H9z'/%3E%3C/svg%3E")}
+/* Static stand-ins for the live JS effects (motion mocked): the moving emerald-to-ultraviolet Bayer wash behind the page,
+   and the emerald dither glow on each topic card. */
+.fx-wash-mock{position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.3;background:linear-gradient(160deg,var(--focus) 5%,var(--mark) 70%);-webkit-mask-image:var(--fx-dots),linear-gradient(transparent 60px,#000 160px);mask-image:var(--fx-dots),linear-gradient(transparent 60px,#000 160px);-webkit-mask-size:12px 12px,100% 100%;mask-size:12px 12px,100% 100%;-webkit-mask-composite:source-in;mask-composite:intersect}
+.content-split .text-section{position:relative;overflow:hidden}
+.content-split .text-section::after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 50% 140%,var(--focus),transparent 65%);-webkit-mask-image:var(--fx-dots);mask-image:var(--fx-dots);-webkit-mask-size:12px 12px;mask-size:12px 12px;opacity:.3}
+.content-split .text-section>*{position:relative;z-index:1}
+.hero-art{display:block;width:112px;height:auto;margin:1.25rem 0 0}
+.plugin-row{display:flex;gap:1.25rem;margin-top:.9rem}
+.plugin-icon{margin:0;display:grid;justify-items:center;gap:.3rem;font:700 .7rem/1 "Space Mono",monospace;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.plugin-icon img{width:56px;height:56px;object-fit:contain}
+.text-section .plugin-icon{float:right;margin:0 0 .5rem 1rem}
+.text-section .plugin-icon figcaption{display:none}</style></head><body><div aria-hidden="true" class="fx-wash-mock"></div><header><a class="brand" href="/"><img alt="DinkusKit F3 trio mark" data-asset="f3-trio" height="24" src="https://raw.githubusercontent.com/dinkuskit/dinkuskit/claude/project-thread-9pyz0c/public/brand/dinkuskit-f3-trio.webp" width="67"/> DinkusKit</a><nav aria-label="Main navigation"><a href="/start">Start your store</a><a href="/getting-started">Getting started</a><a href="/docs">Docs</a><a href="/account">Account</a><a href="https://github.com/dinkuskit">GitHub</a></nav></header><main id="main"><div class="content-page content-split"><div class="intro"><p class="eyebrow">Commerce for EmDash</p><h1>Commerce that belongs in EmDash.</h1><p class="lead">Open-source commerce tools for your EmDash site, with hosted services being built to make setup simpler.</p><a class="intro-action" href="/start">Start your store</a><img alt="DinkusKit F3 cube" class="hero-art" data-asset="f3-cube" height="127" src="https://raw.githubusercontent.com/dinkuskit/dinkuskit/claude/project-thread-9pyz0c/public/brand/dinkuskit-f3-cube.webp" width="112"/></div><div class="page-sections" data-native-blocks=""><section class="text-section"><figure class="plugin-icon"><img alt="DinkusKit Commerce logo" data-asset="commerce" height="56" src="https://raw.githubusercontent.com/dinkuskit/dinkuskit/claude/project-thread-9pyz0c/public/brand/commerce.webp" width="56"/><figcaption>Commerce</figcaption></figure><h2>An EmDash foundation</h2><div class="text-section-copy"><p>Keep your storefront and content in EmDash. DinkusKit is building the catalog, checkout, inventory and payments connections around it.</p></div></section><section class="text-section"><figure class="plugin-icon"><img alt="DinkusKit Inventory logo" data-asset="inventory" height="56" src="https://raw.githubusercontent.com/dinkuskit/dinkuskit/claude/project-thread-9pyz0c/public/brand/inventory.webp" width="56"/><figcaption>Inventory</figcaption></figure><h2>Inventory, coming soon</h2><div class="text-section-copy"><p>Hosted Inventory is coming soon and is not required to start with Commerce. You will keep stock in EmDash when that service is ready. An open-source self-host path will be documented; neither path is provisioned on this website today.</p></div></section><section class="text-section"><figure class="plugin-icon"><img alt="DinkusKit Payments logo" data-asset="payments" height="56" src="https://raw.githubusercontent.com/dinkuskit/dinkuskit/claude/project-thread-9pyz0c/public/brand/payments.webp" width="56"/><figcaption>Payments</figcaption></figure><h2>Your Stripe account</h2><div class="text-section-copy"><p>The planned Payments plugin connects your own Stripe account through hosted setup. Customers pay your business through Stripe.</p></div></section><section class="text-section"><h2>Follow the build</h2><div class="text-section-copy"><p>You can create a local DinkusKit account on this website. Hosted inventory and payments activation are still being prepared. Explore the source on GitHub and read Getting started for the intended installation experience.</p></div></section></div></div></main><footer><p>Built with EmDash. Growing in the open.</p><a href="https://github.com/dinkuskit/dinkuskit">Website source</a></footer></body></html>

@@ -41,6 +41,9 @@ const steps = Astro.props.steps.map(step => ({ ...step, href: safeHttpUrl(step.l
   const steps = Array.from(document.querySelectorAll<HTMLElement>('[data-start-step]'));
   const progress = document.querySelector<HTMLElement>('[data-start-progress]');
   const done = document.querySelector<HTMLElement>('[data-start-done]');
+  // One bar segment per step, filled as that step is ticked.
+  const bar = document.querySelector<HTMLElement>('[data-start-bar]');
+  const segments = steps.map(() => bar?.appendChild(document.createElement('span')));
   let saved: unknown = [];
   try { saved = JSON.parse(localStorage.getItem(KEY) ?? '[]'); } catch { saved = []; }
   const ticked = new Set(Array.isArray(saved) ? saved.filter(item => typeof item === 'string') : []);
@@ -55,6 +58,8 @@ const steps = Astro.props.steps.map(step => ({ ...step, href: safeHttpUrl(step.l
       const locked = index > doneCount;
       step.classList.toggle('is-done', isDone);
       step.classList.toggle('is-next', isNext);
+      segments[index]?.classList.toggle('is-done', isDone);
+      segments[index]?.classList.toggle('is-next', isNext);
       const box = step.querySelector<HTMLInputElement>('[data-start-check]');
       const label = step.querySelector<HTMLElement>('label');
       let hint = step.querySelector<HTMLElement>('[data-start-hint]');
@@ -83,6 +88,7 @@ const steps = Astro.props.steps.map(step => ({ ...step, href: safeHttpUrl(step.l
         else label.removeAttribute('title');
       }
     });
+    if (bar) bar.hidden = false;
     const template = progress?.dataset.startProgress;
     if (progress && template) {
       progress.hidden = false;

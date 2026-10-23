@@ -1,0 +1,23 @@
+---
+import type { BlockComponentProps, BlockValue } from 'emdash/ui';
+import { PLUGIN_LOGOS } from './plugin-logos.ts';
+
+type PluginRowValue = BlockValue & { heading?: string; body?: string; plugins?: string[] };
+const { value } = Astro.props as BlockComponentProps<PluginRowValue>;
+// Picked plugins show in the shop's order whatever order they were ticked in.
+const picked = new Set(value.plugins ?? []);
+const plugins = Object.keys(PLUGIN_LOGOS).filter(name => picked.has(name));
+---
+<section class="plugin-row">
+  <div class="plugin-row-copy">
+    {value.heading && <h2>{value.heading}</h2>}
+    {value.body && <p>{value.body}</p>}
+  </div>
+  {plugins.length > 0 && (
+    <ul class="plugin-row-list">
+      {plugins.map(name => (
+        <li><img src={PLUGIN_LOGOS[name]} alt="" width="52" height="52" /> <span>{name}</span></li>
+      ))}
+    </ul>
+  )}
+</section>

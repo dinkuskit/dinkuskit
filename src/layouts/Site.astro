@@ -5,6 +5,13 @@ interface Props { title: string; description: string; wide?: boolean; noindex?: 
 const { title, description, wide = false, noindex = false } = Astro.props;
 const hasDocs = (await getVisibleDocs()).length > 0;
 const canonical = new URL(Astro.url.pathname, Astro.site);
+// Round 3 type lock (Stitch F1): served from this site, not a font CDN.
+import '@fontsource/inter/400.css';
+import '@fontsource/inter/500.css';
+import '@fontsource/inter/600.css';
+import '@fontsource/space-grotesk/600.css';
+import '@fontsource/space-grotesk/700.css';
+import '@fontsource/space-mono/700.css';
 import '../styles/site.css';
 import { Role } from '@emdash-cms/auth';
 ---
@@ -21,7 +28,7 @@ import { Role } from '@emdash-cms/auth';
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
     <header>
-      <a class="brand" href="/">DinkusKit <span aria-hidden="true">* * *</span></a>
+      <a class="brand" href="/"><img src="/brand/dinkuskit-f3-trio.webp" alt="" width="67" height="24" /> DinkusKit</a>
       <nav aria-label="Main navigation">
         <a href="/start" aria-current={Astro.url.pathname === '/start' ? 'page' : undefined}>Start your store</a>
         <a href="/getting-started">Getting started</a>

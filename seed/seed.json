@@ -46,6 +46,19 @@
               "slug": "second_link_label",
               "label": "Second link label",
               "type": "string"
+            },
+            {
+              "slug": "plugin_logo",
+              "label": "Plugin logo",
+              "type": "select",
+              "validation": {
+                "options": [
+                  "Commerce",
+                  "Payments",
+                  "Inventory",
+                  "Ship"
+                ]
+              }
             }
           ]
         }
@@ -134,6 +147,45 @@
       ]
     },
     {
+      "slug": "plugin_row",
+      "label": "Plugin row",
+      "category": "Content",
+      "description": "A heading and a line of text beside the picked plugin logos, joined by plus signs.",
+      "currentVersion": 1,
+      "versions": [
+        {
+          "version": 1,
+          "fields": [
+            {
+              "slug": "heading",
+              "label": "Heading",
+              "type": "string",
+              "required": true
+            },
+            {
+              "slug": "body",
+              "label": "Body",
+              "type": "text"
+            },
+            {
+              "slug": "plugins",
+              "label": "Plugins",
+              "type": "multiSelect",
+              "required": true,
+              "validation": {
+                "options": [
+                  "Commerce",
+                  "Payments",
+                  "Inventory",
+                  "Ship"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
       "slug": "start_step",
       "label": "Checklist step",
       "category": "Start page",
@@ -207,6 +259,16 @@
           "type": "text"
         },
         {
+          "slug": "action_label",
+          "label": "Button label",
+          "type": "string"
+        },
+        {
+          "slug": "action_href",
+          "label": "Button link",
+          "type": "string"
+        },
+        {
           "slug": "layout",
           "label": "Layout",
           "type": "blocks",
@@ -215,7 +277,8 @@
               "text_section",
               "start_account",
               "start_checklist",
-              "start_step"
+              "start_step",
+              "plugin_row"
             ],
             "maxItems": 20
           }
@@ -310,11 +373,14 @@
         "data": {
           "title": "Run your store with an agent, on a site you own.",
           "description": "A professional online store where one chat box with an agent handles products, orders, payments, shipping labels and your site's pages, and you can do any of it by hand in the CMS too. You keep your own EmDash site and your own Stripe account.",
+          "action_label": "Start your store",
+          "action_href": "/start",
           "layout": [
             {
               "_type": "text_section",
               "_version": 1,
               "_key": "home-0",
+              "plugin_logo": "Commerce",
               "heading": "Ask the agent, or do it by hand",
               "body": "Use one chat box to add products, change prices, check orders, buy shipping labels or update a page, or do the same work yourself in the EmDash CMS. If you are moving from WordPress/WooCommerce, Shopify or BigCommerce to an agent-run setup, you get a professional online store without having to learn the technical side of running one. You bring your products and pages over with your agent or by hand; automated store import tools are not built yet."
             },
@@ -322,6 +388,7 @@
               "_type": "text_section",
               "_version": 1,
               "_key": "home-1",
+              "plugin_logo": "Ship",
               "heading": "Products, orders and USPS labels",
               "body": "Commerce, Payments and Ship are live on the EmDash Registry today. Commerce handles your products, prices, cart, checkout, orders and shopper accounts, while Ship buys and prints USPS shipping labels and writes tracking back to the order (in test mode until live postage opens). Inventory and Coupons are planned and are not needed to run your store."
             },
@@ -329,6 +396,7 @@
               "_type": "text_section",
               "_version": 1,
               "_key": "home-2",
+              "plugin_logo": "Payments",
               "heading": "Your site and your Stripe account",
               "body": "Your storefront and pages run on your own EmDash site, so you keep your site, your content and your customer relationships. Payments connects your business's own Stripe account for card checkout, so customers pay you directly through Stripe. You can place test orders first before opening your store to live payments."
             },
@@ -397,6 +465,18 @@
           "title": "You've tried the playground. Now run your own.",
           "description": "Your store is an EmDash site you own. DinkusKit adds the shop: Commerce for products and orders, Payments for card checkout, and Ship for postage. Four steps get you from nothing to a test order.",
           "layout": [
+            {
+              "_type": "plugin_row",
+              "_version": 1,
+              "_key": "start-7",
+              "heading": "Three plugins make the shop",
+              "body": "Each one installs from the plugin Registry in your EmDash admin.",
+              "plugins": [
+                "Commerce",
+                "Payments",
+                "Ship"
+              ]
+            },
             {
               "_type": "start_account",
               "_version": 1,

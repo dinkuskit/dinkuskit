@@ -34,6 +34,12 @@ function createChecklistHarness(initialSaved = null) {
     dataset: { startProgress: '{done} of {total} done' },
   };
   const done = { hidden: true };
+  // The progress bar: the script adds one segment per step.
+  const makeClassList = () => {
+    const classes = new Set();
+    return { toggle(name, force) { if (force) classes.add(name); else classes.delete(name); }, contains(name) { return classes.has(name); } };
+  };
+  const bar = { hidden: true, segments: [], appendChild(child) { bar.segments.push(child); return child; } };
   const steps = ['step-1', 'step-2', 'step-3', 'step-4'].map((key, index) => {
     const listeners = new Map();
     const box = {
@@ -85,11 +91,12 @@ function createChecklistHarness(initialSaved = null) {
     querySelector(selector) {
       if (selector === '[data-start-progress]') return progress;
       if (selector === '[data-start-done]') return done;
+      if (selector === '[data-start-bar]') return bar;
       return null;
     },
     getElementById(id) { return elementsById.get(id) ?? null; },
     createElement() {
-      return { id: '', className: '', dataset: {}, hidden: false, textContent: '' };
+      return { id: '', className: '', dataset: {}, hidden: false, textContent: '', classList: makeClassList() };
     },
   };
   const localStorage = {
@@ -97,7 +104,7 @@ function createChecklistHarness(initialSaved = null) {
     setItem(key, value) { storage.set(key, String(value)); },
   };
   vm.runInNewContext(startStepsScript, { document, localStorage });
-  return { steps, progress, done, localStorage, document };
+  return { steps, progress, done, bar, localStorage, document };
 }
 
 test('start checklist: locks later steps, cascades unticks, and trims out-of-order saves', () => {
@@ -117,6 +124,9 @@ test('start checklist: locks later steps, cascades unticks, and trims out-of-ord
   assert.deepEqual(fresh.steps.map(s => s.classList.contains('is-next')), [true, false, false, false]);
   assert.equal(fresh.steps[0].box.getAttribute('aria-describedby'), null);
   assert.equal(fresh.steps[0].hint.hidden, true);
+  assert.equal(fresh.bar.hidden, false);
+  assert.equal(fresh.bar.segments.length, 4, 'one bar segment per step');
+  assert.deepEqual(fresh.bar.segments.map(s => s.classList.contains('is-next')), [true, false, false, false]);
   for (const step of fresh.steps.slice(1)) {
     const describedBy = step.box.getAttribute('aria-describedby');
     assert.ok(describedBy, 'disabled checkbox has aria-describedby');
@@ -133,6 +143,8 @@ test('start checklist: locks later steps, cascades unticks, and trims out-of-ord
   assert.deepEqual(fresh.steps.map(s => s.box.disabled), [false, false, true, true]);
   assert.deepEqual(fresh.steps.map(s => s.classList.contains('is-done')), [true, false, false, false]);
   assert.deepEqual(fresh.steps.map(s => s.classList.contains('is-next')), [false, true, false, false]);
+  assert.deepEqual(fresh.bar.segments.map(s => s.classList.contains('is-done')), [true, false, false, false], 'the bar fills as steps are ticked');
+  assert.deepEqual(fresh.bar.segments.map(s => s.classList.contains('is-next')), [false, true, false, false]);
   assert.equal(fresh.steps[1].box.getAttribute('aria-describedby'), null);
   assert.equal(fresh.steps[1].hint.hidden, true);
   assert.equal(fresh.steps[2].hint.textContent, 'Finish step 2 first');

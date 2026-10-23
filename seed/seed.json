@@ -439,8 +439,7 @@
               "_version": 1,
               "_key": "start-4",
               "heading": "Press Connect to DinkusKit",
-              "body": "Connect Commerce first; it registers your store with your DinkusKit account. Then press Connect in Payments and in Ship. Each press asks you to sign in here, and the business owner approves the store once.",
-              "note": "The Connect button arrives with the next Commerce, Payments and Ship releases."
+              "body": "Connect Commerce first; it registers your store with your DinkusKit account. Then press Connect in Payments and in Ship. Each press asks you to sign in here, and the business owner approves the store once."
             },
             {
               "_type": "start_step",

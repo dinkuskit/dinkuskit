@@ -208,6 +208,29 @@ test('an approved Connect not yet picked up dies with Disconnect, so it cannot b
   } finally { f.close(); }
 });
 
+test('Disconnect cancels an approved first-time or reconnect Connect even before any plugin key exists', async () => {
+  const f = await fixture(); try {
+    const firstCommerce = await start(f, 'commerce');
+    assert.equal((await consent(f, firstCommerce)).ok, true);
+    const siteId = firstCommerce.body.site_id;
+    assert.equal(count(f, "dinkuskit_plugin_key WHERE site_id = ? AND plugin = 'commerce'", siteId), 0);
+    assert.equal(await disconnectPlugin(f.db, { subject: 'org-b', siteId, organizationId: 'b', actorUserId: 'bob', plugin: 'commerce' }), false, 'another business cannot cancel an approved Connect');
+    assert.equal(await disconnectPlugin(f.db, { subject: 'org-a', siteId, organizationId: 'a', actorUserId: 'alice', plugin: 'commerce' }), true);
+    assert.deepEqual(await exchange(f, firstCommerce), { status: 400, body: { error: 'access_denied' } });
+    assert.equal(count(f, "dinkuskit_plugin_key WHERE site_id = ? AND plugin = 'commerce'", siteId), 0);
+    assert.equal(await disconnectPlugin(f.db, { subject: 'org-a', siteId, organizationId: 'a', actorUserId: 'alice', plugin: 'commerce' }), false, 'nothing left to disconnect');
+
+    const connectedCommerce = await connect(f, 'commerce');
+    assert.equal(connectedCommerce.issued.status, 200);
+    const firstShip = await start(f, 'ship');
+    assert.equal((await consent(f, firstShip)).ok, true);
+    assert.equal(count(f, "dinkuskit_plugin_key WHERE site_id = ? AND plugin = 'ship'", siteId), 0);
+    assert.equal(await disconnectPlugin(f.db, { subject: 'org-a', siteId, organizationId: 'a', actorUserId: 'alice', plugin: 'ship' }), true);
+    assert.deepEqual(await exchange(f, firstShip), { status: 400, body: { error: 'access_denied' } });
+    assert.equal(count(f, "dinkuskit_plugin_key WHERE site_id = ? AND plugin = 'ship'", siteId), 0);
+  } finally { f.close(); }
+});
+
 test('another business cannot connect a plugin to a store it does not own', async () => {
   const f = await fixture(); try {
     await connect(f, 'commerce');

@@ -3,11 +3,12 @@
   "created_at": "2026-10-11T23:54:00+00:00",
   "current_focus": {
     "cadence": "sequential",
-    "confirmed": false,
-    "domain": "Connect to DinkusKit replaces the store key paste",
-    "started_at": "2026-10-25T17:24:56+00:00",
-    "status": "grilling",
-    "summary": "Reopen store-connect-flow-081: Ronald (17:24 UTC 25 Oct 2026, 'agreed'): Commerce is optional across the stack; Payments must also work on a plain EmDash site, so Payments may create the store's DinkusKit ID when Commerce is absent."
+    "confirmed": true,
+    "confirmed_at": "2026-10-25T20:44:15+00:00",
+    "domain": "Plugin reference docs stay current with releases",
+    "started_at": "2026-10-25T20:44:15+00:00",
+    "status": "confirmed",
+    "summary": "Ronald 'agreed' 20:11 (first repos Commerce, Payments, Ship), 20:12 (shared setup guides stay in dinkuskit), after OpenClaw comparison on flag vs block, 'agreed' 20:16 to the summarized plan, and 20:43 replaced the later add-on with a benchmark checkpoint toward a daily docs agent like OpenClaw's."
   },
   "decisions": [
     {
@@ -9897,6 +9898,34 @@
       "superseded_by": null,
       "updated_at": "2026-10-25T17:24:56+00:00",
       "verification_ref": null
+    },
+    {
+      "baseline_ref": null,
+      "candidate_refs": [],
+      "choice": "1) Each plugin repo (Commerce, Payments, Ship first) keeps its reference article as a docs update file (same format as dinkuskit docs/updates/reference/<plugin>.md), edited in the same PR as the code it describes, so ClawSweeper and Ronald review docs and code together (EmDash practice). 2) ClawSweeper records docs as up to date, missing or not applicable on each plugin PR; missing is a finding to fix before merge, not a hard CI block (OpenClaw practice). 3) Only a stable release publishes: the plugin's release workflow copies the reviewed article at the release tag into dinkuskit docs/updates and pushes it to dinkuskit main with no second review PR; Docs publish then runs as today, keeping its base/_rev guard (an admin edit opens an issue and changes nothing). Main is ahead of the Registry, so nothing publishes on merge. 4) Articles that span plugins (start-here, store-owners/*, developers/*, troubleshooting) stay in dinkuskit, edited there. 5) Version alarm, interim: the twice-monthly Docs publish check compares each article's version_scope with the Registry's latest stable releases and opens one issue per article that is behind. 6) Later checkpoint, not part of this build: benchmark the self-hosted documentation assistant against a subscription model on the same docs-maintenance cases (find stale lines after a release, propose correct replacement text). Goal: a final setup like OpenClaw's, where a docs agent runs daily and keeps every article current; once the chosen agent passes the benchmark and runs daily, the twice-monthly alarm in 5 is retired. The agent's write authority and model choice are decided at that checkpoint.",
+      "context_ref": "https://github.com/dinkuskit/dinkuskit/pull/88",
+      "created_at": "2026-10-25T20:44:15+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [
+        "website-docs-sync-077"
+      ],
+      "domain": "Plugin reference docs stay current with releases",
+      "history": [],
+      "id": "website-docs-from-plugin-releases-086",
+      "implementation_ref": null,
+      "question": "How do the dinkuskit.com plugin reference articles stay current after plugin releases?",
+      "rationale": "Release workflows never wrote doc updates, so 0.6.0 left the docs at 0.4.0. EmDash (emdash-cms/emdash at main, 25 Oct): docs in the code repo, reviewed with code, writing skill, no automation. OpenClaw (openclaw/openclaw at main): hourly Codex docs agent after green main CI pushes doc fixes to main, mirror freshness alarm, PR review records docs up_to_date/missing/not_applicable. Docs written with the code are already reviewed, so the release can publish them without another human step; publishing at release keeps docs matching what stores can install. Ronald wants the end state to be a daily docs agent, chosen by benchmark between a self-hosted and a subscription model.",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [],
+      "review_ref": null,
+      "review_result": null,
+      "review_source_identity": null,
+      "status": "proposed",
+      "superseded_by": null,
+      "updated_at": "2026-10-25T20:44:15+00:00",
+      "verification_ref": null
     }
   ],
   "last_activation": {
@@ -9927,5 +9956,5 @@
   "status": "active",
   "title": "Composed integration",
   "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5",
-  "updated_at": "2026-10-25T17:24:56+00:00"
+  "updated_at": "2026-10-25T20:44:15+00:00"
 }

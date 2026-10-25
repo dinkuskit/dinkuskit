@@ -3,12 +3,11 @@
   "created_at": "2026-10-11T23:54:00+00:00",
   "current_focus": {
     "cadence": "sequential",
-    "confirmed": true,
-    "confirmed_at": "2026-10-23T20:29:05+00:00",
-    "domain": "dinkuskit.com design with the EmDash UI skills",
-    "started_at": "2026-10-23T03:53:36+00:00",
-    "status": "confirmed",
-    "summary": "Build all 4 rotatable 3D .glb plugin cubes and mount them on /start with 2D .webp fallback posters registered in /_emdash/api/media."
+    "confirmed": false,
+    "domain": "Connect to DinkusKit replaces the store key paste",
+    "started_at": "2026-10-25T17:24:56+00:00",
+    "status": "grilling",
+    "summary": "Reopen store-connect-flow-081: Ronald (17:24 UTC 25 Oct 2026, 'agreed'): Commerce is optional across the stack; Payments must also work on a plain EmDash site, so Payments may create the store's DinkusKit ID when Commerce is absent."
   },
   "decisions": [
     {
@@ -9288,7 +9287,7 @@
     {
       "baseline_ref": null,
       "candidate_refs": [],
-      "choice": "Every plugin uses the protocol-2 Connect that Payments already has: the plugin shows Approve at DinkusKit.com with a link, the owner approves on DinkusKit.com's Connect a site page, and the plugin picks up the key by itself. An agent setting up a store hands the owner the same link. A store Admin presses Connect; only the business owner at DinkusKit.com may approve. Commerce connects first: its Connect runs the web-address check that proves the store owns its address and creates the store's DinkusKit ID. Payments and Ship need Commerce connected first and say so when it is not; Commerce works without either.",
+      "choice": "Every plugin uses the protocol-2 Connect that Payments already has: the plugin shows Approve at DinkusKit.com with a link, the owner approves on DinkusKit.com's Connect a site page, and the plugin picks up the key by itself. An agent setting up a store hands the owner the same link. A store Admin presses Connect; only the business owner at DinkusKit.com may approve. Commerce is optional: whichever of Commerce or Payments connects first runs the web-address check and creates the store's DinkusKit ID (as Inventory already may), and the other joins that same ID. Ship still needs Commerce connected first. Until the standalone Payments build lands (payments-standalone-direction-042), the live code keeps refusing Payments with connect_commerce_first.",
       "context_ref": "https://claude.ai/code/project/chan_01JLcLQeD34rfoMic23aaman?thread=cmsg_01JLcLQeD34rfoMic23aamanCBvyAFsykj4wHAKkvd8pTJ",
       "created_at": "2026-10-22T13:59:11+00:00",
       "deferred_reason": null,
@@ -9337,12 +9336,40 @@
           "review_source_identity": null,
           "to": "locked",
           "verification_ref": null
+        },
+        {
+          "at": "2026-10-25T17:24:56+00:00",
+          "choice": "Every plugin uses the protocol-2 Connect that Payments already has: the plugin shows Approve at DinkusKit.com with a link, the owner approves on DinkusKit.com's Connect a site page, and the plugin picks up the key by itself. An agent setting up a store hands the owner the same link. A store Admin presses Connect; only the business owner at DinkusKit.com may approve. Commerce connects first: its Connect runs the web-address check that proves the store owns its address and creates the store's DinkusKit ID. Payments and Ship need Commerce connected first and say so when it is not; Commerce works without either.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "Ronald (17:24 UTC 25 Oct 2026, 'agreed'): Commerce is optional across the stack; Payments must also work on a plain EmDash site, so Payments may create the store's DinkusKit ID when Commerce is absent.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "reopened",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-25T17:24:56+00:00",
+          "choice": "Every plugin uses the protocol-2 Connect that Payments already has: the plugin shows Approve at DinkusKit.com with a link, the owner approves on DinkusKit.com's Connect a site page, and the plugin picks up the key by itself. An agent setting up a store hands the owner the same link. A store Admin presses Connect; only the business owner at DinkusKit.com may approve. Commerce connects first: its Connect runs the web-address check that proves the store owns its address and creates the store's DinkusKit ID. Payments and Ship need Commerce connected first and say so when it is not; Commerce works without either.",
+          "from": "reopened",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
         }
       ],
       "id": "store-connect-flow-081",
       "implementation_ref": null,
       "question": "How does the Connect button work for people and agents, and who may use it?",
-      "rationale": "Reuses a proven flow with no new public route; same owner rule as Payments today (040). Ronald agreed (answers 2 and 7) and set the order at 13:35 UTC: Commerce is the base layer, Payments and Ship both depend on it, Commerce can be used without them.",
+      "rationale": "Reuses a proven flow with no new public route; same owner rule as Payments today (040). Ronald agreed (answers 2 and 7) on 22 Oct. On 25 Oct 17:24 UTC he agreed the stack rule 'Commerce is optional; companion plugins work with Commerce and alone' (store-connect-commerce-optional-085), replacing his 22 Oct order that Payments depends on Commerce. Build waits until smokyclub.com is selling.",
       "repair_required": false,
       "review_classifications": [],
       "review_history": [],
@@ -9351,7 +9378,7 @@
       "review_source_identity": null,
       "status": "locked",
       "superseded_by": null,
-      "updated_at": "2026-10-22T13:59:12+00:00",
+      "updated_at": "2026-10-25T17:24:56+00:00",
       "verification_ref": null
     },
     {
@@ -9829,10 +9856,51 @@
       "superseded_by": null,
       "updated_at": "2026-10-23T20:29:06+00:00",
       "verification_ref": "file:proof/start-3d-plugin-cubes/PROOF.md"
+    },
+    {
+      "baseline_ref": null,
+      "candidate_refs": [],
+      "choice": "No. Commerce is optional across the DinkusKit stack. Each companion plugin works with Commerce and also on a plain EmDash site where it makes sense, and anyone may build their own plugins that tie into Commerce. When Commerce is installed and connected, Commerce stays the one order book: a companion's own sales or order list switches off so a store never has two. Each companion's standalone build is its own scoped decision; Payments' is payments-standalone-direction-042. Building waits until smokyclub.com is selling.",
+      "context_ref": "https://claude.ai/code/project/chan_01JLcLQeD34rfoMic23aaman?thread=cmsg_01JLcLQeD34rfoMic23aamanUS98RXsncP8L4LmH6fmPCH",
+      "created_at": "2026-10-25T17:24:56+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [],
+      "domain": "Connect to DinkusKit replaces the store key paste",
+      "history": [
+        {
+          "at": "2026-10-25T17:24:56+00:00",
+          "choice": "No. Commerce is optional across the DinkusKit stack. Each companion plugin works with Commerce and also on a plain EmDash site where it makes sense, and anyone may build their own plugins that tie into Commerce. When Commerce is installed and connected, Commerce stays the one order book: a companion's own sales or order list switches off so a store never has two. Each companion's standalone build is its own scoped decision; Payments' is payments-standalone-direction-042. Building waits until smokyclub.com is selling.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        }
+      ],
+      "id": "store-connect-commerce-optional-085",
+      "implementation_ref": null,
+      "question": "Must a store install DinkusKit Commerce to use the companion plugins (Payments, Ship, Coupons, Books)?",
+      "rationale": "Ronald proposed the motto at 16:52 UTC 25 Oct 2026 and agreed the locked direction at 17:24 ('agreed'). Inventory already registers a store without Commerce; a broader audience can adopt one plugin at a time.",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [],
+      "review_ref": null,
+      "review_result": null,
+      "review_source_identity": null,
+      "status": "locked",
+      "superseded_by": null,
+      "updated_at": "2026-10-25T17:24:56+00:00",
+      "verification_ref": null
     }
   ],
   "last_activation": {
-    "at": "2026-10-22T13:59:12+00:00",
+    "at": "2026-10-25T17:24:56+00:00",
     "mechanism": "implicit"
   },
   "last_pause": {
@@ -9859,5 +9927,5 @@
   "status": "active",
   "title": "Composed integration",
   "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5",
-  "updated_at": "2026-10-23T20:29:06+00:00"
+  "updated_at": "2026-10-25T17:24:56+00:00"
 }

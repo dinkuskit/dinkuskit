@@ -4,7 +4,7 @@ import {
 } from './config.ts';
 import { shipRecipient, shipClaims, shipTestMode, SHIP_SANDBOX_AUDIENCE, type ShipSandboxRegistration } from './ship-recipient.ts';
 import { signServicePass } from './jwt.ts';
-import { denyUnredeemedConnections, persistPublicJwk, revokeServiceGrant } from './store.ts';
+import { persistPublicJwk, revokeServiceGrant } from './store.ts';
 
 /**
  * Store keys and the passes plugins trade them for. Each plugin gets its own key at
@@ -52,12 +52,14 @@ export function newStoreKey(): string {
  */
 export async function disconnectPlugin(db: D1Database, input: OwnerInput & { plugin: KeyedPlugin }): Promise<boolean> {
   if (!KEYED_PLUGINS.includes(input.plugin)) return false;
-  const [result] = await db.batch([
+  const [deletedKey, deniedConnections] = await db.batch([
     db.prepare(`DELETE FROM dinkuskit_plugin_key WHERE site_id = ? AND plugin = ? AND ${OWNER_OF_STORE}`)
       .bind(input.siteId, input.plugin, ...ownerArgs(input)),
-    denyUnredeemedConnections(db, input.siteId, input.plugin),
+    db.prepare(`UPDATE dinkuskit_store_connection SET status = 'denied'
+      WHERE site_id = ? AND service = ? AND status = 'approved' AND ${OWNER_OF_STORE}`)
+      .bind(input.siteId, input.plugin, ...ownerArgs(input)),
   ]) as { meta?: { changes?: number } }[];
-  return (result?.meta?.changes ?? 0) > 0;
+  return (deletedKey?.meta?.changes ?? 0) > 0 || (deniedConnections?.meta?.changes ?? 0) > 0;
 }
 
 /**

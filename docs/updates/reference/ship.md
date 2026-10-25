@@ -1,18 +1,18 @@
 ---
 article: reference/ship
-base: sha256:b4e1b7070b9c2011b72592d51934015820a6fe58fc8f48e6a061218317b53015
+base: sha256:63407c9a7572ee03e920d9eb553a913e11e0a816aa73492e1ba380bb3d7660e0
 title: "Ship"
 summary: "Understand the Ship plugin, the hosted shipping service, and sandbox labels."
 audience: "Store owners and developers"
 product: "Ship"
-version_scope: "Ship 0.2.1"
+version_scope: "Ship 0.3.0"
 ---
 
 Ship buys USPS shipping labels for Commerce orders. [Commerce](/docs/reference/commerce) owns checkout shipping charges and order records; Ship handles labels and reports tracking back. Ship does not own product stock or payment confirmation.
 
 Shipping is outside the required first-test-order outcome. Start with [requirements](/docs/start-here) and [store setup](/docs/store-owners/setup); a test label cannot establish that checkout was paid or that Commerce saved the order.
 
-This reference describes the Ship plugin `0.2.1`, released on the EmDash Registry as `dinkus-ship` on 22 October 2026 (tag `v0.2.1`; its plugin code is the same as `0.2.0`, released 21 October), and the hosted Ship service at ship.dinkuskit.com.
+This reference describes the Ship plugin `0.3.0`, released on the EmDash Registry as `dinkus-ship` on 23 October 2026 (tag `v0.3.0`), and the hosted Ship service at ship.dinkuskit.com.
 
 ## The plugin and the hosted service
 
@@ -27,9 +27,11 @@ The plugin keeps no label data. Every click reads from, or buys through, the hos
 
 ## Set up the plugin
 
-Install **Ship** from the plugin Registry, then open its settings and paste the **Store ID** and **store key** from the Set up Commerce box on DinkusKit.com, the same ones Commerce uses. Ship must be switched on for the store at DinkusKit.com.
+Install **Ship** from the plugin Registry. Connect [Commerce](/docs/reference/commerce) first, because Commerce's Connect makes the store at DinkusKit.com. Then an Administrator opens **Shipping** in the store admin and presses **Connect Ship**, and the business owner presses **Approve** at DinkusKit.com. Nothing is pasted: DinkusKit.com gives Ship its own store key, which the plugin keeps, with the Store ID, in its encrypted DinkusKit connection setting. Connect needs the store on its https web address with Ship installed from the Registry.
 
-The plugin never sends the store key to Ship or to a store page. It trades the key at DinkusKit.com for a pass that lasts five minutes and reuses that pass for clicks in the next minute. A key replaced at DinkusKit.com, or Ship switched off there, stops the Shipping page within a minute.
+The plugin never sends the store key to Ship or to a store page. It trades the key at DinkusKit.com for a pass that lasts five minutes and reuses that pass for clicks in the next minute. A Disconnect at DinkusKit.com, or Ship switched off there, stops the Shipping page within a minute. If DinkusKit.com no longer knows the key, the page shows **Connect again**.
+
+A store upgraded from `0.2.1` does not use its old pasted key. The Shipping page asks for Connect once, and Connect removes the old Store ID and store key settings.
 
 ## Buy a label
 
@@ -69,9 +71,9 @@ The plugin's Shipping page calls routes under `/v1/admin/` with a pass scoped `s
 
 ## Sources and review scope
 
-Reviewed on 2026-10-22 from the `v0.2.1` release, without signing in, buying labels or buying postage:
+Reviewed on 2026-10-25 from the `v0.3.0` release, without signing in, buying labels or buying postage:
 
-- [Release notes](https://github.com/dinkuskit/ship/releases/tag/v0.2.1) and [changelog](https://github.com/dinkuskit/ship/blob/42cffda4d1baf3aa0774ec6055b9d7c607cb81dd/CHANGELOG.md)
-- [Repository overview](https://github.com/dinkuskit/ship/blob/42cffda4d1baf3aa0774ec6055b9d7c607cb81dd/README.md) and [plugin manifest](https://github.com/dinkuskit/ship/blob/42cffda4d1baf3aa0774ec6055b9d7c607cb81dd/emdash-plugin.jsonc)
-- [What the Ship plugin calls](https://github.com/dinkuskit/ship/blob/42cffda4d1baf3aa0774ec6055b9d7c607cb81dd/docs/contracts/ship-plugin-v1.md)
-- [Hosted service contract](https://github.com/dinkuskit/ship/blob/42cffda4d1baf3aa0774ec6055b9d7c607cb81dd/service/README.md)
+- [Release notes](https://github.com/dinkuskit/ship/releases/tag/v0.3.0) and [changelog](https://github.com/dinkuskit/ship/blob/dab45d0df69a5f39158b603ff2b8236c6af6fe54/CHANGELOG.md)
+- [Repository overview](https://github.com/dinkuskit/ship/blob/dab45d0df69a5f39158b603ff2b8236c6af6fe54/README.md) and [plugin manifest](https://github.com/dinkuskit/ship/blob/dab45d0df69a5f39158b603ff2b8236c6af6fe54/emdash-plugin.jsonc)
+- [What the Ship plugin calls](https://github.com/dinkuskit/ship/blob/dab45d0df69a5f39158b603ff2b8236c6af6fe54/docs/contracts/ship-plugin-v1.md)
+- [Hosted service contract](https://github.com/dinkuskit/ship/blob/dab45d0df69a5f39158b603ff2b8236c6af6fe54/service/README.md)

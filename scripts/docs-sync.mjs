@@ -10,9 +10,7 @@
 //     For every update file: every field already live, skip; live article
 //     still matches base and no admin draft waits, save it with the _rev it
 //     was read with and Publish (a draft whose every field is this update is
-//     an earlier run's, and is published; a draft or live article that is
-//     exactly an earlier version this file replaced on the same base is an
-//     earlier run's too, and is replaced);
+//     an earlier run's, and is published);
 //     changed on the site after the file was merged, leave it (superseded);
 //     anything else, stop for that article. Then check the article page, its
 //     Markdown, search.json and llms.txt, and try an article once more if they
@@ -22,13 +20,15 @@
 //     article is right (GITHUB_TOKEN, GITHUB_REPOSITORY), and exits 0 when
 //     every problem was reported.
 //
-//   node --experimental-strip-types scripts/docs-sync.mjs release <plugin> <tag> [--from <checkout>]
+//   node --experimental-strip-types scripts/docs-sync.mjs release <plugin> <tag> [--from <checkout>] [--wait <seconds>]
 //     Writes docs/updates/<article id>.md for each article the plugin publishes
 //     from docs/website/ in that plugin's stable release tag (GrillTrack
 //     decision website-docs-from-plugin-releases-086; src/docs/releases.ts),
-//     on a base taken from the live article. Reads the tag's GitHub release
-//     for its date and clones the tag unless --from names a checkout of it.
-//     Prints changed=true|false to GITHUB_OUTPUT.
+//     on a base taken from the live article. While the article's current
+//     update file is not live yet, waits up to --wait seconds for it, then
+//     stops without writing anything. Reads the tag's GitHub release for its
+//     date and clones the tag unless --from names a checkout of it. Prints
+//     changed=true|false to GITHUB_OUTPUT.
 //
 //   node --experimental-strip-types scripts/docs-sync.mjs versions [--url <site origin>] [--report]
 //     Compares each live plugin article's version scope with the plugin's
@@ -43,7 +43,7 @@ import { setTimeout as delay } from 'node:timers/promises';
 import { parseArgs } from 'node:util';
 import { markdownPath, searchRecord } from '../src/docs/catalog.ts';
 import { docsSite } from '../src/docs/site.ts';
-import { PLUGIN_ARTICLE_DIR, PLUGIN_DOCS, behindReleases, exportVersionScope, isPluginName, releaseUpdate, replacedOn, tagVersion } from '../src/docs/releases.ts';
+import { NotLiveYet, PLUGIN_ARTICLE_DIR, PLUGIN_DOCS, behindReleases, exportVersionScope, isPluginName, releaseUpdate, tagVersion } from '../src/docs/releases.ts';
 import { NEW_ARTICLE, articleSlug, entryHash, entryState, exportHash, parseUpdate, renderUpdate, sameState, updateArticle, updateData, updateFromExport, updateHash, wantedState } from '../src/docs/updates.ts';
 
 const COLLECTION = 'docs';
@@ -51,6 +51,7 @@ const ISSUE_PREFIX = 'Docs update stopped: ';
 const BEHIND_PREFIX = 'Docs behind release: ';
 const checkTries = Number(process.env.DOCS_SYNC_CHECK_TRIES ?? 6);
 const checkWaitMs = Number(process.env.DOCS_SYNC_CHECK_WAIT_MS ?? 5000);
+const releaseWaitMs = Number(process.env.DOCS_SYNC_RELEASE_WAIT_MS ?? 15000);
 
 function siteOrigin(url) {
   const base = new URL(url ?? docsSite.origin);
@@ -90,24 +91,6 @@ function mergedAt(path) {
   return null;
 }
 
-/** The file's earlier committed versions, newest first, leaving out this one and any that no longer parse. */
-function earlierVersions(path, current) {
-  const file = relative(process.cwd(), path);
-  const git = args => execFileSync('git', args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
-  const seen = new Set(current ? [renderUpdate(current)] : []);
-  const versions = [];
-  let commits = [];
-  try { commits = git(['log', '--format=%H', '--', file]).split('\n').filter(Boolean); } catch {}
-  for (const commit of commits) {
-    try {
-      const version = parseUpdate(git(['show', `${commit}:./${file}`]), relative(values.dir, path));
-      const text = renderUpdate(version);
-      if (!seen.has(text)) { seen.add(text); versions.push(version); }
-    } catch {}
-  }
-  return versions;
-}
-
 function emdashApi(base) {
   const headers = { 'content-type': 'application/json', 'x-emdash-request': '1' };
   if (process.env.EMDASH_TOKEN) headers.authorization = `Bearer ${process.env.EMDASH_TOKEN}`;
@@ -142,17 +125,10 @@ async function reconcile(api, update, path) {
   const revision = item ? { revision: item.draftRevisionId ?? item.liveRevisionId ?? null } : {};
   if (liveData && sameState(entryState(liveData), want)) return { outcome: 'live', ...revision };
   // A draft whose every field is exactly this update was saved by an earlier run whose Publish
-  // didn't finish; a draft an editor has touched in any field is not ours. So is a draft, or a
-  // live article, that is exactly an earlier version this update replaced on the same base
-  // (a plugin release replacing one that was not published yet): an earlier run saved or
-  // published it, so this update may replace it.
-  const replaced = replacedOn(earlierVersions(path, update), update.base);
-  const pendingState = pendingData === null ? null : entryState(pendingData);
-  const ours = pendingState !== null && sameState(pendingState, want);
-  const oursEarlier = pendingState !== null && replaced.some(version => sameState(pendingState, wantedState(version, liveData ?? undefined)));
+  // didn't finish; a draft an editor has touched in any field is not ours.
+  const ours = pendingData !== null && sameState(entryState(pendingData), want);
   const liveHash = liveData ? entryHash(docsSite, slug, liveData) : null;
-  const liveReplaced = liveHash !== null && replaced.some(version => updateHash(docsSite, version) === liveHash);
-  const matchesBase = liveReplaced || (update.base === NEW_ARTICLE ? !published && (!item || ours || oursEarlier) : liveHash === update.base);
+  const matchesBase = update.base === NEW_ARTICLE ? !published && (!item || ours) : liveHash === update.base;
   if (!matchesBase) {
     const merged = mergedAt(path);
     if (item && merged && new Date(item.updatedAt) > merged) return { outcome: 'superseded', reason: 'the site has newer text than this update file (edited in the admin, or published by a later update), so it is left alone', ...revision };
@@ -160,7 +136,7 @@ async function reconcile(api, update, path) {
       ? 'This is a new article, but an article with the same address already exists on the site.'
       : 'The live article changed after this update was written, so publishing it would overwrite those edits. Run `npm run docs:pull` for the article, redo the change on the new text, and merge that.' };
   }
-  if (item && (item.draftRevisionId || !published) && !ours && !oursEarlier) return { outcome: 'problem', ...revision, reason: 'Unpublished edits are waiting in the admin. Publish or discard them there, then rerun the docs publish workflow.' };
+  if (item && (item.draftRevisionId || !published) && !ours) return { outcome: 'problem', ...revision, reason: 'Unpublished edits are waiting in the admin. Publish or discard them there, then rerun the docs publish workflow.' };
 
   let saved = entry;
   if (!ours) {
@@ -288,7 +264,7 @@ async function pull(base, article, dir) {
 const readUpdate = path => existsSync(path) ? parseUpdate(readFileSync(path, 'utf8'), relative(values.dir, path)) : undefined;
 
 /** A plugin's stable release: its date, and the tag's files from --from or a fresh clone. */
-async function release(site, plugin, tag, from, dir) {
+async function release(site, plugin, tag, from, dir, wait) {
   if (!isPluginName(plugin)) throw new Error(`Unknown plugin ${plugin}; use ${Object.keys(PLUGIN_DOCS).join(', ')}`);
   if (!tagVersion(tag)) throw new Error(`${tag} is not a stable vX.Y.Z tag`);
   const { repository, articles } = PLUGIN_DOCS[plugin];
@@ -308,8 +284,21 @@ async function release(site, plugin, tag, from, dir) {
       if (!existsSync(sourcePath)) throw new Error(`${repository} ${tag} has no ${PLUGIN_ARTICLE_DIR}/${article}.md`);
       const target = join(dir, `${article}.md`);
       const previous = readUpdate(target);
-      const { hash: liveHash } = await live(site, article);
-      const update = releaseUpdate({ site: docsSite, plugin, article, source: readFileSync(sourcePath, 'utf8'), tag, date, previous, earlier: earlierVersions(target, previous), liveHash });
+      const source = readFileSync(sourcePath, 'utf8');
+      // The previous release's update may still be on its way to the site (Docs publish runs one at a time).
+      const deadline = Date.now() + wait * 1000;
+      let update;
+      for (;;) {
+        const { hash: liveHash } = await live(site, article);
+        try {
+          update = releaseUpdate({ site: docsSite, plugin, article, source, tag, date, previous, liveHash });
+          break;
+        } catch (error) {
+          if (!(error instanceof NotLiveYet) || Date.now() >= deadline) throw error;
+          console.log(`${article}: waiting for docs/updates/${article}.md (${previous.version_scope}) to go live`);
+          await delay(Math.min(releaseWaitMs, Math.max(0, deadline - Date.now())));
+        }
+      }
       if (update === previous) {
         console.log(`${article} already has ${repository} ${tag}`);
         continue;
@@ -369,7 +358,7 @@ async function versions(site, reportIssues) {
 }
 
 const { positionals, values } = parseArgs({ allowPositionals: true, options: {
-  url: { type: 'string' }, dir: { type: 'string', default: 'docs/updates' }, report: { type: 'boolean', default: false }, from: { type: 'string' },
+  url: { type: 'string' }, dir: { type: 'string', default: 'docs/updates' }, report: { type: 'boolean', default: false }, from: { type: 'string' }, wait: { type: 'string', default: '0' },
 } });
 const base = siteOrigin(values.url);
 if (positionals[0] === 'pull' && positionals[1]) {
@@ -383,10 +372,12 @@ if (positionals[0] === 'pull' && positionals[1]) {
   if (values.report) await report(results);
   if (problems && !values.report) process.exit(1);
 } else if (positionals[0] === 'release' && positionals[1] && positionals[2]) {
-  await release(base, positionals[1], positionals[2], values.from, values.dir);
+  const wait = Number(values.wait);
+  if (!Number.isFinite(wait) || wait < 0) throw new Error('--wait takes a number of seconds');
+  await release(base, positionals[1], positionals[2], values.from, values.dir, wait);
 } else if (positionals[0] === 'versions') {
   if (await versions(base, values.report)) process.exit(1);
 } else {
-  console.error('Usage: docs-sync.mjs pull <article id> [--url <origin>] | publish [--url <origin>] [--report] | release <plugin> <tag> [--from <checkout>] [--url <origin>] | versions [--url <origin>] [--report]');
+  console.error('Usage: docs-sync.mjs pull <article id> [--url <origin>] | publish [--url <origin>] [--report] | release <plugin> <tag> [--from <checkout>] [--wait <seconds>] [--url <origin>] | versions [--url <origin>] [--report]');
   process.exit(2);
 }

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { docsSite } from '../src/docs/site.ts';
-import { behindReleases, exportVersionScope, fillRelease, releaseBase, releaseDateText, releaseUpdate, scopeVersion, tagVersion } from '../src/docs/releases.ts';
+import { NotLiveYet, behindReleases, exportVersionScope, fillRelease, releaseBase, releaseDateText, releaseUpdate, scopeVersion, tagVersion } from '../src/docs/releases.ts';
 import { NEW_ARTICLE, parseUpdate, renderUpdate, updateHash } from '../src/docs/updates.ts';
 
 // Plugin reference articles published at a stable release (GrillTrack decision
@@ -74,7 +74,7 @@ test('the base follows what is live', () => {
   const previous = published();
   const shown = updateHash(docsSite, previous);
   assert.equal(releaseBase(docsSite, 'reference/commerce', previous, shown), shown, 'the previous update is live: build on it');
-  assert.equal(releaseBase(docsSite, 'reference/commerce', previous, previous.base), previous.base, 'the previous update never published: replace it on its own base, so the publisher can still apply it');
+  assert.equal(releaseBase(docsSite, 'reference/commerce', previous, previous.base), null, 'the previous update is not live yet: no base, a release must not replace it');
   const edited = `sha256:${'c'.repeat(64)}`;
   assert.equal(releaseBase(docsSite, 'reference/commerce', previous, edited), shown, 'edited in the admin: build on the previous update, so Docs publish stops instead of overwriting the edit');
   assert.equal(releaseBase(docsSite, 'reference/commerce', previous, null), shown, 'unpublished in the admin: Docs publish stops too');
@@ -82,20 +82,17 @@ test('the base follows what is live', () => {
   assert.throws(() => releaseBase(docsSite, 'reference/commerce', undefined, edited), /is live but has no docs\/updates\/reference\/commerce\.md; run npm run docs:pull/);
 });
 
-test('two releases while the first is still unpublished', () => {
+test('a release waits for the previous one to go live', () => {
   const live = published();
   const first = release({ previous: live });
-  // Its publish failed, so the site still shows the article from before it.
-  const second = release({ previous: first, liveHash: updateHash(docsSite, live), tag: 'v0.7.0' });
-  assert.equal(second.base, first.base, 'the second release keeps the base the site still matches');
+  // Its publish is waiting or failed, so the site still shows the article from before it.
+  const waiting = { previous: first, liveHash: updateHash(docsSite, live) };
+  assert.throws(() => release({ ...waiting, tag: 'v0.7.0' }), error => error instanceof NotLiveYet && /reference\/commerce\.md \(Commerce 0\.6\.0\) is not live yet, and v0\.7\.0 must not replace text the site never showed/.test(error.message));
+  assert.throws(() => release({ ...waiting, tag: 'v0.5.0' }), /newer than v0\.5\.0/, 'a bad release is refused at once, not waited for');
+  // Once it is live, the next release builds on it.
+  const second = release({ previous: first, liveHash: updateHash(docsSite, first), tag: 'v0.7.0' });
+  assert.equal(second.base, updateHash(docsSite, first));
   assert.equal(second.version_scope, 'Commerce 0.7.0');
-  // The first one's publish then finishes, after the second replaced it: the site shows an earlier version on that base.
-  const shownFirst = updateHash(docsSite, first);
-  const third = release({ previous: second, earlier: [first, live], liveHash: shownFirst, tag: 'v0.8.0' });
-  assert.equal(third.base, second.base, 'a replaced version that went live late keeps the shared base, which the publisher accepts');
-  assert.equal(releaseBase(docsSite, 'reference/commerce', second, shownFirst), updateHash(docsSite, second), 'without the earlier versions it would build on the unpublished file and stop');
-  const older = { ...published('Commerce 0.4.0'), body: 'Older text.' };
-  assert.equal(releaseBase(docsSite, 'reference/commerce', second, updateHash(docsSite, older), [first, older]), updateHash(docsSite, second), 'a live version from another base (an older revision restored in the admin) is not a replaced one: Docs publish stops');
 });
 
 test('the same release again changes nothing', () => {

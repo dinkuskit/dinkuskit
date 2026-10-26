@@ -9,7 +9,7 @@
  * the plugin presses **Docs from a plugin release** here, which fills them in,
  * sets `base` from the live article (see `releaseBase`), and pushes the file
  * to `docs/updates/` on main, so the publisher's admin-edit guard still
- * applies. The twice-monthly check compares each live article's version scope
+ * applies. A release never replaces an update that is not live yet. The twice-monthly check compares each live article's version scope
  * with the plugin's latest stable release.
  */
 import type { DocsSite } from './catalog.ts';
@@ -71,52 +71,44 @@ export function fillRelease(source: string, version: Version, date: Date) {
   return filled;
 }
 
+/** The previous release's update is not live yet, so a newer one must not replace it. */
+export class NotLiveYet extends Error {}
+
 /**
  * The `base` for a release's update, from this repository's current update
- * file for the article (`previous`), the file's earlier committed versions
- * (`earlier`) and the live article's export hash (`liveHash`, null when it is
- * not published):
+ * file for the article (`previous`) and the live article's export hash
+ * (`liveHash`, null when it is not published):
  *
  * - live shows `previous`: it was published, so the new update builds on it.
- * - live still matches `previous.base`: `previous` was never published (its
- *   publish failed or is still waiting), so the new update replaces it on the
- *   same base and the publisher can still apply it, even over a waiting draft
- *   that is exactly `previous` (see `replacedOn`).
- * - live shows an earlier version on `previous.base`: its publish finished
- *   after `previous` replaced it, so the same holds.
+ * - live still matches `previous.base`: `previous` is not live yet (its
+ *   publish is waiting, or stopped with an issue). A release must not replace
+ *   it, since it would build on text the site never showed: null.
  * - anything else: the article changed in the admin. The update builds on
  *   `previous`, so Docs publish stops with an issue instead of overwriting.
  *
  * An article published without any update file here is refused: start one
  * with `npm run docs:pull` so its live text has been reviewed.
  */
-export function releaseBase(site: DocsSite, article: string, previous: DocUpdate | undefined, liveHash: string | null, earlier: readonly DocUpdate[] = []) {
+export function releaseBase(site: DocsSite, article: string, previous: DocUpdate | undefined, liveHash: string | null) {
   if (!previous) {
     if (liveHash) throw new Error(`${article} is live but has no docs/updates/${article}.md; run npm run docs:pull -- ${article} and merge it first`);
     return NEW_ARTICLE;
   }
   const published = updateHash(site, previous);
   if (liveHash === published) return published;
-  if (liveHash === (previous.base === NEW_ARTICLE ? null : previous.base)) return previous.base;
-  if (liveHash && replacedOn(earlier, previous.base).some(version => updateHash(site, version) === liveHash)) return previous.base;
+  if (liveHash === (previous.base === NEW_ARTICLE ? null : previous.base)) return null;
   return published;
 }
 
 /**
- * The earlier versions of an update file that a later version replaced on the
- * same base before they were published, as `releaseBase` does. Docs publish
- * may replace a draft or a live article that is exactly one of them: an
- * earlier run saved or published it, and an editor's change matches none.
- */
-export const replacedOn = (earlier: readonly DocUpdate[], base: string) => earlier.filter(version => version.base === base);
-
-/**
  * The update file a stable release publishes for one article, on the base
- * `releaseBase` picks. A release that changes nothing returns `previous` as
- * it is.
+ * `releaseBase` picks. The same release again returns `previous` as it is,
+ * live or not, so a rerun changes nothing. A newer release while `previous`
+ * is not live yet throws `NotLiveYet`; the import waits and tries again, and
+ * otherwise stops without writing anything.
  */
-export function releaseUpdate(input: { site: DocsSite; plugin: PluginName; article: string; source: string; tag: string; date: Date; previous?: DocUpdate; earlier?: readonly DocUpdate[]; liveHash: string | null }): DocUpdate {
-  const { site, plugin, article, source, tag, date, previous, earlier, liveHash } = input;
+export function releaseUpdate(input: { site: DocsSite; plugin: PluginName; article: string; source: string; tag: string; date: Date; previous?: DocUpdate; liveHash: string | null }): DocUpdate {
+  const { site, plugin, article, source, tag, date, previous, liveHash } = input;
   const docs: PluginDocs = PLUGIN_DOCS[plugin];
   const where = `${docs.repository} ${tag} ${PLUGIN_ARTICLE_DIR}/${article}.md`;
   if (!docs.articles.includes(article)) throw new Error(`${where}: ${plugin} does not publish ${article}`);
@@ -125,18 +117,24 @@ export function releaseUpdate(input: { site: DocsSite; plugin: PluginName; artic
   const filled = fillRelease(source, version, date);
   if (!filled.startsWith('---\n')) throw new Error(`${where}: no frontmatter`);
   if (/^base:/m.test(filled.split('\n---\n', 1)[0])) throw new Error(`${where}: leave base out; it is set when the release is published`);
-  const base = releaseBase(site, article, previous, liveHash, earlier);
-  const update = parseUpdate(filled.replace('---\n', `---\nbase: ${base}\n`), `${article}.md`);
+  const withBase = (base: string) => parseUpdate(filled.replace('---\n', `---\nbase: ${base}\n`), `${article}.md`);
+  if (previous) {
+    let again: DocUpdate | undefined;
+    try { again = withBase(previous.base); } catch {}
+    if (again && renderUpdate(again) === renderUpdate(previous)) return previous;
+  }
+  const base = releaseBase(site, article, previous, liveHash);
+  const update = withBase(base ?? previous!.base);
   const stated = scopeVersion(update.version_scope, docs.product);
   if (!stated || compareVersions(stated, version) !== 0) {
     throw new Error(`${where}: version_scope "${update.version_scope}" must name ${docs.product} ${versionText(version)}; write "${docs.product} {{version}}"`);
   }
-  if (previous) {
-    const published = scopeVersion(previous.version_scope, docs.product);
-    if (published && compareVersions(version, published) < 0) {
-      throw new Error(`${where}: the site already describes ${docs.product} ${versionText(published)}, which is newer than ${tag}`);
-    }
-    if (renderUpdate({ ...update, base: previous.base }) === renderUpdate(previous)) return previous;
+  const published = previous && scopeVersion(previous.version_scope, docs.product);
+  if (published && compareVersions(version, published) < 0) {
+    throw new Error(`${where}: the site already describes ${docs.product} ${versionText(published)}, which is newer than ${tag}`);
+  }
+  if (base === null) {
+    throw new NotLiveYet(`${article}: docs/updates/${article}.md (${previous!.version_scope}) is not live yet, and ${tag} must not replace text the site never showed. Let Docs publish publish it (if it stopped, its "Docs update stopped" issue says why), then run this release again.`);
   }
   return update;
 }

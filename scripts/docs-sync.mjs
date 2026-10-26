@@ -10,7 +10,9 @@
 //     For every update file: every field already live, skip; live article
 //     still matches base and no admin draft waits, save it with the _rev it
 //     was read with and Publish (a draft whose every field is this update is
-//     an earlier run's, and is published);
+//     an earlier run's, and is published; a draft or live article that is
+//     exactly an earlier version this file replaced on the same base is an
+//     earlier run's too, and is replaced);
 //     changed on the site after the file was merged, leave it (superseded);
 //     anything else, stop for that article. Then check the article page, its
 //     Markdown, search.json and llms.txt, and try an article once more if they
@@ -41,7 +43,7 @@ import { setTimeout as delay } from 'node:timers/promises';
 import { parseArgs } from 'node:util';
 import { markdownPath, searchRecord } from '../src/docs/catalog.ts';
 import { docsSite } from '../src/docs/site.ts';
-import { PLUGIN_ARTICLE_DIR, PLUGIN_DOCS, behindReleases, exportVersionScope, isPluginName, releaseUpdate, tagVersion } from '../src/docs/releases.ts';
+import { PLUGIN_ARTICLE_DIR, PLUGIN_DOCS, behindReleases, exportVersionScope, isPluginName, releaseUpdate, replacedOn, tagVersion } from '../src/docs/releases.ts';
 import { NEW_ARTICLE, articleSlug, entryHash, entryState, exportHash, parseUpdate, renderUpdate, sameState, updateArticle, updateData, updateFromExport, updateHash, wantedState } from '../src/docs/updates.ts';
 
 const COLLECTION = 'docs';
@@ -88,6 +90,24 @@ function mergedAt(path) {
   return null;
 }
 
+/** The file's earlier committed versions, newest first, leaving out this one and any that no longer parse. */
+function earlierVersions(path, current) {
+  const file = relative(process.cwd(), path);
+  const git = args => execFileSync('git', args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+  const seen = new Set(current ? [renderUpdate(current)] : []);
+  const versions = [];
+  let commits = [];
+  try { commits = git(['log', '--format=%H', '--', file]).split('\n').filter(Boolean); } catch {}
+  for (const commit of commits) {
+    try {
+      const version = parseUpdate(git(['show', `${commit}:./${file}`]), relative(values.dir, path));
+      const text = renderUpdate(version);
+      if (!seen.has(text)) { seen.add(text); versions.push(version); }
+    } catch {}
+  }
+  return versions;
+}
+
 function emdashApi(base) {
   const headers = { 'content-type': 'application/json', 'x-emdash-request': '1' };
   if (process.env.EMDASH_TOKEN) headers.authorization = `Bearer ${process.env.EMDASH_TOKEN}`;
@@ -122,10 +142,17 @@ async function reconcile(api, update, path) {
   const revision = item ? { revision: item.draftRevisionId ?? item.liveRevisionId ?? null } : {};
   if (liveData && sameState(entryState(liveData), want)) return { outcome: 'live', ...revision };
   // A draft whose every field is exactly this update was saved by an earlier run whose Publish
-  // didn't finish; a draft an editor has touched in any field is not ours.
-  const ours = pendingData !== null && sameState(entryState(pendingData), want);
+  // didn't finish; a draft an editor has touched in any field is not ours. So is a draft, or a
+  // live article, that is exactly an earlier version this update replaced on the same base
+  // (a plugin release replacing one that was not published yet): an earlier run saved or
+  // published it, so this update may replace it.
+  const replaced = replacedOn(earlierVersions(path, update), update.base);
+  const pendingState = pendingData === null ? null : entryState(pendingData);
+  const ours = pendingState !== null && sameState(pendingState, want);
+  const oursEarlier = pendingState !== null && replaced.some(version => sameState(pendingState, wantedState(version, liveData ?? undefined)));
   const liveHash = liveData ? entryHash(docsSite, slug, liveData) : null;
-  const matchesBase = update.base === NEW_ARTICLE ? !published && (!item || ours) : liveHash === update.base;
+  const liveReplaced = liveHash !== null && replaced.some(version => updateHash(docsSite, version) === liveHash);
+  const matchesBase = liveReplaced || (update.base === NEW_ARTICLE ? !published && (!item || ours || oursEarlier) : liveHash === update.base);
   if (!matchesBase) {
     const merged = mergedAt(path);
     if (item && merged && new Date(item.updatedAt) > merged) return { outcome: 'superseded', reason: 'the site has newer text than this update file (edited in the admin, or published by a later update), so it is left alone', ...revision };
@@ -133,7 +160,7 @@ async function reconcile(api, update, path) {
       ? 'This is a new article, but an article with the same address already exists on the site.'
       : 'The live article changed after this update was written, so publishing it would overwrite those edits. Run `npm run docs:pull` for the article, redo the change on the new text, and merge that.' };
   }
-  if (item && (item.draftRevisionId || !published) && !ours) return { outcome: 'problem', ...revision, reason: 'Unpublished edits are waiting in the admin. Publish or discard them there, then rerun the docs publish workflow.' };
+  if (item && (item.draftRevisionId || !published) && !ours && !oursEarlier) return { outcome: 'problem', ...revision, reason: 'Unpublished edits are waiting in the admin. Publish or discard them there, then rerun the docs publish workflow.' };
 
   let saved = entry;
   if (!ours) {
@@ -282,7 +309,7 @@ async function release(site, plugin, tag, from, dir) {
       const target = join(dir, `${article}.md`);
       const previous = readUpdate(target);
       const { hash: liveHash } = await live(site, article);
-      const update = releaseUpdate({ site: docsSite, plugin, article, source: readFileSync(sourcePath, 'utf8'), tag, date, previous, liveHash });
+      const update = releaseUpdate({ site: docsSite, plugin, article, source: readFileSync(sourcePath, 'utf8'), tag, date, previous, earlier: earlierVersions(target, previous), liveHash });
       if (update === previous) {
         console.log(`${article} already has ${repository} ${tag}`);
         continue;

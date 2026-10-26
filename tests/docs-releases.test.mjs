@@ -89,6 +89,13 @@ test('two releases while the first is still unpublished', () => {
   const second = release({ previous: first, liveHash: updateHash(docsSite, live), tag: 'v0.7.0' });
   assert.equal(second.base, first.base, 'the second release keeps the base the site still matches');
   assert.equal(second.version_scope, 'Commerce 0.7.0');
+  // The first one's publish then finishes, after the second replaced it: the site shows an earlier version on that base.
+  const shownFirst = updateHash(docsSite, first);
+  const third = release({ previous: second, earlier: [first, live], liveHash: shownFirst, tag: 'v0.8.0' });
+  assert.equal(third.base, second.base, 'a replaced version that went live late keeps the shared base, which the publisher accepts');
+  assert.equal(releaseBase(docsSite, 'reference/commerce', second, shownFirst), updateHash(docsSite, second), 'without the earlier versions it would build on the unpublished file and stop');
+  const older = { ...published('Commerce 0.4.0'), body: 'Older text.' };
+  assert.equal(releaseBase(docsSite, 'reference/commerce', second, updateHash(docsSite, older), [first, older]), updateHash(docsSite, second), 'a live version from another base (an older revision restored in the admin) is not a replaced one: Docs publish stops');
 });
 
 test('the same release again changes nothing', () => {

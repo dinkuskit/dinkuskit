@@ -5,6 +5,7 @@ import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { setTimeout as delay } from 'node:timers/promises';
 import { exportHash, parseUpdate, renderUpdate, updateHash } from '../src/docs/updates.ts';
+import { releaseBase } from '../src/docs/releases.ts';
 import { docsSite } from '../src/docs/site.ts';
 import { WORK, resetDatabase, start, unusedPort } from './lib/docs-preview.mjs';
 
@@ -14,8 +15,9 @@ import { WORK, resetDatabase, start, unusedPort } from './lib/docs-preview.mjs';
 // successful update, a failed publish and its recovery, a duplicate run, a
 // stale surface, admin edits that must not be overwritten (including a race
 // between the read and the save), a save whose Publish failed, a waiting draft
-// an editor touched, placement owned by the admin, a stale job,
-// version labels, and an unreachable site.
+// an editor touched, a release replacing an update whose Publish failed or
+// finished late, placement owned by the admin, a stale job, version labels,
+// and an unreachable site.
 const SCRIPT = new URL('./docs-sync.mjs', import.meta.url).pathname;
 const REPO = new URL('./docs-sync-repo/', WORK).pathname;
 
@@ -282,6 +284,66 @@ try {
   assert.match(run.output, /^PUBLISHED developers\/contribute/m);
   assert.equal(openIssue(contribute), undefined);
   console.log('PASS touched draft: an editor change to any field of the waiting draft stops recovery and nothing unreviewed is published; after a discard the update goes through');
+
+  // A plugin release replacing an update whose Publish failed (src/docs/releases.ts releaseBase): the earlier run's draft is replaced and the new release published.
+  const firstProduct = 'store-owners/first-product';
+  assert.equal((await sync(base, token, 'pull', firstProduct)).code, 0);
+  const releaseA = edit(firstProduct, update => ({ body: `${update.body}\n\n## Release A\n\nFirst.` }), 'Commerce 0.3.0');
+  await commit('Release A of the first-product article');
+  faults.publishFailures = 2;
+  run = await sync(base, token, 'publish', '--report');
+  assert.match(run.output, /^PROBLEM store-owners\/first-product: Saved as a draft, but publishing/m);
+  assert.ok((await api('GET', '/content/docs/first-product')).data.item.draftRevisionId, 'release A waits as a draft');
+  const releaseBBase = releaseBase(docsSite, firstProduct, releaseA, await liveHash(firstProduct));
+  assert.equal(releaseBBase, releaseA.base, 'the site still matches the base release A was written on');
+  const releaseB = edit(firstProduct, update => ({ base: releaseBBase, body: update.body.replace('## Release A\n\nFirst.', '## Release B\n\nSecond.') }), 'Commerce 0.4.0');
+  await commit('Release B of the first-product article');
+  run = await sync(base, token, 'publish', '--report');
+  assert.match(run.output, /^PUBLISHED store-owners\/first-product( \(revision [^)]+\))?$/m);
+  assert.equal(await liveHash(firstProduct), updateHash(docsSite, releaseB));
+  assert.ok(!(await api('GET', '/content/docs/first-product')).data.item.draftRevisionId, 'no draft is left waiting');
+  assert.equal(openIssue(firstProduct), undefined);
+  // The same, but an editor changed the waiting draft first: it is no earlier run's, so it stops and is kept.
+  const releaseCBase = releaseBase(docsSite, firstProduct, releaseB, await liveHash(firstProduct));
+  const releaseC = edit(firstProduct, update => ({ base: releaseCBase, body: `${update.body}\n\n## Release C\n\nThird.` }), 'Commerce 0.5.0');
+  assert.equal(releaseC.base, updateHash(docsSite, releaseB), 'release C builds on the published release B');
+  await commit('Release C of the first-product article');
+  faults.publishFailures = 2;
+  run = await sync(base, token, 'publish', '--report');
+  assert.match(run.output, /^PROBLEM store-owners\/first-product: Saved as a draft, but publishing/m);
+  const waitingC = (await api('GET', '/content/docs/first-product')).data.item;
+  assert.equal((await api('PUT', `/content/docs/${waitingC.id}`, { data: { summary: 'Edited by an editor.' } })).status, 200);
+  const releaseD = edit(firstProduct, update => ({ base: releaseBase(docsSite, firstProduct, releaseC, updateHash(docsSite, releaseB)), body: update.body.replace('## Release C\n\nThird.', '## Release D\n\nFourth.') }), 'Commerce 0.6.0');
+  assert.equal(releaseD.base, releaseC.base);
+  await commit('Release D of the first-product article');
+  run = await sync(base, token, 'publish', '--report');
+  assert.match(run.output, /^PROBLEM store-owners\/first-product: Unpublished edits are waiting in the admin/m);
+  assert.equal(await liveHash(firstProduct), updateHash(docsSite, releaseB), 'the live article is unchanged');
+  assert.equal((await api('GET', '/content/docs/first-product')).data.item.data.summary, 'Edited by an editor.', 'the editor\'s draft is kept');
+  assert.equal((await api('POST', `/content/docs/${waitingC.id}/discard-draft`, {})).status, 200);
+  run = await sync(base, token, 'publish', '--report');
+  assert.match(run.output, /^PUBLISHED store-owners\/first-product/m);
+  assert.equal(await liveHash(firstProduct), updateHash(docsSite, releaseD));
+  assert.equal(openIssue(firstProduct), undefined);
+  console.log('PASS replaced draft: a release replacing an update whose Publish failed replaces that run\'s draft and publishes; an editor-changed draft still stops it');
+
+  // A replaced update whose Publish lands after the next release read the live article: the next release still publishes.
+  const integrate = 'developers/integrate';
+  assert.equal((await sync(base, token, 'pull', integrate)).code, 0);
+  const lateA = edit(integrate, update => ({ body: `${update.body}\n\n## Release A\n\nFirst.` }), 'Commerce 0.3.0');
+  await commit('Release A of the integrate article');
+  const lateBase = releaseBase(docsSite, integrate, lateA, await liveHash(integrate));
+  assert.equal(lateBase, lateA.base, 'release B reads the site before release A is live');
+  run = await sync(base, token, 'publish', '--report');
+  assert.match(run.output, /^PUBLISHED developers\/integrate/m, 'release A\'s publish lands');
+  const lateB = edit(integrate, update => ({ base: lateBase, body: update.body.replace('## Release A\n\nFirst.', '## Release B\n\nSecond.') }), 'Commerce 0.4.0');
+  await commit('Release B of the integrate article');
+  assert.equal(releaseBase(docsSite, integrate, lateB, await liveHash(integrate), [lateA]), lateB.base, 'a release C read now keeps the same base');
+  run = await sync(base, token, 'publish', '--report');
+  assert.match(run.output, /^PUBLISHED developers\/integrate( \(revision [^)]+\))?$/m);
+  assert.equal(await liveHash(integrate), updateHash(docsSite, lateB));
+  assert.equal(openIssue(integrate), undefined);
+  console.log('PASS late publish: a replaced update that went live after the next release read the site is replaced by that release');
 
   // Sidebar name, section and order of an existing article belong to the admin: an update file that sets them is refused before anything is read or written.
   const commerce = 'reference/commerce';

@@ -38,12 +38,14 @@ A change that alters what an article says can travel as a pull request instead o
 | Already has every field of the file | Nothing. |
 | Still matches `base`, no unpublished admin edits | Saved with the `_rev` it was read with and published, then checked. An admin change after that read gets a 409 instead of being overwritten. |
 | Still matches `base`, and the waiting draft has exactly this update in every field, sidebar name and order included (an earlier Publish failed) | That draft is published. A draft an editor changed in any field stops it like any other admin draft. |
+| Still matches `base`, and the waiting draft is exactly an earlier version of this file on the same `base` (a release replaced an update whose Publish failed) | The draft is replaced with this update and published. A draft an editor changed in any field still stops it. |
+| Shows exactly an earlier version of this file on the same `base` (its Publish finished after a release replaced it) | Saved and published like the row above: an earlier run published that text, and an admin edit would not match it. |
 | Changed on the site after the file was merged | Left alone: the site has newer text. |
 | Changed before the merge, admin edits waiting, or a 409 | Stopped, nothing written, and one issue "Docs update stopped: <article id>" opened. It closes itself once the article is right. |
 
 After publishing, the workflow checks that the article page, its Markdown, `/docs/search.json` and `/llms.txt` all carry the update's content (title, summary, version scope and text), and tries once more before opening an issue. Issues name the commit the run checked out and the EmDash revision involved. The same run on the 1st and 15th of each month catches a publish that failed or lagged. Run it by hand from the Actions tab (**Run workflow**) after fixing a stopped article.
 
-The workflow signs in with a Cloudflare Access service token (`DOCS_PUBLISH_ACCESS_CLIENT_ID` and `DOCS_PUBLISH_ACCESS_CLIENT_SECRET` repository secrets; see `DEPLOY.md`) and acts as an EmDash Editor. Until both secrets are set it publishes nothing. `npm run test:docs-sync` (after `npm run build:docs-preview`) runs it against the docs preview with all articles published: an update, a failed publish and its recovery, a duplicate run, a stale surface, admin edits (including one landing mid-publish), a save whose Publish failed, a waiting draft an editor touched, placement owned by the admin, a stale run, version labels and an unreachable site.
+The workflow signs in with a Cloudflare Access service token (`DOCS_PUBLISH_ACCESS_CLIENT_ID` and `DOCS_PUBLISH_ACCESS_CLIENT_SECRET` repository secrets; see `DEPLOY.md`) and acts as an EmDash Editor. Until both secrets are set it publishes nothing. `npm run test:docs-sync` (after `npm run build:docs-preview`) runs it against the docs preview with all articles published: an update, a failed publish and its recovery, a duplicate run, a stale surface, admin edits (including one landing mid-publish), a save whose Publish failed, a waiting draft an editor touched, a release replacing an update whose Publish failed or finished late, placement owned by the admin, a stale run, version labels and an unreachable site.
 
 ## Plugin reference articles from releases
 
@@ -55,8 +57,11 @@ Only a stable release publishes. The plugin's release workflow presses **Docs fr
 | --- | --- |
 | Shows this repository's current update file | That file's hash: the release builds on it. |
 | Still shows what that file was written against (its publish failed or is waiting) | That file's own `base`: the release replaces the unpublished update and can still be applied. |
+| Shows an earlier version of that file on the same `base` (its publish finished after the file replaced it) | That file's own `base` too. |
 | Anything else (edited or unpublished in the admin) | The current file's hash, so Docs publish stops with an issue instead of overwriting the edit. |
 | Live, but no update file here | Refused: run `npm run docs:pull` and merge that first. |
+
+Docs publish replaces a waiting draft or a live article that is exactly one of the versions a release replaced on the same `base` (see the publish table above), so a failed or late publish never strands the next release; a draft an editor changed matches none of them and still stops it. Both workflows check out main's full history to read those versions.
 
 The workflow pushes the file to main without a second PR and always starts Docs publish, so rerunning it retries a publish that never started. Each plugin has its own queue (concurrency group), so releases of different plugins never drop each other. A plugin can write only its own articles, a beta tag is refused, an older release than the one published is refused, and the same release twice changes nothing. If a release cannot press the button, press it by hand from the Actions tab.
 

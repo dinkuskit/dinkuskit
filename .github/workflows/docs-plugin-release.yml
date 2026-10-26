@@ -21,8 +21,11 @@ on:
 
 permissions: {}
 
+# One queue per plugin: GitHub keeps only one waiting run per group, so a shared
+# group would drop one plugin's import when two others arrive together. Runs for
+# different plugins that push at once retry on the newer main below.
 concurrency:
-  group: docs-plugin-release
+  group: docs-plugin-release-${{ inputs.plugin }}
   cancel-in-progress: false
 
 jobs:
@@ -42,7 +45,6 @@ jobs:
         with:
           node-version-file: .nvmrc
       - name: Copy, commit and push
-        id: copy
         env:
           PLUGIN: ${{ inputs.plugin }}
           TAG: ${{ inputs.tag }}
@@ -60,8 +62,7 @@ jobs:
             : > "$RUNNER_TEMP/copy.out"
             GITHUB_OUTPUT="$RUNNER_TEMP/copy.out" node --experimental-strip-types scripts/docs-sync.mjs release "$PLUGIN" "$TAG"
             if ! grep -qx 'changed=true' "$RUNNER_TEMP/copy.out"; then
-              echo "::notice title=Docs from a plugin release::The site's update files already have $PLUGIN $TAG."
-              echo "pushed=false" >> "$GITHUB_OUTPUT"
+              echo "::notice title=Docs from a plugin release::The site's update files already have $PLUGIN $TAG; starting Docs publish in case an earlier run did not."
               exit 0
             fi
             commit=$(sed -n 's/^commit=//p' "$RUNNER_TEMP/copy.out")
@@ -69,7 +70,6 @@ jobs:
             git add docs/updates
             git commit --quiet -m "Docs: $articles from $PLUGIN $TAG" -m "Copied from dinkuskit/$PLUGIN docs/website at $TAG ($commit) by the Docs from a plugin release workflow."
             if git push --quiet "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" HEAD:main; then
-              echo "pushed=true" >> "$GITHUB_OUTPUT"
               echo "## Docs from $PLUGIN $TAG" >> "$GITHUB_STEP_SUMMARY"
               echo "Pushed $(git rev-parse --short HEAD) with $articles. Docs publish is starting." >> "$GITHUB_STEP_SUMMARY"
               exit 0
@@ -78,9 +78,10 @@ jobs:
           done
           echo "::error::Could not push to main after three tries."
           exit 1
-      # A push made with the workflow token starts no other workflow, so start Docs publish here.
+      # A push made with the workflow token starts no other workflow, so start Docs publish here,
+      # also when the files were already there: a rerun then retries a publish that never started.
+      # Docs publish leaves an article that is already live alone.
       - name: Start Docs publish
-        if: steps.copy.outputs.pushed == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh workflow run docs-publish.yml --repo "$GITHUB_REPOSITORY" --ref main

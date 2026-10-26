@@ -23,14 +23,16 @@
 //   node --experimental-strip-types scripts/docs-sync.mjs release <plugin> <tag> [--from <checkout>]
 //     Writes docs/updates/<article id>.md for each article the plugin publishes
 //     from docs/website/ in that plugin's stable release tag (GrillTrack
-//     decision website-docs-from-plugin-releases-086; src/docs/releases.ts).
-//     Reads the tag's GitHub release for its date and clones the tag unless
-//     --from names a checkout of it. Prints changed=true|false to GITHUB_OUTPUT.
+//     decision website-docs-from-plugin-releases-086; src/docs/releases.ts),
+//     on a base taken from the live article. Reads the tag's GitHub release
+//     for its date and clones the tag unless --from names a checkout of it.
+//     Prints changed=true|false to GITHUB_OUTPUT.
 //
-//   node --experimental-strip-types scripts/docs-sync.mjs versions [--report]
-//     Compares each plugin article's version_scope with the plugin's latest
-//     stable GitHub release. --report opens one issue per article that is
-//     behind and closes it once the article catches up.
+//   node --experimental-strip-types scripts/docs-sync.mjs versions [--url <site origin>] [--report]
+//     Compares each live plugin article's version scope with the plugin's
+//     latest stable GitHub release. --report opens one issue per article that
+//     is behind and closes it once the live article catches up; an article
+//     that cannot be read keeps its issue as it is and fails the run.
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync, appendFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -39,7 +41,7 @@ import { setTimeout as delay } from 'node:timers/promises';
 import { parseArgs } from 'node:util';
 import { markdownPath, searchRecord } from '../src/docs/catalog.ts';
 import { docsSite } from '../src/docs/site.ts';
-import { PLUGIN_ARTICLE_DIR, PLUGIN_DOCS, behindReleases, isPluginName, releaseUpdate, tagVersion } from '../src/docs/releases.ts';
+import { PLUGIN_ARTICLE_DIR, PLUGIN_DOCS, behindReleases, exportVersionScope, isPluginName, releaseUpdate, tagVersion } from '../src/docs/releases.ts';
 import { NEW_ARTICLE, articleSlug, entryHash, entryState, exportHash, parseUpdate, renderUpdate, sameState, updateArticle, updateData, updateFromExport, updateHash, wantedState } from '../src/docs/updates.ts';
 
 const COLLECTION = 'docs';
@@ -259,7 +261,7 @@ async function pull(base, article, dir) {
 const readUpdate = path => existsSync(path) ? parseUpdate(readFileSync(path, 'utf8'), relative(values.dir, path)) : undefined;
 
 /** A plugin's stable release: its date, and the tag's files from --from or a fresh clone. */
-async function release(plugin, tag, from, dir) {
+async function release(site, plugin, tag, from, dir) {
   if (!isPluginName(plugin)) throw new Error(`Unknown plugin ${plugin}; use ${Object.keys(PLUGIN_DOCS).join(', ')}`);
   if (!tagVersion(tag)) throw new Error(`${tag} is not a stable vX.Y.Z tag`);
   const { repository, articles } = PLUGIN_DOCS[plugin];
@@ -279,7 +281,8 @@ async function release(plugin, tag, from, dir) {
       if (!existsSync(sourcePath)) throw new Error(`${repository} ${tag} has no ${PLUGIN_ARTICLE_DIR}/${article}.md`);
       const target = join(dir, `${article}.md`);
       const previous = readUpdate(target);
-      const update = releaseUpdate({ site: docsSite, plugin, article, source: readFileSync(sourcePath, 'utf8'), tag, date, previous });
+      const { hash: liveHash } = await live(site, article);
+      const update = releaseUpdate({ site: docsSite, plugin, article, source: readFileSync(sourcePath, 'utf8'), tag, date, previous, liveHash });
       if (update === previous) {
         console.log(`${article} already has ${repository} ${tag}`);
         continue;
@@ -295,34 +298,47 @@ async function release(plugin, tag, from, dir) {
   if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, `changed=${changed.length > 0}\ncommit=${commit}\narticles=${changed.join(' ')}\n`);
 }
 
-/** Every plugin article whose version_scope trails its plugin's latest stable release. */
-async function versions(dir, reportIssues) {
+/** Every live plugin article whose version scope trails its plugin's latest stable release. */
+async function versions(site, reportIssues) {
   const latest = {};
   for (const [plugin, { repository }] of Object.entries(PLUGIN_DOCS)) {
     const found = await githubApi('GET', `/repos/${repository}/releases/latest`);
     if (tagVersion(found.tag_name) && !found.prerelease && !found.draft) latest[plugin] = found.tag_name;
     else console.log(`${repository}: the latest release ${found.tag_name} is not a stable vX.Y.Z release; skipped`);
   }
-  const updates = Object.values(PLUGIN_DOCS).flatMap(({ articles }) => articles.map(article => readUpdate(join(dir, `${article}.md`))).filter(Boolean));
-  const behind = behindReleases(updates, latest);
+  const liveScopes = {};
+  const unread = [];
+  for (const { articles } of Object.values(PLUGIN_DOCS)) {
+    for (const article of articles) {
+      try {
+        const now = await live(site, article);
+        liveScopes[article] = now.markdown === null ? null : exportVersionScope(now.markdown);
+      } catch (error) {
+        unread.push(article);
+        console.log(`UNREAD ${article}: ${error.message}; its issue is left as it is`);
+      }
+    }
+  }
+  const behind = behindReleases(liveScopes, latest);
   for (const item of behind) console.log(`BEHIND ${item.article}: says ${item.stated ?? 'no release'}, ${PLUGIN_DOCS[item.plugin].repository} released ${item.tag}`);
-  if (!behind.length) console.log(`Every plugin article names its latest stable release (${Object.entries(latest).map(([plugin, tag]) => `${plugin} ${tag}`).join(', ')}).`);
-  if (!reportIssues) return behind.length;
+  if (!behind.length && !unread.length) console.log(`Every live plugin article names its latest stable release (${Object.entries(latest).map(([plugin, tag]) => `${plugin} ${tag}`).join(', ')}).`);
+  if (!reportIssues) return behind.length + unread.length;
   const open = await openIssues(BEHIND_PREFIX);
   for (const [plugin, docs] of Object.entries(PLUGIN_DOCS)) {
     for (const article of docs.articles) {
       const title = `${BEHIND_PREFIX}${article}`;
+      if (!Object.hasOwn(liveScopes, article)) continue;
       const item = behind.find(entry => entry.article === article);
       const issue = open.find(entry => entry.title === title);
       if (item && !issue) {
-        await github('POST', '/issues', { title, body: `\`${article}\` describes ${item.stated ? `${docs.product} ${item.stated}` : 'no release'}, but ${docs.repository} released ${item.tag}.\n\nThe release should have pressed **Docs from a plugin release** here. Press it by hand from the Actions tab with plugin \`${plugin}\` and tag \`${item.tag}\`; it copies \`${PLUGIN_ARTICLE_DIR}/${article}.md\` from that tag and publishes it. If the tag has no such file, update \`docs/updates/${article}.md\` with \`npm run docs:pull\` and a PR.\n\nThis issue closes itself once the article names ${docs.product} ${item.latest} or later.` });
+        await github('POST', '/issues', { title, body: `The live \`${article}\` describes ${item.stated ? `${docs.product} ${item.stated}` : 'no release'}, but ${docs.repository} released ${item.tag}.\n\nThe release should have pressed **Docs from a plugin release** here. Press it by hand from the Actions tab with plugin \`${plugin}\` and tag \`${item.tag}\`; it copies \`${PLUGIN_ARTICLE_DIR}/${article}.md\` from that tag and publishes it. If \`docs/updates/${article}.md\` already names that release, check for an open \"Docs update stopped\" issue instead. If the tag has no such file, update \`docs/updates/${article}.md\` with \`npm run docs:pull\` and a PR.\n\nThis issue closes itself once the article names ${docs.product} ${item.latest} or later.` });
       } else if (!item && issue && latest[plugin]) {
-        await github('POST', `/issues/${issue.number}/comments`, { body: `Resolved: \`${article}\` now names ${docs.repository}'s latest stable release, ${latest[plugin]}.` });
+        await github('POST', `/issues/${issue.number}/comments`, { body: `Resolved: the live \`${article}\` now names ${docs.repository}'s latest stable release, ${latest[plugin]}.` });
         await github('PATCH', `/issues/${issue.number}`, { state: 'closed', state_reason: 'completed' });
       }
     }
   }
-  return 0;
+  return unread.length;
 }
 
 const { positionals, values } = parseArgs({ allowPositionals: true, options: {
@@ -340,10 +356,10 @@ if (positionals[0] === 'pull' && positionals[1]) {
   if (values.report) await report(results);
   if (problems && !values.report) process.exit(1);
 } else if (positionals[0] === 'release' && positionals[1] && positionals[2]) {
-  await release(positionals[1], positionals[2], values.from, values.dir);
+  await release(base, positionals[1], positionals[2], values.from, values.dir);
 } else if (positionals[0] === 'versions') {
-  if (await versions(values.dir, values.report)) process.exit(1);
+  if (await versions(base, values.report)) process.exit(1);
 } else {
-  console.error('Usage: docs-sync.mjs pull <article id> [--url <origin>] | publish [--url <origin>] [--report] | release <plugin> <tag> [--from <checkout>] | versions [--report]');
+  console.error('Usage: docs-sync.mjs pull <article id> [--url <origin>] | publish [--url <origin>] [--report] | release <plugin> <tag> [--from <checkout>] [--url <origin>] | versions [--url <origin>] [--report]');
   process.exit(2);
 }

@@ -28,7 +28,7 @@ The sidebar then shows a **Dinkus Commerce** folder with **Orders** and **Commer
 
 ## Connect Commerce first
 
-1. Open **Dinkus Commerce > Commerce settings** and press **Connect Commerce**.
+1. Open **Dinkus Commerce > Commerce settings**. Under **Connect Commerce**, press **Connect**.
 2. The page shows **Approve at DinkusKit.com** with a link. The business owner opens it, signs in at DinkusKit.com and presses **Approve**. Anyone helping can send the owner the same link.
 3. Back in Commerce settings, the page says it is connected to DinkusKit.com and names the Store ID.
 
@@ -36,8 +36,8 @@ Nothing is pasted. Commerce's Connect makes the store at DinkusKit.com and gives
 
 ## Connect Payments and Stripe
 
-1. Open **Payments status** to reach **Payment setup**. Select **Authorize Payments at DinkusKit** and press **Approve** at DinkusKit.com. The page brings you back and checks the approval on its own.
-2. If no processor is connected, the **Connect payments** step offers **Set up Stripe**. Complete Stripe's TEST setup; if Stripe needs more information, **Set up or resume Stripe** lists what is missing.
+1. Open **Payments status** to reach **Payment setup**, and press **Connect**. Select the **Authorize Payments at DinkusKit** link that appears and press **Approve** at DinkusKit.com. The page brings you back and checks the approval on its own.
+2. If no processor is connected, the **Connect payments** step asks you to set up Stripe: press **Set up or resume Stripe** and complete Stripe's TEST setup. Use the same button if Stripe needs more information; Stripe's setup lists what is missing.
 3. Press **Check connection**. A verified test connection shows **Connected: Stripe test mode**.
 
 If Payments says "Connect the Commerce plugin first.", finish the Commerce step above. See the [Payments reference](/docs/reference/payments) for the other messages.

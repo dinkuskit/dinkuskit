@@ -1,0 +1,92 @@
+name: Docs from a plugin release
+
+# A plugin's stable release presses this (GrillTrack decision
+# website-docs-from-plugin-releases-086). It copies the reference article the
+# plugin keeps in docs/website/ at that tag into docs/updates/, pushes it to
+# main with no second PR (the article was reviewed with the plugin's code),
+# then starts Docs publish, whose base/_rev guard still stops on admin edits.
+# It never replaces the plugin's previous release before that one is live: it
+# waits for it, and otherwise stops without writing anything (then press it
+# again once Docs publish has published the previous one).
+# Press it by hand from the Actions tab when a release could not.
+on:
+  workflow_dispatch:
+    inputs:
+      plugin:
+        description: 'The plugin that released'
+        required: true
+        type: choice
+        options: [commerce, payments, ship]
+      tag:
+        description: 'Its stable release tag, such as v0.6.0'
+        required: true
+        type: string
+
+permissions: {}
+
+# One queue per plugin: GitHub keeps only one waiting run per group, so a shared
+# group would drop one plugin's import when two others arrive together. Runs for
+# different plugins that push at once retry on the newer main below.
+concurrency:
+  group: docs-plugin-release-${{ inputs.plugin }}
+  cancel-in-progress: false
+
+jobs:
+  import:
+    name: Copy the release's reference article
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    permissions:
+      contents: write # push the update file to main
+      actions: write # start Docs publish
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          ref: main
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Copy, commit and push
+        env:
+          PLUGIN: ${{ inputs.plugin }}
+          TAG: ${{ inputs.tag }}
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          case "$TAG" in v[0-9]*.[0-9]*.[0-9]*) ;; *) echo "::error::$TAG is not a stable vX.Y.Z tag"; exit 1 ;; esac
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # Another push can land on main between the copy and the push; start again from the new main, up to three times.
+          for attempt in 1 2 3; do
+            git fetch --quiet origin main
+            git reset --quiet --hard origin/main
+            : > "$RUNNER_TEMP/copy.out"
+            GITHUB_OUTPUT="$RUNNER_TEMP/copy.out" node --experimental-strip-types scripts/docs-sync.mjs release "$PLUGIN" "$TAG" --wait 900
+            if ! grep -qx 'changed=true' "$RUNNER_TEMP/copy.out"; then
+              echo "::notice title=Docs from a plugin release::The site's update files already have $PLUGIN $TAG; starting Docs publish in case an earlier run did not."
+              exit 0
+            fi
+            commit=$(sed -n 's/^commit=//p' "$RUNNER_TEMP/copy.out")
+            articles=$(sed -n 's/^articles=//p' "$RUNNER_TEMP/copy.out")
+            git add docs/updates
+            git commit --quiet -m "Docs: $articles from $PLUGIN $TAG" -m "Copied from dinkuskit/$PLUGIN docs/website at $TAG ($commit) by the Docs from a plugin release workflow."
+            if git push --quiet "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" HEAD:main; then
+              echo "## Docs from $PLUGIN $TAG" >> "$GITHUB_STEP_SUMMARY"
+              echo "Pushed $(git rev-parse --short HEAD) with $articles. Docs publish is starting." >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+            echo "main moved during the push (attempt $attempt); trying again."
+          done
+          echo "::error::Could not push to main after three tries."
+          exit 1
+      # A push made with the workflow token starts no other workflow, so start Docs publish here,
+      # also when the files were already there (a rerun then retries a publish that never started)
+      # and when the import stopped because the previous release is not live yet (it gets another try).
+      # Docs publish leaves an article that is already live alone.
+      - name: Start Docs publish
+        if: ${{ !cancelled() }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run docs-publish.yml --repo "$GITHUB_REPOSITORY" --ref main

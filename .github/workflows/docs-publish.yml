@@ -2,6 +2,8 @@ name: Docs publish
 
 # Publishes merged doc updates (docs/updates/) to dinkuskit.com and checks the
 # published docs twice a month (GrillTrack decision website-docs-sync-077).
+# The same twice-monthly run also checks each plugin reference article against
+# that plugin's latest stable release (website-docs-from-plugin-releases-086).
 # Runs one at a time and never cancels, and always checks out the newest main,
 # so an older run cannot publish older text. Stopped articles become issues.
 on:
@@ -47,3 +49,23 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: node --experimental-strip-types scripts/docs-sync.mjs publish --report
+
+  versions:
+    name: Check plugin articles against their releases
+    # Twice a month and by hand. A release presses Docs from a plugin release;
+    # this catches one that did not. One issue per article that is behind.
+    if: github.event_name != 'push'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          ref: main
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Compare version scopes with the latest stable releases
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node --experimental-strip-types scripts/docs-sync.mjs versions --report

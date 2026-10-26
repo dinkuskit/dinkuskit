@@ -14,8 +14,9 @@ import { WORK, resetDatabase, start, unusedPort } from './lib/docs-preview.mjs';
 // successful update, a failed publish and its recovery, a duplicate run, a
 // stale surface, admin edits that must not be overwritten (including a race
 // between the read and the save), a save whose Publish failed, a waiting draft
-// an editor touched, placement owned by the admin, a stale job,
-// version labels, and an unreachable site.
+// an editor touched, plugin releases through the import (which never replaces
+// a previous release that is not live yet), placement owned by the admin, a
+// stale job, version labels, and an unreachable site.
 const SCRIPT = new URL('./docs-sync.mjs', import.meta.url).pathname;
 const REPO = new URL('./docs-sync-repo/', WORK).pathname;
 
@@ -38,6 +39,9 @@ const github = createServer(async (request, response) => {
     issues.push(issue);
     return send(201, issue);
   }
+  // A plugin's stable GitHub release, for docs-sync.mjs release.
+  const tagged = path.match(/^\/repos\/dinkuskit\/(commerce|payments|ship)\/releases\/tags\/(v[\d.]+)$/);
+  if (request.method === 'GET' && tagged) return send(200, { tag_name: tagged[2], draft: false, prerelease: false, published_at: '2026-10-26T12:00:00Z' });
   const match = path.match(/^\/issues\/(\d+)(\/comments)?$/);
   const issue = match && issues.find(item => item.number === Number(match[1]));
   if (issue && request.method === 'POST' && match[2]) { issue.comments.push(json.body); return send(201, {}); }
@@ -48,14 +52,15 @@ await once(github, 'listening');
 // Other open issues fill the first page, so the publisher's issues are found only by reading every page.
 for (let number = 1; number <= 120; number++) issues.push({ number, state: 'open', comments: [], title: `Unrelated issue ${number}` });
 
-const git = (...args) => execFileSync('git', args, { cwd: REPO, encoding: 'utf8', env: { ...process.env, GIT_AUTHOR_NAME: 'Test', GIT_AUTHOR_EMAIL: 'test@example.invalid', GIT_COMMITTER_NAME: 'Test', GIT_COMMITTER_EMAIL: 'test@example.invalid' } }).trim();
+const gitIn = cwd => (...args) => execFileSync('git', args, { cwd, encoding: 'utf8', env: { ...process.env, GIT_AUTHOR_NAME: 'Test', GIT_AUTHOR_EMAIL: 'test@example.invalid', GIT_COMMITTER_NAME: 'Test', GIT_COMMITTER_EMAIL: 'test@example.invalid' } }).trim();
+const git = gitIn(REPO);
 const file = article => `${REPO}docs/updates/${article}.md`;
 
 function sync(base, token, ...args) {
   return new Promise((resolve, reject) => {
     const child = spawn(process.execPath, ['--experimental-strip-types', SCRIPT, ...args, '--url', base], {
       cwd: REPO,
-      env: { ...process.env, EMDASH_TOKEN: token, CF_ACCESS_CLIENT_ID: '', GITHUB_TOKEN: 'test', GITHUB_REPOSITORY: 'dinkuskit/dinkuskit', GITHUB_API_URL: `http://127.0.0.1:${github.address().port}`, DOCS_SYNC_CHECK_TRIES: '3', DOCS_SYNC_CHECK_WAIT_MS: '200' },
+      env: { ...process.env, EMDASH_TOKEN: token, CF_ACCESS_CLIENT_ID: '', GITHUB_TOKEN: 'test', GITHUB_REPOSITORY: 'dinkuskit/dinkuskit', GITHUB_API_URL: `http://127.0.0.1:${github.address().port}`, DOCS_SYNC_CHECK_TRIES: '3', DOCS_SYNC_CHECK_WAIT_MS: '200', DOCS_SYNC_RELEASE_WAIT_MS: '200' },
       stdio: ['ignore', 'pipe', 'pipe'],
     });
     let output = '';
@@ -282,6 +287,79 @@ try {
   assert.match(run.output, /^PUBLISHED developers\/contribute/m);
   assert.equal(openIssue(contribute), undefined);
   console.log('PASS touched draft: an editor change to any field of the waiting draft stops recovery and nothing unreviewed is published; after a discard the update goes through');
+
+  // Plugin releases through the import, from a stand-in checkout of the plugin's tag: a release never replaces the previous one before it is live.
+  const paymentsArticle = 'reference/payments';
+  assert.equal((await sync(base, token, 'pull', paymentsArticle)).code, 0);
+  await commit('Start the Payments article from the site');
+  const pulledPayments = readFileSync(file(paymentsArticle), 'utf8');
+  const plugin = new URL('./docs-sync-plugin/', WORK).pathname;
+  rmSync(plugin, { recursive: true, force: true });
+  mkdirSync(`${plugin}docs/website/reference`, { recursive: true });
+  const pluginGit = gitIn(plugin);
+  pluginGit('init', '-q', '-b', 'main');
+  const pluginRelease = (tag, note, wait = '0') => {
+    writeFileSync(`${plugin}docs/website/reference/payments.md`, `${pulledPayments.replace(/^base: .*\n/m, '').replace(/^version_scope: .*$/m, 'version_scope: "Payments {{version}}"').trimEnd()}\n\n## In this release\n\n${note} (Payments {{version}}).\n`);
+    pluginGit('add', '-A');
+    pluginGit('commit', '-q', '--allow-empty', '-m', tag);
+    return sync(base, token, 'release', 'payments', tag, '--from', plugin, '--wait', wait);
+  };
+  const paymentsFile = () => parseUpdate(readFileSync(file(paymentsArticle), 'utf8'), 'reference/payments.md');
+  // Release A builds on the live article; its Publish fails after the save.
+  const paymentsBefore = await liveHash(paymentsArticle);
+  run = await pluginRelease('v0.5.0', 'First');
+  assert.equal(run.code, 0, run.output);
+  const paymentsA = paymentsFile();
+  assert.equal(paymentsA.base, paymentsBefore);
+  assert.equal(paymentsA.version_scope, 'Payments 0.5.0');
+  await commit('Docs: reference/payments from payments v0.5.0');
+  faults.publishFailures = 2;
+  run = await sync(base, token, 'publish', '--report');
+  assert.match(run.output, /^PROBLEM reference\/payments: Saved as a draft, but publishing/m);
+  // Release B waits for A, and stops without writing anything while A is not live.
+  run = await pluginRelease('v0.6.0', 'Second', '1');
+  assert.equal(run.code, 1, run.output);
+  assert.match(run.output, /reference\/payments: waiting for docs\/updates\/reference\/payments\.md \(Payments 0\.5\.0\) to go live/);
+  assert.match(run.output, /docs\/updates\/reference\/payments\.md \(Payments 0\.5\.0\) is not live yet, and v0\.6\.0 must not replace text the site never showed/);
+  assert.equal(renderUpdate(paymentsFile()), renderUpdate(paymentsA), 'release A\'s update file is kept');
+  assert.equal(await liveHash(paymentsArticle), paymentsBefore, 'the live article is unchanged');
+  assert.ok((await api('GET', '/content/docs/payments')).data.item.draftRevisionId, 'release A still waits as a draft');
+  // Docs publish then publishes A from its draft, and B goes through on top of it.
+  run = await sync(base, token, 'publish', '--report');
+  assert.match(run.output, /^PUBLISHED reference\/payments/m);
+  assert.equal(await liveHash(paymentsArticle), updateHash(docsSite, paymentsA));
+  run = await pluginRelease('v0.6.0', 'Second');
+  assert.equal(run.code, 0, run.output);
+  const paymentsB = paymentsFile();
+  assert.equal(paymentsB.base, updateHash(docsSite, paymentsA), 'release B builds on the live release A');
+  await commit('Docs: reference/payments from payments v0.6.0');
+  run = await sync(base, token, 'publish', '--report');
+  assert.match(run.output, /^PUBLISHED reference\/payments( \(revision [^)]+\))?$/m);
+  assert.equal(await liveHash(paymentsArticle), updateHash(docsSite, paymentsB));
+  assert.equal(openIssue(paymentsArticle), undefined);
+  // The same release again changes nothing.
+  run = await pluginRelease('v0.6.0', 'Second');
+  assert.equal(run.code, 0, run.output);
+  assert.match(run.output, /reference\/payments already has dinkuskit\/payments v0\.6\.0/);
+  assert.equal(renderUpdate(paymentsFile()), renderUpdate(paymentsB));
+  // A release that arrives while the previous one is still publishing waits for it, then builds on it.
+  run = await pluginRelease('v0.7.0', 'Third');
+  assert.equal(run.code, 0, run.output);
+  const paymentsC = paymentsFile();
+  await commit('Docs: reference/payments from payments v0.7.0');
+  const waitingRelease = pluginRelease('v0.8.0', 'Fourth', '60');
+  await delay(1500);
+  assert.match((await sync(base, token, 'publish', '--report')).output, /^PUBLISHED reference\/payments/m);
+  run = await waitingRelease;
+  assert.equal(run.code, 0, run.output);
+  assert.match(run.output, /waiting for docs\/updates\/reference\/payments\.md \(Payments 0\.7\.0\) to go live/);
+  const paymentsD = paymentsFile();
+  assert.equal(paymentsD.base, updateHash(docsSite, paymentsC), 'release D builds on release C once it is live');
+  await commit('Docs: reference/payments from payments v0.8.0');
+  run = await sync(base, token, 'publish', '--report');
+  assert.match(run.output, /^PUBLISHED reference\/payments/m);
+  assert.equal(await liveHash(paymentsArticle), updateHash(docsSite, paymentsD));
+  console.log('PASS plugin releases: a release waits for the previous one to go live and otherwise stops without writing; once it is live the next builds on it, and the same release twice changes nothing');
 
   // Sidebar name, section and order of an existing article belong to the admin: an update file that sets them is refused before anything is read or written.
   const commerce = 'reference/commerce';

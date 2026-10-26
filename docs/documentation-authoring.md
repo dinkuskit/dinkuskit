@@ -43,7 +43,26 @@ A change that alters what an article says can travel as a pull request instead o
 
 After publishing, the workflow checks that the article page, its Markdown, `/docs/search.json` and `/llms.txt` all carry the update's content (title, summary, version scope and text), and tries once more before opening an issue. Issues name the commit the run checked out and the EmDash revision involved. The same run on the 1st and 15th of each month catches a publish that failed or lagged. Run it by hand from the Actions tab (**Run workflow**) after fixing a stopped article.
 
-The workflow signs in with a Cloudflare Access service token (`DOCS_PUBLISH_ACCESS_CLIENT_ID` and `DOCS_PUBLISH_ACCESS_CLIENT_SECRET` repository secrets; see `DEPLOY.md`) and acts as an EmDash Editor. Until both secrets are set it publishes nothing. `npm run test:docs-sync` (after `npm run build:docs-preview`) runs it against the docs preview with all articles published: an update, a failed publish and its recovery, a duplicate run, a stale surface, admin edits (including one landing mid-publish), a save whose Publish failed, a waiting draft an editor touched, placement owned by the admin, a stale run, version labels and an unreachable site.
+The workflow signs in with a Cloudflare Access service token (`DOCS_PUBLISH_ACCESS_CLIENT_ID` and `DOCS_PUBLISH_ACCESS_CLIENT_SECRET` repository secrets; see `DEPLOY.md`) and acts as an EmDash Editor. Until both secrets are set it publishes nothing. `npm run test:docs-sync` (after `npm run build:docs-preview`) runs it against the docs preview with all articles published: an update, a failed publish and its recovery, a duplicate run, a stale surface, admin edits (including one landing mid-publish), a save whose Publish failed, a waiting draft an editor touched, plugin releases through the import (waiting for, and refusing to replace, a previous release that is not live yet), placement owned by the admin, a stale run, version labels and an unreachable site.
+
+## Plugin reference articles from releases
+
+Commerce, Payments and Ship keep their reference article beside their code, as `docs/website/reference/<plugin>.md`, and change it in the same PR as the behavior it describes (GrillTrack decision `website-docs-from-plugin-releases-086`). It is an update file without `base`; `version_scope` reads `Commerce {{version}}`, and `{{version}}` and `{{release_date}}` stand for the release that ships it. ClawSweeper records each plugin PR's docs as up to date, missing or not applicable; missing is a finding, not a block.
+
+Only a stable release publishes. The plugin's release workflow presses **Docs from a plugin release** here (`.github/workflows/docs-plugin-release.yml`) with the plugin and tag. `scripts/docs-sync.mjs release <plugin> <tag>` clones the tag, fills in the release's version and GitHub release date, and writes `docs/updates/reference/<plugin>.md` with `base` taken from the live article (`releaseBase` in `src/docs/releases.ts`):
+
+| Live article | `base` |
+| --- | --- |
+| Shows this repository's current update file | That file's hash: the release builds on it. |
+| Still shows what that file was written against (its publish is waiting or stopped) | None yet. The release waits up to 15 minutes for that update to go live, and otherwise stops without writing anything. Press it again once Docs publish has published the previous update; if it stopped, its "Docs update stopped" issue says why. |
+| Anything else (edited or unpublished in the admin) | The current file's hash, so Docs publish stops with an issue instead of overwriting the edit. |
+| Live, but no update file here | Refused: run `npm run docs:pull` and merge that first. |
+
+A release therefore only ever builds on text the site has shown. It never replaces an update that is still waiting, so a failed or late publish of the previous release cannot strand it, and Docs publish's rules above stay as they are. The workflow pushes the file to main without a second PR and always starts Docs publish, also when it stopped for a previous update that is not live yet, so rerunning it retries a publish that never started. Each plugin has its own queue (concurrency group), so releases of different plugins never drop each other. A plugin can write only its own articles, a beta tag is refused, an older release than the one published is refused, and the same release twice changes nothing. If a release cannot press the button, press it by hand from the Actions tab.
+
+The twice-monthly Docs publish run also compares each live plugin article's version scope (from its Markdown export) with the plugin's latest stable GitHub release (`docs-sync.mjs versions --report`) and opens one issue, "Docs behind release: <article id>", per article that is behind. It closes itself once the live article catches up, so an import whose publish stopped keeps it open. An article that cannot be read keeps its issue as it is and fails the run. This check is a stopgap until a daily docs agent keeps every article current.
+
+Articles that span plugins (start-here, the store-owner and developer guides, troubleshooting) stay here and change through `npm run docs:pull` and a PR as above.
 
 ## What reads the collection
 

@@ -19,17 +19,32 @@
 //     --report opens a GitHub issue per stopped article and closes it once the
 //     article is right (GITHUB_TOKEN, GITHUB_REPOSITORY), and exits 0 when
 //     every problem was reported.
+//
+//   node --experimental-strip-types scripts/docs-sync.mjs release <plugin> <tag> [--from <checkout>]
+//     Writes docs/updates/<article id>.md for each article the plugin publishes
+//     from docs/website/ in that plugin's stable release tag (GrillTrack
+//     decision website-docs-from-plugin-releases-086; src/docs/releases.ts).
+//     Reads the tag's GitHub release for its date and clones the tag unless
+//     --from names a checkout of it. Prints changed=true|false to GITHUB_OUTPUT.
+//
+//   node --experimental-strip-types scripts/docs-sync.mjs versions [--report]
+//     Compares each plugin article's version_scope with the plugin's latest
+//     stable GitHub release. --report opens one issue per article that is
+//     behind and closes it once the article catches up.
 import { execFileSync } from 'node:child_process';
-import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync, appendFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { dirname, join, relative } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
 import { parseArgs } from 'node:util';
 import { markdownPath, searchRecord } from '../src/docs/catalog.ts';
 import { docsSite } from '../src/docs/site.ts';
+import { PLUGIN_ARTICLE_DIR, PLUGIN_DOCS, behindReleases, isPluginName, releaseUpdate, tagVersion } from '../src/docs/releases.ts';
 import { NEW_ARTICLE, articleSlug, entryHash, entryState, exportHash, parseUpdate, renderUpdate, sameState, updateArticle, updateData, updateFromExport, updateHash, wantedState } from '../src/docs/updates.ts';
 
 const COLLECTION = 'docs';
 const ISSUE_PREFIX = 'Docs update stopped: ';
+const BEHIND_PREFIX = 'Docs behind release: ';
 const checkTries = Number(process.env.DOCS_SYNC_CHECK_TRIES ?? 6);
 const checkWaitMs = Number(process.env.DOCS_SYNC_CHECK_WAIT_MS ?? 5000);
 
@@ -190,16 +205,16 @@ async function publishAll(base, dir) {
   return results;
 }
 
-async function github(method, path, body) {
+async function githubApi(method, path, body) {
   const api = process.env.GITHUB_API_URL ?? 'https://api.github.com';
-  const response = await fetch(`${api}/repos/${process.env.GITHUB_REPOSITORY}${path}`, {
-    method,
-    headers: { authorization: `Bearer ${process.env.GITHUB_TOKEN}`, accept: 'application/vnd.github+json', 'content-type': 'application/json' },
-    body: body && JSON.stringify(body),
-  });
+  const headers = { accept: 'application/vnd.github+json', 'content-type': 'application/json', 'user-agent': 'dinkuskit-docs-sync' };
+  if (process.env.GITHUB_TOKEN) headers.authorization = `Bearer ${process.env.GITHUB_TOKEN}`;
+  const response = await fetch(`${api}${path}`, { method, headers, body: body && JSON.stringify(body) });
   if (!response.ok) throw new Error(`GitHub ${method} ${path}: HTTP ${response.status}`);
   return response.json();
 }
+
+const github = (method, path, body) => githubApi(method, `/repos/${process.env.GITHUB_REPOSITORY}${path}`, body);
 
 /** The commit the run actually checked out, which the workflow keeps at the newest main (GITHUB_SHA is the triggering commit). */
 function sourceCommit() {
@@ -207,13 +222,18 @@ function sourceCommit() {
 }
 
 /** One open issue per stopped article; closed once the article is right. */
-async function report(results) {
+async function openIssues(prefix) {
   const open = [];
   for (let page = 1; ; page++) {
     const batch = await github('GET', `/issues?state=open&per_page=100&page=${page}`);
-    open.push(...batch.filter(issue => !issue.pull_request && issue.title.startsWith(ISSUE_PREFIX)));
+    open.push(...batch.filter(issue => !issue.pull_request && issue.title.startsWith(prefix)));
     if (batch.length < 100) break;
   }
+  return open;
+}
+
+async function report(results) {
+  const open = await openIssues(ISSUE_PREFIX);
   const commit = sourceCommit() ? ` at ${sourceCommit().slice(0, 7)}` : '';
   for (const result of results) {
     const title = `${ISSUE_PREFIX}${result.article}`;
@@ -236,8 +256,77 @@ async function pull(base, article, dir) {
   console.log(`Wrote ${relative(process.cwd(), target)} from ${base.origin}${markdownPath(article)}. Edit it, then open a PR.`);
 }
 
+const readUpdate = path => existsSync(path) ? parseUpdate(readFileSync(path, 'utf8'), relative(values.dir, path)) : undefined;
+
+/** A plugin's stable release: its date, and the tag's files from --from or a fresh clone. */
+async function release(plugin, tag, from, dir) {
+  if (!isPluginName(plugin)) throw new Error(`Unknown plugin ${plugin}; use ${Object.keys(PLUGIN_DOCS).join(', ')}`);
+  if (!tagVersion(tag)) throw new Error(`${tag} is not a stable vX.Y.Z tag`);
+  const { repository, articles } = PLUGIN_DOCS[plugin];
+  const published = await githubApi('GET', `/repos/${repository}/releases/tags/${tag}`);
+  if (published.draft || published.prerelease) throw new Error(`${repository} ${tag} is not a published stable release`);
+  const date = new Date(published.published_at);
+  let checkout = from;
+  if (!checkout) {
+    checkout = mkdtempSync(join(tmpdir(), 'docs-release-'));
+    execFileSync('git', ['clone', '--quiet', '--depth', '1', '--branch', tag, `https://github.com/${repository}.git`, checkout], { stdio: ['ignore', 'ignore', 'inherit'] });
+  }
+  const commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: checkout, encoding: 'utf8' }).trim();
+  const changed = [];
+  try {
+    for (const article of articles) {
+      const sourcePath = join(checkout, PLUGIN_ARTICLE_DIR, `${article}.md`);
+      if (!existsSync(sourcePath)) throw new Error(`${repository} ${tag} has no ${PLUGIN_ARTICLE_DIR}/${article}.md`);
+      const target = join(dir, `${article}.md`);
+      const previous = readUpdate(target);
+      const update = releaseUpdate({ site: docsSite, plugin, article, source: readFileSync(sourcePath, 'utf8'), tag, date, previous });
+      if (update === previous) {
+        console.log(`${article} already has ${repository} ${tag}`);
+        continue;
+      }
+      mkdirSync(dirname(target), { recursive: true });
+      writeFileSync(target, renderUpdate(update));
+      changed.push(article);
+      console.log(`Wrote ${relative(process.cwd(), target)} from ${repository} ${tag} (${commit.slice(0, 7)})`);
+    }
+  } finally {
+    if (!from) rmSync(checkout, { recursive: true, force: true });
+  }
+  if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, `changed=${changed.length > 0}\ncommit=${commit}\narticles=${changed.join(' ')}\n`);
+}
+
+/** Every plugin article whose version_scope trails its plugin's latest stable release. */
+async function versions(dir, reportIssues) {
+  const latest = {};
+  for (const [plugin, { repository }] of Object.entries(PLUGIN_DOCS)) {
+    const found = await githubApi('GET', `/repos/${repository}/releases/latest`);
+    if (tagVersion(found.tag_name) && !found.prerelease && !found.draft) latest[plugin] = found.tag_name;
+    else console.log(`${repository}: the latest release ${found.tag_name} is not a stable vX.Y.Z release; skipped`);
+  }
+  const updates = Object.values(PLUGIN_DOCS).flatMap(({ articles }) => articles.map(article => readUpdate(join(dir, `${article}.md`))).filter(Boolean));
+  const behind = behindReleases(updates, latest);
+  for (const item of behind) console.log(`BEHIND ${item.article}: says ${item.stated ?? 'no release'}, ${PLUGIN_DOCS[item.plugin].repository} released ${item.tag}`);
+  if (!behind.length) console.log(`Every plugin article names its latest stable release (${Object.entries(latest).map(([plugin, tag]) => `${plugin} ${tag}`).join(', ')}).`);
+  if (!reportIssues) return behind.length;
+  const open = await openIssues(BEHIND_PREFIX);
+  for (const [plugin, docs] of Object.entries(PLUGIN_DOCS)) {
+    for (const article of docs.articles) {
+      const title = `${BEHIND_PREFIX}${article}`;
+      const item = behind.find(entry => entry.article === article);
+      const issue = open.find(entry => entry.title === title);
+      if (item && !issue) {
+        await github('POST', '/issues', { title, body: `\`${article}\` describes ${item.stated ? `${docs.product} ${item.stated}` : 'no release'}, but ${docs.repository} released ${item.tag}.\n\nThe release should have pressed **Docs from a plugin release** here. Press it by hand from the Actions tab with plugin \`${plugin}\` and tag \`${item.tag}\`; it copies \`${PLUGIN_ARTICLE_DIR}/${article}.md\` from that tag and publishes it. If the tag has no such file, update \`docs/updates/${article}.md\` with \`npm run docs:pull\` and a PR.\n\nThis issue closes itself once the article names ${docs.product} ${item.latest} or later.` });
+      } else if (!item && issue && latest[plugin]) {
+        await github('POST', `/issues/${issue.number}/comments`, { body: `Resolved: \`${article}\` now names ${docs.repository}'s latest stable release, ${latest[plugin]}.` });
+        await github('PATCH', `/issues/${issue.number}`, { state: 'closed', state_reason: 'completed' });
+      }
+    }
+  }
+  return 0;
+}
+
 const { positionals, values } = parseArgs({ allowPositionals: true, options: {
-  url: { type: 'string' }, dir: { type: 'string', default: 'docs/updates' }, report: { type: 'boolean', default: false },
+  url: { type: 'string' }, dir: { type: 'string', default: 'docs/updates' }, report: { type: 'boolean', default: false }, from: { type: 'string' },
 } });
 const base = siteOrigin(values.url);
 if (positionals[0] === 'pull' && positionals[1]) {
@@ -250,7 +339,11 @@ if (positionals[0] === 'pull' && positionals[1]) {
   const problems = results.filter(result => result.outcome === 'problem').length;
   if (values.report) await report(results);
   if (problems && !values.report) process.exit(1);
+} else if (positionals[0] === 'release' && positionals[1] && positionals[2]) {
+  await release(positionals[1], positionals[2], values.from, values.dir);
+} else if (positionals[0] === 'versions') {
+  if (await versions(values.dir, values.report)) process.exit(1);
 } else {
-  console.error('Usage: docs-sync.mjs pull <article id> [--url <origin>] | publish [--url <origin>] [--report]');
+  console.error('Usage: docs-sync.mjs pull <article id> [--url <origin>] | publish [--url <origin>] [--report] | release <plugin> <tag> [--from <checkout>] | versions [--report]');
   process.exit(2);
 }

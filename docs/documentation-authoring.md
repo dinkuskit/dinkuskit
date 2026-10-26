@@ -45,6 +45,16 @@ After publishing, the workflow checks that the article page, its Markdown, `/doc
 
 The workflow signs in with a Cloudflare Access service token (`DOCS_PUBLISH_ACCESS_CLIENT_ID` and `DOCS_PUBLISH_ACCESS_CLIENT_SECRET` repository secrets; see `DEPLOY.md`) and acts as an EmDash Editor. Until both secrets are set it publishes nothing. `npm run test:docs-sync` (after `npm run build:docs-preview`) runs it against the docs preview with all articles published: an update, a failed publish and its recovery, a duplicate run, a stale surface, admin edits (including one landing mid-publish), a save whose Publish failed, a waiting draft an editor touched, placement owned by the admin, a stale run, version labels and an unreachable site.
 
+## Plugin reference articles from releases
+
+Commerce, Payments and Ship keep their reference article beside their code, as `docs/website/reference/<plugin>.md`, and change it in the same PR as the behavior it describes (GrillTrack decision `website-docs-from-plugin-releases-086`). It is an update file without `base`; `version_scope` reads `Commerce {{version}}`, and `{{version}}` and `{{release_date}}` stand for the release that ships it. ClawSweeper records each plugin PR's docs as up to date, missing or not applicable; missing is a finding, not a block.
+
+Only a stable release publishes. The plugin's release workflow presses **Docs from a plugin release** here (`.github/workflows/docs-plugin-release.yml`) with the plugin and tag. `scripts/docs-sync.mjs release <plugin> <tag>` clones the tag, fills in the release's version and GitHub release date, sets `base` to the hash of this repository's current update file for the article (what Docs publish last made live), and writes `docs/updates/reference/<plugin>.md`. The workflow pushes that to main without a second PR and starts Docs publish, so an admin edit made since the last publish still stops it with an issue. A plugin can write only its own articles (`src/docs/releases.ts`), a beta tag is refused, an older release than the one published is refused, and the same release twice changes nothing. If a release cannot press the button, press it by hand from the Actions tab.
+
+The twice-monthly Docs publish run also compares each plugin article's `version_scope` with the plugin's latest stable GitHub release (`docs-sync.mjs versions --report`) and opens one issue, "Docs behind release: <article id>", per article that is behind. It closes itself once the article catches up. This check is a stopgap until a daily docs agent keeps every article current.
+
+Articles that span plugins (start-here, the store-owner and developer guides, troubleshooting) stay here and change through `npm run docs:pull` and a PR as above.
+
 ## What reads the collection
 
 `getPublicDocs()` in `src/docs/content.ts` returns published entries only. `getVisibleDocs()` adds drafts only in Astro's local development server; there is no request parameter or deployment setting that shows drafts in production. Every surface reads one of those two lists:

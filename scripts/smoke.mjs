@@ -239,6 +239,13 @@ try {
     assert.ok(html.includes('data-native-blocks'), `${path}: native blocks wrapper`);
     assert.ok(html.includes(body), `${path}: native block content rendered`);
     checks.push(`${path}: seeded CMS title and native block content on production workerd`);
+    if (path === '/') {
+      assert.ok(html.includes('First-party assistants are optional'), 'Home describes assistants as optional');
+      assert.ok(html.includes('Start assistant access read-only'), 'Home states the read-only starting posture');
+      assert.ok(html.includes('Available actions depend on your installed products and integrations'), 'Home bounds actions by supported capabilities');
+      assert.ok(!html.includes('one chat box'), 'Home does not promise universal actions from one chat box');
+      checks.push('Home renders optional assistants, read-only start and supported-capability limits');
+    }
     if (path === '/getting-started') {
       assert.ok(
         html.includes('href="https://docs.emdashcms.com/getting-started/"')

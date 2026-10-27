@@ -522,5 +522,9 @@
       "bytes": 751286,
       "sha256": "f83896b79e363eeabb9fa195a753dcaef8a9b15cb424e1d3368b6425b0519be0"
     }
-  ]
+  ],
+  "archiveGitCommit": "bf74c29e0d3f5a0201572211a4496d8f7ff85bcf",
+  "archiveGitPath": "proof/guide-pilot/history/pre-cleanup.tar.gz",
+  "archiveGitBlob": "b0856a1eea37e3edd2b4f0d3242128741cf7c484",
+  "archiveRetainedRef": "refs/tags/archive/pr-100-history-package-20261027"
 }

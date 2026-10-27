@@ -21,6 +21,8 @@ def require(condition, message):
 
 
 def verify(manifest_path=MANIFEST, check_git=False):
+    def git(*args):
+        return subprocess.check_output(["git", *args], cwd=ROOT)
     manifest = json.loads(Path(manifest_path).read_text())
     require(manifest.get("schema") == "dinkuskit.history-archive.v1", "Unknown archive schema")
     require(manifest.get("archive") == "pre-cleanup.tar.gz", "Unexpected archive name")
@@ -36,7 +38,15 @@ def verify(manifest_path=MANIFEST, check_git=False):
         require(re.fullmatch(r"[0-9a-f]{64}", item.get("sha256", "")), "Invalid file hash")
         require(type(item.get("bytes")) is int and 0 <= item["bytes"] <= MAX_BYTES, "Invalid file size")
         expected[path] = item
-    archive = (Path(manifest_path).parent / manifest["archive"]).read_bytes()
+    archive_commit = manifest.get("archiveGitCommit")
+    if archive_commit is not None:
+        require(re.fullmatch(r"[0-9a-f]{40}", archive_commit), "Invalid archive commit")
+        require(manifest.get("archiveGitPath") == "proof/guide-pilot/history/pre-cleanup.tar.gz", "Invalid archive Git path")
+        blob = git("rev-parse", archive_commit + ":" + manifest["archiveGitPath"]).decode().strip()
+        require(blob == manifest.get("archiveGitBlob"), "Archive Git blob mismatch")
+        archive = git("cat-file", "blob", blob)
+    else:
+        archive = (Path(manifest_path).parent / manifest["archive"]).read_bytes()
     require(len(archive) == manifest["archiveBytes"] and len(archive) <= MAX_BYTES, "Archive size mismatch")
     require(hashlib.sha256(archive).hexdigest() == manifest["archiveSha256"], "Archive digest mismatch")
     with gzip.GzipFile(fileobj=io.BytesIO(archive)) as zipped:
@@ -53,8 +63,6 @@ def verify(manifest_path=MANIFEST, check_git=False):
             actual[member.name] = data
     require(set(actual) == set(expected), "Missing archive members")
     if check_git:
-        def git(*args):
-            return subprocess.check_output(["git", *args], cwd=ROOT)
         source = manifest["sourceCommit"]
         require(git("rev-parse", source + ":.grilltrack").decode().strip() == manifest["sourceTree"], "Source tree mismatch")
         entries = git("ls-tree", "-r", "-z", source, "--", ".grilltrack").split(b"\0")
@@ -68,6 +76,10 @@ def verify(manifest_path=MANIFEST, check_git=False):
             source_paths.add(path)
         require(source_paths == set(actual), "Source inventory mismatch")
         git("merge-base", "--is-ancestor", source, "HEAD")
+        require(git("rev-parse", manifest["retainedRef"] + "^{commit}").decode().strip() == source, "Original history tag mismatch")
+        if archive_commit is not None:
+            git("merge-base", "--is-ancestor", archive_commit, "HEAD")
+            require(git("rev-parse", manifest["archiveRetainedRef"] + "^{commit}").decode().strip() == archive_commit, "Archive tag mismatch")
     return {"files": len(actual), "rawBytes": sum(map(len, actual.values())), "archiveBytes": len(archive),
             "archiveSha256": manifest["archiveSha256"], "sourceCommit": manifest["sourceCommit"], "gitSourceVerified": check_git}
 

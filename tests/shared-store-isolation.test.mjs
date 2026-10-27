@@ -447,7 +447,7 @@ test('checkout settings: the exact JSON Commerce takes, with Coupons and Ship on
   const f = await fixture(); try {
     const { siteId, owner } = await storeWithKey(f);
     const settings = await saveCommerceSettings(f.db, { ...owner, choices: { shippingMode: 'flat', shippingMinor: 500, live: false } });
-    assert.deepEqual(settings, { shippingMode: 'flat', shippingMinor: 500, shippingRevision: 1, live: false });
+    assert.deepEqual(settings, { shippingMode: 'flat', shippingMinor: 500, freeOverMinor: null, shippingRevision: 1, live: false });
     const status = statusFrom(f, { status: 200, body: stripeStatus });
     const payments = await readPaymentsBinding({ db: f.db, subject: 'org-a', siteId, privateJwkJson: JSON.stringify(f.keys.privateJwk), fetchStatus: status.fetchStatus });
     assert.deepEqual(payments, { ok: true, binding: { providerId: 'stripe', bindingRef: 'bind_test_1', stripeAccountId: 'acct_1TestAccount', ready: true } });
@@ -473,13 +473,26 @@ test('checkout settings: the exact JSON Commerce takes, with Coupons and Ship on
     // The shipping revision goes up only when the charge changes.
     const save = choices => saveCommerceSettings(f.db, { ...owner, choices });
     assert.equal((await save({ shippingMode: 'flat', shippingMinor: 500, live: false })).shippingRevision, 1);
-    assert.deepEqual(await save({ shippingMode: 'flat', shippingMinor: 500, live: true }), { shippingMode: 'flat', shippingMinor: 500, shippingRevision: 1, live: true });
+    assert.deepEqual(await save({ shippingMode: 'flat', shippingMinor: 500, live: true }), { shippingMode: 'flat', shippingMinor: 500, freeOverMinor: null, shippingRevision: 1, live: true });
     assert.equal((await save({ shippingMode: 'flat', shippingMinor: 650, live: true })).shippingRevision, 2);
     const free = await save({ shippingMode: 'free', shippingMinor: 650, live: true });
-    assert.deepEqual(free, { shippingMode: 'free', shippingMinor: 0, shippingRevision: 3, live: true }, 'free shipping keeps no amount');
+    assert.deepEqual(free, { shippingMode: 'free', shippingMinor: 0, freeOverMinor: null, shippingRevision: 3, live: true }, 'free shipping keeps no amount');
     const live = JSON.parse(checkoutSettingsJson({ siteId, siteOrigin: 'https://store.example.test', binding: payments.binding, settings: free, coupons: false, ship: false }));
     assert.equal(live.mode, 'live'); assert.deepEqual(live.shipping, { configurationId: `shipping-${siteId}`, revision: 3, mode: 'free' });
     assert.deepEqual(await loadCommerceSettings(f.db, siteId), free);
+
+    // checkout-free-shipping-over-20261027: a flat charge may be free over an amount, sent only to a Commerce that asks.
+    const over = await save({ shippingMode: 'flat', shippingMinor: 650, freeOverMinor: 7500, live: true });
+    assert.deepEqual(over, { shippingMode: 'flat', shippingMinor: 650, freeOverMinor: 7500, shippingRevision: 4, live: true });
+    const json = freeOver => JSON.parse(checkoutSettingsJson({ siteId, siteOrigin: 'https://store.example.test', binding: payments.binding, settings: over, coupons: false, ship: false, freeOver })).shipping;
+    assert.deepEqual(json(true), { configurationId: `shipping-${siteId}`, revision: 4, mode: 'flat', amount: { currency: 'USD', minor: '650' }, freeOver: { currency: 'USD', minor: '7500' } });
+    assert.deepEqual(json(undefined), { configurationId: `shipping-${siteId}`, revision: 4, mode: 'flat', amount: { currency: 'USD', minor: '650' } }, 'an older Commerce never sees it');
+    assert.equal((await save({ shippingMode: 'flat', shippingMinor: 650, freeOverMinor: 7500, live: false })).shippingRevision, 4, 'unchanged amount, same revision');
+    assert.equal((await save({ shippingMode: 'flat', shippingMinor: 650, freeOverMinor: 9000, live: false })).shippingRevision, 5, 'a new amount is a new revision');
+    assert.deepEqual(await save({ shippingMode: 'free', shippingMinor: 0, freeOverMinor: 9000, live: false }), { shippingMode: 'free', shippingMinor: 0, freeOverMinor: null, shippingRevision: 6, live: false }, 'free shipping keeps no free-shipping amount');
+    for (const freeOverMinor of [0, -5, 1.5, 100_000_01]) {
+      assert.equal(await save({ shippingMode: 'flat', shippingMinor: 650, freeOverMinor, live: false }), null, String(freeOverMinor));
+    }
 
     const authorizeNet = await readPaymentsBinding({ db: f.db, subject: 'org-a', siteId, privateJwkJson: JSON.stringify(f.keys.privateJwk),
       fetchStatus: statusFrom(f, { status: 200, body: { state: 'pending', bindingRef: 'bind_test_2', connectionEvidence: { provider: 'authorize_net', accountRef: 'ignored' } } }).fetchStatus });

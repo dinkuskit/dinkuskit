@@ -1,5 +1,5 @@
 import { CURRENT_MERCHANT_SCHEMA_VERSION } from './config.ts';
-import { SQL_0001 as sql0001, SQL_0002 as sql0002, SQL_0003 as sql0003, SQL_0004 as sql0004, SQL_0005 as sql0005, SQL_0006 as sql0006, SQL_0007 as sql0007, SQL_0008 as sql0008, SQL_0009 as sql0009, SQL_0010 as sql0010, SQL_0011 as sql0011, SQL_0012 as sql0012, SQL_0013 as sql0013, SQL_0014 as sql0014 } from './migration-sql.ts';
+import { SQL_0001 as sql0001, SQL_0002 as sql0002, SQL_0003 as sql0003, SQL_0004 as sql0004, SQL_0005 as sql0005, SQL_0006 as sql0006, SQL_0007 as sql0007, SQL_0008 as sql0008, SQL_0009 as sql0009, SQL_0010 as sql0010, SQL_0011 as sql0011, SQL_0012 as sql0012, SQL_0013 as sql0013, SQL_0014 as sql0014, SQL_0015 as sql0015 } from './migration-sql.ts';
 
 type Migration = { version: number; name: string; sql: string };
 
@@ -18,6 +18,7 @@ export const MERCHANT_MIGRATIONS: readonly Migration[] = [
   { version: 12, name: '0012_ship_sign_in.sql', sql: sql0012 },
   { version: 13, name: '0013_ship_recipient.sql', sql: sql0013 },
   { version: 14, name: '0014_plugin_keys.sql', sql: sql0014 },
+  { version: 15, name: '0015_free_shipping_over.sql', sql: sql0015 },
 ];
 
 const LEDGER_DDL = 'CREATE TABLE IF NOT EXISTS dinkuskit_schema_migrations (version INTEGER PRIMARY KEY, name TEXT NOT NULL, applied_at INTEGER NOT NULL)';
@@ -49,6 +50,7 @@ async function recordedMerchantSchemaVersion(db: D1Database): Promise<number | n
 }
 
 async function detectedAppliedMerchantSchemaVersion(db: D1Database): Promise<number> {
+  if (await columnExists(db, 'dinkuskit_commerce_settings', 'shipping_free_over_minor')) return 15;
   if (await tableExists(db, 'dinkuskit_plugin_key')) return 14;
   if (await columnExists(db, 'dinkuskit_ship_sign_in', 'ship_mode') && await columnExists(db, 'dinkuskit_ship_sign_in_code', 'ship_mode')) return 13;
   if (await tableExists(db, 'dinkuskit_ship_sign_in')) return 12;
@@ -96,19 +98,20 @@ async function recordAppliedMerchantVersions(db: D1Database, upTo: number, now: 
 
 /**
  * The recorded version when the full check below would change nothing, found in one batched read and
- * no writes: the ledger lists every migration and the table the latest one adds exists (the first
+ * no writes: the ledger lists every migration and the column the latest one adds exists (the first
  * thing detectedAppliedMerchantSchemaVersion checks). Otherwise null.
  */
 async function settledMerchantSchemaVersion(db: D1Database): Promise<number | null> {
   const results = await db.batch([
     db.prepare('SELECT MAX(version) AS v, COUNT(*) FILTER (WHERE version BETWEEN 1 AND ?) AS n FROM dinkuskit_schema_migrations')
       .bind(CURRENT_MERCHANT_SCHEMA_VERSION),
-    db.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'dinkuskit_plugin_key'"),
+    // ADD COLUMN rewrites the table's CREATE text, so it names the new column once applied.
+    db.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'dinkuskit_commerce_settings' AND sql LIKE '%shipping_free_over_minor%'"),
   ]).catch(() => null) as { results?: { v?: number | null; n?: number; name?: string }[] }[] | null;
   // No ledger yet; the full check creates it.
   if (!results) return null;
-  const [[recorded], pluginKeys] = results.map(result => result.results ?? []);
-  return Number(recorded?.n) === CURRENT_MERCHANT_SCHEMA_VERSION && pluginKeys.length === 1 ? Number(recorded?.v) : null;
+  const [[recorded], latest] = results.map(result => result.results ?? []);
+  return Number(recorded?.n) === CURRENT_MERCHANT_SCHEMA_VERSION && latest.length === 1 ? Number(recorded?.v) : null;
 }
 
 export async function applyPendingMerchantMigrations(db: D1Database): Promise<{ from: number; to: number }> {

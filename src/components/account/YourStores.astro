@@ -109,6 +109,11 @@ const serviceNote = (binding: { revoked: boolean; revokedBy: string | null }) =>
                   <label><input type="radio" name="shipping_mode" value="flat" checked={saved.get(store.siteId)?.shippingMode === 'flat'} /> Flat amount in dollars</label>
                   <input type="text" name="shipping_amount" inputmode="decimal" aria-label="Flat shipping charge in dollars"
                     value={saved.get(store.siteId)?.shippingMode === 'flat' ? (saved.get(store.siteId)!.shippingMinor / 100).toFixed(2) : ''} />
+                  <label>Free shipping when the goods in an order reach this many dollars (optional, flat charge only)
+                    <input type="text" name="shipping_free_over" inputmode="decimal"
+                      value={saved.get(store.siteId)?.shippingMode === 'flat' && saved.get(store.siteId)?.freeOverMinor ? ((saved.get(store.siteId)?.freeOverMinor ?? 0) / 100).toFixed(2) : ''} />
+                  </label>
+                  <p>Needs Commerce 0.7.0 or later; an older Commerce charges the flat amount.</p>
                 </fieldset>
                 <fieldset>
                   <legend>Payments</legend>

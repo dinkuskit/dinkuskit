@@ -150,7 +150,11 @@
 {"action": "decision_locked", "at": "2026-10-27T19:20:49+00:00", "data": {"decision_id": "self-host-milestone-007"}, "event_id": "dd9571b5-6687-4d8b-aec2-8af59cac8fb3"}
 {"action": "decision_proposed", "at": "2026-10-27T19:55:38+00:00", "data": {"decision_id": "website-start-pages-20261027"}, "event_id": "539a1892-31b0-4cd6-abfd-daaa731b6802"}
 {"action": "decision_locked", "at": "2026-10-27T19:55:38+00:00", "data": {"decision_id": "website-start-pages-20261027"}, "event_id": "015d1159-08e3-44d2-8299-e53392f680b1"}
-{"action": "decision_proposed", "at": "2026-10-27T20:11:35+00:00", "data": {"decision_id": "website-agent-api-tokens-20261027"}, "event_id": "1cb1f838-cd79-47ff-ae84-73573bc15aaf"}
-{"action": "decision_locked", "at": "2026-10-27T20:11:35+00:00", "data": {"decision_id": "website-agent-api-tokens-20261027"}, "event_id": "7ff26278-7db4-4959-805c-818f02a1030f"}
-{"action": "decision_proposed", "at": "2026-10-27T20:19:47+00:00", "data": {"decision_id": "website-docs-publish-emdash-token-20261027"}, "event_id": "956b71e3-43ba-497f-a17f-2d7034dca40a"}
-{"action": "decision_locked", "at": "2026-10-27T20:41:48+00:00", "data": {"decision_id": "website-docs-publish-emdash-token-20261027"}, "event_id": "0ebe0173-529d-4874-b33f-655deb97e17b"}
+{"action": "focus_started", "at": "2026-10-27T20:46:41+00:00", "data": {"cadence": "sequential", "domain": "Free shipping over an amount the owner sets"}, "event_id": "1d2af155-845f-47ca-a8d7-bc7d3ead8554"}
+{"action": "shared_understanding_confirmed", "at": "2026-10-27T20:46:41+00:00", "data": {"summary": "Ronald 27 Oct 2026 16:50 on commerce#192: agreed free shipping over an amount the store owner sets, with a small DinkusKit.com change; tax deferred."}, "event_id": "f5a1a3c3-871a-4f4c-939e-715296bfbeee"}
+{"action": "decision_proposed", "at": "2026-10-27T20:46:41+00:00", "data": {"decision_id": "setup-commerce-free-shipping-over-20261027"}, "event_id": "90216a48-9ba0-45a7-b468-07f19b0c6f58"}
+{"action": "decision_locked", "at": "2026-10-27T20:46:41+00:00", "data": {"decision_id": "setup-commerce-free-shipping-over-20261027"}, "event_id": "b5e570f8-9505-4acb-8b5e-e039dd3212a0"}
+{"action": "decision_proposed", "at": "2026-10-27T21:10:55+00:00", "data": {"decision_id": "website-agent-api-tokens-20261027"}, "event_id": "eab4a565-ddbf-459f-b6bb-e8eccafbd8c6"}
+{"action": "decision_locked", "at": "2026-10-27T21:10:55+00:00", "data": {"decision_id": "website-agent-api-tokens-20261027"}, "event_id": "5ab81fd6-872d-4276-9057-cb0d2be85c3f"}
+{"action": "decision_proposed", "at": "2026-10-27T21:10:55+00:00", "data": {"decision_id": "website-docs-publish-emdash-token-20261027"}, "event_id": "529df0f9-ba45-43b5-b9e4-1894b8b2bc95"}
+{"action": "decision_locked", "at": "2026-10-27T21:10:55+00:00", "data": {"decision_id": "website-docs-publish-emdash-token-20261027"}, "event_id": "79035c89-c4ad-4418-a7dc-d3363d100499"}

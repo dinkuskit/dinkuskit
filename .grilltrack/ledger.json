@@ -2,13 +2,13 @@
   "closeout": null,
   "created_at": "2026-10-11T23:54:00+00:00",
   "current_focus": {
-    "cadence": "frontier-batch",
+    "cadence": "sequential",
     "confirmed": true,
-    "confirmed_at": "2026-10-27T19:20:48+00:00",
-    "domain": "Merchant-owned Cloudflare deployment (dinkuskit/.github#18)",
-    "started_at": "2026-10-27T19:20:48+00:00",
+    "confirmed_at": "2026-10-27T20:46:41+00:00",
+    "domain": "Free shipping over an amount the owner sets",
+    "started_at": "2026-10-27T20:46:41+00:00",
     "status": "confirmed",
-    "summary": "Ronald 19:19 UTC 27 Oct: 'im on the same page i agree across the board' after plain-terms explanations of questions 1-5 and 10 in the doc comment threads."
+    "summary": "Ronald 27 Oct 2026 16:50 on commerce#192: agreed free shipping over an amount the store owner sets, with a small DinkusKit.com change; tax deferred."
   },
   "decisions": [
     {
@@ -10269,6 +10269,47 @@
       "superseded_by": null,
       "updated_at": "2026-10-27T19:55:38+00:00",
       "verification_ref": null
+    },
+    {
+      "baseline_ref": null,
+      "candidate_refs": [],
+      "choice": "Set up Commerce gets an optional 'Free shipping when the goods in an order reach this many dollars' box beside the flat charge (flat only; empty means none; above zero). It is stored in dinkuskit_commerce_settings.shipping_free_over_minor (migration 0015, applied by the Worker itself), and a change bumps shipping_revision. /api/commerce-settings adds shipping.freeOver only when Commerce asks with ?shipping=free-over, so an older Commerce keeps working and charges the flat amount. Mirrors Commerce's checkout-free-shipping-over-20261027.",
+      "context_ref": "https://github.com/dinkuskit/commerce/issues/192",
+      "created_at": "2026-10-27T20:46:41+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [],
+      "domain": "Free shipping over an amount the owner sets",
+      "history": [
+        {
+          "at": "2026-10-27T20:46:41+00:00",
+          "choice": "Set up Commerce gets an optional 'Free shipping when the goods in an order reach this many dollars' box beside the flat charge (flat only; empty means none; above zero). It is stored in dinkuskit_commerce_settings.shipping_free_over_minor (migration 0015, applied by the Worker itself), and a change bumps shipping_revision. /api/commerce-settings adds shipping.freeOver only when Commerce asks with ?shipping=free-over, so an older Commerce keeps working and charges the flat amount. Mirrors Commerce's checkout-free-shipping-over-20261027.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        }
+      ],
+      "id": "setup-commerce-free-shipping-over-20261027",
+      "implementation_ref": null,
+      "question": "Where does the owner set free shipping over an amount, and how does it reach Commerce?",
+      "rationale": "Commerce's registry-checkout/v1 admission refuses unknown keys, so sending the amount to Commerce 0.6.0 would turn its checkout off; asking for it keeps every store working through the upgrade.",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [],
+      "review_ref": null,
+      "review_result": null,
+      "review_source_identity": null,
+      "status": "locked",
+      "superseded_by": null,
+      "updated_at": "2026-10-27T20:46:41+00:00",
+      "verification_ref": null
     }
   ],
   "last_activation": {
@@ -10299,5 +10340,5 @@
   "status": "active",
   "title": "Composed integration",
   "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5",
-  "updated_at": "2026-10-27T19:55:38+00:00"
+  "updated_at": "2026-10-27T20:46:41+00:00"
 }

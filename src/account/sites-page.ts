@@ -26,6 +26,7 @@ export type SitesPageView = {
 
 const SETTINGS_ERROR: Record<string, string> = {
   invalid_amount: 'Enter the flat shipping charge in dollars, like 5 or 5.00.',
+  invalid_free_over: 'Enter the free-shipping amount in dollars, like 75 or 75.00, up to 100000, or leave it empty.',
   forbidden: 'Only the owner of this business can set up Commerce for this store.',
   payments_not_connected: 'Payments is not connected for this store. Press Connect in the Payments plugin first.',
   payments_not_set_up: 'Payments has not finished setting up this store\'s Stripe or Authorize.net account. Finish it in the Payments plugin, then try again.',
@@ -91,11 +92,16 @@ export async function loadSitesPage(input: {
       if (shipRecipient(siteId, env.SHIP_SANDBOX_REGISTRATION) && form.get('payments_mode') === 'live') return new Response(JSON.stringify({ error: 'ship_test_required' }), { status: 400, headers: { 'content-type': 'application/json' } });
       const flat = form.get('shipping_mode') === 'flat';
       const minor = flat ? dollarsToMinor(String(form.get('shipping_amount') ?? '')) : 0;
-      const settings = minor === null ? null : await saveCommerceSettings(env.MERCHANT_DB, {
-        ...owner, choices: { shippingMode: flat ? 'flat' : 'free', shippingMinor: minor, live: form.get('payments_mode') === 'live' },
+      // Optional: empty means no free-shipping amount (checkout-free-shipping-over-20261027).
+      const freeOverText = flat ? String(form.get('shipping_free_over') ?? '').trim() : '';
+      const freeOver = freeOverText ? dollarsToMinor(freeOverText) : null;
+      // The same range saveCommerceSettings keeps, so a too-large amount says so instead of failing as a permission error.
+      const invalid = minor === null ? 'invalid_amount' : freeOverText && !(freeOver && freeOver <= 100_000_00) ? 'invalid_free_over' : null;
+      const settings = invalid ? null : await saveCommerceSettings(env.MERCHANT_DB, {
+        ...owner, choices: { shippingMode: flat ? 'flat' : 'free', shippingMinor: minor!, freeOverMinor: freeOver, live: form.get('payments_mode') === 'live' },
       });
-      if (minor === null || !settings) {
-        shown = { siteId, error: SETTINGS_ERROR[minor === null ? 'invalid_amount' : 'forbidden'] };
+      if (invalid || !settings) {
+        shown = { siteId, error: SETTINGS_ERROR[invalid ?? 'forbidden'] };
       } else {
         const payments = await readPaymentsBinding({
           db: env.MERCHANT_DB, subject: merchant.subject, siteId, privateJwkJson: env.MERCHANT_JWT_PRIVATE_JWK,
@@ -107,7 +113,7 @@ export async function loadSitesPage(input: {
           const store = (await listStoreSetup(env.MERCHANT_DB, merchant.subject)).find(row => row.siteId === siteId);
           shown = store ? {
             siteId,
-            json: checkoutSettingsJson({ registration: env.SHIP_SANDBOX_REGISTRATION, siteId, siteOrigin: store.siteOrigin, binding: payments.binding, settings, coupons: store.services.coupons === 'on', ship: store.services.ship === 'on' }),
+            json: checkoutSettingsJson({ registration: env.SHIP_SANDBOX_REGISTRATION, siteId, siteOrigin: store.siteOrigin, binding: payments.binding, settings, coupons: store.services.coupons === 'on', ship: store.services.ship === 'on', freeOver: true }),
             note: payments.binding.ready ? undefined : 'Payments says this account still needs attention, so checkouts may be refused until it is finished in the Payments plugin.',
           } : { siteId, error: SETTINGS_ERROR.forbidden };
         }

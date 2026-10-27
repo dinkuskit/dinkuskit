@@ -150,3 +150,7 @@
 {"action": "decision_locked", "at": "2026-10-27T19:20:49+00:00", "data": {"decision_id": "self-host-milestone-007"}, "event_id": "dd9571b5-6687-4d8b-aec2-8af59cac8fb3"}
 {"action": "decision_proposed", "at": "2026-10-27T19:55:38+00:00", "data": {"decision_id": "website-start-pages-20261027"}, "event_id": "539a1892-31b0-4cd6-abfd-daaa731b6802"}
 {"action": "decision_locked", "at": "2026-10-27T19:55:38+00:00", "data": {"decision_id": "website-start-pages-20261027"}, "event_id": "015d1159-08e3-44d2-8299-e53392f680b1"}
+{"action": "focus_started", "at": "2026-10-27T20:46:41+00:00", "data": {"cadence": "sequential", "domain": "Free shipping over an amount the owner sets"}, "event_id": "1d2af155-845f-47ca-a8d7-bc7d3ead8554"}
+{"action": "shared_understanding_confirmed", "at": "2026-10-27T20:46:41+00:00", "data": {"summary": "Ronald 27 Oct 2026 16:50 on commerce#192: agreed free shipping over an amount the store owner sets, with a small DinkusKit.com change; tax deferred."}, "event_id": "f5a1a3c3-871a-4f4c-939e-715296bfbeee"}
+{"action": "decision_proposed", "at": "2026-10-27T20:46:41+00:00", "data": {"decision_id": "setup-commerce-free-shipping-over-20261027"}, "event_id": "90216a48-9ba0-45a7-b468-07f19b0c6f58"}
+{"action": "decision_locked", "at": "2026-10-27T20:46:41+00:00", "data": {"decision_id": "setup-commerce-free-shipping-over-20261027"}, "event_id": "b5e570f8-9505-4acb-8b5e-e039dd3212a0"}

@@ -1,0 +1,4 @@
+# Immutable, content-addressed GrillTrack archive payloads. Keep the bytes in
+# Git and validate their SHA-256 names; line diffs repeat historical snapshots.
+# The active ledger, events, retention roots and application source stay textual.
+.grilltrack/lineage/objects/sha256/* -diff linguist-generated=true

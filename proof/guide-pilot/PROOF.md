@@ -23,6 +23,12 @@ Comprehensive review of `b519a83c847581c3248725ec1a208c113639805d` found one P2:
 
 ## Review and activation
 
+The [history-packaging cleanup](history-packaging.md) preserves every history
+byte while presenting only the immutable snapshot-object store as generated
+archive payloads in Git diffs. The active decision ledger and events remain
+textual. CI verifies the archive hashes; the cleanup proof also compares all
+history files with the pre-cleanup commit.
+
 Current-head CI, comprehensive review and native review are recorded on [PR #100](https://github.com/dinkuskit/dinkuskit/pull/100). A previous-head verdict is not current review evidence.
 
 Selected synthetic fixture evidence is preserved in the [immutable PR media release](https://github.com/dinkuskit/dinkus-pr-assets/releases/tag/dinkuskit-pr-100-41fd369a1029): [desktop](https://github.com/dinkuskit/dinkus-pr-assets/releases/download/dinkuskit-pr-100-41fd369a1029/desktop.png), [mobile light](https://github.com/dinkuskit/dinkus-pr-assets/releases/download/dinkuskit-pr-100-41fd369a1029/mobile.png), [mobile dark](https://github.com/dinkuskit/dinkus-pr-assets/releases/download/dinkuskit-pr-100-41fd369a1029/mobile-dark.png), and [provenance/hash manifest](https://github.com/dinkuskit/dinkus-pr-assets/releases/download/dinkuskit-pr-100-41fd369a1029/ASSET_MANIFEST.json). The manifest distinguishes capture source `c402127` from source snapshot `41fd369`; the Guide UI files are identical between them. These captures demonstrate the CSS palette, layout and fixture behavior, not live-model or production availability.

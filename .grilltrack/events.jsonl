@@ -153,3 +153,4 @@
 {"action": "decision_proposed", "at": "2026-10-27T20:11:35+00:00", "data": {"decision_id": "website-agent-api-tokens-20261027"}, "event_id": "1cb1f838-cd79-47ff-ae84-73573bc15aaf"}
 {"action": "decision_locked", "at": "2026-10-27T20:11:35+00:00", "data": {"decision_id": "website-agent-api-tokens-20261027"}, "event_id": "7ff26278-7db4-4959-805c-818f02a1030f"}
 {"action": "decision_proposed", "at": "2026-10-27T20:19:47+00:00", "data": {"decision_id": "website-docs-publish-emdash-token-20261027"}, "event_id": "956b71e3-43ba-497f-a17f-2d7034dca40a"}
+{"action": "decision_locked", "at": "2026-10-27T20:41:48+00:00", "data": {"decision_id": "website-docs-publish-emdash-token-20261027"}, "event_id": "0ebe0173-529d-4874-b33f-655deb97e17b"}

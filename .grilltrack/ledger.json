@@ -10314,7 +10314,7 @@
     {
       "baseline_ref": null,
       "candidate_refs": [],
-      "choice": "1) Docs publish gets its own EmDash API token (scopes content:read and content:write), made by the Admin and saved as the repository secret DOCS_PUBLISH_EMDASH_TOKEN; the workflow prefers it and falls back to the Access service token pair while it is unset. 2) Order on the live site: make and save that token first, then add the Bypass. 3) This replaces choice 4 of website-agent-api-tokens-20261027 for /_emdash/api: service tokens still pass the guard, but only where Access still signs them in (not /_emdash/api once bypassed). Removing the service-token code is a later cleanup, not this step.",
+      "choice": "1) Docs publish gets its own EmDash API token (scopes content:read and content:write), made by the Admin and saved as the repository secret DOCS_PUBLISH_EMDASH_TOKEN. 2) The workflow sends that token beside the Access service-token pair (DOCS_PUBLISH_ACCESS_CLIENT_ID / _SECRET) whenever both are set, so publishing works before the edge Bypass (Access admits the pair, the gate admits the token) and after it (only the token counts). 3) Order on the live site: make and save the token keeping the pair, run Docs publish by hand, add the Bypass for /_emdash/api, run Docs publish again. 4) This replaces choice 4 of website-agent-api-tokens-20261027 for /_emdash/api; removing the service-token pair and code is a later cleanup, not this step.",
       "context_ref": "https://claude.ai/code/project/chan_01JLcLQeD34rfoMic23aaman?thread=cmsg_01JLcLQeD34rfoMic23aamanVkH4LVUqavuqfmWyy88MM3",
       "created_at": "2026-10-27T20:19:47+00:00",
       "deferred_reason": null,
@@ -10323,20 +10323,35 @@
         "website-agent-api-tokens-20261027"
       ],
       "domain": "Merchant-owned Cloudflare deployment (dinkuskit/.github#18)",
-      "history": [],
+      "history": [
+        {
+          "at": "2026-10-27T20:41:48+00:00",
+          "choice": "1) Docs publish gets its own EmDash API token (scopes content:read and content:write), made by the Admin and saved as the repository secret DOCS_PUBLISH_EMDASH_TOKEN; the workflow prefers it and falls back to the Access service token pair while it is unset. 2) Order on the live site: make and save that token first, then add the Bypass. 3) This replaces choice 4 of website-agent-api-tokens-20261027 for /_emdash/api: service tokens still pass the guard, but only where Access still signs them in (not /_emdash/api once bypassed). Removing the service-token code is a later cleanup, not this step.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        }
+      ],
       "id": "website-docs-publish-emdash-token-20261027",
       "implementation_ref": null,
       "question": "With the Access Bypass on /_emdash/api (website-agent-api-tokens-20261027 choice 5), Access no longer signs in service tokens there, so how does the Docs publish workflow reach the EmDash API?",
-      "rationale": "Choice 4 (service tokens stay for docs publish) and choice 5 (edge Bypass) conflict on /_emdash/api; scripts/docs-sync.mjs already accepts EMDASH_TOKEN. Awaiting Ronald.",
+      "rationale": "Ronald chose 'Yes, its own EmDash token' on the decision card, 27 Oct 2026 20:41 UTC. Wording updated to 'send both' after ClawSweeper's cutover finding on dinkuskit#97.",
       "repair_required": false,
       "review_classifications": [],
       "review_history": [],
       "review_ref": null,
       "review_result": null,
       "review_source_identity": null,
-      "status": "proposed",
+      "status": "locked",
       "superseded_by": null,
-      "updated_at": "2026-10-27T20:19:47+00:00",
+      "updated_at": "2026-10-27T20:41:48+00:00",
       "verification_ref": null
     }
   ],
@@ -10368,5 +10383,5 @@
   "status": "active",
   "title": "Composed integration",
   "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5",
-  "updated_at": "2026-10-27T20:19:47+00:00"
+  "updated_at": "2026-10-27T20:41:48+00:00"
 }

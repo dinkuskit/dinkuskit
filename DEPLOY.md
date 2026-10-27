@@ -177,10 +177,10 @@ deploy with Access:
 2. EmDash shows its setup screen. Enter the site title `DinkusKit`, choose
    **Sample content** under "How do you want to start?", and finish. Here
    "Sample content" is this repository's `seed/seed.json`: the homepage, the
-   Getting started page and the documentation articles as unpublished drafts.
-3. Check that `https://dinkuskit.com/` shows "Run your store with an agent, on a
-   site you own." and `https://dinkuskit.com/getting-started` shows "Your site.
-   One connected experience."
+   How it works page (`/getting-started`) and the documentation articles as unpublished drafts.
+3. Check that `https://dinkuskit.com/` shows "Run your store yourself, or with
+   the agent you choose." and `https://dinkuskit.com/getting-started` shows "How
+   DinkusKit fits together."
 
 Setup runs once. Later deploys keep the pages, and later edits to
 `seed/seed.json` do not change a database that already has them; edit the pages
@@ -234,7 +234,7 @@ that its words, steps and their order are edited in the admin like any page.
 
 ```sh
 curl --fail --silent --show-error https://dinkuskit.com/health
-curl --fail --silent --show-error https://dinkuskit.com/ | grep -c 'Run your store with an agent, on a site you own'
+curl --fail --silent --show-error https://dinkuskit.com/ | grep -c 'Run your store yourself, or with the agent you choose'
 curl --fail --silent --show-error \
   https://dinkuskit.com/account/.well-known/jwks.json
 curl --include --silent https://dinkuskit.com/_emdash

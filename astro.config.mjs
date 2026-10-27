@@ -23,4 +23,10 @@ export default defineConfig({
     }),
   ],
   devToolbar: { enabled: false },
+  vite: {
+    define: {
+      'import.meta.env.DINKUS_GUIDE_PILOT': JSON.stringify(process.env.DINKUS_GUIDE_PILOT === 'true' ? 'true' : 'false'),
+      'import.meta.env.DINKUS_GUIDE_PLUGIN_ID': JSON.stringify(process.env.DINKUS_GUIDE_PLUGIN_ID ?? ''),
+    },
+  },
 });

@@ -23,6 +23,8 @@ declare global {
 }
 
 interface ImportMetaEnv {
+  readonly DINKUS_GUIDE_PILOT?: string;
+  readonly DINKUS_GUIDE_PLUGIN_ID?: string;
   readonly EMDASH_ACCESS_TEAM_DOMAIN?: string;
 }
 

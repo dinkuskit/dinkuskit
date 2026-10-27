@@ -1,4 +1,5 @@
 import { defineMiddleware } from 'astro:middleware';
+import { guidePilot, guidePublicRequest } from './guide/policy.ts';
 import { authenticate as accessAuthenticate } from '../scripts/lib/access-auth-entry.mjs';
 import {
   ACCESS_AUDIENCE_ENV,
@@ -42,6 +43,11 @@ export function createAccessNamespaceGuard(options: {
   const authenticate = options.authenticate ?? accessAuthenticate;
   const hasActiveAdmin = options.hasActiveAdmin ?? defaultHasActiveAdmin;
   return defineMiddleware(async (context, next) => {
+    const guide = guidePilot(
+      typeof import.meta.env !== 'undefined' ? import.meta.env.DINKUS_GUIDE_PILOT : undefined,
+      typeof import.meta.env !== 'undefined' ? import.meta.env.DINKUS_GUIDE_PLUGIN_ID : undefined,
+    );
+    if (guidePublicRequest(context.request, context.url, guide)) return next();
     let pathname = context.url.pathname;
     try {
       pathname = requestPathname(context.request);

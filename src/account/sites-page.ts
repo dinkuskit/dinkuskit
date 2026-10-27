@@ -26,7 +26,7 @@ export type SitesPageView = {
 
 const SETTINGS_ERROR: Record<string, string> = {
   invalid_amount: 'Enter the flat shipping charge in dollars, like 5 or 5.00.',
-  invalid_free_over: 'Enter the free-shipping amount in dollars, like 75 or 75.00, or leave it empty.',
+  invalid_free_over: 'Enter the free-shipping amount in dollars, like 75 or 75.00, up to 100000, or leave it empty.',
   forbidden: 'Only the owner of this business can set up Commerce for this store.',
   payments_not_connected: 'Payments is not connected for this store. Press Connect in the Payments plugin first.',
   payments_not_set_up: 'Payments has not finished setting up this store\'s Stripe or Authorize.net account. Finish it in the Payments plugin, then try again.',
@@ -95,7 +95,8 @@ export async function loadSitesPage(input: {
       // Optional: empty means no free-shipping amount (checkout-free-shipping-over-20261027).
       const freeOverText = flat ? String(form.get('shipping_free_over') ?? '').trim() : '';
       const freeOver = freeOverText ? dollarsToMinor(freeOverText) : null;
-      const invalid = minor === null ? 'invalid_amount' : freeOverText && !freeOver ? 'invalid_free_over' : null;
+      // The same range saveCommerceSettings keeps, so a too-large amount says so instead of failing as a permission error.
+      const invalid = minor === null ? 'invalid_amount' : freeOverText && !(freeOver && freeOver <= 100_000_00) ? 'invalid_free_over' : null;
       const settings = invalid ? null : await saveCommerceSettings(env.MERCHANT_DB, {
         ...owner, choices: { shippingMode: flat ? 'flat' : 'free', shippingMinor: minor!, freeOverMinor: freeOver, live: form.get('payments_mode') === 'live' },
       });

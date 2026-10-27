@@ -203,6 +203,10 @@ test('Connect to DinkusKit through the routes: Commerce first, a key per plugin,
     assert.match(badOver,/Enter the free-shipping amount in dollars/);
     const savedOver = await (await request(runtime,owner,'/account/sites',await form(owner,{action:'checkout_settings',site_id:siteId,shipping_mode:'flat',shipping_amount:'4.00',shipping_free_over:'75',payments_mode:'test'}))).text();
     assert.match(savedOver,/name="shipping_free_over"[^>]*value="75.00"/);
+    // Above the largest amount: the amount error, and the saved settings stay as they were.
+    const tooHigh = await (await request(runtime,owner,'/account/sites',await form(owner,{action:'checkout_settings',site_id:siteId,shipping_mode:'flat',shipping_amount:'4.00',shipping_free_over:'100000.01',payments_mode:'test'}))).text();
+    assert.match(tooHigh,/Enter the free-shipping amount in dollars, like 75 or 75.00, up to 100000/);
+    assert.doesNotMatch(tooHigh,/Only the owner of this business/);
     const asked = await (await request(runtime,new Map(),'/api/commerce-settings?shipping=free-over',{headers:{authorization:`Bearer ${settingsPass}`}})).json();
     assert.deepEqual([asked.shipping.revision,asked.shipping.freeOver],[2,{currency:'USD',minor:'7500'}]);
     const older = await (await request(runtime,new Map(),'/api/commerce-settings',{headers:{authorization:`Bearer ${settingsPass}`}})).json();

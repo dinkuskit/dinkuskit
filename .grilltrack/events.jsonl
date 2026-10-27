@@ -154,3 +154,7 @@
 {"action": "shared_understanding_confirmed", "at": "2026-10-27T20:46:41+00:00", "data": {"summary": "Ronald 27 Oct 2026 16:50 on commerce#192: agreed free shipping over an amount the store owner sets, with a small DinkusKit.com change; tax deferred."}, "event_id": "f5a1a3c3-871a-4f4c-939e-715296bfbeee"}
 {"action": "decision_proposed", "at": "2026-10-27T20:46:41+00:00", "data": {"decision_id": "setup-commerce-free-shipping-over-20261027"}, "event_id": "90216a48-9ba0-45a7-b468-07f19b0c6f58"}
 {"action": "decision_locked", "at": "2026-10-27T20:46:41+00:00", "data": {"decision_id": "setup-commerce-free-shipping-over-20261027"}, "event_id": "b5e570f8-9505-4acb-8b5e-e039dd3212a0"}
+{"action": "decision_proposed", "at": "2026-10-27T21:10:55+00:00", "data": {"decision_id": "website-agent-api-tokens-20261027"}, "event_id": "eab4a565-ddbf-459f-b6bb-e8eccafbd8c6"}
+{"action": "decision_locked", "at": "2026-10-27T21:10:55+00:00", "data": {"decision_id": "website-agent-api-tokens-20261027"}, "event_id": "5ab81fd6-872d-4276-9057-cb0d2be85c3f"}
+{"action": "decision_proposed", "at": "2026-10-27T21:10:55+00:00", "data": {"decision_id": "website-docs-publish-emdash-token-20261027"}, "event_id": "529df0f9-ba45-43b5-b9e4-1894b8b2bc95"}
+{"action": "decision_locked", "at": "2026-10-27T21:10:55+00:00", "data": {"decision_id": "website-docs-publish-emdash-token-20261027"}, "event_id": "79035c89-c4ad-4418-a7dc-d3363d100499"}

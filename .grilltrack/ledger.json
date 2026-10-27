@@ -10433,6 +10433,20 @@
           "review_source_identity": null,
           "to": "implemented",
           "verification_ref": null
+        },
+        {
+          "at": "2026-10-27T22:33:10+00:00",
+          "choice": "Use Deep Chat behind a replaceable bundled frontend boundary, explicit public routes, and a reusable Registry/sandbox EmDash plugin with encrypted server settings and an authenticated ask-only Guide adapter. Return only completed validated answers and verified public citations. Enforce input, duration, concurrency and safe-output boundaries; stateless per question, no transcript persistence. Preserve existing Guide retrieval and no fallback. Defer other providers, actions, billing, analytics and training. Deployment, publishing, permission changes and merge remain human gates.",
+          "from": "implemented",
+          "implementation_ref": "Same application implementation as git:449ae2d93b62fc60d9cff285f0714bc143ea87ff; full original decision lifecycle in proof/guide-pilot/history/pre-cleanup.tar.gz",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": null
         }
       ],
       "id": "dinkusguide-pilot-098",
@@ -10445,10 +10459,10 @@
       "review_ref": null,
       "review_result": null,
       "review_source_identity": null,
-      "status": "implemented",
+      "status": "verified",
       "superseded_by": null,
-      "updated_at": "2026-10-27T22:31:47+00:00",
-      "verification_ref": null
+      "updated_at": "2026-10-27T22:33:10+00:00",
+      "verification_ref": "proof/guide-pilot/history-packaging.md: all103 archived files byte-identical to80779c0; all104 active decision IDs/choices preserved; normalCLI validates both ledgers; app code identical449ae2d (fullCI/comprehensive clean); archive checks and 5UI tests pass. Fresh current-head reviews required."
     }
   ],
   "last_activation": {
@@ -10479,5 +10493,5 @@
   "status": "active",
   "title": "Composed integration",
   "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5",
-  "updated_at": "2026-10-27T22:31:47+00:00"
+  "updated_at": "2026-10-27T22:33:10+00:00"
 }

@@ -25,6 +25,12 @@ the earlier approved choice; its carry-forward rationale links the original
 archive rather than pretending its old lifecycle happened again. No original
 decision, review finding, timestamp or event has been discarded from history.
 
+The original and carried-forward ledgers contain the same 104 decision IDs and
+choices. Both validate with the normal GrillTrack CLI. The initial cleaned tree
+has 4,993 additions and 177 deletions across 46 files, compared with over 96,000
+changed lines before cleanup. Subsequent proof-only updates may change that
+small count; GitHub's current PR metadata is the final size authority.
+
 ## Verification
 
 ```sh

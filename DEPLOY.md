@@ -149,7 +149,9 @@ Access (decision `website-operator-admin-emdash-access-035`). Owner-only, once:
    application's Service Auth policy, and save the client ID and secret as the
    repository secrets `DOCS_PUBLISH_ACCESS_CLIENT_ID` and
    `DOCS_PUBLISH_ACCESS_CLIENT_SECRET`. A secret change is not a code deploy;
-   `EMDASH_OPERATOR_ALLOWLIST` is a separate secret and stays as it is.
+   `EMDASH_OPERATOR_ALLOWLIST` is a separate secret and stays as it is. Once
+   `/_emdash/api` has the Access Bypass (Agents, below), Docs publish needs
+   its EmDash token instead.
 3. Rebuild with the team domain and deploy:
 
    ```sh
@@ -162,6 +164,48 @@ Access (decision `website-operator-admin-emdash-access-035`). Owner-only, once:
    operator pages. The operator pages are under **Plugins**:
    `/_emdash/admin/plugins/dinkuskit-operator/approvals`, `/people` and
    `/stores`. The old `/account/organization-approvals` address redirects there.
+
+## Agents (EmDash API tokens)
+
+Agents use EmDash's own API tokens, the way upstream EmDash expects (decision
+`website-agent-api-tokens-20261027`). People keep signing in through Access.
+
+1. The Admin opens **Settings > API Tokens**
+   (`https://dinkuskit.com/_emdash/admin/settings/api-tokens`) and makes one
+   token per agent, named after the agent, with only the scopes it needs. To
+   read and publish pages and menus through the MCP: `content:read`,
+   `content:write` (it covers menus) and `mcp:tools`. Read only:
+   `content:read` and `mcp:tools`.
+   The token acts as the Admin who made it, limited to those scopes. EmDash
+   shows it once; it goes straight into the agent's secret store (never a chat
+   or a file). Revoke it on the same page.
+2. The agent sends `Authorization: Bearer ec_pat_...`, and no cookie, to the
+   EmDash API. The MCP server is `https://dinkuskit.com/_emdash/api/mcp`.
+3. In Cloudflare Zero Trust, the Access application for `dinkuskit.com/_emdash`
+   needs a **Bypass** for `dinkuskit.com/_emdash/api` so the request reaches the
+   Worker. The Worker's gate stays the lock: it lets an `ec_pat_` or `ec_oat_`
+   token through only on `mcp`, `content`, `schema`, `menus`, `taxonomies`, `media` (not `media/file`), `sections`, `widget-areas` and `revisions` under `/_emdash/api/`, where EmDash checks the
+   token and its scope on every request, only when the request has no cookie
+   (so a saved CMS session never rides on a token), and never before the site
+   has an Admin. Everything else under `/_emdash`, including the admin
+   screens, sign-in, setup, users, token management, settings, plugins and
+   EmDash's public routes such as snapshot and search, still needs Access and
+   the operator allowlist.
+
+   With the Bypass, Access no longer signs in service tokens on
+   `/_emdash/api`, so do it in this order: make a `Docs publish` token
+   (`content:read`, `content:write`) and save it as the repository secret
+   `DOCS_PUBLISH_EMDASH_TOKEN`, keeping `DOCS_PUBLISH_ACCESS_CLIENT_ID` and
+   `DOCS_PUBLISH_ACCESS_CLIENT_SECRET` (the workflow sends both, so it works
+   before and after the Bypass). Run **Docs publish** by hand and check it
+   passes, add the Bypass, then run it once more. Any other automation that
+   used a service token on `/_emdash/api` gets its own EmDash token the same
+   way.
+
+`npm run test:cloudflare-candidate` proves this on the live build: a scoped
+token reads the API and lists the MCP tools, also beside Access headers; a
+write outside its scopes gets 403, an unknown or revoked token 401; snapshot,
+search, a token sent with a cookie and the closed paths get 404.
 
 ## Load the site's pages (new website database only)
 

@@ -150,3 +150,8 @@
 {"action": "decision_locked", "at": "2026-10-27T19:20:49+00:00", "data": {"decision_id": "self-host-milestone-007"}, "event_id": "dd9571b5-6687-4d8b-aec2-8af59cac8fb3"}
 {"action": "decision_proposed", "at": "2026-10-27T19:55:38+00:00", "data": {"decision_id": "website-start-pages-20261027"}, "event_id": "539a1892-31b0-4cd6-abfd-daaa731b6802"}
 {"action": "decision_locked", "at": "2026-10-27T19:55:38+00:00", "data": {"decision_id": "website-start-pages-20261027"}, "event_id": "015d1159-08e3-44d2-8299-e53392f680b1"}
+{"action": "focus_started", "at": "2026-10-27T20:57:27+00:00", "data": {"cadence": "sequential", "domain": "DinkusGuide read-only public pilot (#98)"}, "event_id": "50578ab1-e126-4edf-960b-b277b385e73c"}
+{"action": "decision_proposed", "at": "2026-10-27T20:57:27+00:00", "data": {"decision_id": "dinkusguide-pilot-098"}, "event_id": "5d9ad241-a71f-4e98-84ac-3631a02e00bf"}
+{"action": "decision_locked", "at": "2026-10-27T20:57:27+00:00", "data": {"decision_id": "dinkusguide-pilot-098"}, "event_id": "e1c89deb-c78c-48c8-b2b2-0dcd186cbf73"}
+{"action": "shared_understanding_confirmed", "at": "2026-10-27T20:57:27+00:00", "data": {"summary": "Owner confirmation recorded in issue #98 and the build assignment: implement the narrow pilot, prove fixture and installed behavior separately from real Guide and deployment, prepare focused reviewed PRs, stop at human merge/rollout gate."}, "event_id": "57fc348e-2080-4d56-9226-334ca24ef20c"}
+{"action": "decision_implemented", "at": "2026-10-27T21:44:30+00:00", "data": {"decision_id": "dinkusguide-pilot-098"}, "event_id": "6598d8e7-1e0c-4dc0-abe2-126e21758ae6"}

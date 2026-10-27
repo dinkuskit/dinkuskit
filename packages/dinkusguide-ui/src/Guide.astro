@@ -1,0 +1,47 @@
+---
+interface Props { configUrl: string; askUrl: string }
+const { configUrl, askUrl } = Astro.props;
+const questionId = `dinkusguide-question-${crypto.randomUUID()}`;
+---
+<aside class="dinkusguide" data-dinkusguide data-config-url={configUrl} data-ask-url={askUrl}>
+  <button class="dinkusguide-launch" type="button" aria-haspopup="dialog" aria-expanded="false">Ask DinkusGuide</button>
+  <dialog class="dinkusguide-dialog" aria-label="Ask DinkusGuide">
+    <header class="dinkusguide-heading"><strong>Ask DinkusGuide</strong><button type="button" data-guide-close aria-label="Close DinkusGuide">Close</button></header>
+    <p class="dinkusguide-about">A read-only guide to public DinkusKit and EmDash documentation. Each question is independent. Check the sources before acting.</p>
+    <p class="dinkusguide-status" role="status" aria-live="polite">Open the guide to load the chat.</p>
+    <div class="dinkusguide-chat"></div>
+    <form class="dinkusguide-form">
+      <label for={questionId}>Your question</label>
+      <textarea id={questionId} rows="2" disabled placeholder="Ask about public DinkusKit documentation…"></textarea>
+      <div><button data-guide-send type="submit" disabled>Ask</button><button data-guide-stop type="button" hidden>Cancel question</button></div>
+    </form>
+    <div class="dinkusguide-sources" aria-label="Sources for completed answers"></div>
+  </dialog>
+</aside>
+<script>
+  import { mountGuide } from './index.ts';
+  document.querySelectorAll<HTMLElement>('[data-dinkusguide]').forEach(mountGuide);
+</script>
+<style>
+  .dinkusguide { position: fixed; inset: auto 1.25rem 1.25rem auto; z-index: 40; font-family: inherit; }
+  .dinkusguide-launch, .dinkusguide-heading button { font: inherit; cursor: pointer; border: 1px solid var(--accent-line); border-radius: 999px; padding: .7rem 1rem; background: var(--accent); color: var(--paper); }
+  .dinkusguide-launch:hover, .dinkusguide-heading button:hover { background: color-mix(in srgb, var(--accent) 90%, var(--ink)); color: var(--paper); }
+  .dinkusguide-launch:focus-visible, .dinkusguide-heading button:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+  .dinkusguide-dialog { position: fixed; inset: auto 1.25rem 5rem auto; margin: 0; width: min(27rem, calc(100vw - 2rem)); max-height: calc(100dvh - 7rem); padding: 1rem; border: 1px solid var(--accent-line); border-top: 3px solid var(--mark); border-radius: 1rem; background: var(--paper); color: var(--ink); box-shadow: 0 1rem 4rem #0003; overflow-y: auto; }
+  .dinkusguide-dialog::backdrop { background: color-mix(in srgb, var(--graphite) 20%, transparent); }
+  .dinkusguide-heading { display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 1rem; padding: 0; border: 0; }
+  .dinkusguide-heading button { padding: .35rem .75rem; font-size: .85rem; }
+  .dinkusguide-about, .dinkusguide-status { font-size: .85rem; line-height: 1.5; margin: .7rem 0; }
+  .dinkusguide-status { min-height: 1.5em; }
+  .dinkusguide-sources { font-size: .8rem; overflow-wrap: anywhere; }
+  .dinkusguide-form { display: grid; gap: .4rem; margin: .8rem 0; }
+  .dinkusguide-form label { font-size: .85rem; }
+  .dinkusguide-form textarea { width: 100%; box-sizing: border-box; padding: .5rem; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: .4rem; font: inherit; resize: vertical; }
+  .dinkusguide-form textarea:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  .dinkusguide-form button { font: inherit; background: var(--button); color: var(--button-ink); border: 0; border-radius: .4rem; padding: .4rem .8rem; cursor: pointer; margin-right: .5rem; }
+  .dinkusguide-form button:hover { background: var(--button-hover); }
+  .dinkusguide-form button:disabled { opacity: .5; cursor: default; }
+  .dinkusguide-sources :global(a) { color: var(--accent); text-decoration: underline; }
+  .dinkusguide-sources :global(details) { margin-top: .6rem; }
+  @media (max-width: 480px) { .dinkusguide { right: .6rem; bottom: .6rem; } .dinkusguide-dialog { inset: auto .5rem 4.5rem .5rem; width: auto; max-height: calc(100dvh - 5.5rem); padding: .8rem; } }
+</style>

@@ -2,13 +2,13 @@
   "closeout": null,
   "created_at": "2026-10-11T23:54:00+00:00",
   "current_focus": {
-    "cadence": "frontier-batch",
+    "cadence": "sequential",
     "confirmed": true,
-    "confirmed_at": "2026-10-27T19:20:48+00:00",
-    "domain": "Merchant-owned Cloudflare deployment (dinkuskit/.github#18)",
-    "started_at": "2026-10-27T19:20:48+00:00",
+    "confirmed_at": "2026-10-27T20:57:27+00:00",
+    "domain": "DinkusGuide read-only public pilot (#98)",
+    "started_at": "2026-10-27T20:57:27+00:00",
     "status": "confirmed",
-    "summary": "Ronald 19:19 UTC 27 Oct: 'im on the same page i agree across the board' after plain-terms explanations of questions 1-5 and 10 in the doc comment threads."
+    "summary": "Owner confirmation recorded in issue #98 and the build assignment: implement the narrow pilot, prove fixture and installed behavior separately from real Guide and deployment, prepare focused reviewed PRs, stop at human merge/rollout gate."
   },
   "decisions": [
     {
@@ -10269,6 +10269,61 @@
       "superseded_by": null,
       "updated_at": "2026-10-27T19:55:38+00:00",
       "verification_ref": null
+    },
+    {
+      "baseline_ref": "git:caba44c5afcabec3a6f0d41f2d096290c900e80c",
+      "candidate_refs": [],
+      "choice": "Use Deep Chat behind a replaceable bundled frontend boundary, explicit public routes, and a reusable Registry/sandbox EmDash plugin with encrypted server settings and an authenticated ask-only Guide adapter. Return only completed validated answers and verified public citations. Enforce input, duration, concurrency and safe-output boundaries; stateless per question, no transcript persistence. Preserve existing Guide retrieval and no fallback. Defer other providers, actions, billing, analytics and training. Deployment, publishing, permission changes and merge remain human gates.",
+      "context_ref": "https://github.com/dinkuskit/dinkuskit/issues/98",
+      "created_at": "2026-10-27T20:57:27+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [],
+      "domain": "DinkusGuide read-only public pilot (#98)",
+      "history": [
+        {
+          "at": "2026-10-27T20:57:27+00:00",
+          "choice": "Use Deep Chat behind a replaceable bundled frontend boundary, explicit public routes, and a reusable Registry/sandbox EmDash plugin with encrypted server settings and an authenticated ask-only Guide adapter. Return only completed validated answers and verified public citations. Enforce input, duration, concurrency and safe-output boundaries; stateless per question, no transcript persistence. Preserve existing Guide retrieval and no fallback. Defer other providers, actions, billing, analytics and training. Deployment, publishing, permission changes and merge remain human gates.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-27T21:44:30+00:00",
+          "choice": "Use Deep Chat behind a replaceable bundled frontend boundary, explicit public routes, and a reusable Registry/sandbox EmDash plugin with encrypted server settings and an authenticated ask-only Guide adapter. Return only completed validated answers and verified public citations. Enforce input, duration, concurrency and safe-output boundaries; stateless per question, no transcript persistence. Preserve existing Guide retrieval and no fallback. Defer other providers, actions, billing, analytics and training. Deployment, publishing, permission changes and merge remain human gates.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": null
+        }
+      ],
+      "id": "dinkusguide-pilot-098",
+      "implementation_ref": "packages/dinkusguide-chat, packages/dinkusguide-ui, docs/dinkusguide-pilot.md; read-only opt-in pilot and current CSS brand tokens",
+      "question": "How should the first public DinkusGuide pilot be implemented?",
+      "rationale": "Owner explicitly approved implementation and review preparation in issue #98.",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [],
+      "review_ref": null,
+      "review_result": null,
+      "review_source_identity": null,
+      "status": "implemented",
+      "superseded_by": null,
+      "updated_at": "2026-10-27T21:44:30+00:00",
+      "verification_ref": null
     }
   ],
   "last_activation": {
@@ -10299,5 +10354,5 @@
   "status": "active",
   "title": "Composed integration",
   "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5",
-  "updated_at": "2026-10-27T19:55:38+00:00"
+  "updated_at": "2026-10-27T21:44:30+00:00"
 }

@@ -1,0 +1,79 @@
+{
+  // Reusable EmDash Registry/sandbox plugin manifest for Ask DinkusGuide (#98).
+  // Declares minimal outbound HTTP capability with one build-time example ingress host
+  // (never network:request:unrestricted, content:*, users:*, or page:inject).
+  "slug": "dinkusguide-chat",
+  "version": "0.1.0",
+  "license": "MIT",
+  "publisher": "did:plc:ekk4pjmkh3k3ql2kfoex3qt4",
+  "name": "DinkusGuide Chat",
+  "description": "Read-only public documentation chat backed by an authenticated DinkusGuide ask service.",
+  "repo": "https://github.com/dinkuskit/dinkuskit",
+  "author": {
+    "name": "DinkusKit",
+    "url": "https://dinkuskit.com"
+  },
+  "security": {
+    "url": "https://github.com/dinkuskit/dinkuskit/security"
+  },
+  "capabilities": ["network:request"],
+  "allowedHosts": ["guide.example.com"],
+  "admin": {
+    "pages": [
+      {
+        "path": "/guide",
+        "label": "DinkusGuide",
+        "icon": "message-circle"
+      }
+    ],
+    "settingsSchema": {
+      "enabled": {
+        "type": "boolean",
+        "label": "Enable public Ask DinkusGuide",
+        "description": "Allow public visitors to submit read-only documentation questions once the DinkusGuide ask endpoint URL and service token are configured.",
+        "default": false
+      },
+      "serviceUrl": {
+        "type": "url",
+        "label": "DinkusGuide ask endpoint URL",
+        "description": "HTTPS URL of the authenticated ask-only DinkusGuide /ask endpoint on an approved outbound host.",
+        "placeholder": "https://guide.example.com/ask"
+      },
+      "serviceToken": {
+        "type": "secret",
+        "label": "DinkusGuide service token",
+        "description": "Encrypted Bearer credential (at least 32 non-whitespace characters) sent only to the configured DinkusGuide ask endpoint. Never exposed to browsers or logs."
+      },
+      "maxQuestionCharacters": {
+        "type": "number",
+        "label": "Maximum question length (Unicode code points)",
+        "description": "Maximum Unicode code points accepted per question (1 to 8000, default 2000).",
+        "default": 2000
+      },
+      "timeoutMs": {
+        "type": "number",
+        "label": "Upstream request timeout (ms)",
+        "description": "Maximum visitor response wait in milliseconds (1000 to 25000, default 20000; bounded below the 30000 ms EmDash sandbox route deadline).",
+        "default": 20000
+      },
+      "maxConcurrency": {
+        "type": "number",
+        "label": "Maximum concurrent requests",
+        "description": "Trusted server-side active request limit enforced in plugin KV before calling DinkusGuide (1 to 16, default 2).",
+        "default": 2
+      },
+      "requestsPerMinute": {
+        "type": "number",
+        "label": "Global requests per minute",
+        "description": "Trusted server-side global request budget per 60-second window enforced in plugin KV (1 to 600, default 20).",
+        "default": 20
+      },
+      "perIpRequestsPerMinute": {
+        "type": "number",
+        "label": "Per-IP requests per minute",
+        "description": "Trusted server-side per-client-IP request budget per 60-second window when host request metadata provides a verified IP (1 to 120, default 6).",
+        "default": 6
+      }
+    }
+  }
+}

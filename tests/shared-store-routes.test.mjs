@@ -198,6 +198,15 @@ test('Connect to DinkusKit through the routes: Commerce first, a key per plugin,
     assert.equal(read.status,200); const settings = await read.json();
     assert.deepEqual([settings.siteId,settings.commerceOrigin,settings.bindingRef,settings.shipping.amount.minor,settings.ship.audience],[siteId,origin,'bind_plugin_1','400','dinkus-ship']);
     assert.equal((await request(runtime,new Map(),'/api/commerce-settings')).status,401);
+    // checkout-free-shipping-over-20261027: the owner's free-shipping amount, only for a Commerce that asks.
+    const badOver = await (await request(runtime,owner,'/account/sites',await form(owner,{action:'checkout_settings',site_id:siteId,shipping_mode:'flat',shipping_amount:'4.00',shipping_free_over:'0',payments_mode:'test'}))).text();
+    assert.match(badOver,/Enter the free-shipping amount in dollars/);
+    const savedOver = await (await request(runtime,owner,'/account/sites',await form(owner,{action:'checkout_settings',site_id:siteId,shipping_mode:'flat',shipping_amount:'4.00',shipping_free_over:'75',payments_mode:'test'}))).text();
+    assert.match(savedOver,/name="shipping_free_over"[^>]*value="75.00"/);
+    const asked = await (await request(runtime,new Map(),'/api/commerce-settings?shipping=free-over',{headers:{authorization:`Bearer ${settingsPass}`}})).json();
+    assert.deepEqual([asked.shipping.revision,asked.shipping.freeOver],[2,{currency:'USD',minor:'7500'}]);
+    const older = await (await request(runtime,new Map(),'/api/commerce-settings',{headers:{authorization:`Bearer ${settingsPass}`}})).json();
+    assert.equal('freeOver' in older.shipping,false,'an older Commerce never sees it');
     // Disconnect stops only that plugin's key.
     assert.equal((await request(runtime,owner,'/account/sites',await form(owner,{action:'disconnect_plugin',site_id:siteId,plugin:'ship'}))).status,303);
     assert.deepEqual(await (await trade(ship.issued.store_key,'ship:admin','dinkus-ship')).json(),{error:'invalid_store_key'});

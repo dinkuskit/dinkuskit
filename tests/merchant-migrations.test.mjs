@@ -24,6 +24,7 @@ const expectedLedger = [
   { version: 12, name: '0012_ship_sign_in.sql' },
   { version: 13, name: '0013_ship_recipient.sql' },
   { version: 14, name: '0014_plugin_keys.sql' },
+  { version: 15, name: '0015_free_shipping_over.sql' },
 ];
 
 function wranglerD1(persistTo, args) {
@@ -335,6 +336,47 @@ test('merchant D1 migration 0014 keeps a populated schema-13 store, grants and c
   }
 });
 
+// checkout-free-shipping-over-20261027
+test('merchant D1 migration 0015 keeps a schema-14 store\'s checkout choices and gives it no free-shipping amount', async () => {
+  const persistTo = await mkdtemp(join(tmpdir(), 'dk-v14-free-over-'));
+  let runtime;
+  const query = sql => {
+    const answer = wranglerD1(persistTo, ['execute', '--yes', '--json', '--command', sql]);
+    assert.equal(answer.status, 0, 'local D1 query succeeds');
+    return JSON.parse(answer.stdout).at(-1).results;
+  };
+  try {
+    const schema = (await Promise.all(expectedLedger.filter(m => m.version <= 14).map(m => readFile(`migrations/merchant/${m.name}`, 'utf8')))).join('\n');
+    const seed = join(persistTo, 'schema14.sql');
+    await writeFile(seed, schema + `
+      INSERT INTO "user" (id,name,email,emailVerified,createdAt,updatedAt) VALUES ('free-v14-user','Synthetic','free-v14@example.test',1,1,1);
+      INSERT INTO dinkuskit_account (user_id,subject,created_at,updated_at) VALUES ('free-v14-user','free-v14-person',1,1);
+      INSERT INTO dinkuskit_organization (organization_id,name,status,owner_user_id,authority_subject,admission_status,created_by_user_id,created_at,updated_at)
+      VALUES ('free-v14-org','Synthetic','active','free-v14-user','free-v14-subject','admitted','free-v14-user',1,1);
+      INSERT INTO dinkuskit_store_identity VALUES ('free-v14-site','https://free-v14.example.test','free-v14-subject',1);
+      INSERT INTO dinkuskit_commerce_settings VALUES ('free-v14-site','flat',450,3,0,'free-v14-user',1);
+    `, { mode: 0o600 });
+    applySql(persistTo, seed);
+    assert.deepEqual(ledgerRows(persistTo), expectedLedger.filter(m => m.version <= 14));
+
+    runtime = await startMerchantTestRuntime({ persistTo });
+    assert.equal((await request(runtime, new Map(), '/account/.well-known/jwks.json')).status, 200, 'compiled runtime applies 0015');
+    assert.deepEqual(ledgerRows(persistTo), expectedLedger);
+    assert.deepEqual(query("SELECT shipping_mode, shipping_minor, shipping_revision, live, shipping_free_over_minor FROM dinkuskit_commerce_settings WHERE site_id = 'free-v14-site'"),
+      [{ shipping_mode: 'flat', shipping_minor: 450, shipping_revision: 3, live: 0, shipping_free_over_minor: null }]);
+    const refused = wranglerD1(persistTo, ['execute', '--yes', '--command', "UPDATE dinkuskit_commerce_settings SET shipping_free_over_minor = 0"]);
+    assert.notEqual(refused.status, 0, 'a zero amount is refused by the table itself');
+    const prior = runtime;
+    await stopRuntime({ ...prior, ownedPersist: false }); runtime = undefined;
+    runtime = await startMerchantTestRuntime({ persistTo, secret: prior.secret, jwt: prior.jwt });
+    assert.equal((await request(runtime, new Map(), '/account/.well-known/jwks.json')).status, 200);
+    assert.deepEqual(ledgerRows(persistTo), expectedLedger, 'restart leaves additive migration idempotent');
+  } finally {
+    if (runtime) await stopRuntime(runtime);
+    await rm(persistTo, { recursive: true, force: true });
+  }
+});
+
 test('merchant D1 migrations: a runtime checks the schema once and the next start repairs the ledger', async () => {
   const persistTo = await mkdtemp(join(tmpdir(), 'dk-check-once-'));
   const jwks = runtime => request(runtime, new Map(), '/account/.well-known/jwks.json');
@@ -343,7 +385,7 @@ test('merchant D1 migrations: a runtime checks the schema once and the next star
     runtime = await startMerchantTestRuntime({ persistTo });
     assert.equal((await jwks(runtime)).status, 200);
     assert.deepEqual(ledgerRows(persistTo), expectedLedger);
-    const removed = wranglerD1(persistTo, ['execute', '--yes', '--command', 'DELETE FROM dinkuskit_schema_migrations WHERE version = 14']);
+    const removed = wranglerD1(persistTo, ['execute', '--yes', '--command', 'DELETE FROM dinkuskit_schema_migrations WHERE version = 15']);
     assert.equal(removed.status, 0, removed.stderr || removed.stdout);
     assert.equal((await jwks(runtime)).status, 200);
     assert.deepEqual(ledgerRows(persistTo), expectedLedger.slice(0, -1), 'later requests in the same runtime skip the schema check');

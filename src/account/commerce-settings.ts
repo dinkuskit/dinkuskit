@@ -17,28 +17,35 @@ const STATUS_MAX_BYTES = 16_384;
 const now = () => Math.floor(Date.now() / 1000);
 const audience = (service: 'payments' | 'coupons' | 'ship') => STORE_PASS_SERVICES.find(s => s.service === service)!.audience;
 
-export type CommerceChoices = { shippingMode: 'free' | 'flat'; shippingMinor: number; live: boolean };
+/** freeOverMinor: flat only, the goods amount at which shipping is free; null for none (checkout-free-shipping-over-20261027). */
+export type CommerceChoices = { shippingMode: 'free' | 'flat'; shippingMinor: number; freeOverMinor?: number | null; live: boolean };
 export type CommerceSettings = CommerceChoices & { shippingRevision: number };
 
 export async function loadCommerceSettings(db: D1Database, siteId: string): Promise<CommerceSettings | null> {
-  const row = await db.prepare('SELECT shipping_mode, shipping_minor, shipping_revision, live FROM dinkuskit_commerce_settings WHERE site_id = ?')
-    .bind(siteId).first<{ shipping_mode: 'free' | 'flat'; shipping_minor: number; shipping_revision: number; live: number }>();
-  return row ? { shippingMode: row.shipping_mode, shippingMinor: Number(row.shipping_minor), shippingRevision: Number(row.shipping_revision), live: Number(row.live) === 1 } : null;
+  const row = await db.prepare('SELECT shipping_mode, shipping_minor, shipping_free_over_minor, shipping_revision, live FROM dinkuskit_commerce_settings WHERE site_id = ?')
+    .bind(siteId).first<{ shipping_mode: 'free' | 'flat'; shipping_minor: number; shipping_free_over_minor: number | null; shipping_revision: number; live: number }>();
+  return row ? {
+    shippingMode: row.shipping_mode, shippingMinor: Number(row.shipping_minor),
+    freeOverMinor: row.shipping_free_over_minor === null ? null : Number(row.shipping_free_over_minor),
+    shippingRevision: Number(row.shipping_revision), live: Number(row.live) === 1,
+  } : null;
 }
 
 /**
  * Saves the owner's choices for a store. The shipping revision goes up only when the
- * charge changes. Returns null unless the actor is the active owner of the store's business.
+ * charge or its free-shipping amount changes. Returns null unless the actor is the active owner of the store's business.
  */
 export async function saveCommerceSettings(db: D1Database, input: {
   subject: string; siteId: string; organizationId: string; actorUserId: string; choices: CommerceChoices;
 }): Promise<CommerceSettings | null> {
   const { shippingMode, live } = input.choices;
   const shippingMinor = shippingMode === 'free' ? 0 : input.choices.shippingMinor;
+  const freeOverMinor = shippingMode === 'free' ? null : input.choices.freeOverMinor ?? null;
   if ((shippingMode !== 'free' && shippingMode !== 'flat') || !Number.isSafeInteger(shippingMinor) || shippingMinor < 0 || shippingMinor > 100_000_00) return null;
+  if (freeOverMinor !== null && (!Number.isSafeInteger(freeOverMinor) || freeOverMinor < 1 || freeOverMinor > 100_000_00)) return null;
   const result = await db.prepare(`INSERT INTO dinkuskit_commerce_settings
-      (site_id, shipping_mode, shipping_minor, shipping_revision, live, updated_by_user_id, updated_at)
-    SELECT ?, ?, ?, 1, ?, ?, ? WHERE EXISTS (SELECT 1 FROM dinkuskit_store_identity i WHERE i.site_id = ? AND i.account_subject = ?)
+      (site_id, shipping_mode, shipping_minor, shipping_free_over_minor, shipping_revision, live, updated_by_user_id, updated_at)
+    SELECT ?, ?, ?, ?, 1, ?, ?, ? WHERE EXISTS (SELECT 1 FROM dinkuskit_store_identity i WHERE i.site_id = ? AND i.account_subject = ?)
       AND EXISTS (SELECT 1 FROM dinkuskit_membership m JOIN dinkuskit_account a ON a.user_id = m.user_id
         JOIN dinkuskit_organization o ON o.organization_id = m.organization_id
         JOIN dinkuskit_user_selection s ON s.user_id = m.user_id AND s.organization_id = m.organization_id
@@ -46,10 +53,12 @@ export async function saveCommerceSettings(db: D1Database, input: {
           AND a.disabled = 0 AND o.status = 'active' AND o.authority_subject = ?)
     ON CONFLICT(site_id) DO UPDATE SET
       shipping_revision = dinkuskit_commerce_settings.shipping_revision
-        + (dinkuskit_commerce_settings.shipping_mode IS NOT excluded.shipping_mode OR dinkuskit_commerce_settings.shipping_minor IS NOT excluded.shipping_minor),
-      shipping_mode = excluded.shipping_mode, shipping_minor = excluded.shipping_minor, live = excluded.live,
+        + (dinkuskit_commerce_settings.shipping_mode IS NOT excluded.shipping_mode OR dinkuskit_commerce_settings.shipping_minor IS NOT excluded.shipping_minor
+          OR dinkuskit_commerce_settings.shipping_free_over_minor IS NOT excluded.shipping_free_over_minor),
+      shipping_mode = excluded.shipping_mode, shipping_minor = excluded.shipping_minor,
+      shipping_free_over_minor = excluded.shipping_free_over_minor, live = excluded.live,
       updated_by_user_id = excluded.updated_by_user_id, updated_at = excluded.updated_at`)
-    .bind(input.siteId, shippingMode, shippingMinor, live ? 1 : 0, input.actorUserId, now(),
+    .bind(input.siteId, shippingMode, shippingMinor, freeOverMinor, live ? 1 : 0, input.actorUserId, now(),
       input.siteId, input.subject, input.organizationId, input.actorUserId, input.subject).run() as { meta?: { changes?: number } };
   if ((result.meta?.changes ?? 0) === 0) return null;
   return loadCommerceSettings(db, input.siteId);
@@ -110,9 +119,14 @@ export async function readPaymentsBinding(input: {
   return { ok: false, reason: 'payments_not_set_up' };
 }
 
-/** The exact JSON text for Commerce's installedCheckout setting. Coupons and Ship appear only while on. */
+/**
+ * The exact JSON text for Commerce's installedCheckout setting. Coupons and Ship appear only while on.
+ * A free-shipping amount appears only for a Commerce that asked for it (freeOver), since an older
+ * Commerce refuses settings with a key it does not know.
+ */
 export function checkoutSettingsJson(input: {
   siteId: string; siteOrigin: string; binding: PaymentsBinding; settings: CommerceSettings; coupons: boolean; ship: boolean; registration?: ShipSandboxRegistration;
+  freeOver?: boolean;
 }): string {
   const { binding, settings } = input;
   const recipient = shipRecipient(input.siteId, input.registration);
@@ -135,6 +149,7 @@ export function checkoutSettingsJson(input: {
       revision: settings.shippingRevision,
       mode: settings.shippingMode,
       ...(settings.shippingMode === 'flat' ? { amount: { currency: 'USD', minor: String(settings.shippingMinor) } } : {}),
+      ...(input.freeOver && settings.shippingMode === 'flat' && settings.freeOverMinor ? { freeOver: { currency: 'USD', minor: String(settings.freeOverMinor) } } : {}),
     },
     ...(input.coupons ? { coupons: { origin: COUPONS_ORIGIN, audience: audience('coupons') } } : {}),
     ...(input.ship ? { ship: shipDestination(recipient) } : {}),
@@ -161,6 +176,8 @@ function answer(status: number, body: string): Response {
  */
 export async function serveCommerceSettings(input: {
   db: D1Database; authorization: string | null; privateJwkJson?: string; registration?: ShipSandboxRegistration; fetchStatus?: PaymentsStatusFetch;
+  /** Commerce 0.7.0 and later ask with ?shipping=free-over. */
+  freeOver?: boolean;
 }): Promise<Response> {
   const refuse = (status: number, error: string) => answer(status, JSON.stringify({ error }));
   const token = input.authorization?.match(/^Bearer ([^\s]+)$/i)?.[1];
@@ -191,7 +208,7 @@ export async function serveCommerceSettings(input: {
   try {
     return answer(200, checkoutSettingsJson({
       registration: input.registration, siteId, siteOrigin: store.siteOrigin, binding: payments.binding, settings,
-      coupons: store.services.coupons === 'on', ship: store.services.ship === 'on',
+      coupons: store.services.coupons === 'on', ship: store.services.ship === 'on', freeOver: input.freeOver,
     }));
   } catch {
     return refuse(409, 'ship_test_required');

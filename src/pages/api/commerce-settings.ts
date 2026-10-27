@@ -15,6 +15,7 @@ export const GET: APIRoute = async (context) => {
       privateJwkJson: env.MERCHANT_JWT_PRIVATE_JWK,
       registration: env.SHIP_SANDBOX_REGISTRATION,
       fetchStatus: getInjectedTransports().paymentsStatusFetch,
+      freeOver: context.url.searchParams.get('shipping') === 'free-over',
     });
   } catch (error) {
     if (error instanceof MerchantUnavailableError) return unavailableResponse();

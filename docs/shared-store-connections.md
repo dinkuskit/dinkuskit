@@ -1,10 +1,30 @@
 # Shared store connections
 
-An organization owns one canonical store identity across Inventory, Payments,
-and future services. Each service requires its own explicit Owner consent.
-Admission to an organization never connects a store or activates a service.
-Connecting Inventory never authorizes Payments, and the reverse is also true.
-Ship integration is outside this slice.
+An organization owns one canonical store identity across connected services.
+Each service requires its own explicit Owner consent. Admission never connects a
+store or activates a service; one service's consent never authorizes another.
+
+## Current path, history, and direction
+
+Current source uses **Commerce-first registration**: Commerce registers the
+store; Payments and Ship refuse a start or approval without connected Commerce
+(`connect_commerce_first`). Each receives its own key and permitted scopes, as
+detailed under "Connect to DinkusKit: a store key per plugin" below. Inventory's
+older config-managed contract is retained for development; it is not a Registry
+installation or standalone onboarding claim.
+
+The earlier Inventory/Payments protocol and reconnect notes below explain the
+identity/grant foundation. Their original either-service-first design and
+then-pending transport qualification are historical; they do not override the
+current guard in `src/account/connect.ts`. Recorded release or local proof must
+be read at its own revision; this document is not a fresh live-service check.
+
+The [organization vision](https://github.com/dinkuskit/.github/blob/36aab690a7ef66dc119aab70e258ea979c54841a/VISION.md)
+accepts independently useful peer tools without a mandatory Commerce hub. The
+standalone registration, authentication, and merchant-hosted endpoint mechanism
+still needs its own accepted design and proof. Preserve the current guard until
+that replacement is implemented and verified; this document grants no new
+runtime authority.
 
 ## Registered contract
 
@@ -91,7 +111,7 @@ that were not yet exchanged for a token, so reconnecting never revives them. A s
 different service's grant. Ownership transfer and cascading revocation are not
 implemented by this contract.
 
-## Fresh protocol and development reconnect
+## Historical protocol-2 rollout and development reconnect
 
 Existing Inventory connections are development/test connections. Preserving
 version 1 protocol compatibility or migrating those grants is not required.
@@ -112,13 +132,15 @@ fixture/data reset must be scoped and approved separately. Inventory and
 Payments consumer updates are required follow-up work; this is not an
 end-to-end installed-plugin availability claim.
 
-Either service may connect first. The second reuses the same established ID
-only after ownership proof and independent consent. Concurrent new-store
+The earlier foundation allowed either Inventory or Payments to connect first.
+Current registration instead follows the Commerce-first path above. A later
+connection reuses the same established ID only after ownership proof and
+independent consent. Concurrent new-store
 attempts may produce different provisional candidates; only one canonical
 identity can win. The other must restart and resolve the established identity.
 Cross-organization attempts remain denied even with a valid origin receipt.
-Production issuance remains unavailable until transport qualification is
-separately completed.
+At that foundation revision, production issuance awaited separate transport
+qualification. Current release/transport claims require their own dated proof.
 
 ## Consumer failure handling
 
@@ -255,8 +277,8 @@ redirects. Every trade checks, in this order:
 | 403 | `service_not_enabled` | the service is not on for this store |
 | 503 | `signing_unavailable` | passes cannot be signed right now |
 
-A store gets its store ID only from pressing Connect in
-Commerce (or Inventory).
+Current Registry onboarding obtains the store ID through Commerce Connect.
+The older Inventory registration contract remains a development path only.
 
 ### Checkout settings
 

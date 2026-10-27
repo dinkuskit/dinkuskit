@@ -446,7 +446,7 @@
         "status": "published",
         "data": {
           "title": "Run your store with an agent, on a site you own.",
-          "description": "A professional online store where one chat box with an agent handles products, orders, payments, shipping labels and your site's pages, and you can do any of it by hand in the CMS too. You keep your own EmDash site and your own Stripe account.",
+          "description": "A professional online store on your own EmDash site, with your own Stripe account. Work in the CMS or use a compatible assistant with the interfaces and permissions your installed products support. First-party assistants are optional; you can bring your own.",
           "action_label": "Start your store",
           "action_href": "/start",
           "layout": [
@@ -456,7 +456,7 @@
               "_key": "home-0",
               "plugin_logo": "Commerce",
               "heading": "Ask the agent, or do it by hand",
-              "body": "Use one chat box to add products, change prices, check orders, buy shipping labels or update a page, or do the same work yourself in the EmDash CMS. If you are moving from WordPress/WooCommerce, Shopify or BigCommerce to an agent-run setup, you get a professional online store without having to learn the technical side of running one. You bring your products and pages over with your agent or by hand; automated store import tools are not built yet."
+              "body": "Choose a compatible assistant or work by hand in the EmDash CMS. Start assistant access read-only, then grant only the supported capabilities and approvals you want for your business. Available actions depend on your installed products and integrations; a documentation assistant such as Guide does not itself gain store permissions. Moving from WordPress/WooCommerce, Shopify or BigCommerce still requires bringing your products and pages over with supported tools, your assistant or by hand; automated store import tools are not built yet."
             },
             {
               "_type": "text_section",

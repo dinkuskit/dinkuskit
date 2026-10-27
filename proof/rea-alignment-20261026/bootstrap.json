@@ -1,0 +1,36 @@
+{
+  "unchanged_bundle": "1c914f7905cec0be1854c437ba39d3a78ffc3ced",
+  "skills": {
+    "grilltrack": {
+      "source": "1c914f7905cec0be1854c437ba39d3a78ffc3ced",
+      "files": 24
+    },
+    "emdash-sites": {
+      "source": "1c914f7905cec0be1854c437ba39d3a78ffc3ced",
+      "files": 11
+    },
+    "building-emdash-site": {
+      "source": "1c914f7905cec0be1854c437ba39d3a78ffc3ced",
+      "files": 7
+    },
+    "creating-plugins": {
+      "source": "1c914f7905cec0be1854c437ba39d3a78ffc3ced",
+      "files": 15
+    },
+    "emdash-cli": {
+      "source": "1c914f7905cec0be1854c437ba39d3a78ffc3ced",
+      "files": 4
+    },
+    "upgrading-emdash": {
+      "source": "1c914f7905cec0be1854c437ba39d3a78ffc3ced",
+      "files": 3
+    },
+    "emdash-commerce": {
+      "source": "23f2bb1208b3baa7aedaa87faec00395f9bdd061",
+      "files": 4
+    }
+  },
+  "canonical_references": "resolved",
+  "cached_reinstall": "byte-identical",
+  "unrelated_file": "preserved"
+}

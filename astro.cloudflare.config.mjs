@@ -43,6 +43,8 @@ export default defineConfig({
   ],
   vite: {
     define: {
+      'import.meta.env.DINKUS_GUIDE_PILOT': JSON.stringify(process.env.DINKUS_GUIDE_PILOT === 'true' ? 'true' : 'false'),
+      'import.meta.env.DINKUS_GUIDE_PLUGIN_ID': JSON.stringify(process.env.DINKUS_GUIDE_PLUGIN_ID ?? ''),
       'import.meta.env.EMDASH_ACCESS_TEAM_DOMAIN': JSON.stringify(teamDomain),
     },
   },

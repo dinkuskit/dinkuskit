@@ -34,7 +34,7 @@ This is local wrangler/workerd. It does not deploy or use `remote: true`. Produc
 
 Local development (`npm run dev`, bound to 127.0.0.1) still serves the EmDash editor at `/_emdash/admin`. That initial setup is for the person editing this website on a trusted local process, not merchant registration.
 
-Every production build denies the entire `/_emdash` namespace before EmDash bootstrap, including first-admin setup and CMS-hosted media under `/_emdash/api/media/file`. Public pages remain usable after a local fixture seed of the same persisted D1. Current marketing pages do not use CMS-hosted `/_emdash` media. Enabling a production CMS requires a separately configured protected operator access lane; Host, forwarded headers, Origin, cookies, query strings, and environment/proof bindings do not unlock it.
+By default, production builds deny the entire `/_emdash` namespace before EmDash bootstrap, including first-admin setup and CMS-hosted media under `/_emdash/api/media/file`. The disabled-by-default [DinkusGuide pilot](docs/dinkusguide-pilot.md) can opt into only the installed chat plugin's exact public config/ask operations; this does not unlock CMS/admin or other plugin routes. Public pages remain usable after a local fixture seed of the same persisted D1. Current marketing pages do not use CMS-hosted `/_emdash` media. Enabling a production CMS requires a separately configured protected operator access lane; Host, forwarded headers, Origin, cookies, query strings, and arbitrary environment/proof bindings do not unlock it.
 
 ## Agent account tests
 
@@ -61,6 +61,7 @@ The smoke expectations refer to the original starter content. If you edit that c
 - [Product charter](docs/CHARTER.md)
 - [Getting started](docs/getting-started.md)
 - [Documentation drafts and local preview](docs/documentation-authoring.md)
+- [Optional DinkusGuide pilot and controlled UI proof](docs/dinkusguide-pilot.md)
 - [Hosted runtime candidate runbook](docs/hosted-runtime-candidate.md)
 - [Authentication research](docs/authentication-research.md)
 - [Merchant account-boundary proof](proof/merchant-auth-proof/README.md)

@@ -1,4 +1,5 @@
 import { defineMiddleware } from 'astro:middleware';
+import { guidePilot, guidePublicRequest } from './guide/policy.ts';
 
 const NAMESPACE = '/_emdash';
 const CMS_PROOF_ALS = Symbol.for('dinkuskit.cms.proof.als');
@@ -29,14 +30,20 @@ function cmsProofEntered(): boolean {
 }
 
 /**
- * Production builds deny the entire `/_emdash` namespace before EmDash
+ * Production builds deny `/_emdash` before EmDash, except the two exact
+ * public plugin operations in an explicitly enabled Guide pilot. CMS
  * runtime, setup, or auth. Trusted unlocks are compile-time
  * `import.meta.env.DEV` and a request-scoped CMS proof ALS that only a
  * separate fixture entry may create and enter. Production never initializes
  * or enters that store. Host, forwarded headers, Origin, cookies, query,
- * env/proof bindings, and fake identities are ignored.
+ * arbitrary env/proof bindings, and fake identities are ignored.
  */
 export const onRequest = defineMiddleware((context, next) => {
+  const guide = guidePilot(
+    typeof import.meta.env !== 'undefined' ? import.meta.env.DINKUS_GUIDE_PILOT : undefined,
+    typeof import.meta.env !== 'undefined' ? import.meta.env.DINKUS_GUIDE_PLUGIN_ID : undefined,
+  );
+  if (guidePublicRequest(context.request, context.url, guide)) return next();
   if (import.meta.env.DEV || cmsProofEntered()) {
     return next();
   }

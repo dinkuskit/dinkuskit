@@ -1,0 +1,34 @@
+{
+  "name": "@dinkuskit/dinkusguide-chat",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Reusable EmDash Registry/sandbox chat plugin for read-only DinkusGuide public documentation questions",
+  "license": "MIT",
+  "main": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "default": "./dist/index.mjs"
+    },
+    "./sandbox": {
+      "types": "./dist/plugin.d.mts",
+      "default": "./dist/plugin.mjs"
+    },
+    "./manifest.json": "./dist/manifest.json",
+    "./contract": "./src/contract.ts"
+  },
+  "files": [
+    "dist/index.mjs",
+    "dist/index.d.mts",
+    "dist/plugin.mjs",
+    "dist/plugin.d.mts",
+    "dist/manifest.json",
+    "emdash-plugin.jsonc",
+    "README.md"
+  ],
+  "peerDependencies": {
+    "emdash": "^1.2.0"
+  }
+}

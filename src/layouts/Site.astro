@@ -16,6 +16,9 @@ import '../styles/site.css';
 import { Role } from '@emdash-cms/auth';
 import SiteFooter from '../components/SiteFooter.astro';
 import ThemeSwitch from '../components/ThemeSwitch.astro';
+import DinkusGuide from '../../packages/dinkusguide-ui/src/Guide.astro';
+import { guideAllowedPage, guidePilot } from '../guide/policy.ts';
+const guide = guidePilot(import.meta.env.DINKUS_GUIDE_PILOT, import.meta.env.DINKUS_GUIDE_PLUGIN_ID);
 ---
 <!doctype html>
 <html lang="en">
@@ -48,5 +51,6 @@ import ThemeSwitch from '../components/ThemeSwitch.astro';
     </header>
     <main id="main" class:list={{ 'docs-main': wide }}><slot /></main>
     <SiteFooter />
+    {guide && guideAllowedPage(Astro.url.pathname) && <DinkusGuide configUrl={guide.configUrl} askUrl={guide.askUrl} />}
   </body>
 </html>

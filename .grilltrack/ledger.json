@@ -178,6 +178,20 @@
           "note": "fork composition invalidates prior current proof",
           "source_snapshot_ref": ".grilltrack/lineage/dcb93c15e99778923665306ddd78a66d873c763b2c0a70980feaa6cee915be55",
           "to": "needs_reverification"
+        },
+        {
+          "at": "2026-10-27T21:55:12+00:00",
+          "choice": "Use Deep Chat behind a replaceable bundled frontend boundary, explicit public routes, and a reusable Registry/sandbox EmDash plugin with encrypted server settings and an authenticated ask-only Guide adapter. Return only completed validated answers and verified public citations. Enforce input, duration, concurrency and safe-output boundaries; stateless per question, no transcript persistence. Preserve existing Guide retrieval and no fallback. Defer other providers, actions, billing, analytics and training. Deployment, publishing, permission changes and merge remain human gates.",
+          "from": "needs_reverification",
+          "implementation_ref": "packages/dinkusguide-chat, packages/dinkusguide-ui, docs/dinkusguide-pilot.md; read-only opt-in pilot and current CSS brand tokens",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": null
         }
       ],
       "id": "dinkusguide-pilot-098",
@@ -197,10 +211,10 @@
       "review_ref": null,
       "review_result": null,
       "review_source_identity": null,
-      "status": "needs_reverification",
+      "status": "verified",
       "superseded_by": null,
-      "updated_at": "2026-10-27T21:44:30+00:00",
-      "verification_ref": null
+      "updated_at": "2026-10-27T21:55:12+00:00",
+      "verification_ref": "proof/guide-pilot/PROOF.md: full verification on ca11ec10294128201727ba9e51a6b591eca8c7ae; identical Guide source plus 15 browser and 8 namespace cases on c402127827857576fa18e4b7ddf81d5f7eef9382; no live deployment"
     },
     {
       "baseline_ref": "git:dda0260636aa7723e28fefd10e1f3424ff24d1cf",
@@ -11784,5 +11798,5 @@
   "status": "active",
   "title": "Preserve DinkusGuide pilot and merged free-shipping decisions",
   "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d",
-  "updated_at": "2026-10-27T21:44:30+00:00"
+  "updated_at": "2026-10-27T21:55:12+00:00"
 }

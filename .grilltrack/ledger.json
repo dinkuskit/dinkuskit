@@ -199,6 +199,20 @@
           "note": "fork composition invalidates prior current proof",
           "source_snapshot_ref": ".grilltrack/lineage/0ffcd1e30d1c0e840b9b7fba8a5890e6d7ac7d6a9030eb8d0b50d8cb0bd2e029",
           "to": "needs_reverification"
+        },
+        {
+          "at": "2026-10-27T22:04:26+00:00",
+          "choice": "Use Deep Chat behind a replaceable bundled frontend boundary, explicit public routes, and a reusable Registry/sandbox EmDash plugin with encrypted server settings and an authenticated ask-only Guide adapter. Return only completed validated answers and verified public citations. Enforce input, duration, concurrency and safe-output boundaries; stateless per question, no transcript persistence. Preserve existing Guide retrieval and no fallback. Defer other providers, actions, billing, analytics and training. Deployment, publishing, permission changes and merge remain human gates.",
+          "from": "needs_reverification",
+          "implementation_ref": "packages/dinkusguide-chat, packages/dinkusguide-ui, docs/dinkusguide-pilot.md; read-only opt-in pilot and current CSS brand tokens",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": null
         }
       ],
       "id": "dinkusguide-pilot-098",
@@ -218,10 +232,10 @@
       "review_ref": null,
       "review_result": null,
       "review_source_identity": null,
-      "status": "needs_reverification",
+      "status": "verified",
       "superseded_by": null,
-      "updated_at": "2026-10-27T21:55:12+00:00",
-      "verification_ref": null
+      "updated_at": "2026-10-27T22:04:26+00:00",
+      "verification_ref": "proof/guide-pilot/PROOF.md: current Access gate and 5 UI + 4 contract + 8 sandbox/transport checks pass; 36 rebuilt merged account/shared-store cases pass; 15 browser and 8 namespace cases; full pre-integration suite passed. No live activation."
     },
     {
       "baseline_ref": "git:dda0260636aa7723e28fefd10e1f3424ff24d1cf",
@@ -11927,5 +11941,5 @@
   "status": "active",
   "title": "Preserve Guide pilot and merged agent API token decisions",
   "track_id": "gt-join-0ffcd1e30d1c0e840b9b7fba8a5890e6",
-  "updated_at": "2026-10-27T21:55:12+00:00"
+  "updated_at": "2026-10-27T22:04:26+00:00"
 }

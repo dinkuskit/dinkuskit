@@ -19,6 +19,6 @@ The separately bundled component is under packages/dinkusguide-ui. Site.astro op
 
 ## Proof limits
 
-The fixture uses the real Site layout and Deep Chat component with a synthetic transport and isolated local EmDash database. It is not an installed-plugin test, a live Guide response, hosted Access proof or a public deployment. Guide real-model and adapter proof belong to the companion PR. Installed sandbox evidence belongs to the plugin slice. The full website verification result and final exact-head review are recorded at PR closeout.
+The fixture uses the real Site layout and Deep Chat component with a synthetic transport and isolated local EmDash database. It is not an installed-plugin test, a live Guide response, hosted Access proof or a public deployment. Guide real-model and adapter proof belong to the companion PR. Sandbox runtime evidence belongs to the plugin slice. The full website verification result and final exact-head review are recorded at PR closeout.
 
 No model tokens stream before validation. No transcripts are persisted. Model-provided HTML/Markdown remains plain text; only validated citation URLs receive links. Browser requests omit merchant cookies and send one question with no history, model controls or visitor ID.

@@ -132,5 +132,21 @@
 {"action": "shared_understanding_confirmed", "at": "2026-10-25T20:44:15+00:00", "data": {"summary": "Ronald 'agreed' 20:11 (first repos Commerce, Payments, Ship), 20:12 (shared setup guides stay in dinkuskit), after OpenClaw comparison on flag vs block, 'agreed' 20:16 to the summarized plan, and 20:43 replaced the later add-on with a benchmark checkpoint toward a daily docs agent like OpenClaw's."}, "event_id": "f9db6f1e-c5d9-4894-a6e9-a709e5ba6095"}
 {"action": "decision_proposed", "at": "2026-10-25T20:44:15+00:00", "data": {"decision_id": "website-docs-from-plugin-releases-086"}, "event_id": "72f19a8f-9cd2-48bf-ab87-00c91623f837"}
 {"action": "decision_locked", "at": "2026-10-25T20:58:04+00:00", "data": {"decision_id": "website-docs-from-plugin-releases-086"}, "event_id": "8b9ac649-7005-41cf-8bcc-8b87a2c32d34"}
-{"action": "decision_proposed", "at": "2026-10-27T19:34:11+00:00", "data": {"decision_id": "website-start-pages-20261027"}, "event_id": "d0010fb7-04cc-4b61-8332-07506de6ad48"}
-{"action": "decision_locked", "at": "2026-10-27T19:34:11+00:00", "data": {"decision_id": "website-start-pages-20261027"}, "event_id": "5b2b272c-fc28-4941-b018-3da3d7814956"}
+{"action": "focus_started", "at": "2026-10-27T19:20:48+00:00", "data": {"cadence": "frontier-batch", "domain": "Merchant-owned Cloudflare deployment (dinkuskit/.github#18)"}, "event_id": "cb4e990c-5e7e-4b7b-9bb6-a7ef6a349aa2"}
+{"action": "shared_understanding_confirmed", "at": "2026-10-27T19:20:48+00:00", "data": {"summary": "Ronald 19:19 UTC 27 Oct: 'im on the same page i agree across the board' after plain-terms explanations of questions 1-5 and 10 in the doc comment threads."}, "event_id": "d745dd83-36c7-4d77-982c-b8a0a7088a8d"}
+{"action": "decision_proposed", "at": "2026-10-27T19:20:48+00:00", "data": {"decision_id": "self-host-sequencing-001"}, "event_id": "e5063096-bf46-4fa4-ab00-6b582e02da61"}
+{"action": "decision_locked", "at": "2026-10-27T19:20:48+00:00", "data": {"decision_id": "self-host-sequencing-001"}, "event_id": "e436fdd0-20f2-4ba7-a2ab-49d3f0d8da52"}
+{"action": "decision_proposed", "at": "2026-10-27T19:20:48+00:00", "data": {"decision_id": "self-host-commerce-listing-002"}, "event_id": "44963669-9a21-4b18-b6fd-dc0dc0543e9e"}
+{"action": "decision_locked", "at": "2026-10-27T19:20:48+00:00", "data": {"decision_id": "self-host-commerce-listing-002"}, "event_id": "5a7d8590-9123-4613-ab2e-17acba8dce1c"}
+{"action": "decision_proposed", "at": "2026-10-27T19:20:48+00:00", "data": {"decision_id": "self-host-store-key-003"}, "event_id": "4ff7b67c-f199-4211-a153-80be5e104c3c"}
+{"action": "decision_locked", "at": "2026-10-27T19:20:49+00:00", "data": {"decision_id": "self-host-store-key-003"}, "event_id": "0ddae5c4-6166-43d1-8221-bb7275c37c95"}
+{"action": "decision_proposed", "at": "2026-10-27T19:20:49+00:00", "data": {"decision_id": "self-host-provider-accounts-004"}, "event_id": "8c72c87e-4412-4c75-930f-16e3b9be8541"}
+{"action": "decision_locked", "at": "2026-10-27T19:20:49+00:00", "data": {"decision_id": "self-host-provider-accounts-004"}, "event_id": "9300ca16-529a-4ea7-9c80-6897a5fb258e"}
+{"action": "decision_proposed", "at": "2026-10-27T19:20:49+00:00", "data": {"decision_id": "self-host-second-operator-005"}, "event_id": "bffcc7c4-42f1-42af-83f1-bf7f28b5192d"}
+{"action": "decision_locked", "at": "2026-10-27T19:20:49+00:00", "data": {"decision_id": "self-host-second-operator-005"}, "event_id": "a6cea7fc-d895-46aa-a290-efbfeabe4e7e"}
+{"action": "decision_proposed", "at": "2026-10-27T19:20:49+00:00", "data": {"decision_id": "self-host-pass-service-006"}, "event_id": "a2be5957-9880-4c65-b19d-4ab5d7e2279c"}
+{"action": "decision_locked", "at": "2026-10-27T19:20:49+00:00", "data": {"decision_id": "self-host-pass-service-006"}, "event_id": "28aa375f-9f7c-41ce-b4d2-136c547dfea0"}
+{"action": "decision_proposed", "at": "2026-10-27T19:20:49+00:00", "data": {"decision_id": "self-host-milestone-007"}, "event_id": "9884f33f-0772-4abe-8d66-324e0c6e9c03"}
+{"action": "decision_locked", "at": "2026-10-27T19:20:49+00:00", "data": {"decision_id": "self-host-milestone-007"}, "event_id": "dd9571b5-6687-4d8b-aec2-8af59cac8fb3"}
+{"action": "decision_proposed", "at": "2026-10-27T19:55:38+00:00", "data": {"decision_id": "website-start-pages-20261027"}, "event_id": "539a1892-31b0-4cd6-abfd-daaa731b6802"}
+{"action": "decision_locked", "at": "2026-10-27T19:55:38+00:00", "data": {"decision_id": "website-start-pages-20261027"}, "event_id": "015d1159-08e3-44d2-8299-e53392f680b1"}

@@ -6,4 +6,4 @@ const entries = await getVisibleDocs();
 if (entries.length) return Astro.redirect(docsPath(entries[0].id), 302);
 Astro.response.status = 404;
 ---
-<Site title="Page not found" description="This page is not available."><div class="intro"><h1>Page not found.</h1><a href="/getting-started">Getting started</a></div></Site>
+<Site title="Page not found" description="This page is not available."><div class="intro"><h1>Page not found.</h1><a href="/getting-started">How it works</a></div></Site>

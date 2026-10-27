@@ -10447,22 +10447,76 @@
           "review_source_identity": null,
           "to": "verified",
           "verification_ref": null
+        },
+        {
+          "at": "2026-10-27T22:45:00+00:00",
+          "choice": "Use Deep Chat behind a replaceable bundled frontend boundary, explicit public routes, and a reusable Registry/sandbox EmDash plugin with encrypted server settings and an authenticated ask-only Guide adapter. Return only completed validated answers and verified public citations. Enforce input, duration, concurrency and safe-output boundaries; stateless per question, no transcript persistence. Preserve existing Guide retrieval and no fallback. Defer other providers, actions, billing, analytics and training. Deployment, publishing, permission changes and merge remain human gates.",
+          "from": "verified",
+          "implementation_ref": "Same application implementation as git:449ae2d93b62fc60d9cff285f0714bc143ea87ff; full original decision lifecycle in proof/guide-pilot/history/pre-cleanup.tar.gz",
+          "note": "adjudicated review requires a fix",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "needs_reverification",
+          "verification_ref": "proof/guide-pilot/history-packaging.md: all103 archived files byte-identical to80779c0; all104 active decision IDs/choices preserved; normalCLI validates both ledgers; app code identical449ae2d (fullCI/comprehensive clean); archive checks and 5UI tests pass. Fresh current-head reviews required."
+        },
+        {
+          "at": "2026-10-27T22:45:01+00:00",
+          "choice": "Use Deep Chat behind a replaceable bundled frontend boundary, explicit public routes, and a reusable Registry/sandbox EmDash plugin with encrypted server settings and an authenticated ask-only Guide adapter. Return only completed validated answers and verified public citations. Enforce input, duration, concurrency and safe-output boundaries; stateless per question, no transcript persistence. Preserve existing Guide retrieval and no fallback. Defer other providers, actions, billing, analytics and training. Deployment, publishing, permission changes and merge remain human gates.",
+          "from": "needs_reverification",
+          "implementation_ref": "Same application implementation as git:449ae2d93b62fc60d9cff285f0714bc143ea87ff; full original decision lifecycle in proof/guide-pilot/history/pre-cleanup.tar.gz",
+          "note": "bounded implementation recorded",
+          "repair_required": true,
+          "review_classifications": [
+            "required_fix"
+          ],
+          "review_ref": "https://github.com/dinkuskit/dinkuskit/pull/100#issuecomment-6455326707; accept P2 manifest-host build verification mismatch as required_fix",
+          "review_result": "findings",
+          "review_source_identity": "git:f80bb27f54b1fdf5467bc854cd03026bc29a0241",
+          "to": "implemented",
+          "verification_ref": "proof/guide-pilot/history-packaging.md: all103 archived files byte-identical to80779c0; all104 active decision IDs/choices preserved; normalCLI validates both ledgers; app code identical449ae2d (fullCI/comprehensive clean); archive checks and 5UI tests pass. Fresh current-head reviews required."
+        },
+        {
+          "at": "2026-10-27T22:45:48+00:00",
+          "choice": "Use Deep Chat behind a replaceable bundled frontend boundary, explicit public routes, and a reusable Registry/sandbox EmDash plugin with encrypted server settings and an authenticated ask-only Guide adapter. Return only completed validated answers and verified public citations. Enforce input, duration, concurrency and safe-output boundaries; stateless per question, no transcript persistence. Preserve existing Guide retrieval and no fallback. Defer other providers, actions, billing, analytics and training. Deployment, publishing, permission changes and merge remain human gates.",
+          "from": "implemented",
+          "implementation_ref": "scripts/lib/dinkusguide-build-contract.mjs and real alternative-host build regression; derive allowed hostname from authored manifest while retaining exact single-host authority",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": "proof/guide-pilot/history-packaging.md: all103 archived files byte-identical to80779c0; all104 active decision IDs/choices preserved; normalCLI validates both ledgers; app code identical449ae2d (fullCI/comprehensive clean); archive checks and 5UI tests pass. Fresh current-head reviews required."
         }
       ],
       "id": "dinkusguide-pilot-098",
-      "implementation_ref": "Same application implementation as git:449ae2d93b62fc60d9cff285f0714bc143ea87ff; full original decision lifecycle in proof/guide-pilot/history/pre-cleanup.tar.gz",
+      "implementation_ref": "scripts/lib/dinkusguide-build-contract.mjs and real alternative-host build regression; derive allowed hostname from authored manifest while retaining exact single-host authority",
       "question": "How should the first public DinkusGuide pilot be implemented?",
       "rationale": "Carry-forward of the existing owner-approved decision, not a new product choice. Original record, lifecycle, and reconciliations are preserved byte-for-byte in proof/guide-pilot/history/pre-cleanup.tar.gz (source 80779c031bd9dfd0e204e426ecf805d7c7a266ef).",
       "repair_required": false,
       "review_classifications": [],
-      "review_history": [],
+      "review_history": [
+        {
+          "classifications": [
+            "required_fix"
+          ],
+          "ref": "https://github.com/dinkuskit/dinkuskit/pull/100#issuecomment-6455326707; accept P2 manifest-host build verification mismatch as required_fix",
+          "result": "findings",
+          "reviewed_at": "2026-10-27T22:45:00+00:00",
+          "source_identity": "git:f80bb27f54b1fdf5467bc854cd03026bc29a0241"
+        }
+      ],
       "review_ref": null,
       "review_result": null,
       "review_source_identity": null,
       "status": "verified",
       "superseded_by": null,
-      "updated_at": "2026-10-27T22:33:10+00:00",
-      "verification_ref": "proof/guide-pilot/history-packaging.md: all103 archived files byte-identical to80779c0; all104 active decision IDs/choices preserved; normalCLI validates both ledgers; app code identical449ae2d (fullCI/comprehensive clean); archive checks and 5UI tests pass. Fresh current-head reviews required."
+      "updated_at": "2026-10-27T22:45:48+00:00",
+      "verification_ref": "proof/guide-pilot/PROOF.md: native host-verification P2 repaired; default build and real alternative-host build/bundle pass; six Node contract/build checks and eight sandbox cases pass; single-host restrictions retained"
     }
   ],
   "last_activation": {
@@ -10493,5 +10547,5 @@
   "status": "active",
   "title": "Composed integration",
   "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5",
-  "updated_at": "2026-10-27T22:33:10+00:00"
+  "updated_at": "2026-10-27T22:45:48+00:00"
 }

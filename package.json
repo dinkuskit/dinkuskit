@@ -60,7 +60,7 @@
     "test:guide-ui": "node --experimental-strip-types --test tests/dinkusguide-ui.test.mjs",
     "test:guide-browser": "node scripts/dinkusguide-browser-proof.mjs",
     "build:dinkusguide-plugin": "node scripts/dinkusguide-plugin-build.mjs",
-    "test:dinkusguide-plugin": "node --experimental-strip-types --test tests/dinkusguide-plugin.test.mjs && vitest run --config vitest.guide.config.mts",
+    "test:dinkusguide-plugin": "node --experimental-strip-types --test tests/dinkusguide-plugin.test.mjs tests/dinkusguide-build.test.mjs && vitest run --config vitest.guide.config.mts",
     "test:history-archive": "python3 scripts/check-history-archive.py --check-git && python3 tests/history-archive.test.py"
   },
   "dependencies": {

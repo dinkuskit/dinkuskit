@@ -23,6 +23,16 @@ Comprehensive review of `b519a83c847581c3248725ec1a208c113639805d` found one P2:
 
 ## Review and activation
 
+Native review of `f80bb27f54b1fdf5467bc854cd03026bc29a0241` found one P2
+build-tool defect: verification hard-coded the inert example hostname, despite
+setup allowing a configured hostname. Both related Before-merge boxes were
+classified as `repair` using the rubric by hand. The verifier now checks the
+generated host representations against the authored manifest and still requires
+exactly one concrete host and only `network:request`. A real build/bundle using
+`docs-assistant.example.test` passes; mismatch, wildcard, multiple-host and
+unrestricted-access cases are rejected. The default build, six Node checks and
+eight sandbox cases pass after this repair.
+
 The [history-packaging cleanup](history-packaging.md) retains all original
 decision-history bytes in a verified archive and a retained Git tag, while
 carrying the unchanged pilot decision onto main's active ledger. The application

@@ -19,6 +19,8 @@ Detailed boundaries and reproduction: [plugin](plugin.md), [UI](ui.md), [setup](
 
 ## Review and activation
 
-Current-head CI, comprehensive review and native review are recorded on the PR. A previous-head verdict is not current review evidence. Screenshots are selected synthetic fixture captures; immutable asset references are added to the PR after its number is allocated.
+Current-head CI, comprehensive review and native review are recorded on [PR #100](https://github.com/dinkuskit/dinkuskit/pull/100). A previous-head verdict is not current review evidence.
+
+Selected synthetic fixture evidence is preserved in the [immutable PR media release](https://github.com/dinkuskit/dinkus-pr-assets/releases/tag/dinkuskit-pr-100-41fd369a1029): [desktop](https://github.com/dinkuskit/dinkus-pr-assets/releases/download/dinkuskit-pr-100-41fd369a1029/desktop.png), [mobile light](https://github.com/dinkuskit/dinkus-pr-assets/releases/download/dinkuskit-pr-100-41fd369a1029/mobile.png), [mobile dark](https://github.com/dinkuskit/dinkus-pr-assets/releases/download/dinkuskit-pr-100-41fd369a1029/mobile-dark.png), and [provenance/hash manifest](https://github.com/dinkuskit/dinkus-pr-assets/releases/download/dinkuskit-pr-100-41fd369a1029/ASSET_MANIFEST.json). The manifest distinguishes capture source `c402127` from source snapshot `41fd369`; the Guide UI files are identical between them. These captures demonstrate the CSS palette, layout and fixture behavior, not live-model or production availability.
 
 This is an opt-in source pilot. No Registry package was published, no production plugin was installed, and no live Access policy, secret, service or website was changed. The independent Guide real-model proof is not a claim that this browser fixture used a model. Merge and deployment remain owner decisions.

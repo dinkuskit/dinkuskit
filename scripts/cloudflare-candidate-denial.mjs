@@ -157,6 +157,29 @@ async function proveAgentTokens(origin, generatedWrangler, env) {
   assert.equal(unknown.response.status, 401, `unknown token: ${sanitizeText(unknown.body, 400)}`);
   record('EmDash refuses a well-formed token it never issued (401)');
 
+  // Docs publish sends its token beside the Access service-token pair; before the
+  // edge Bypass Access also adds its JWT. Either way the token decides.
+  const publisher = await agentFetch(origin, '/_emdash/api/schema/collections', agent.raw, {
+    headers: {
+      'cf-access-client-id': 'fixture.access',
+      'cf-access-client-secret': 'fixture-not-a-secret',
+      'cf-access-jwt-assertion': 'edge-jwt-before-bypass',
+    },
+  });
+  assert.equal(publisher.response.status, 200, `token beside Access headers: ${sanitizeText(publisher.body, 400)}`);
+  record('A token sent beside Access service-token headers and an edge JWT still works (publisher before and after the Bypass)');
+
+  // EmDash public routes read a saved session and skip Bearer checks: no token lane.
+  await assertDenied('token on snapshot drafts', origin, '/_emdash/api/snapshot?drafts=true', auth);
+  await assertDenied('token on search', origin, '/_emdash/api/search?q=a', auth);
+  await assertDenied('made-up token with a stale CMS session on snapshot', origin, '/_emdash/api/snapshot?drafts=true', {
+    headers: { authorization: `Bearer ${stranger.raw}`, cookie: 'astro-session=stale-operator-session' },
+  });
+  await assertDenied('real token with a cookie', origin, '/_emdash/api/schema/collections', {
+    headers: { ...auth.headers, cookie: 'astro-session=stale-operator-session' },
+  });
+  record('Snapshot and search stay closed to tokens, and a token sent with any cookie needs Access, so a stale CMS session cannot ride on it');
+
   for (const [label, path] of [
     ['token on admin UI', '/_emdash/admin'],
     ['token on API tokens', '/_emdash/api/admin/api-tokens'],
@@ -165,10 +188,17 @@ async function proveAgentTokens(origin, generatedWrangler, env) {
     ['token on auth', '/_emdash/api/auth/me'],
     ['token on oauth', '/_emdash/api/oauth/token'],
     ['token on encoded admin', '/_emdash/api/%61dmin/api-tokens'],
+    ['token on plugins', '/_emdash/api/plugins/dinkuskit-operator/approvals'],
+    ['token on settings', '/_emdash/api/settings'],
   ]) {
     await assertDenied(label, origin, path, auth);
   }
-  record('Tokens stay out of the admin UI, users, token management, setup, sign-in and OAuth');
+  record('Tokens stay out of the admin UI, users, token management, setup, sign-in, OAuth, plugins and settings');
+
+  await d1(generatedWrangler, env, "DELETE FROM _emdash_api_tokens WHERE id = 'fixture-agent'");
+  const revoked = await agentFetch(origin, '/_emdash/api/schema/collections', agent.raw);
+  assert.equal(revoked.response.status, 401, `revoked token: ${sanitizeText(revoked.body, 400)}`);
+  record('A revoked token gets 401 on its next request');
 }
 
 async function main() {

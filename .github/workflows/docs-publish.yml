@@ -27,12 +27,13 @@ jobs:
     name: Publish doc updates
     runs-on: ubuntu-24.04
     timeout-minutes: 20
-    # The publisher's EmDash API token (website-agent-api-tokens-20261027) once
-    # set; the Access service token pair until then.
+    # Both the publisher's EmDash API token (website-agent-api-tokens-20261027)
+    # and the Access service token pair are sent when set, so publishing keeps
+    # working before and after the edge Bypass on /_emdash/api.
     env:
       EMDASH_TOKEN: ${{ secrets.DOCS_PUBLISH_EMDASH_TOKEN }}
-      CF_ACCESS_CLIENT_ID: ${{ secrets.DOCS_PUBLISH_EMDASH_TOKEN == '' && secrets.DOCS_PUBLISH_ACCESS_CLIENT_ID || '' }}
-      CF_ACCESS_CLIENT_SECRET: ${{ secrets.DOCS_PUBLISH_EMDASH_TOKEN == '' && secrets.DOCS_PUBLISH_ACCESS_CLIENT_SECRET || '' }}
+      CF_ACCESS_CLIENT_ID: ${{ secrets.DOCS_PUBLISH_ACCESS_CLIENT_ID }}
+      CF_ACCESS_CLIENT_SECRET: ${{ secrets.DOCS_PUBLISH_ACCESS_CLIENT_SECRET }}
       PUBLISHER_READY: ${{ secrets.DOCS_PUBLISH_EMDASH_TOKEN != '' || (secrets.DOCS_PUBLISH_ACCESS_CLIENT_ID != '' && secrets.DOCS_PUBLISH_ACCESS_CLIENT_SECRET != '') }}
     steps:
       - name: Wait for the publisher's token

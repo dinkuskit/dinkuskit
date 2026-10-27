@@ -202,11 +202,22 @@ export function deniedNamespaceResponse() {
 /** Upstream EmDash token prefixes (`@emdash-cms/auth` TOKEN_PREFIXES): API and OAuth access tokens. */
 export const EMDASH_TOKEN_PREFIXES = ['ec_pat_', 'ec_oat_'];
 export const AGENT_API_PREFIX = `${EMDASH_NAMESPACE}/api/`;
-/** Who may sign in and who holds which token stays with people behind Access. */
-export const AGENT_API_CLOSED_PREFIXES = ['admin', 'setup', 'auth', 'oauth'].map((segment) => `${AGENT_API_PREFIX}${segment}`);
+/**
+ * EmDash API families an agent token may reach. Each one is outside EmDash's
+ * public-route list, so EmDash checks the Bearer token (or answers 401) and
+ * its scope on every request there. Public routes (snapshot, search, comments,
+ * media files) skip Bearer checks and read a saved session instead, and sign-in,
+ * setup, users, token management and plugin routes stay with people.
+ */
+export const AGENT_API_FAMILIES = ['mcp', 'content', 'schema', 'menus', 'taxonomies', 'media', 'sections', 'widget-areas', 'revisions'];
+export const AGENT_API_CLOSED_PREFIXES = [`${AGENT_API_PREFIX}media/file`];
 
-/** True when the request carries an EmDash API or OAuth access token. */
+/**
+ * True when the request carries an EmDash API or OAuth access token and no
+ * cookie, so EmDash can only act on the token, never on a saved browser session.
+ */
 export function hasEmdashToken(request) {
+  if (request.headers.has('Cookie')) return false;
   const header = request.headers.get('Authorization') || '';
   if (!header.startsWith('Bearer ')) return false;
   const token = header.slice(7);
@@ -214,16 +225,17 @@ export function hasEmdashToken(request) {
 }
 
 /**
- * Decoded paths where an EmDash token may stand in for an Access sign-in:
- * REST and MCP under /_emdash/api/, except the closed prefixes. Empty or dot
- * segments, backslashes and any escape left after decoding are refused rather
- * than normalized.
+ * Decoded paths where an EmDash token may stand in for an Access sign-in: the
+ * agent families above, matched exactly (EmDash routes are case-sensitive).
+ * Empty or dot segments, backslashes and any escape left after decoding are
+ * refused rather than normalized.
  */
 export function isAgentApiPath(decodedPathname) {
   if (typeof decodedPathname !== 'string' || !decodedPathname.startsWith(AGENT_API_PREFIX)) return false;
   if (/\/\/|\/\.\.?(?:\/|$)|\\|%/.test(decodedPathname)) return false;
-  const lower = decodedPathname.toLowerCase();
-  return !AGENT_API_CLOSED_PREFIXES.some((prefix) => lower === prefix || lower.startsWith(`${prefix}/`));
+  const under = (prefix) => decodedPathname === prefix || decodedPathname.startsWith(`${prefix}/`);
+  if (AGENT_API_CLOSED_PREFIXES.some(under)) return false;
+  return AGENT_API_FAMILIES.some((family) => under(`${AGENT_API_PREFIX}${family}`));
 }
 
 /**

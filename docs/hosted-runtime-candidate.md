@@ -22,7 +22,7 @@ Set these only in ignored operator input (Wrangler secrets, `cloudflare/.dev.var
 - `EMDASH_OPERATOR_ALLOWLIST` — runtime comma-separated operator emails.
 - `EMDASH_OPERATOR_SERVICE_TOKENS` — optional runtime comma-separated Access service token common names (`<client_id>.access`). A listed token whose Access JWT verifies is admitted as Editor (40) `service+<client_id>@tokens.invalid`, without the Access identity lookup. Unset denies all service tokens. Add only after setup is closed; the gate denies every service token until the CMS `DB` has an enabled Admin.
 
-EmDash API tokens (`ec_pat_`, `ec_oat_`) need no value here: the gate passes them on `/_emdash/api/*` (except `admin`, `setup`, `auth`, `oauth`) once the CMS `DB` has an enabled Admin, and EmDash checks them. The Access application needs a Bypass for `/_emdash/api`; see `DEPLOY.md`.
+EmDash API tokens (`ec_pat_`, `ec_oat_`) need no value here: the gate passes them, on requests without a cookie, on `mcp`, `content`, `schema`, `menus`, `taxonomies`, `media` (not `media/file`), `sections`, `widget-areas` and `revisions` under `/_emdash/api/` once the CMS `DB` has an enabled Admin, and EmDash checks them. The Access application needs a Bypass for `/_emdash/api`; see `DEPLOY.md`.
 
 Do not commit team domains, audiences, account IDs, host bindings, or real mailbox addresses.
 

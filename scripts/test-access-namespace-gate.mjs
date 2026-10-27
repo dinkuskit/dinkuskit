@@ -580,14 +580,18 @@ record('Public route passes through to downstream next with adapter locals');
 {
   // website-agent-api-tokens-20261027: agents bring an EmDash API token instead of an Access sign-in.
   const noAccess = async () => { throw new Error('Access must not be consulted for an EmDash token'); };
-  const tokenGate = (pathname, authorization, hasActiveAdmin = async () => true) => evaluateAccessGate({
+  const tokenGate = (pathname, authorization, hasActiveAdmin = async () => true, extraHeaders = {}) => evaluateAccessGate({
     pathname,
-    request: new Request(`http://127.0.0.1${pathname}`, { method: 'POST', headers: authorization ? { authorization } : {} }),
+    request: new Request(`http://127.0.0.1${pathname}`, { method: 'POST', headers: { ...(authorization ? { authorization } : {}), ...extraHeaders } }),
     env: fixtureEnv,
     authenticate: noAccess,
     hasActiveAdmin,
   });
-  for (const path of ['/_emdash/api/mcp', '/_emdash/api/content/pages', '/_emdash/api/content/pages/home/publish', '/_emdash/api/menus/footer-get-started', '/%5femdash/api/content/pages']) {
+  for (const path of [
+    '/_emdash/api/mcp', '/_emdash/api/content/pages', '/_emdash/api/content/pages/home/publish', '/_emdash/api/menus/footer-get-started',
+    '/_emdash/api/schema/collections', '/_emdash/api/taxonomies', '/_emdash/api/media', '/_emdash/api/sections', '/_emdash/api/widget-areas',
+    '/_emdash/api/revisions/x', '/%5femdash/api/content/pages',
+  ]) {
     assert.deepEqual(await tokenGate(path, 'Bearer ec_pat_fixture'), { allow: true, reason: 'emdash-token' }, path);
   }
   assert.deepEqual(await tokenGate('/_emdash/api/mcp', 'Bearer ec_oat_fixture'), { allow: true, reason: 'emdash-token' });
@@ -598,11 +602,21 @@ record('Public route passes through to downstream next with adapter locals');
     '/_emdash/api/ADMIN/api-tokens', '/_emdash/api/setup/status', '/_emdash/api/auth/login', '/_emdash/api/oauth/token',
     '/_emdash/api//admin/api-tokens', '/_emdash/api/content/../admin/api-tokens', '/_emdash/api/./admin/users',
     '/_emdash/api/content/%2f..%2fadmin', '/_emdash/api%2fadmin/api-tokens', '/_emdash/api\\admin', '/_emdash/api',
+    // EmDash public routes skip Bearer checks and read a saved session; plugin routes stay with people.
+    '/_emdash/api/snapshot', '/_emdash/api/search', '/_emdash/api/search/suggest', '/_emdash/api/comments/pages/x',
+    '/_emdash/api/media/file/key', '/_emdash/api/plugins/dinkuskit-operator/approvals', '/_emdash/api/settings',
+    '/_emdash/api/health', '/_emdash/api/manifest', '/_emdash/api/Content/pages', '/_emdash/api/MCP', '/_emdash/api/contentx',
   ]) {
     const decision = await tokenGate(path, 'Bearer ec_pat_fixture');
     assert.equal(decision.allow, false, path);
   }
-  record('A token never opens the admin UI, token and user management, setup, sign-in, OAuth, or a path with empty, dot or escaped segments');
+  record('A token never opens the admin UI, token and user management, setup, sign-in, OAuth, public session-reading routes, plugins, settings, or a path with empty, dot or escaped segments');
+
+  for (const cookie of ['astro-session=stale', 'CF_Authorization=spoofed', 'x=1']) {
+    const decision = await tokenGate('/_emdash/api/content/pages', 'Bearer ec_pat_fixture', async () => true, { cookie });
+    assert.deepEqual(decision, { allow: false, status: 404, reason: 'unauthenticated' }, cookie);
+  }
+  record('A token sent with any cookie gets no token lane, so a saved CMS session never rides on it; it needs Access as before');
 
   for (const authorization of [undefined, 'Bearer ', 'Bearer ec_pat_', 'Bearer not-an-emdash-token', 'Basic ec_pat_fixture', 'bearer ec_pat_fixture']) {
     const decision = await tokenGate('/_emdash/api/content/pages', authorization);
@@ -621,6 +635,8 @@ record('Public route passes through to downstream next with adapter locals');
   assert.equal(hasEmdashToken(new Request('http://127.0.0.1/', { headers: { authorization: 'Bearer ec_pat_x' } })), true);
   assert.equal(isAgentApiPath('/_emdash/api/mcp'), true);
   assert.equal(isAgentApiPath('/_emdash/api/oauth'), false);
+  assert.equal(isAgentApiPath('/_emdash/api/snapshot'), false);
+  assert.equal(hasEmdashToken(new Request('http://127.0.0.1/', { headers: { authorization: 'Bearer ec_pat_x', cookie: 'a=b' } })), false);
   record('Token and path helpers match the gate');
 }
 

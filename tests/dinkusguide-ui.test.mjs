@@ -30,6 +30,11 @@ test('completed answers stay whole and only immutable public links are accepted'
   const url = `https://github.com/dinkuskit/commerce/blob/${'a'.repeat(40)}/README.md#L1-L20`;
   const answer = { status: 'answered', answer: '<script>alert(1)</script> **Full** answer. '.repeat(500), citations: [url] };
   assert.deepEqual(parseAnswer(answer), answer);
+  const singleLine = url.replace('#L1-L20', '#L42');
+  assert.deepEqual(parseAnswer({ ...answer, citations: [singleLine] }).citations, [singleLine]);
+  for (const badAnchor of ['#L0', '#L20-L1', '#L9007199254740992']) {
+    assert.equal(safeCitation(url.replace('#L1-L20', badAnchor)), false);
+  }
   assert.equal(parseAnswer({ success: true, data: answer }).answer, answer.answer);
   for (const bad of ['javascript:alert(1)', 'data:text/html,hi', 'https://evil.test/x', url.replace('a'.repeat(40), 'main'), url.replace('dinkuskit', 'private-org'), url + '?redirect=other']) assert.equal(safeCitation(bad), false);
   assert.throws(() => parseAnswer({ ...answer, citations: [] }));

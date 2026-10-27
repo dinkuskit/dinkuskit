@@ -17,6 +17,10 @@ Companion ask service: [dinkus-guide #14](https://github.com/dinkuskit/dinkus-gu
 
 Detailed boundaries and reproduction: [plugin](plugin.md), [UI](ui.md), [setup](../../docs/dinkusguide-pilot.md).
 
+## Citation review repair
+
+Comprehensive review of `b519a83c847581c3248725ec1a208c113639805d` found one P2: the plugin accepted single-line GitHub anchors (`#L42`) while the UI accepted only ranges. Accepted as `required_fix`. The UI now accepts either form with positive, safe-integer line numbers and rejects reversed ranges. The new regression failed before the fix and passes afterward. Five focused UI tests, Astro typecheck/build, and 16 browser cases pass, including a complete answer with a rendered single-line source link. This parser-only repair does not change the photographed palette or layout.
+
 ## Review and activation
 
 Current-head CI, comprehensive review and native review are recorded on [PR #100](https://github.com/dinkuskit/dinkuskit/pull/100). A previous-head verdict is not current review evidence.

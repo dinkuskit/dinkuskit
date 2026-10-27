@@ -48,6 +48,12 @@ try {
   assert.deepEqual(asks.at(-1), { question: 'How does Commerce work?' });
   assert.ok((await dialogText(page)).includes('Synthetic answer: How does Commerce work?'));
   await page.screenshot({ path: `${out}/desktop.png` }); mark('completed answer and citation on desktop');
+  await page.route('**' + askPath, route => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ status: 'answered', answer: 'A verified single-line citation.', citations: ['https://github.com/dinkuskit/dinkus-guide/blob/d8eb8bb7d5877ee120a1d6ff5d4045712c91a03e/README.md#L7'] }) }));
+  await ask(page, 'single-line citation');
+  assert.ok((await dialogText(page)).includes('A verified single-line citation.'));
+  assert.equal(await page.locator('.dinkusguide-sources a[href$="#L7"]').count(), 1);
+  await page.unroute('**' + askPath);
+  mark('valid single-line citation remains a completed answer');
   const beforeHostile = asks.length;
   const hostile = '<script>alert(1)</script> [bad](javascript:alert(1)) ![image](https://evil.test/tracking)';
   await ask(page, hostile);

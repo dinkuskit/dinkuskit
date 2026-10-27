@@ -10,10 +10,11 @@ export function safeCitation(value: unknown): value is string {
   if (typeof value !== 'string') return false;
   try {
     const url = new URL(value);
-    const lines = /^#L([1-9][0-9]*)-L([1-9][0-9]*)$/.exec(url.hash);
+    const lines = /^#L([1-9][0-9]*)(?:-L([1-9][0-9]*))?$/.exec(url.hash);
+    const start = Number(lines?.[1]), end = Number(lines?.[2] ?? lines?.[1]);
     return url.protocol === 'https:' && url.hostname === 'github.com' && !url.port && !url.username && !url.password && !url.search &&
       /^\/(?:dinkuskit|emdash-cms)\/[^/]+\/blob\/[a-f0-9]{40}\/[a-zA-Z0-9_./%-]+$/.test(url.pathname) &&
-      Boolean(lines && Number.isSafeInteger(Number(lines[2])) && Number(lines[2]) >= Number(lines[1]));
+      Boolean(lines && Number.isSafeInteger(start) && Number.isSafeInteger(end) && end >= start);
   } catch { return false; }
 }
 

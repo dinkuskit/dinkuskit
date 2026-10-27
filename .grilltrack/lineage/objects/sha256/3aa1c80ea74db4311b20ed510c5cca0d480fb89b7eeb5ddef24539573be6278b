@@ -1,0 +1,2797 @@
+{
+  "adjudicated_decisions": {
+    "builder-bot-credentials-059": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "builder-bot-runtime-060": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "merchant-auth-007": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "merchant-better-auth-008": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "merchant-closure-019": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "merchant-communication-018": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "merchant-communication-018-repair": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "merchant-connect-local-proof-009": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "merchant-employee-authority-021": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "merchant-membership-013": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "merchant-operator-017": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "merchant-owner-privileges-015": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "merchant-phone-transport-option-023": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "merchant-pilot-admission-020": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "merchant-signup-contact-016": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "merchant-signup-flow-022": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "merchant-signup-flow-022-repair": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "merchant-tier-intent-014": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "release-1-0-gate-063": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "release-approver-069": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "release-baseline-067": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "release-beta-cadence-078": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "release-beta-cut-071": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "release-beta-flow-066": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "release-bot-068": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "release-branches-079": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "release-changesets-061": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "release-pr-previews-065": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "release-publish-on-merge-064": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "release-releasing-md-070": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "release-semver-0x-062": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "self-host-commerce-listing-002": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "self-host-milestone-007": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "self-host-pass-service-006": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "self-host-provider-accounts-004": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "self-host-second-operator-005": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "self-host-sequencing-001": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "self-host-store-key-003": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "setup-commerce-free-shipping-over-20261027": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "ship-sandbox-issuer-v1": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "start-3d-plugin-cubes-20261023": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "start-landing-page-20261022": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "store-connect-checkout-settings-083": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "store-connect-commerce-optional-085": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "store-connect-flow-081": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "store-connect-no-paste-082": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "store-connect-per-plugin-key-080": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "store-connect-rollout-084": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "website-account-003": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "website-account-pages-plain-words-049": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "website-agent-testing-032": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "website-audience-002": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "website-availability-010": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "website-commerce-checkout-settings-044": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "website-coupons-coming-soon-046": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "website-design-20261023": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "website-docs-collection-075": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "website-docs-drafts-073": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "website-docs-from-plugin-releases-086": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "website-docs-review-074": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "website-docs-sync-077": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "website-domain-006": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "website-e2e-mailbox-contract-050": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "website-e2e-run-contract-049": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "website-email-contact-without-phone-034": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "website-emdash12-025": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "website-footer-20261023": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "website-future-004": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "website-inventory-overview-024": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "website-merchant-admission-status-029": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "website-operation-009": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "website-operator-012": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "website-operator-admin-emdash-access-035": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "website-operator-approvals-in-admin-039": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "website-operator-authorization-027": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "website-operator-cut-off-store-037": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "website-operator-directory-026": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "website-operator-restore-cut-off-store-041": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "website-operator-services-view-038": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "website-operator-suspend-account-036": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "website-optional-phone-signup-033": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "website-organization-approvals-028": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "website-owner-remove-employee-040": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "website-owner-renames-business-050": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "website-payments-beta-connect-072": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "website-platform-001": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "website-production-store-connect-032": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "website-public-launch-008": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "website-scaffold-005": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "website-shared-store-service-grants-030": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "website-ship-admin-pass-076": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "website-ship-signin-047": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "website-start-pages-20261027": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "website-store-key-for-commerce-042": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "website-store-key-without-payments-045": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "website-store-pass-site-origin-048": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "website-store-services-opt-in-043": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "website-template-demo-011": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "website-test-mode-deploy-031": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "website-theme-switch-20261023": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    },
+    "website-visual-007": {
+      "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+      "role": "incoming"
+    }
+  },
+  "adjudication": {
+    "decisions": {
+      "builder-bot-credentials-059": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "builder-bot-runtime-060": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "merchant-auth-007": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "merchant-better-auth-008": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "merchant-closure-019": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "merchant-communication-018": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "merchant-communication-018-repair": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "merchant-connect-local-proof-009": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "merchant-employee-authority-021": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "merchant-membership-013": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "merchant-operator-017": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "merchant-owner-privileges-015": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "merchant-phone-transport-option-023": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "merchant-pilot-admission-020": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "merchant-signup-contact-016": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "merchant-signup-flow-022": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "merchant-signup-flow-022-repair": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "merchant-tier-intent-014": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "release-1-0-gate-063": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "release-approver-069": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "release-baseline-067": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "release-beta-cadence-078": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "release-beta-cut-071": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "release-beta-flow-066": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "release-bot-068": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "release-branches-079": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "release-changesets-061": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "release-pr-previews-065": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "release-publish-on-merge-064": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "release-releasing-md-070": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "release-semver-0x-062": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "self-host-commerce-listing-002": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "self-host-milestone-007": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "self-host-pass-service-006": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "self-host-provider-accounts-004": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "self-host-second-operator-005": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "self-host-sequencing-001": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "self-host-store-key-003": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "setup-commerce-free-shipping-over-20261027": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "ship-sandbox-issuer-v1": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "start-3d-plugin-cubes-20261023": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "start-landing-page-20261022": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "store-connect-checkout-settings-083": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "store-connect-commerce-optional-085": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "store-connect-flow-081": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "store-connect-no-paste-082": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "store-connect-per-plugin-key-080": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "store-connect-rollout-084": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "website-account-003": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "website-account-pages-plain-words-049": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "website-agent-testing-032": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "website-audience-002": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "website-availability-010": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "website-commerce-checkout-settings-044": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "website-coupons-coming-soon-046": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "website-design-20261023": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "website-docs-collection-075": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "website-docs-drafts-073": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "website-docs-from-plugin-releases-086": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "website-docs-review-074": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "website-docs-sync-077": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "website-domain-006": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "website-e2e-mailbox-contract-050": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "website-e2e-run-contract-049": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "website-email-contact-without-phone-034": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "website-emdash12-025": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "website-footer-20261023": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "website-future-004": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "website-inventory-overview-024": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "website-merchant-admission-status-029": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "website-operation-009": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "website-operator-012": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "website-operator-admin-emdash-access-035": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "website-operator-approvals-in-admin-039": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "website-operator-authorization-027": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "website-operator-cut-off-store-037": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "website-operator-directory-026": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "website-operator-restore-cut-off-store-041": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "website-operator-services-view-038": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "website-operator-suspend-account-036": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "website-optional-phone-signup-033": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "website-organization-approvals-028": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "website-owner-remove-employee-040": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "website-owner-renames-business-050": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "website-payments-beta-connect-072": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "website-platform-001": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "website-production-store-connect-032": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "website-public-launch-008": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "website-scaffold-005": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "website-shared-store-service-grants-030": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "website-ship-admin-pass-076": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "website-ship-signin-047": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "website-start-pages-20261027": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "website-store-key-for-commerce-042": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "website-store-key-without-payments-045": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "website-store-pass-site-origin-048": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "website-store-services-opt-in-043": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "website-template-demo-011": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "website-test-mode-deploy-031": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "website-theme-switch-20261023": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      },
+      "website-visual-007": {
+        "reason": "The locked product choice is identical. Retain the latest merged main metadata; prior branch history remains in immutable reconciliation sources. This is not new product approval or composed verification.",
+        "role": "incoming"
+      }
+    },
+    "refs": {
+      "base": "3b0efcadfa670851fc990ff8d77ffb654096413f",
+      "current": "9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+      "incoming": "77a91632c6808045d82061e941012a04b9907a34"
+    },
+    "schema": "grilltrack/adjudication/v1"
+  },
+  "composed_review": false,
+  "composed_verification": false,
+  "decision_ids": [
+    "builder-bot-credentials-059",
+    "builder-bot-runtime-060",
+    "dinkusguide-pilot-098",
+    "merchant-auth-007",
+    "merchant-better-auth-008",
+    "merchant-closure-019",
+    "merchant-communication-018",
+    "merchant-communication-018-repair",
+    "merchant-connect-local-proof-009",
+    "merchant-employee-authority-021",
+    "merchant-membership-013",
+    "merchant-operator-017",
+    "merchant-owner-privileges-015",
+    "merchant-phone-transport-option-023",
+    "merchant-pilot-admission-020",
+    "merchant-signup-contact-016",
+    "merchant-signup-flow-022",
+    "merchant-signup-flow-022-repair",
+    "merchant-tier-intent-014",
+    "release-1-0-gate-063",
+    "release-approver-069",
+    "release-baseline-067",
+    "release-beta-cadence-078",
+    "release-beta-cut-071",
+    "release-beta-flow-066",
+    "release-bot-068",
+    "release-branches-079",
+    "release-changesets-061",
+    "release-pr-previews-065",
+    "release-publish-on-merge-064",
+    "release-releasing-md-070",
+    "release-semver-0x-062",
+    "self-host-commerce-listing-002",
+    "self-host-milestone-007",
+    "self-host-pass-service-006",
+    "self-host-provider-accounts-004",
+    "self-host-second-operator-005",
+    "self-host-sequencing-001",
+    "self-host-store-key-003",
+    "setup-commerce-free-shipping-over-20261027",
+    "ship-sandbox-issuer-v1",
+    "start-3d-plugin-cubes-20261023",
+    "start-landing-page-20261022",
+    "store-connect-checkout-settings-083",
+    "store-connect-commerce-optional-085",
+    "store-connect-flow-081",
+    "store-connect-no-paste-082",
+    "store-connect-per-plugin-key-080",
+    "store-connect-rollout-084",
+    "website-account-003",
+    "website-account-pages-plain-words-049",
+    "website-agent-api-tokens-20261027",
+    "website-agent-testing-032",
+    "website-audience-002",
+    "website-availability-010",
+    "website-commerce-checkout-settings-044",
+    "website-coupons-coming-soon-046",
+    "website-design-20261023",
+    "website-docs-collection-075",
+    "website-docs-drafts-073",
+    "website-docs-from-plugin-releases-086",
+    "website-docs-publish-emdash-token-20261027",
+    "website-docs-review-074",
+    "website-docs-sync-077",
+    "website-domain-006",
+    "website-e2e-mailbox-contract-050",
+    "website-e2e-run-contract-049",
+    "website-email-contact-without-phone-034",
+    "website-emdash12-025",
+    "website-footer-20261023",
+    "website-future-004",
+    "website-inventory-overview-024",
+    "website-merchant-admission-status-029",
+    "website-operation-009",
+    "website-operator-012",
+    "website-operator-admin-emdash-access-035",
+    "website-operator-approvals-in-admin-039",
+    "website-operator-authorization-027",
+    "website-operator-cut-off-store-037",
+    "website-operator-directory-026",
+    "website-operator-restore-cut-off-store-041",
+    "website-operator-services-view-038",
+    "website-operator-suspend-account-036",
+    "website-optional-phone-signup-033",
+    "website-organization-approvals-028",
+    "website-owner-remove-employee-040",
+    "website-owner-renames-business-050",
+    "website-payments-beta-connect-072",
+    "website-platform-001",
+    "website-production-store-connect-032",
+    "website-public-launch-008",
+    "website-scaffold-005",
+    "website-shared-store-service-grants-030",
+    "website-ship-admin-pass-076",
+    "website-ship-signin-047",
+    "website-start-pages-20261027",
+    "website-store-key-for-commerce-042",
+    "website-store-key-without-payments-045",
+    "website-store-pass-site-origin-048",
+    "website-store-services-opt-in-043",
+    "website-template-demo-011",
+    "website-test-mode-deploy-031",
+    "website-theme-switch-20261023",
+    "website-visual-007"
+  ],
+  "decision_provenance": {
+    "builder-bot-credentials-059": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "builder-bot-runtime-060": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "dinkusguide-pilot-098": [
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      }
+    ],
+    "merchant-auth-007": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "merchant-better-auth-008": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "merchant-closure-019": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "merchant-communication-018": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "merchant-communication-018-repair": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "merchant-connect-local-proof-009": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "merchant-employee-authority-021": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "merchant-membership-013": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "merchant-operator-017": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "merchant-owner-privileges-015": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "merchant-phone-transport-option-023": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "merchant-pilot-admission-020": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "merchant-signup-contact-016": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "merchant-signup-flow-022": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "merchant-signup-flow-022-repair": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "merchant-tier-intent-014": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "release-1-0-gate-063": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "release-approver-069": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "release-baseline-067": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "release-beta-cadence-078": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "release-beta-cut-071": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "release-beta-flow-066": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "release-bot-068": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "release-branches-079": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "release-changesets-061": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "release-pr-previews-065": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "release-publish-on-merge-064": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "release-releasing-md-070": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "release-semver-0x-062": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "self-host-commerce-listing-002": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "self-host-milestone-007": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "self-host-pass-service-006": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "self-host-provider-accounts-004": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "self-host-second-operator-005": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "self-host-sequencing-001": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "self-host-store-key-003": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "setup-commerce-free-shipping-over-20261027": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "ship-sandbox-issuer-v1": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "start-3d-plugin-cubes-20261023": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "start-landing-page-20261022": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "store-connect-checkout-settings-083": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "store-connect-commerce-optional-085": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "store-connect-flow-081": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "store-connect-no-paste-082": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "store-connect-per-plugin-key-080": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "store-connect-rollout-084": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "website-account-003": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "website-account-pages-plain-words-049": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "website-agent-api-tokens-20261027": [
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "website-agent-testing-032": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "website-audience-002": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "website-availability-010": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "website-commerce-checkout-settings-044": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "website-coupons-coming-soon-046": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "website-design-20261023": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "website-docs-collection-075": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "website-docs-drafts-073": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "website-docs-from-plugin-releases-086": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "website-docs-publish-emdash-token-20261027": [
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "website-docs-review-074": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "website-docs-sync-077": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "website-domain-006": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "website-e2e-mailbox-contract-050": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "website-e2e-run-contract-049": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "website-email-contact-without-phone-034": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "website-emdash12-025": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "website-footer-20261023": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "website-future-004": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "website-inventory-overview-024": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "website-merchant-admission-status-029": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "website-operation-009": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "website-operator-012": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "website-operator-admin-emdash-access-035": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "website-operator-approvals-in-admin-039": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "website-operator-authorization-027": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "website-operator-cut-off-store-037": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "website-operator-directory-026": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "website-operator-restore-cut-off-store-041": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "website-operator-services-view-038": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "website-operator-suspend-account-036": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "website-optional-phone-signup-033": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "website-organization-approvals-028": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "website-owner-remove-employee-040": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "website-owner-renames-business-050": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "website-payments-beta-connect-072": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "website-platform-001": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "website-production-store-connect-032": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "website-public-launch-008": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "website-scaffold-005": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "website-shared-store-service-grants-030": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "website-ship-admin-pass-076": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "website-ship-signin-047": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "website-start-pages-20261027": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "website-store-key-for-commerce-042": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "website-store-key-without-payments-045": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "website-store-pass-site-origin-048": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "website-store-services-opt-in-043": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "website-template-demo-011": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "website-test-mode-deploy-031": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "website-theme-switch-20261023": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ],
+    "website-visual-007": [
+      {
+        "role": "base",
+        "source_identity": "git:3b0efcadfa670851fc990ff8d77ffb654096413f",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      },
+      {
+        "role": "current",
+        "source_identity": "git:9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+        "track_id": "gt-join-dcb93c15e99778923665306ddd78a66d"
+      },
+      {
+        "role": "incoming",
+        "source_identity": "git:77a91632c6808045d82061e941012a04b9907a34",
+        "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5"
+      }
+    ]
+  },
+  "joined_track_id": "gt-join-0ffcd1e30d1c0e840b9b7fba8a5890e6",
+  "needs_reverification": [
+    "builder-bot-credentials-059",
+    "builder-bot-runtime-060",
+    "dinkusguide-pilot-098",
+    "merchant-auth-007",
+    "merchant-better-auth-008",
+    "merchant-closure-019",
+    "merchant-communication-018-repair",
+    "merchant-connect-local-proof-009",
+    "merchant-employee-authority-021",
+    "merchant-membership-013",
+    "merchant-operator-017",
+    "merchant-owner-privileges-015",
+    "merchant-phone-transport-option-023",
+    "merchant-pilot-admission-020",
+    "merchant-signup-contact-016",
+    "merchant-signup-flow-022-repair",
+    "merchant-tier-intent-014",
+    "release-1-0-gate-063",
+    "release-approver-069",
+    "release-baseline-067",
+    "release-beta-cadence-078",
+    "release-bot-068",
+    "release-branches-079",
+    "release-changesets-061",
+    "release-pr-previews-065",
+    "release-publish-on-merge-064",
+    "release-releasing-md-070",
+    "release-semver-0x-062",
+    "self-host-commerce-listing-002",
+    "self-host-milestone-007",
+    "self-host-pass-service-006",
+    "self-host-provider-accounts-004",
+    "self-host-second-operator-005",
+    "self-host-sequencing-001",
+    "self-host-store-key-003",
+    "setup-commerce-free-shipping-over-20261027",
+    "ship-sandbox-issuer-v1",
+    "start-3d-plugin-cubes-20261023",
+    "start-landing-page-20261022",
+    "store-connect-checkout-settings-083",
+    "store-connect-commerce-optional-085",
+    "store-connect-flow-081",
+    "store-connect-no-paste-082",
+    "store-connect-per-plugin-key-080",
+    "store-connect-rollout-084",
+    "website-account-003",
+    "website-account-pages-plain-words-049",
+    "website-agent-api-tokens-20261027",
+    "website-agent-testing-032",
+    "website-audience-002",
+    "website-availability-010",
+    "website-coupons-coming-soon-046",
+    "website-design-20261023",
+    "website-docs-collection-075",
+    "website-docs-drafts-073",
+    "website-docs-from-plugin-releases-086",
+    "website-docs-publish-emdash-token-20261027",
+    "website-docs-review-074",
+    "website-docs-sync-077",
+    "website-domain-006",
+    "website-e2e-mailbox-contract-050",
+    "website-e2e-run-contract-049",
+    "website-email-contact-without-phone-034",
+    "website-emdash12-025",
+    "website-footer-20261023",
+    "website-future-004",
+    "website-inventory-overview-024",
+    "website-operation-009",
+    "website-operator-012",
+    "website-operator-admin-emdash-access-035",
+    "website-operator-approvals-in-admin-039",
+    "website-operator-restore-cut-off-store-041",
+    "website-operator-services-view-038",
+    "website-operator-suspend-account-036",
+    "website-optional-phone-signup-033",
+    "website-organization-approvals-028",
+    "website-owner-remove-employee-040",
+    "website-owner-renames-business-050",
+    "website-payments-beta-connect-072",
+    "website-platform-001",
+    "website-production-store-connect-032",
+    "website-public-launch-008",
+    "website-scaffold-005",
+    "website-shared-store-service-grants-030",
+    "website-ship-admin-pass-076",
+    "website-ship-signin-047",
+    "website-start-pages-20261027",
+    "website-store-pass-site-origin-048",
+    "website-store-services-opt-in-043",
+    "website-template-demo-011",
+    "website-test-mode-deploy-031",
+    "website-theme-switch-20261023",
+    "website-visual-007"
+  ],
+  "plan_id": "0ffcd1e30d1c0e840b9b7fba8a5890e6d7ac7d6a9030eb8d0b50d8cb0bd2e029",
+  "refs": {
+    "base": "3b0efcadfa670851fc990ff8d77ffb654096413f",
+    "current": "9b8c8fe2323abc21b4b13ba411d8c2e3ef56afa1",
+    "incoming": "77a91632c6808045d82061e941012a04b9907a34"
+  },
+  "retention": {
+    "lineage": {
+      "base": "c3722d0fbf102123bd07089da479e3a61862a2cd4403cab0f209f5ef1e791844",
+      "current": "7e0b8836a328124eeb7240240a15c9bcaf2684bd37383e4da37e9780c1463d92",
+      "incoming": "c3722d0fbf102123bd07089da479e3a61862a2cd4403cab0f209f5ef1e791844"
+    },
+    "schema": "grilltrack/retained/v2"
+  },
+  "schema": "grilltrack/reconcile/v2",
+  "snapshot_ref": ".grilltrack/lineage/0ffcd1e30d1c0e840b9b7fba8a5890e6d7ac7d6a9030eb8d0b50d8cb0bd2e029",
+  "snapshots": {
+    "base": {
+      "events.jsonl": "691086e4fbca31b206434d854c6641cb3cba91c2da0310f086554ef22ab748a7",
+      "ledger.json": "cfbb91f824c2a5941e228e3086e950424cdb4c21eea233c975b84e33b790c522"
+    },
+    "current": {
+      "events.jsonl": "ac01531922fa96f37ad4e8cb818451d5437c5494e82ecbe2e5bd9a811d0c5ec8",
+      "ledger.json": "4e431b40d4276fe2026a064f80219c300812ebc02da81d9ccb8762b0654def0c"
+    },
+    "incoming": {
+      "events.jsonl": "588763d1add9019e90ffa34b12ad93cfe7206a7105bf8bceb9054f9877e649b2",
+      "ledger.json": "e7e64519e0c485fe1a6040026c07ea0535b1a2b1685bef791544c653fc7a8a11"
+    }
+  },
+  "title": "Preserve Guide pilot and merged agent API token decisions"
+}

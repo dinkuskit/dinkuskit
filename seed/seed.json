@@ -380,7 +380,7 @@
         },
         {
           "type": "custom",
-          "label": "Getting started",
+          "label": "How it works",
           "url": "/getting-started"
         },
         {
@@ -445,8 +445,8 @@
         "slug": "home",
         "status": "published",
         "data": {
-          "title": "Run your store with an agent, on a site you own.",
-          "description": "A professional online store on your own EmDash site, with your own Stripe account. Work in the CMS or use a compatible assistant with the interfaces and permissions your installed products support. First-party assistants are optional; you can bring your own.",
+          "title": "Run your store yourself, or with the agent you choose.",
+          "description": "A store on your own EmDash site. Manage products, orders and USPS labels from the admin, and let the agent you choose help through the same tools, with only the access you give it. You keep your site, your data and your own payment account.",
           "action_label": "Start your store",
           "action_href": "/start",
           "layout": [
@@ -455,8 +455,8 @@
               "_version": 1,
               "_key": "home-0",
               "plugin_logo": "Commerce",
-              "heading": "Ask the agent, or do it by hand",
-              "body": "Choose a compatible assistant or work by hand in the EmDash CMS. Start assistant access read-only, then grant only the supported capabilities and approvals you want for your business. Available actions depend on your installed products and integrations; a documentation assistant such as Guide does not itself gain store permissions. Moving from WordPress/WooCommerce, Shopify or BigCommerce still requires bringing your products and pages over with supported tools, your assistant or by hand; automated store import tools are not built yet."
+              "heading": "Your agent or your hands, same tools",
+              "body": "Do the work yourself in the EmDash admin, or let an agent you already use help through the same tools. Give it only the access it needs, and take its key back any time. If you are moving from WordPress/WooCommerce, Shopify or BigCommerce, you get a professional online store without having to learn the technical side of running one. You bring your products and pages over with your agent or by hand; automated store import tools are not built yet."
             },
             {
               "_type": "text_section",
@@ -464,22 +464,22 @@
               "_key": "home-1",
               "plugin_logo": "Ship",
               "heading": "Products, orders and USPS labels",
-              "body": "Commerce, Payments and Ship are live on the EmDash Registry today. Commerce handles your products, prices, cart, checkout, orders and shopper accounts, while Ship buys and prints USPS shipping labels and writes tracking back to the order (in test mode until live postage opens). Inventory and Coupons are planned and are not needed to run your store."
+              "body": "Commerce, Payments and Ship are live on the EmDash Registry today. Commerce handles your products, prices, cart, checkout, orders and shopper accounts, while Ship buys and prints USPS shipping labels and writes tracking back to the order (in test mode until live postage opens). Use only the pieces you need: without Ship you mark orders shipped by hand with a tracking number, and Inventory and Coupons are optional extras still to come."
             },
             {
               "_type": "text_section",
               "_version": 1,
               "_key": "home-2",
               "plugin_logo": "Payments",
-              "heading": "Your site and your Stripe account",
-              "body": "Your storefront and pages run on your own EmDash site, so you keep your site, your content and your customer relationships. Payments connects your business's own Stripe account for card checkout, so customers pay you directly through Stripe. You can place test orders first before opening your store to live payments."
+              "heading": "Your site, your data, your payment account",
+              "body": "Your storefront and pages run on your own EmDash site, so you keep your site, your content and your customer relationships. Payments connects your business's own Stripe account, so customers pay you directly. Authorize.net is next. You can place test orders first before opening your store to live payments."
             },
             {
               "_type": "text_section",
               "_version": 1,
               "_key": "home-3",
               "heading": "Connect in a few clicks",
-              "body": "Install Commerce, Payments and Ship from the EmDash Registry, then press Connect to DinkusKit in each plugin and approve the store on your DinkusKit account. There are no secret keys or checkout settings to copy and paste between screens. Open Start your store for the four-step checklist from a new site to your first test order."
+              "body": "Install Commerce, Payments and Ship from the EmDash Registry, then press Connect in each plugin, Commerce first, and approve the store on your DinkusKit account. There are no secret keys or checkout settings to copy and paste between screens. Open Start your store for the four-step checklist from a new site to your first test order."
             }
           ]
         }
@@ -489,15 +489,15 @@
         "slug": "getting-started",
         "status": "published",
         "data": {
-          "title": "Your site. One connected experience.",
-          "description": "The first DinkusKit experience is for people who already have an EmDash site.",
+          "title": "How DinkusKit fits together.",
+          "description": "Useful pieces you add one at a time, run by you from the admin, with your own agent helping where you allow it.",
           "layout": [
             {
               "_type": "text_section",
               "_version": 1,
               "_key": "getting-started-0",
-              "heading": "1. Create an EmDash site",
-              "body": "Follow the official EmDash installation guide to scaffold a site with npm create emdash@latest. Official themes are complete Astro templates. This website is not an installer.",
+              "heading": "Your EmDash site is the store",
+              "body": "Your products, orders and pages live in your own EmDash site. Don't have one yet? Follow the official EmDash install guide. The DinkusKit Template Store comes with shop pages ready to go; another theme needs product, cart and checkout pages added.",
               "link_href": "https://docs.emdashcms.com/getting-started/",
               "link_label": "Create your first EmDash site",
               "second_link_href": "https://docs.emdashcms.com/themes/overview/",
@@ -507,17 +507,17 @@
               "_type": "text_section",
               "_version": 1,
               "_key": "getting-started-1",
-              "heading": "2. Connect your DinkusKit account",
-              "body": "Sign in with your DinkusKit account. Authorizing a site still requires verified site control from Inventory Connect; this website will not accept a typed site ID. The same account will be able to connect multiple stores once that protocol exists. Hosted onboarding and documented open-source self-hosting are not provisioned here."
+              "heading": "Each plugin does one job",
+              "body": "Commerce keeps your products, prices, checkout and orders. Payments connects your one card processor, Stripe today. Ship buys USPS labels on your own Pitney Bowes postage account. Each fact lives in one place, so nothing drifts out of sync. Inventory and Coupons are optional extras still to come."
             },
             {
               "_type": "text_section",
               "_version": 1,
               "_key": "getting-started-2",
-              "heading": "3. Commerce and Template Store",
-              "body": "Commerce and the Template Store will be released together as a verified pair. You can try the interactive storefront in the playground: each visitor gets their own throwaway store with a synthetic catalog to test browsing and cart behavior. Checkout shows as unavailable, so no real purchases can be made. Template Store setup guidance is available for the development source pilot, while released installable packages and artifacts remain pending.",
+              "heading": "Your DinkusKit account approves each connection",
+              "body": "Install the plugins from the EmDash Registry, press Connect in each one, Commerce first, and approve it at DinkusKit.com. Nothing is pasted, and each plugin gets only its own key. Want to see a store first? Try the playground, where every visitor gets their own throwaway store.",
               "link_href": "https://playground.dinkuskit.com/",
-              "link_label": "Try the demo",
+              "link_label": "Try the playground",
               "second_link_href": "https://github.com/dinkuskit/template-store/blob/main/docs/v1-setup.md",
               "second_link_label": "Template setup"
             },
@@ -525,8 +525,15 @@
               "_type": "text_section",
               "_version": 1,
               "_key": "getting-started-3",
-              "heading": "Trial access",
-              "body": "Initial hosted Inventory access is planned as a trial without payment details and is not a prerequisite for Commerce. Trial duration, usage limits and pricing have not been set."
+              "heading": "People and agents use the same tools",
+              "body": "An agent works through the same routes the admin uses, and each one gets only the access you give it, with a key you can take back. Today an agent can read and complete orders; managing products is coming next. DinkusKit's own assistants are optional, and they get no powers you can't see."
+            },
+            {
+              "_type": "text_section",
+              "_version": 1,
+              "_key": "getting-started-4",
+              "heading": "Ways to run it",
+              "body": "Today your store runs on your own EmDash site and uses DinkusKit's hosted services for your account, payments and labels. Planned: running those services in your own Cloudflare account, so you don't depend on us. Not offered yet: a managed service where someone runs the store for you."
             }
           ]
         }
@@ -568,7 +575,7 @@
               "_key": "start-1",
               "heading": "Your four steps",
               "progress_text": "{done} of {total} done",
-              "done_message": "That's a working store in test mode. Live payments open after DinkusKit's own real-store proof."
+              "done_message": "That's a working store in test mode. Live payments open once our own store has shipped real orders on the same plugins."
             },
             {
               "_type": "start_step",
@@ -586,7 +593,7 @@
               "_version": 1,
               "_key": "start-3",
               "heading": "Add Commerce, Payments and Ship",
-              "body": "In your store admin, open the plugin Registry and install DinkusKit Commerce, DinkusKit Payments and DinkusKit Ship. Ship is optional if you'd rather mark orders shipped by hand."
+              "body": "In your store admin, open the plugin Registry and install DinkusKit Commerce, DinkusKit Payments and DinkusKit Ship. Ship is optional: without it, you mark each order shipped by hand with its tracking number."
             },
             {
               "_type": "start_step",
@@ -611,7 +618,7 @@
               "link_href": "https://playground.dinkuskit.com/",
               "link_label": "Back to the playground",
               "second_link_href": "https://dinkuskit.com/getting-started",
-              "second_link_label": "Getting started"
+              "second_link_label": "How it works"
             }
           ]
         }

@@ -184,7 +184,7 @@ try {
   assert.equal(hashPersist(persistTo), beforeMutations, 'Fresh production CMS probes must not mutate D1');
   const freshHome = await request(base, '/');
   const freshHomeBody = await freshHome.text();
-  assert.ok(!/Run your store with an agent, on a site you own/.test(freshHomeBody), 'Fresh production must not already contain seeded marketing copy');
+  assert.ok(!/Run your store yourself, or with the agent you choose/.test(freshHomeBody), 'Fresh production must not already contain seeded marketing copy');
   checks.push('Fresh production /_emdash GET/POST, spoofed Host/Origin/forwarded/cookie/query, encoded variants, and media are denied before any setup mutation');
   // Draft documentation must never become a public corpus, even through a guessed URL.
   assert.deepEqual(await (await request(base, '/docs/search.json')).json(), []);
@@ -229,8 +229,8 @@ try {
   const production = await startWorker('production-seeded', join(root, 'dist/server/wrangler.json'), port);
   assert.ok(await waitReady(production, base), `Seeded production workerd failed to start: ${production.logs().slice(-3000)}`);
   for (const [path, heading, body] of [
-    ['/', 'Run your store with an agent, on a site you own.', 'Ask the agent, or do it by hand'],
-    ['/getting-started', 'Your site. One connected experience.', 'Trial access'],
+    ['/', 'Run your store yourself, or with the agent you choose.', 'Your agent or your hands, same tools'],
+    ['/getting-started', 'How DinkusKit fits together.', 'Ways to run it'],
   ]) {
     const response = await request(base, path);
     assert.equal(response.status, 200, path);
@@ -240,13 +240,14 @@ try {
     assert.ok(html.includes(body), `${path}: native block content rendered`);
     checks.push(`${path}: seeded CMS title and native block content on production workerd`);
     if (path === '/') {
-      assert.ok(html.includes('First-party assistants are optional'), 'Home describes assistants as optional');
-      assert.ok(html.includes('Start assistant access read-only'), 'Home states the read-only starting posture');
-      assert.ok(html.includes('Available actions depend on your installed products and integrations'), 'Home bounds actions by supported capabilities');
+      assert.ok(html.includes('the agent you choose help through the same tools, with only the access you give it'), 'Home describes the owner\'s own agent on the same tools, limited to the access given');
+      assert.ok(html.includes('take its key back any time'), 'Home says an agent\'s access can be taken back');
       assert.ok(!html.includes('one chat box'), 'Home does not promise universal actions from one chat box');
-      checks.push('Home renders optional assistants, read-only start and supported-capability limits');
+      checks.push('Home renders the owner\'s own agent on the same tools, limited and revocable access, no one chat box');
     }
     if (path === '/getting-started') {
+      assert.ok(!html.includes('Inventory Connect') && !html.includes('Trial access'), `${path}: no retired Inventory-first copy`);
+      assert.ok(html.includes('so you don&#39;t depend on us') || html.includes("so you don't depend on us"), `${path}: ways to run it, planned self-hosting labeled`);
       assert.ok(
         html.includes('href="https://docs.emdashcms.com/getting-started/"')
         && html.includes('>Create your first EmDash site</a>'),
@@ -260,7 +261,7 @@ try {
       assert.ok(!html.includes('coordinator-owned') && !html.includes('handoff'), `${path}: no internal coordination copy`);
       assert.ok(
         html.includes('href="https://playground.dinkuskit.com/"')
-        && html.includes('>Try the demo</a>'),
+        && html.includes('>Try the playground</a>'),
         `${path}: playground link is a clickable http(s) anchor`,
       );
       assert.ok(

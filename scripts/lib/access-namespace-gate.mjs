@@ -199,6 +199,33 @@ export function deniedNamespaceResponse() {
   });
 }
 
+/** Upstream EmDash token prefixes (`@emdash-cms/auth` TOKEN_PREFIXES): API and OAuth access tokens. */
+export const EMDASH_TOKEN_PREFIXES = ['ec_pat_', 'ec_oat_'];
+export const AGENT_API_PREFIX = `${EMDASH_NAMESPACE}/api/`;
+/** Who may sign in and who holds which token stays with people behind Access. */
+export const AGENT_API_CLOSED_PREFIXES = ['admin', 'setup', 'auth', 'oauth'].map((segment) => `${AGENT_API_PREFIX}${segment}`);
+
+/** True when the request carries an EmDash API or OAuth access token. */
+export function hasEmdashToken(request) {
+  const header = request.headers.get('Authorization') || '';
+  if (!header.startsWith('Bearer ')) return false;
+  const token = header.slice(7);
+  return EMDASH_TOKEN_PREFIXES.some((prefix) => token.startsWith(prefix) && token.length > prefix.length);
+}
+
+/**
+ * Decoded paths where an EmDash token may stand in for an Access sign-in:
+ * REST and MCP under /_emdash/api/, except the closed prefixes. Empty or dot
+ * segments, backslashes and any escape left after decoding are refused rather
+ * than normalized.
+ */
+export function isAgentApiPath(decodedPathname) {
+  if (typeof decodedPathname !== 'string' || !decodedPathname.startsWith(AGENT_API_PREFIX)) return false;
+  if (/\/\/|\/\.\.?(?:\/|$)|\\|%/.test(decodedPathname)) return false;
+  const lower = decodedPathname.toLowerCase();
+  return !AGENT_API_CLOSED_PREFIXES.some((prefix) => lower === prefix || lower.startsWith(`${prefix}/`));
+}
+
 /**
  * @param {object} input
  * @param {string} input.pathname
@@ -206,7 +233,7 @@ export function deniedNamespaceResponse() {
  * @param {Record<string, string | undefined>} [input.env]
  * @param {(request: Request, config: unknown) => Promise<{ email?: string, serviceToken?: string }>} [input.authenticate]
  * @param {() => Promise<boolean>} [input.hasActiveAdmin] Must resolve true only
- *   when the EmDash CMS already has an enabled Admin. Service tokens are denied
+ *   when the EmDash CMS already has an enabled Admin. Service tokens and EmDash tokens are denied
  *   when this is missing, false, or throws, so a token can never be the first
  *   user EmDash provisions (which it would make Admin).
  */
@@ -224,6 +251,14 @@ export async function evaluateAccessGate({ pathname, request, env = {}, authenti
   }
   if (typeof authenticate !== 'function') {
     return { allow: false, status: 404, reason: 'missing-verifier' };
+  }
+  if (hasEmdashToken(request) && isAgentApiPath(resolved.pathname)) {
+    // EmDash checks the token, its user and its scopes next. Tokens exist
+    // only after a human Admin made them; refuse any before that.
+    if (!(await adminExists(hasActiveAdmin))) {
+      return { allow: false, status: 404, reason: 'token-before-admin' };
+    }
+    return { allow: true, reason: 'emdash-token' };
   }
   if (!hasAccessJwt(request)) {
     return { allow: false, status: 404, reason: 'unauthenticated' };
@@ -249,13 +284,7 @@ export async function evaluateAccessGate({ pathname, request, env = {}, authenti
     }
     // EmDash provisions the first user on an empty site as Admin whatever
     // role is passed. Admit service tokens only after a human Admin exists.
-    let adminExists = false;
-    try {
-      adminExists = typeof hasActiveAdmin === 'function' && (await hasActiveAdmin()) === true;
-    } catch {
-      adminExists = false;
-    }
-    if (!adminExists) {
+    if (!(await adminExists(hasActiveAdmin))) {
       return { allow: false, status: 404, reason: 'service-token-before-admin' };
     }
     return { allow: true, reason: 'service-token', email };
@@ -264,6 +293,14 @@ export async function evaluateAccessGate({ pathname, request, env = {}, authenti
     return { allow: false, status: 404, reason: 'unknown-identity' };
   }
   return { allow: true, reason: 'allowlisted', email };
+}
+
+async function adminExists(hasActiveAdmin) {
+  try {
+    return typeof hasActiveAdmin === 'function' && (await hasActiveAdmin()) === true;
+  } catch {
+    return false;
+  }
 }
 
 /** EmDash ROLE_ADMIN. */

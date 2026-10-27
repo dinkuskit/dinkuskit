@@ -9,6 +9,8 @@ import {
   cmsHasActiveAdmin,
   decodeRoutingPathname,
   evaluateAccessGate,
+  hasEmdashToken,
+  isAgentApiPath,
   isEmdashNamespace,
   officialAccessConfig,
   parseOperatorAllowlist,
@@ -573,6 +575,53 @@ record('Public route passes through to downstream next with adapter locals');
   const unsetRes = await svcMiddleware(await mwCtx(await sign(serviceClaims)), () => new Response('ok'));
   assert.equal(unsetRes.status, 404);
   record('Guard middleware reads EMDASH_OPERATOR_SERVICE_TOKENS at runtime and keeps the same 404 body');
+}
+
+{
+  // website-agent-api-tokens-20261027: agents bring an EmDash API token instead of an Access sign-in.
+  const noAccess = async () => { throw new Error('Access must not be consulted for an EmDash token'); };
+  const tokenGate = (pathname, authorization, hasActiveAdmin = async () => true) => evaluateAccessGate({
+    pathname,
+    request: new Request(`http://127.0.0.1${pathname}`, { method: 'POST', headers: authorization ? { authorization } : {} }),
+    env: fixtureEnv,
+    authenticate: noAccess,
+    hasActiveAdmin,
+  });
+  for (const path of ['/_emdash/api/mcp', '/_emdash/api/content/pages', '/_emdash/api/content/pages/home/publish', '/_emdash/api/menus/footer-get-started', '/%5femdash/api/content/pages']) {
+    assert.deepEqual(await tokenGate(path, 'Bearer ec_pat_fixture'), { allow: true, reason: 'emdash-token' }, path);
+  }
+  assert.deepEqual(await tokenGate('/_emdash/api/mcp', 'Bearer ec_oat_fixture'), { allow: true, reason: 'emdash-token' });
+  record('An EmDash API or OAuth token reaches EmDash on /_emdash/api REST and MCP without an Access sign-in');
+
+  for (const path of [
+    '/_emdash/admin', '/_emdash/admin/content/pages', '/_emdash/api/admin/api-tokens', '/_emdash/api/admin/users',
+    '/_emdash/api/ADMIN/api-tokens', '/_emdash/api/setup/status', '/_emdash/api/auth/login', '/_emdash/api/oauth/token',
+    '/_emdash/api//admin/api-tokens', '/_emdash/api/content/../admin/api-tokens', '/_emdash/api/./admin/users',
+    '/_emdash/api/content/%2f..%2fadmin', '/_emdash/api%2fadmin/api-tokens', '/_emdash/api\\admin', '/_emdash/api',
+  ]) {
+    const decision = await tokenGate(path, 'Bearer ec_pat_fixture');
+    assert.equal(decision.allow, false, path);
+  }
+  record('A token never opens the admin UI, token and user management, setup, sign-in, OAuth, or a path with empty, dot or escaped segments');
+
+  for (const authorization of [undefined, 'Bearer ', 'Bearer ec_pat_', 'Bearer not-an-emdash-token', 'Basic ec_pat_fixture', 'bearer ec_pat_fixture']) {
+    const decision = await tokenGate('/_emdash/api/content/pages', authorization);
+    assert.deepEqual(decision, { allow: false, status: 404, reason: 'unauthenticated' }, String(authorization));
+  }
+  record('Without an EmDash-shaped token the request still needs Access, as before');
+
+  for (const hasActiveAdmin of [async () => false, async () => { throw new Error('no db'); }, null]) {
+    assert.deepEqual(
+      await tokenGate('/_emdash/api/content/pages', 'Bearer ec_pat_fixture', hasActiveAdmin),
+      { allow: false, status: 404, reason: 'token-before-admin' },
+    );
+  }
+  record('Tokens are refused until the CMS has an enabled human Admin (fails closed)');
+
+  assert.equal(hasEmdashToken(new Request('http://127.0.0.1/', { headers: { authorization: 'Bearer ec_pat_x' } })), true);
+  assert.equal(isAgentApiPath('/_emdash/api/mcp'), true);
+  assert.equal(isAgentApiPath('/_emdash/api/oauth'), false);
+  record('Token and path helpers match the gate');
 }
 
 console.log(checks.map((check) => `PASS ${check}`).join('\n'));

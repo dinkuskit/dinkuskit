@@ -27,25 +27,29 @@ jobs:
     name: Publish doc updates
     runs-on: ubuntu-24.04
     timeout-minutes: 20
+    # The publisher's EmDash API token (website-agent-api-tokens-20261027) once
+    # set; the Access service token pair until then.
     env:
-      CF_ACCESS_CLIENT_ID: ${{ secrets.DOCS_PUBLISH_ACCESS_CLIENT_ID }}
-      CF_ACCESS_CLIENT_SECRET: ${{ secrets.DOCS_PUBLISH_ACCESS_CLIENT_SECRET }}
+      EMDASH_TOKEN: ${{ secrets.DOCS_PUBLISH_EMDASH_TOKEN }}
+      CF_ACCESS_CLIENT_ID: ${{ secrets.DOCS_PUBLISH_EMDASH_TOKEN == '' && secrets.DOCS_PUBLISH_ACCESS_CLIENT_ID || '' }}
+      CF_ACCESS_CLIENT_SECRET: ${{ secrets.DOCS_PUBLISH_EMDASH_TOKEN == '' && secrets.DOCS_PUBLISH_ACCESS_CLIENT_SECRET || '' }}
+      PUBLISHER_READY: ${{ secrets.DOCS_PUBLISH_EMDASH_TOKEN != '' || (secrets.DOCS_PUBLISH_ACCESS_CLIENT_ID != '' && secrets.DOCS_PUBLISH_ACCESS_CLIENT_SECRET != '') }}
     steps:
-      - name: Wait for the publisher's service token
-        if: env.CF_ACCESS_CLIENT_ID == '' || env.CF_ACCESS_CLIENT_SECRET == ''
-        run: echo "::notice::DOCS_PUBLISH_ACCESS_CLIENT_ID and DOCS_PUBLISH_ACCESS_CLIENT_SECRET are not both set, so nothing was published."
+      - name: Wait for the publisher's token
+        if: env.PUBLISHER_READY != 'true'
+        run: echo "::notice::Neither DOCS_PUBLISH_EMDASH_TOKEN nor both DOCS_PUBLISH_ACCESS_CLIENT_ID and DOCS_PUBLISH_ACCESS_CLIENT_SECRET are set, so nothing was published."
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
-        if: env.CF_ACCESS_CLIENT_ID != '' && env.CF_ACCESS_CLIENT_SECRET != ''
+        if: env.PUBLISHER_READY == 'true'
         with:
           ref: main
           fetch-depth: 0
           persist-credentials: false
       - uses: actions/setup-node@v4
-        if: env.CF_ACCESS_CLIENT_ID != '' && env.CF_ACCESS_CLIENT_SECRET != ''
+        if: env.PUBLISHER_READY == 'true'
         with:
           node-version-file: .nvmrc
       - name: Publish and check
-        if: env.CF_ACCESS_CLIENT_ID != '' && env.CF_ACCESS_CLIENT_SECRET != ''
+        if: env.PUBLISHER_READY == 'true'
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: node --experimental-strip-types scripts/docs-sync.mjs publish --report

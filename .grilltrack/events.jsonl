@@ -150,3 +150,6 @@
 {"action": "decision_locked", "at": "2026-10-27T19:20:49+00:00", "data": {"decision_id": "self-host-milestone-007"}, "event_id": "dd9571b5-6687-4d8b-aec2-8af59cac8fb3"}
 {"action": "decision_proposed", "at": "2026-10-27T19:55:38+00:00", "data": {"decision_id": "website-start-pages-20261027"}, "event_id": "539a1892-31b0-4cd6-abfd-daaa731b6802"}
 {"action": "decision_locked", "at": "2026-10-27T19:55:38+00:00", "data": {"decision_id": "website-start-pages-20261027"}, "event_id": "015d1159-08e3-44d2-8299-e53392f680b1"}
+{"action": "decision_proposed", "at": "2026-10-27T20:11:35+00:00", "data": {"decision_id": "website-agent-api-tokens-20261027"}, "event_id": "1cb1f838-cd79-47ff-ae84-73573bc15aaf"}
+{"action": "decision_locked", "at": "2026-10-27T20:11:35+00:00", "data": {"decision_id": "website-agent-api-tokens-20261027"}, "event_id": "7ff26278-7db4-4959-805c-818f02a1030f"}
+{"action": "decision_proposed", "at": "2026-10-27T20:19:47+00:00", "data": {"decision_id": "website-docs-publish-emdash-token-20261027"}, "event_id": "956b71e3-43ba-497f-a17f-2d7034dca40a"}

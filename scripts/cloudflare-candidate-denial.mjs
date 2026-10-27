@@ -5,7 +5,7 @@ import { mkdir, rm, writeFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { setTimeout as sleep } from 'node:timers/promises';
-import { Role } from '@emdash-cms/auth';
+import { generatePrefixedToken, Role } from '@emdash-cms/auth';
 import { sanitizeText, workerdReady } from './lib/cms-operation-helpers.mjs';
 import {
   leftoverOwned,
@@ -87,6 +87,88 @@ async function assertDenied(label, origin, path, options = {}) {
   assert.ok(!/Create your admin|passkey registration|My Awesome Blog/i.test(body), `${label}: no setup HTML`);
   assert.ok(Buffer.byteLength(body) < 2000, `${label}: no admin bundle`);
   return response;
+}
+
+async function d1(generatedWrangler, env, command) {
+  const run = startLogged('d1-execute', NODE, [
+    join(root, 'node_modules/wrangler/bin/wrangler.js'),
+    'd1', 'execute', 'DB', '--local', '--persist-to', persist, '--config', generatedWrangler, '--json', '--command', command,
+  ], { env });
+  const done = await run.exit;
+  assert.equal(done.code, 0, `d1 execute failed: ${sanitizeText(run.output(), 800)}`);
+  return run.output();
+}
+
+async function agentFetch(origin, path, token, options = {}) {
+  const response = await fetch(origin + path, {
+    redirect: 'manual',
+    signal: AbortSignal.timeout(20_000),
+    ...options,
+    headers: { authorization: `Bearer ${token}`, ...(options.headers ?? {}) },
+  });
+  return { response, body: await response.text() };
+}
+
+// Agents use EmDash's own API tokens on /_emdash/api (ledger
+// website-agent-api-tokens-20261027). The guard only lets the token shape
+// through; EmDash checks the token, its user and its scopes.
+async function proveAgentTokens(origin, generatedWrangler, env) {
+  const agent = generatePrefixedToken('ec_pat_');
+  const stranger = generatePrefixedToken('ec_pat_');
+  const auth = { headers: { authorization: `Bearer ${agent.raw}` } };
+
+  await assertDenied('token before any Admin', origin, '/_emdash/api/schema/collections', auth);
+  await assertDenied('token before any Admin, MCP', origin, '/_emdash/api/mcp', {
+    method: 'POST',
+    headers: { ...auth.headers, 'content-type': 'application/json' },
+    body: '{}',
+  });
+  record('An EmDash token is refused on an empty site before a human Admin exists');
+
+  await d1(generatedWrangler, env, [
+    "INSERT INTO users (id, email, name, role) VALUES ('fixture-admin', 'owner@fixture.invalid', 'Fixture Owner', 50)",
+    `INSERT INTO _emdash_api_tokens (id, name, token_hash, prefix, user_id, scopes) VALUES ('fixture-agent', 'Fixture agent', '${agent.hash}', '${agent.prefix}', 'fixture-admin', '["schema:read","content:read","mcp:tools"]')`,
+  ].join('; '));
+
+  const listed = await agentFetch(origin, '/_emdash/api/schema/collections', agent.raw);
+  assert.equal(listed.response.status, 200, `scoped token reads the schema: ${sanitizeText(listed.body, 400)}`);
+  assert.match(listed.response.headers.get('content-type') ?? '', /application\/json/);
+  record('A scoped EmDash API token reads /_emdash/api through the guard');
+
+  const mcp = await agentFetch(origin, '/_emdash/api/mcp', agent.raw, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', accept: 'application/json, text/event-stream' },
+    body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/list', params: {} }),
+  });
+  assert.equal(mcp.response.status, 200, `MCP tools/list: ${sanitizeText(mcp.body, 400)}`);
+  assert.match(mcp.body, /content_list/, 'MCP lists EmDash content tools');
+  record('The same token lists EmDash MCP tools at /_emdash/api/mcp');
+
+  const write = await agentFetch(origin, '/_emdash/api/content/pages', agent.raw, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', 'x-emdash-request': '1' },
+    body: JSON.stringify({ data: { title: 'blocked' } }),
+  });
+  assert.equal(write.response.status, 403, `read-only token cannot write: ${sanitizeText(write.body, 400)}`);
+  assert.match(write.body, /scope/i, 'the 403 comes from the token scope check');
+  record('EmDash refuses a write outside the token\'s scopes (403)');
+
+  const unknown = await agentFetch(origin, '/_emdash/api/schema/collections', stranger.raw);
+  assert.equal(unknown.response.status, 401, `unknown token: ${sanitizeText(unknown.body, 400)}`);
+  record('EmDash refuses a well-formed token it never issued (401)');
+
+  for (const [label, path] of [
+    ['token on admin UI', '/_emdash/admin'],
+    ['token on API tokens', '/_emdash/api/admin/api-tokens'],
+    ['token on users', '/_emdash/api/admin/users'],
+    ['token on setup', '/_emdash/api/setup/status'],
+    ['token on auth', '/_emdash/api/auth/me'],
+    ['token on oauth', '/_emdash/api/oauth/token'],
+    ['token on encoded admin', '/_emdash/api/%61dmin/api-tokens'],
+  ]) {
+    await assertDenied(label, origin, path, auth);
+  }
+  record('Tokens stay out of the admin UI, users, token management, setup, sign-in and OAuth');
 }
 
 async function main() {
@@ -263,6 +345,9 @@ async function main() {
   );
   record(`Public / answered ${publicAfter.status} without the /_emdash deny; empty D1 is not a live-site claim`);
   record('Encoded public path is not rewritten into the /_emdash plain deny');
+
+  await proveAgentTokens(origin, generatedWrangler, env);
+
 
   await stopOwned(worker);
   return { versions, origin, publicStatus: publicAfter.status };

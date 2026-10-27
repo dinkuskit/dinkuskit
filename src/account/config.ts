@@ -151,7 +151,7 @@ export const TOKEN_TTL_SECONDS = 300;
 export const TOKEN_TTL_MAX_SECONDS = 600;
 export const PROOF_FETCH_TIMEOUT_MS = 3_000;
 export const PROOF_FETCH_MAX_BYTES = 8_192;
-export const CURRENT_MERCHANT_SCHEMA_VERSION = 14;
+export const CURRENT_MERCHANT_SCHEMA_VERSION = 15;
 
 export const PUBLIC_ACCOUNT_PATHS = [
   '/account/signup',

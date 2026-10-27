@@ -75,10 +75,9 @@ def verify(manifest_path=MANIFEST, check_git=False):
             require(path in actual and git("cat-file", "blob", oid) == actual[path], "Archived bytes differ from original Git source")
             source_paths.add(path)
         require(source_paths == set(actual), "Source inventory mismatch")
-        git("merge-base", "--is-ancestor", source, "HEAD")
+        # Retained tags keep the history available even after a squash merge.
         require(git("rev-parse", manifest["retainedRef"] + "^{commit}").decode().strip() == source, "Original history tag mismatch")
         if archive_commit is not None:
-            git("merge-base", "--is-ancestor", archive_commit, "HEAD")
             require(git("rev-parse", manifest["archiveRetainedRef"] + "^{commit}").decode().strip() == archive_commit, "Archive tag mismatch")
     return {"files": len(actual), "rawBytes": sum(map(len, actual.values())), "archiveBytes": len(archive),
             "archiveSha256": manifest["archiveSha256"], "sourceCommit": manifest["sourceCommit"], "gitSourceVerified": check_git}

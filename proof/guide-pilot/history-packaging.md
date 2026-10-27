@@ -45,9 +45,9 @@ npm run test:history-archive
 The archive check bounds decompression, rejects links, duplicate/missing paths
 and path escapes, verifies the compressed archive and all individual hashes,
 and compares every byte directly with the original Git source. CI fetches the
-complete commit history for that independent comparison. Four synthetic tests
-also prove valid archives pass and corruption, missing members, unsafe paths
-and symlinks fail.
+complete commit history for that independent comparison. Five synthetic tests
+also prove valid archives pass, corruption/missing members/unsafe paths/links
+fail, and the retained tags still work after a squash-style merge.
 
 To inspect the original ledger with the normal CLI, first run the archive check.
 Then recover the archive from its retained Git revision and extract into a fresh

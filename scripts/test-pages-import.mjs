@@ -8,9 +8,11 @@ import { WORK, resetDatabase, start, unusedPort } from './lib/docs-preview.mjs';
 // the cards' plugin logo and the footer menus, as dinkuskit.com's database is;
 // the script adds the block types, the logo field, a draft, the footer menus
 // and an empty site title and tagline. Get started already exists, as on
-// dinkuskit.com, with an editor link and without Demo store. The script inserts
-// that link first. A rerun keeps the menus, and Publish shows the page with
-// no rebuild.
+// dinkuskit.com, with an editor link and without Demo store. The editor has
+// put Docs ahead of Start your store. The script inserts Demo store first and
+// leaves that order alone. A follow-up run also pulls Demo store back when a
+// reorder stopped after the link was created at the end. A later rerun keeps
+// the menus, and Publish shows the page with no rebuild.
 const OLD_SEED = new URL('../.emdash/seed.json', import.meta.url);
 const START_TYPES = ['plugin_row', 'start_account', 'start_checklist', 'start_step'];
 
@@ -62,9 +64,9 @@ try {
   });
   assert.ok(createdMenu.status === 200 || createdMenu.status === 201, `create menu HTTP ${createdMenu.status}`);
   for (const [sortOrder, item] of [
+    { label: 'Docs', customUrl: '/docs' },
     { label: 'Start your store', customUrl: '/start' },
     { label: 'How it works', customUrl: '/getting-started' },
-    { label: 'Docs', customUrl: '/docs' },
     { label: 'Office hours', customUrl: '/hours' },
   ].entries()) {
     const added = await api('/menus/footer-get-started/items', {
@@ -87,13 +89,29 @@ try {
   assert.match(imported.output, /^Added Demo store to menu footer-get-started$/m);
   assert.doesNotMatch(imported.output, /Added menu footer-get-started/);
   const getStarted = await (await api('/menus/footer-get-started')).json();
-  assert.deepEqual((getStarted.data?.items ?? []).map(item => [item.label, item.customUrl]), [
+  const editedOrder = [
     ['Demo store', 'https://playground.dinkuskit.com/'],
+    ['Docs', '/docs'],
     ['Start your store', '/start'],
     ['How it works', '/getting-started'],
-    ['Docs', '/docs'],
     ['Office hours', '/hours'],
-  ]);
+  ];
+  assert.deepEqual((getStarted.data?.items ?? []).map(item => [item.label, item.customUrl]), editedOrder);
+  // The link was created, then the reorder never landed: Demo store is last.
+  const appended = [...(getStarted.data?.items ?? [])];
+  const demo = appended.shift();
+  appended.push(demo);
+  const interrupted = await api('/menus/footer-get-started/reorder', {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ items: appended.map((item, sortOrder) => ({ id: item.id, parentId: item.parentId ?? null, sortOrder })) }),
+  });
+  assert.ok(interrupted.status === 200 || interrupted.status === 201, `interrupt reorder HTTP ${interrupted.status}`);
+  const recovered = await runImport(development.base, token, '--footer');
+  assert.equal(recovered.code, 0, recovered.output);
+  assert.match(recovered.output, /^Placed Demo store in menu footer-get-started$/m);
+  assert.doesNotMatch(recovered.output, /Added Demo store/);
+  const restored = await (await api('/menus/footer-get-started')).json();
+  assert.deepEqual((restored.data?.items ?? []).map(item => [item.label, item.customUrl]), editedOrder);
   assert.match(imported.output, /^Added menu footer-plugins with 3 links$/m);
   assert.match(imported.output, /^Added menu footer-dinkuskit with 4 links$/m);
   assert.match(imported.output, /^Set site title "DinkusKit"$/m);
@@ -171,11 +189,11 @@ try {
   const started = footer.match(/<h2>Get started<\/h2>\s*<ul>([\s\S]*?)<\/ul>/)?.[1] ?? '';
   assert.deepEqual([...started.matchAll(/<a href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/g)].map(match => [match[2].replace(/\s+/g, ' ').trim(), match[1]]), [
     ['Demo store', 'https://playground.dinkuskit.com/'],
+    ['Docs', '/docs'],
     ['Start your store', '/start'],
     ['How it works', '/getting-started'],
-    ['Docs', '/docs'],
     ['Office hours', '/hours'],
-  ], 'Demo store is first under Get started and the editor link stays');
+  ], 'Demo store is first under Get started and the editor order stays');
   assert.equal(started.match(/playground\.dinkuskit\.com/g)?.length, 1, 'Demo store is not duplicated');
   assert.doesNotMatch(footer, /dinkuskit-f3/, 'no DinkusKit logo in the footer');
   const signedIn = await (await development.request('/start?as=owner%40example.com')).text();

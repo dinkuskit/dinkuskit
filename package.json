@@ -51,7 +51,7 @@
     "dev:docs": "astro dev --config fixtures/docs-preview/astro.config.mjs --host 127.0.0.1",
     "build:docs-preview": "astro build --config fixtures/docs-preview/astro.config.mjs",
     "test:docs-routes": "npm run build:docs-preview && node --experimental-strip-types scripts/test-docs-routes.mjs",
-    "test:pages-import": "node --experimental-strip-types scripts/test-pages-import.mjs",
+    "test:pages-import": "node --experimental-strip-types --test tests/footer-menu-order.test.mjs && node --experimental-strip-types scripts/test-pages-import.mjs",
     "docs:import": "node --experimental-strip-types scripts/docs-import.mjs push --url",
     "pages:import": "node --experimental-strip-types scripts/pages-import.mjs",
     "docs:pull": "node --experimental-strip-types scripts/docs-sync.mjs pull",

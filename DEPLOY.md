@@ -345,12 +345,19 @@ npm run pages:import -- --url https://dinkuskit.com --footer
 unset CF_ACCESS_TOKEN
 ```
 
-An EmDash API token with `menus:read` and `menus:manage` works in place of
-the Access token (`EMDASH_TOKEN`). The first run prints `Added Demo store to
+The command above is a human Access session. It updates the menus and, when
+the title or tagline is empty, fills them from the seed. An EmDash API token
+(`EMDASH_TOKEN`) with `content:read` and `content:write` can insert the menu
+links: those scopes are the menu access in Agents, above. The production gate
+answers `/_emdash/api/settings` with 404 for that token, so the command leaves
+the title and tagline as they are and still updates the menus. It does not
+use `menus:read` or `menus:manage`. The first run prints `Added Demo store to
 menu footer-get-started`; a rerun prints `Kept existing menu
-footer-get-started`. The Get started column then reads Demo store, Start
-your store, How it works, Docs. The footer already renders that menu, so the
-link shows without a deploy.
+footer-get-started`. A run that finds Demo store already created but still
+sitting after the editor's links prints `Placed Demo store in menu
+footer-get-started`. The Get started column then reads Demo store, then the
+links that were already there, in the order the editor left them. The footer
+already renders that menu, so the link shows without a deploy.
 
 ## Post-deploy checks
 

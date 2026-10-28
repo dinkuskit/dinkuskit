@@ -47,7 +47,7 @@
     "test:agent-routes": "node --experimental-strip-types --test --test-concurrency=1 --test-timeout=180000 tests/agent-test-routes.test.mjs",
     "agent:test": "npm run setup && npm run build && node --experimental-strip-types scripts/agent-test-runner.mjs",
     "test:theme-switch": "node --experimental-strip-types --test tests/theme-switch.test.mjs",
-    "test:docs": "node --experimental-strip-types --test tests/docs.test.mjs tests/docs-updates.test.mjs tests/docs-releases.test.mjs",
+    "test:docs": "node --experimental-strip-types --test tests/docs.test.mjs tests/docs-updates.test.mjs tests/docs-releases.test.mjs tests/docs-mcp.test.mjs",
     "dev:docs": "astro dev --config fixtures/docs-preview/astro.config.mjs --host 127.0.0.1",
     "build:docs-preview": "astro build --config fixtures/docs-preview/astro.config.mjs",
     "test:docs-routes": "npm run build:docs-preview && node --experimental-strip-types scripts/test-docs-routes.mjs",

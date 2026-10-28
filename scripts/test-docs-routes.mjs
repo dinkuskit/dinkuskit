@@ -19,6 +19,47 @@ async function page(server, path) {
   return { status: response.status, headers: response.headers, body: await response.text() };
 }
 
+async function mcp(server, method, params) {
+  const response = await server.request('/docs/mcp', {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+      accept: 'application/json, text/event-stream',
+      'mcp-protocol-version': '2025-11-25',
+      authorization: 'Bearer ec_pat_preview',
+    },
+    body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }),
+  });
+  assert.equal(response.status, 200, `docs MCP ${method}`);
+  const body = await response.json();
+  assert.equal(body.error, undefined, JSON.stringify(body.error));
+  return body.result;
+}
+
+async function assertDocsMcp(server, published) {
+  const tools = await mcp(server, 'tools/list', {});
+  assert.deepEqual(tools.tools.map(tool => tool.name), ['search_docs', 'get_docs']);
+  const searched = await mcp(server, 'tools/call', { name: 'search_docs', arguments: { query: 'test order' } });
+  const read = await mcp(server, 'tools/call', { name: 'get_docs', arguments: { ids: [PUBLISHED, 'start-here', 'https://example.invalid/secret', '../seed/seed.json'] } });
+  const dumped = JSON.stringify({ searched, read });
+  assert.equal(dumped.includes('Choose your path and check requirements'), false, 'draft article stays out of the docs MCP');
+  assert.equal(dumped.includes('example.invalid'), false);
+  if (published) {
+    assert.deepEqual(searched.structuredContent.results.map(item => item.id), [PUBLISHED]);
+    assert.equal(searched.structuredContent.results[0].url, `https://dinkuskit.com/docs/${PUBLISHED}`);
+    assert.equal(searched.structuredContent.results[0].title, 'Complete and verify a test order');
+    assert.match(searched.structuredContent.results[0].version, /Commerce/);
+    assert.deepEqual(read.structuredContent.documents.map(item => item.id), [PUBLISHED]);
+    assert.match(read.structuredContent.documents[0].content, /What counts as success/);
+    assert.match(read.content[0].text, /Canonical URL: https:\/\/dinkuskit\.com\/docs\/store-owners\/test-order/);
+  } else {
+    assert.deepEqual(searched.structuredContent.results, []);
+    assert.deepEqual(read.structuredContent.documents, []);
+    assert.equal(dumped.includes('What counts as success'), false);
+  }
+  assert.equal((await server.request('/docs/mcp')).status, 405);
+}
+
 async function publicCorpus(server) {
   const search = await page(server, '/docs/search.json');
   assert.equal(search.status, 200);
@@ -80,7 +121,8 @@ try {
   let corpus = await publicCorpus(development);
   assert.deepEqual(corpus.search, [], 'drafts never enter the public search index');
   assert.equal(corpus.llms.status, 404, 'llms.txt waits for a published article');
-  console.log('PASS development: the seed loads 13 drafts, previewed with noindex/no-store and kept out of search and llms.txt');
+  await assertDocsMcp(development, false);
+  console.log('PASS development: the seed loads 13 drafts, previewed with noindex/no-store and kept out of search, llms.txt and the docs MCP');
 
   // The one-time import: remove the collection, then rebuild it and the drafts through the EmDash API.
   assert.equal((await api('/schema/collections/docs?force=true', { method: 'DELETE' })).status, 200);
@@ -110,7 +152,8 @@ try {
   corpus = await publicCorpus(development);
   assert.deepEqual(corpus.search, [PUBLISHED]);
   assert.equal(corpus.llms.status, 200);
-  console.log('PASS development: Publish through the EmDash API makes one article public with no rebuild');
+  await assertDocsMcp(development, true);
+  console.log('PASS development: Publish through the EmDash API makes one article public, including the docs MCP, with no rebuild');
 } finally {
   await development.stop();
 }
@@ -144,13 +187,14 @@ try {
   assert.equal(corpus.llms.status, 200);
   assert.equal((corpus.llms.body.match(/^- \[/gm) ?? []).length, 1);
   assert.ok(corpus.llms.body.includes(`(https://dinkuskit.com/docs/markdown/${PUBLISHED}.md)`));
+  await assertDocsMcp(production, true);
   assert.equal((await page(production, '/docs')).headers.get('location'), `/docs/${PUBLISHED}`);
   assert.equal((await page(production, '/docs/internal-plan')).status, 404);
   assert.equal((await page(production, '/docs/markdown/internal-plan.md')).status, 404);
   assert.equal((await page(production, '/docs/start-here?preview=1')).status, 404);
   assert.equal((await page(production, '/docs/markdown/start-here.md?preview=1')).status, 404);
   assert.equal((await production.request('/_emdash/api/setup/dev-bypass', { method: 'POST' })).status, 403);
-  console.log('PASS production: only the published article is served (HTML, Markdown, search, llms.txt); 12 drafts and unknown IDs are 404; query parameters cannot preview');
+  console.log('PASS production: only the published article is served (HTML, Markdown, search, llms.txt, docs MCP); 12 drafts and unknown IDs are 404; query parameters cannot preview');
 } finally {
   await production.stop();
 }

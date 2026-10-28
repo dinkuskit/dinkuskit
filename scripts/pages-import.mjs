@@ -13,11 +13,13 @@
 // With --footer it adds the seed's footer menus the site lacks. A menu the site
 // already has keeps every current link and the order an editor chose among
 // them. Seed links whose URL is not already in it are inserted at the seed's
-// position. The seed's first link, left behind a later seed link when a
-// reorder did not finish, is placed on the next run. Other seed links an
-// editor reordered stay in that order, and an editor's own link is not pulled
-// into the seed sequence. Nothing is renamed or removed. An empty site title
-// or tagline is filled from the seed only when this sign-in can read settings.
+// position. Only Demo store in footer-get-started, left behind a later seed
+// link when a reorder did not finish, is placed on the next run. Plugins,
+// DinkusKit, and every other footer menu keep the order already saved. Other
+// seed links an editor reordered stay in that order, and an editor's own link
+// is not pulled into the seed sequence. Nothing is renamed or removed. An
+// empty site title or tagline is filled from the seed only when this sign-in
+// can read settings.
 // The footer shows the title, tagline and those menus.
 // Authenticates with EMDASH_TOKEN (an EmDash API token; menus use content:read
 // and content:write) or CF_ACCESS_TOKEN (a Cloudflare Access token from
@@ -170,16 +172,17 @@ function menuLink(item, url = item.customUrl) {
   return { id: item.id, parentId: item.parentId ?? null, customUrl: url };
 }
 
-// The seed's first link is the one this import adds in front. When a create
-// succeeded and the reorder did not, that link is still behind a later seed
-// link. Pull it forward. Do not move any other seed link: an editor may have
-// ordered those, and this must not put them back into seed order.
-function firstSeedLinkLeftBehind(items, seedItems) {
-  const first = seedItems[0];
-  if (!first) return -1;
-  const currentIndex = items.findIndex(item => item.customUrl === first.url);
+// Demo store is the only link an interrupted reorder is allowed to move, and
+// only inside Get started. Another column's first seed link, such as Commerce
+// or Account, is an editor's saved order and stays where it is.
+const DEMO_STORE_MENU = 'footer-get-started';
+const DEMO_STORE_URL = 'https://playground.dinkuskit.com/';
+
+function demoStoreLeftBehind(items, seedItems) {
+  const currentIndex = items.findIndex(item => item.customUrl === DEMO_STORE_URL);
   if (currentIndex === -1) return -1;
-  const behind = seedItems.slice(1).some(item => {
+  const behind = seedItems.some(item => {
+    if (item.url === DEMO_STORE_URL) return false;
     const at = items.findIndex(existing => existing.customUrl === item.url);
     return at !== -1 && at < currentIndex;
   });
@@ -188,15 +191,17 @@ function firstSeedLinkLeftBehind(items, seedItems) {
 
 // Existing links keep their relative order, including seed links an editor
 // has moved earlier. Links in `createdByUrl` are inserted at the seed's
-// position. The seed's first link, left behind by an interrupted reorder, is
-// placed on the next run. Editor links stay where that insertion leaves them.
-export function reconcileFooterOrder(existing, seedItems, createdByUrl) {
+// position. Demo store in Get started, left behind by an interrupted reorder,
+// is placed on the next run. No other menu is reordered to recover a link.
+export function reconcileFooterOrder(existing, seedItems, createdByUrl, { recoverDemoStore = false } = {}) {
   const created = new Map(createdByUrl);
   const items = existing.filter(item => !created.has(item.customUrl)).map(item => menuLink(item));
-  const leftBehind = firstSeedLinkLeftBehind(items, seedItems);
-  if (leftBehind !== -1) {
-    const [item] = items.splice(leftBehind, 1);
-    items.splice(footerInsertionIndex(items, seedItems, item.customUrl), 0, item);
+  if (recoverDemoStore) {
+    const leftBehind = demoStoreLeftBehind(items, seedItems);
+    if (leftBehind !== -1) {
+      const [item] = items.splice(leftBehind, 1);
+      items.splice(footerInsertionIndex(items, seedItems, item.customUrl), 0, item);
+    }
   }
   for (const seedItem of seedItems) {
     if (!created.has(seedItem.url)) continue;
@@ -219,7 +224,9 @@ async function insertMissingFooterLinks(api, menu) {
     if (!ok(added.status)) throw new Error(`Adding ${item.label} to menu ${menu.name} failed: HTTP ${added.status} ${JSON.stringify(added.data)}`);
     createdByUrl.set(item.url, { id: added.data?.id, parentId: added.data?.parentId ?? null, customUrl: item.url });
   }
-  const ordered = reconcileFooterOrder(existing, menu.items, createdByUrl);
+  const ordered = reconcileFooterOrder(existing, menu.items, createdByUrl, {
+    recoverDemoStore: menu.name === DEMO_STORE_MENU,
+  });
   const same = ordered.length === existing.length && ordered.every((item, index) => item.id === existing[index]?.id);
   if (same) { console.log(`Kept existing menu ${menu.name}`); return; }
   const reordered = await api('POST', `/menus/${menu.name}/reorder`, {

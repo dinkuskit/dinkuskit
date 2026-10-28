@@ -9,10 +9,12 @@ import { WORK, resetDatabase, start, unusedPort } from './lib/docs-preview.mjs';
 // the script adds the block types, the logo field, a draft, the footer menus
 // and an empty site title and tagline. Get started already exists, as on
 // dinkuskit.com, with an editor link and without Demo store. The editor has
-// put Docs ahead of Start your store. The script inserts Demo store first and
-// leaves that order alone. A follow-up run also pulls Demo store back when a
-// reorder stopped after the link was created at the end. A later rerun keeps
-// the menus, and Publish shows the page with no rebuild.
+// put Docs ahead of Start your store, Plugins as Payments then Commerce then
+// Ship, and Account last in DinkusKit. The script inserts Demo store first and
+// leaves those orders alone. A follow-up run also pulls Demo store back when a
+// reorder stopped after the link was created at the end, and does not reorder
+// the other columns. A later rerun keeps the menus, and Publish shows the page
+// with no rebuild.
 const OLD_SEED = new URL('../.emdash/seed.json', import.meta.url);
 const START_TYPES = ['plugin_row', 'start_account', 'start_checklist', 'start_step'];
 
@@ -57,24 +59,42 @@ try {
   });
   assert.equal((await development.request('/start')).status, 503, 'an older database has no start page');
 
-  // dinkuskit.com already has Get started, without Demo store, plus an editor link.
-  const createdMenu = await api('/menus', {
-    method: 'POST', headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ name: 'footer-get-started', label: 'Get started' }),
-  });
-  assert.ok(createdMenu.status === 200 || createdMenu.status === 201, `create menu HTTP ${createdMenu.status}`);
-  for (const [sortOrder, item] of [
+  // dinkuskit.com already has the footer menus. Get started has no Demo store.
+  // Plugins and DinkusKit are complete, in an order the editor chose.
+  async function addMenu(name, label, items) {
+    const created = await api('/menus', {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ name, label }),
+    });
+    assert.ok(created.status === 200 || created.status === 201, `create menu ${name} HTTP ${created.status}`);
+    for (const [sortOrder, item] of items.entries()) {
+      const added = await api(`/menus/${name}/items`, {
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ type: 'custom', label: item.label, customUrl: item.customUrl, sortOrder }),
+      });
+      assert.equal(added.status, 201, `add ${item.label} to ${name}`);
+    }
+  }
+  const pluginOrder = [
+    ['Payments', '/docs/reference/payments'],
+    ['Commerce', '/docs/reference/commerce'],
+    ['Ship', '/docs/reference/ship'],
+  ];
+  const dinkusOrder = [
+    ['Terms of Service', '/terms'],
+    ['GitHub', 'https://github.com/dinkuskit'],
+    ['Website source', 'https://github.com/dinkuskit/dinkuskit'],
+    ['Account', '/account'],
+  ];
+  await addMenu('footer-get-started', 'Get started', [
     { label: 'Docs', customUrl: '/docs' },
     { label: 'Start your store', customUrl: '/start' },
     { label: 'How it works', customUrl: '/getting-started' },
     { label: 'Office hours', customUrl: '/hours' },
-  ].entries()) {
-    const added = await api('/menus/footer-get-started/items', {
-      method: 'POST', headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ type: 'custom', label: item.label, customUrl: item.customUrl, sortOrder }),
-    });
-    assert.equal(added.status, 201, `add ${item.label}`);
-  }
+  ]);
+  await addMenu('footer-plugins', 'Plugins', pluginOrder.map(([label, customUrl]) => ({ label, customUrl })));
+  await addMenu('footer-dinkuskit', 'DinkusKit', dinkusOrder.map(([label, customUrl]) => ({ label, customUrl })));
+  const menuOrder = async name => (await (await api(`/menus/${name}`)).json()).data?.items?.map(item => [item.label, item.customUrl]);
 
   const imported = await runImport(development.base, token, '--footer', '--publish');
   assert.equal(imported.code, 0, imported.output);
@@ -109,11 +129,18 @@ try {
   const recovered = await runImport(development.base, token, '--footer');
   assert.equal(recovered.code, 0, recovered.output);
   assert.match(recovered.output, /^Placed Demo store in menu footer-get-started$/m);
-  assert.doesNotMatch(recovered.output, /Added Demo store/);
+  assert.match(recovered.output, /^Kept existing menu footer-plugins$/m);
+  assert.match(recovered.output, /^Kept existing menu footer-dinkuskit$/m);
+  assert.doesNotMatch(recovered.output, /Added Demo store|Placed .+ footer-plugins|Placed .+ footer-dinkuskit/);
   const restored = await (await api('/menus/footer-get-started')).json();
   assert.deepEqual((restored.data?.items ?? []).map(item => [item.label, item.customUrl]), editedOrder);
-  assert.match(imported.output, /^Added menu footer-plugins with 3 links$/m);
-  assert.match(imported.output, /^Added menu footer-dinkuskit with 4 links$/m);
+  assert.deepEqual(await menuOrder('footer-plugins'), pluginOrder);
+  assert.deepEqual(await menuOrder('footer-dinkuskit'), dinkusOrder);
+  assert.match(imported.output, /^Kept existing menu footer-plugins$/m);
+  assert.match(imported.output, /^Kept existing menu footer-dinkuskit$/m);
+  assert.doesNotMatch(imported.output, /Placed|Added menu footer-/);
+  assert.deepEqual(await menuOrder('footer-plugins'), pluginOrder);
+  assert.deepEqual(await menuOrder('footer-dinkuskit'), dinkusOrder);
   assert.match(imported.output, /^Set site title "DinkusKit"$/m);
   assert.match(imported.output, /^Set site tagline "Built with EmDash\. Growing in the open\."$/m);
 
@@ -156,7 +183,7 @@ try {
   const commerceFileResponse = await development.request(commerceMedia.url);
   assert.equal(commerceFileResponse.status, 200);
   assert.equal(commerceFileResponse.headers.get('content-type'), 'image/webp');
-  console.log('PASS import script: added four block types and the card logo field, allowed them, registered six brand .webp media items in /_emdash/api/media, added and published /start, inserted Demo store into the existing Get started menu, added the other footer menus and site title and tagline; a rerun keeps everything');
+  console.log('PASS import script: added four block types and the card logo field, allowed them, registered six brand .webp media items in /_emdash/api/media, added and published /start, inserted Demo store into the existing Get started menu, kept the edited Plugins and DinkusKit menus, and set the site title and tagline; a rerun keeps everything');
 
 
   const response = await development.request('/start');
@@ -183,7 +210,12 @@ try {
   assert.match(footer, /<p class="site-footer-tagline">Edited tagline<\/p>/);
   assert.match(footer, /<div class="fx-strip" aria-hidden="true"><\/div>/);
   assert.deepEqual([...footer.matchAll(/<h2>([^<]+)<\/h2>/g)].map(match => match[1]), ['Get started', 'Plugins', 'DinkusKit']);
-  assert.deepEqual([...footer.matchAll(/<img src="\/brand\/(\w+)\.webp" alt="" width="20" height="20"/g)].map(match => match[1]), ['commerce', 'payments', 'ship'], 'plugin links show their logos');
+  assert.deepEqual([...footer.matchAll(/<img src="\/brand\/(\w+)\.webp" alt="" width="20" height="20"/g)].map(match => match[1]), ['payments', 'commerce', 'ship'], 'plugin links keep the editor order');
+  const plugins = footer.match(/<h2>Plugins<\/h2>\s*<ul>([\s\S]*?)<\/ul>/)?.[1] ?? '';
+  const dinkuskit = footer.match(/<h2>DinkusKit<\/h2>\s*<ul>([\s\S]*?)<\/ul>/)?.[1] ?? '';
+  const columnLinks = list => [...list.matchAll(/<a href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/g)].map(match => [match[2].replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim(), match[1]]);
+  assert.deepEqual(columnLinks(plugins), pluginOrder, 'the edited Plugins menu stays');
+  assert.deepEqual(columnLinks(dinkuskit), [...dinkusOrder, ['Status', '/health']], 'the edited DinkusKit menu stays, with the editor link at the end');
   assert.match(footer, /href="\/docs\/reference\/commerce"/);
   assert.match(footer, /href="\/health"[^>]*>\s*Status/, 'the editor\'s link shows');
   const started = footer.match(/<h2>Get started<\/h2>\s*<ul>([\s\S]*?)<\/ul>/)?.[1] ?? '';

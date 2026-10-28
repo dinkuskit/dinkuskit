@@ -27,14 +27,54 @@ test('keeps an editor link after a new link the seed puts first', () => {
   ]);
 });
 
-test('places a seed link left at the end when reorder did not finish', () => {
+test('places Demo store left at the end when reorder did not finish', () => {
   const existing = [
     link('start', '/start'), link('how', '/getting-started'), link('docs', '/docs'),
     link('hours', '/hours'), link('demo', seed[0].url),
   ];
-  assert.deepEqual(urls(reconcileFooterOrder(existing, seed, new Map())), [
+  assert.deepEqual(urls(reconcileFooterOrder(existing, seed, new Map(), { recoverDemoStore: true })), [
     seed[0].url, '/start', '/getting-started', '/docs', '/hours',
   ]);
+});
+
+test('does not recover Demo store for a menu that did not ask', () => {
+  const existing = [
+    link('start', '/start'), link('how', '/getting-started'), link('docs', '/docs'),
+    link('hours', '/hours'), link('demo', seed[0].url),
+  ];
+  assert.deepEqual(urls(reconcileFooterOrder(existing, seed, new Map())), urls(existing));
+});
+
+test('keeps an edited Plugins menu in its saved order', () => {
+  const plugins = [
+    { label: 'Commerce', url: '/docs/reference/commerce' },
+    { label: 'Payments', url: '/docs/reference/payments' },
+    { label: 'Ship', url: '/docs/reference/ship' },
+  ];
+  const existing = [
+    link('payments', plugins[1].url),
+    link('commerce', plugins[0].url),
+    link('ship', plugins[2].url),
+  ];
+  assert.deepEqual(urls(reconcileFooterOrder(existing, plugins, new Map())), urls(existing));
+  assert.deepEqual(urls(reconcileFooterOrder(existing, plugins, new Map(), { recoverDemoStore: true })), urls(existing));
+});
+
+test('keeps an edited DinkusKit menu in its saved order', () => {
+  const column = [
+    { label: 'Account', url: '/account' },
+    { label: 'Terms of Service', url: '/terms' },
+    { label: 'GitHub', url: 'https://github.com/dinkuskit' },
+    { label: 'Website source', url: 'https://github.com/dinkuskit/dinkuskit' },
+  ];
+  const existing = [
+    link('terms', column[1].url),
+    link('github', column[2].url),
+    link('source', column[3].url),
+    link('account', column[0].url),
+  ];
+  assert.deepEqual(urls(reconcileFooterOrder(existing, column, new Map())), urls(existing));
+  assert.deepEqual(urls(reconcileFooterOrder(existing, column, new Map(), { recoverDemoStore: true })), urls(existing));
 });
 
 test('does not pull a seed link an editor moved earlier back into seed order', () => {

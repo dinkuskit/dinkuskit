@@ -3,7 +3,7 @@ import { createPluginRuntimeTestHost, type PluginRuntimeTestHost } from '@emdash
 import plugin from '../packages/dinkusguide-chat/src/plugin';
 import type { PluginContext, SandboxedRouteContext } from 'emdash/plugin';
 
-const endpoint = 'https://guide.example.com/ask';
+const endpoint = 'https://guide.dinkuskit.com/ask';
 const token = 'synthetic-guide-service-token-at-least-32-characters';
 const citation = 'https://github.com/dinkuskit/dinkus-guide/blob/d8eb8bb7d5877ee120a1d6ff5d4045712c91a03e/README.md#L1-L10';
 let host: PluginRuntimeTestHost;

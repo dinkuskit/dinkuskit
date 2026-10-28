@@ -6,7 +6,7 @@ Reusable EmDash Registry/sandbox chat plugin for read-only **Ask DinkusGuide** p
 
 - **Format**: EmDash standard/Registry sandbox plugin (`emdash-plugin.jsonc` + `src/plugin.ts`, built with `@emdash-cms/plugin-cli`).
 - **Capabilities**: `["network:request"]` only. No `network:request:unrestricted`, `content:*`, `users:*`, `page:inject`, or Node.js built-ins.
-- **Build-time `allowedHosts`**: `["guide.example.com"]` is an inert example. Set the one approved ingress hostname in `emdash-plugin.jsonc` and rebuild before installing elsewhere. The generated descriptor and Registry bundle carry that exact host; there is no runtime wildcard or custom descriptor factory.
+- **Build-time `allowedHosts`**: `["guide.dinkuskit.com"]`, the approved dinkuskit.com Guide ingress. Another installation sets its own one hostname in `emdash-plugin.jsonc` and rebuilds. The generated descriptor and Registry bundle carry that exact host; there is no runtime wildcard or custom descriptor factory.
 - **Install consent**: Declares two public HTTP routes (`GET /_emdash/api/plugins/<installed-plugin-id>/config` and `POST /_emdash/api/plugins/<installed-plugin-id>/ask`). EmDash Registry installations require explicit operator consent for public routes (`allowPublicRoutes`) and declared capabilities (`allowCapabilities`).
 
 ## Separation of responsibilities

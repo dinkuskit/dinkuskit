@@ -34,6 +34,11 @@
       "bucket_name": "dinkuskit-website-candidate-media"
     }
   ],
+  "worker_loaders": [
+    {
+      "binding": "LOADER"
+    }
+  ],
   "send_email": [
     {
       "name": "EMAIL"

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFileSync } from 'node:fs';
-import { handleDocsMcp } from '../src/docs/mcp.ts';
+import { handleDocsMcp, MAX_BODY_BYTES } from '../src/docs/mcp.ts';
 import { markdownToPortableText } from '../src/docs/portable-text.ts';
 
 const site = { origin: 'https://docs.example', name: 'Example', description: 'Example docs.', sectionPaths: { Reference: 'reference' } };
@@ -106,11 +106,92 @@ test('bad tool arguments and protocol mistakes fail closed', async () => {
   assert.equal((await call('tools/list', {}, { headers: { 'content-type': 'text/plain' } })).status, 415);
   assert.equal((await call('tools/list', {}, { headers: { 'mcp-protocol-version': '2024-11-05' } })).status, 400);
   assert.equal((await call('tools/list', {}, { headers: { origin: 'javascript:alert(1)' } })).status, 403);
-  assert.equal((await call('tools/list', {}, { body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/list', params: {}, pad: 'x'.repeat(70_000) }) })).status, 400);
+
+  const oversized = await call('tools/list', {}, { body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/list', pad: 'x'.repeat(70_000) }) });
+  assert.equal(oversized.status, 400);
+  assert.match(oversized.body.error.message, /too large/);
 
   const route = readFileSync(new URL('../src/pages/docs/mcp.ts', import.meta.url), 'utf8');
   const handler = readFileSync(new URL('../src/docs/mcp.ts', import.meta.url), 'utf8');
   assert.match(route, /getPublicDocs/);
   assert.doesNotMatch(route, /getVisibleDocs/);
   assert.doesNotMatch(handler, /getVisibleDocs|fetch\(|DINKUSKIT_EMDASH_TOKEN|ec_pat_/);
+  assert.doesNotMatch(handler, /request\.text\(/);
+});
+
+test('an oversized stream is cancelled before the rest of the body is read', async () => {
+  const chunk = new Uint8Array(16 * 1024);
+  let pulls = 0;
+  let cancelled = false;
+  const stream = new ReadableStream({
+    pull(controller) {
+      pulls += 1;
+      if (pulls > 100) {
+        controller.close();
+        return;
+      }
+      controller.enqueue(chunk);
+    },
+    cancel() {
+      cancelled = true;
+    },
+  });
+  const request = new Request('https://dinkuskit.com/docs/mcp', {
+    method: 'POST',
+    duplex: 'half',
+    headers: {
+      accept: 'application/json, text/event-stream',
+      'content-type': 'application/json',
+      'mcp-protocol-version': '2025-11-25',
+    },
+    body: stream,
+  });
+  assert.equal(request.headers.get('content-length'), null);
+  const response = await handleDocsMcp(request, [], site);
+  const payload = await response.json();
+  assert.equal(response.status, 400);
+  assert.match(payload.error.message, /too large/);
+  assert.equal(cancelled, true);
+  assert.equal(pulls, Math.floor(MAX_BODY_BYTES / chunk.byteLength) + 1);
+});
+
+test('a multibyte body under the character cap is rejected once its bytes pass the limit', async () => {
+  const text = '€'.repeat(MAX_BODY_BYTES);
+  const encoded = new TextEncoder().encode(text);
+  assert.equal(text.length, MAX_BODY_BYTES);
+  assert.ok(encoded.byteLength > MAX_BODY_BYTES);
+  let sent = 0;
+  let cancelled = false;
+  const stream = new ReadableStream({
+    pull(controller) {
+      if (sent >= encoded.byteLength) {
+        controller.close();
+        return;
+      }
+      const next = Math.min(sent + 16 * 1024, encoded.byteLength);
+      controller.enqueue(encoded.subarray(sent, next));
+      sent = next;
+    },
+    cancel() {
+      cancelled = true;
+    },
+  });
+  const request = new Request('https://dinkuskit.com/docs/mcp', {
+    method: 'POST',
+    duplex: 'half',
+    headers: {
+      accept: 'application/json, text/event-stream',
+      'content-type': 'application/json',
+      'mcp-protocol-version': '2025-11-25',
+    },
+    body: stream,
+  });
+  assert.equal(request.headers.get('content-length'), null);
+  const response = await handleDocsMcp(request, [], site);
+  const payload = await response.json();
+  assert.equal(response.status, 400);
+  assert.match(payload.error.message, /too large/);
+  assert.equal(cancelled, true);
+  assert.ok(sent > MAX_BODY_BYTES);
+  assert.ok(sent < encoded.byteLength);
 });

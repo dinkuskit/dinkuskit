@@ -13,7 +13,7 @@ import { rankDocs, searchTerms } from './search.ts';
  */
 export const DOCS_MCP_PROTOCOL_VERSIONS = ['2025-11-25', '2025-03-26'] as const;
 const LATEST_PROTOCOL = DOCS_MCP_PROTOCOL_VERSIONS[0];
-const MAX_BODY_BYTES = 65_536;
+export const MAX_BODY_BYTES = 65_536;
 const MAX_RESULTS = 10;
 const MAX_DOCUMENTS = 20;
 const MAX_ID_LENGTH = 200;
@@ -284,6 +284,43 @@ function resultFor(method: string, params: unknown, articles: readonly DocArticl
   return null;
 }
 
+/** Read at most `limit` bytes. A longer body is cancelled and not decoded. */
+async function readBoundedBody(request: Request, limit: number): Promise<{ ok: true; bytes: Uint8Array } | { ok: false; reason: 'too-large' | 'unreadable' }> {
+  const declared = request.headers.get('content-length');
+  if (declared !== null && /^\d+$/.test(declared)) {
+    const size = Number(declared);
+    if (!Number.isSafeInteger(size) || size > limit) return { ok: false, reason: 'too-large' };
+  }
+  const stream = request.body;
+  if (!stream) return { ok: true, bytes: new Uint8Array(0) };
+  const reader = stream.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      if (!value?.byteLength) continue;
+      if (total + value.byteLength > limit) {
+        await reader.cancel();
+        return { ok: false, reason: 'too-large' };
+      }
+      chunks.push(value);
+      total += value.byteLength;
+    }
+  } catch {
+    await reader.cancel().catch(() => undefined);
+    return { ok: false, reason: 'unreadable' };
+  }
+  const bytes = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return { ok: true, bytes };
+}
+
 export async function handleDocsMcp(request: Request, articles: readonly DocArticle[], site: DocsSite) {
   if (!originAllowed(request.headers.get('origin'))) return rpcError(null, -32000, 'Origin is not allowed.', 403);
   if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: headers() });
@@ -296,8 +333,17 @@ export async function handleDocsMcp(request: Request, articles: readonly DocArti
   const contentType = (request.headers.get('content-type') ?? '').toLowerCase().split(';')[0]?.trim();
   if (contentType !== 'application/json') return rpcError(null, -32600, 'Content-Type must be application/json.', 415);
 
-  const raw = await request.text();
-  if (raw.length > MAX_BODY_BYTES) return rpcError(null, -32600, 'Request body is too large.', 400);
+  const body = await readBoundedBody(request, MAX_BODY_BYTES);
+  if (!body.ok) {
+    const message = body.reason === 'too-large' ? 'Request body is too large.' : 'Request body could not be read.';
+    return rpcError(null, -32600, message, 400);
+  }
+  let raw: string;
+  try {
+    raw = new TextDecoder('utf-8', { fatal: true }).decode(body.bytes);
+  } catch {
+    return rpcError(null, -32700, 'Parse error.', 400);
+  }
   let message: unknown;
   try {
     message = JSON.parse(raw);

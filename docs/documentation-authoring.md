@@ -77,7 +77,7 @@ Production answers 404 for an unpublished article's HTML and Markdown, and leave
 
 ## Docs MCP
 
-`POST https://dinkuskit.com/docs/mcp` is a stateless Streamable HTTP server for published articles (protocol `2025-11-25`, and `2025-03-26`). `GET` and `DELETE` answer 405. There is no session and no token. It is not the CMS server at `/_emdash/api/mcp`.
+`POST https://dinkuskit.com/docs/mcp` is a stateless Streamable HTTP server for published articles (protocol `2025-11-25`, and `2025-03-26`). `GET` and `DELETE` answer 405. There is no session and no token. A body larger than 64 KiB is rejected while it is read, before it is decoded. It is not the CMS server at `/_emdash/api/mcp`.
 
 | Tool | What an assistant gets |
 | --- | --- |

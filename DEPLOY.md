@@ -207,6 +207,62 @@ token reads the API and lists the MCP tools, also beside Access headers; a
 write outside its scopes gets 403, an unknown or revoked token 401; snapshot,
 search, a token sent with a cookie and the closed paths get 404.
 
+## Ask DinkusGuide chat bubble (optional)
+
+The "Ask DinkusGuide" bubble (decision `dinkusguide-pilot-098`,
+[docs/dinkusguide-pilot.md](docs/dinkusguide-pilot.md)) answers visitors'
+questions from public DinkusKit and EmDash docs. It is off until a build turns
+it on. Going live takes four pieces, in this order:
+
+1. **The Guide service.** On the machine that runs the Guide model, follow
+   [dinkus-guide `docs/ask-service.md`](https://github.com/dinkuskit/dinkus-guide/blob/main/docs/ask-service.md):
+   `corpus sync`, `corpus verify`, then `node bin/dinkus-guide-serve` with
+   `DINKUS_GUIDE_SERVICE_TOKEN` set (32 or more characters, kept in the
+   password manager). It listens on `127.0.0.1:8789` only, so give it one HTTPS
+   hostname (for example a Cloudflare Tunnel) that forwards only `POST /ask`.
+   The bubble answers only while that machine and its model are up; otherwise
+   visitors get a polite "unavailable".
+2. **The plugin.** Put that hostname as the only `allowedHosts` entry in
+   `packages/dinkusguide-chat/emdash-plugin.jsonc` and check
+   `npm run build:dinkusguide-plugin` passes. The production build does not
+   run sandboxed plugins yet: `astro.cloudflare.config.mjs` has no
+   `sandboxRunner` and `cloudflare/wrangler.jsonc` has no `LOADER` Worker
+   Loader binding. A reviewed change has to add both and load the plugin, the
+   way the template store loads Registry plugins, before the bubble can work.
+   After that deploy, the Admin opens the plugin's settings and enters the
+   endpoint (`https://<guide host>/ask`) and the service token, then ticks
+   **Enable public Ask DinkusGuide**. EmDash stores the token encrypted; it
+   never goes in a build, a file or a URL.
+3. **The build switch.** Every deploy from then on builds with the two pilot
+   values next to the team domain:
+
+   ```sh
+   EMDASH_ACCESS_TEAM_DOMAIN=<team>.cloudflareaccess.com \
+   DINKUS_GUIDE_PILOT=true DINKUS_GUIDE_PLUGIN_ID=<installed plugin id> \
+   npm run build:cloudflare
+   npx wrangler deploy --config .grilltrack/work/cloudflare-candidate-20260930/dist/server/wrangler.json
+   ```
+
+   They are build settings, not Worker variables, so `--keep-vars` does not
+   keep them. A build without them removes the bubble and closes its two
+   routes again. That is also the off switch.
+4. **The edge.** Nothing to change. The `dinkuskit.com/_emdash/api` Bypass
+   (Agents, above) already lets the requests reach the Worker, and the
+   Worker's gate admits only `GET /_emdash/api/plugins/<id>/config` and
+   `POST /_emdash/api/plugins/<id>/ask` for the built plugin ID. Every other
+   plugin route stays closed.
+
+Checks after a deploy with the bubble on:
+
+```sh
+curl --silent --show-error https://dinkuskit.com/_emdash/api/plugins/<id>/config
+curl --silent --output /dev/null --write-out '%{http_code}\n' https://dinkuskit.com/_emdash/api/plugins/<id>/other
+```
+
+The first answers HTTP 200 with the public settings; the second answers 404.
+Then open `/` and `/docs`: an "Ask DinkusGuide" button sits bottom right, and a
+test question comes back with source links. `/account` has no button.
+
 ## Load the site's pages (new website database only)
 
 The homepage and Getting started page are content in the website database

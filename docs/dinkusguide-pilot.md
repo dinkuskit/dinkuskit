@@ -30,6 +30,11 @@ installation, build with `DINKUS_GUIDE_PILOT=true` and
 `DINKUS_GUIDE_PLUGIN_ID` set to that installation's actual runtime ID. Registry
 IDs may differ from the logical plugin ID; do not guess or reuse another
 installation's ID. Both values are non-secret build configuration.
+Every later deploy must build with them too, or the bubble disappears. The
+dinkuskit.com go-live order (Guide service, plugin, build switch, edge) and its
+checks are in [DEPLOY.md](../DEPLOY.md#ask-dinkusguide-chat-bubble-optional).
+The production build does not run sandboxed plugins yet, so going live also
+needs the change that adds the sandbox runner (step 2 there).
 
 The component appears only on `/`, `/start`, `/getting-started`, `/docs`, the
 explicit `/docs/…` path family, `/support` and `/plugins`. Account, CMS/admin,

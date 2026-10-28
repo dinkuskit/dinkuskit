@@ -354,10 +354,12 @@ the title and tagline as they are and still updates the menus. It does not
 use `menus:read` or `menus:manage`. The first run prints `Added Demo store to
 menu footer-get-started`; a rerun prints `Kept existing menu
 footer-get-started`. A run that finds Demo store already created but still
-sitting after the editor's links prints `Placed Demo store in menu
-footer-get-started`. The Get started column then reads Demo store, then the
-links that were already there, in the order the editor left them. The footer
-already renders that menu, so the link shows without a deploy.
+behind a later seed link, including after a reorder that did not finish,
+prints `Placed Demo store in menu footer-get-started` and moves only that
+link. The Get started column then reads Demo store, then the links that were
+already there, in the order the editor left them. Other seed links an editor
+reordered, and links the editor added, stay in that order. The footer already
+renders that menu, so the link shows without a deploy.
 
 ## Post-deploy checks
 

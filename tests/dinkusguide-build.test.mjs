@@ -36,7 +36,7 @@ test('official build and bundle accept a non-example configured ingress', { time
     }
     const path = resolve(dir, 'emdash-plugin.jsonc');
     const source = await readFile(path, 'utf8');
-    await writeFile(path, source.replace('["guide.example.com"]', '["docs-assistant.example.test"]'));
+    await writeFile(path, source.replace('["guide.dinkuskit.com"]', '["docs-assistant.example.test"]'));
     const summary = await buildAndValidateDinkusGuidePlugin({ dir, outDir: resolve(dir, 'bundle'), summaryFile: resolve(dir, 'summary.json') });
     assert.deepEqual(summary.allowedHosts, ['docs-assistant.example.test']);
     assert.deepEqual(summary.capabilities, ['network:request']);

@@ -1,6 +1,6 @@
 {
   // Reusable EmDash Registry/sandbox plugin manifest for Ask DinkusGuide (#98).
-  // Declares minimal outbound HTTP capability with one build-time example ingress host
+  // Declares minimal outbound HTTP capability with one build-time ingress host
   // (never network:request:unrestricted, content:*, users:*, or page:inject).
   "slug": "dinkusguide-chat",
   "version": "0.1.0",
@@ -17,7 +17,7 @@
     "url": "https://github.com/dinkuskit/dinkuskit/security"
   },
   "capabilities": ["network:request"],
-  "allowedHosts": ["guide.example.com"],
+  "allowedHosts": ["guide.dinkuskit.com"],
   "admin": {
     "pages": [
       {
@@ -37,7 +37,7 @@
         "type": "url",
         "label": "DinkusGuide ask endpoint URL",
         "description": "HTTPS URL of the authenticated ask-only DinkusGuide /ask endpoint on an approved outbound host.",
-        "placeholder": "https://guide.example.com/ask"
+        "placeholder": "https://guide.dinkuskit.com/ask"
       },
       "serviceToken": {
         "type": "secret",

@@ -14,7 +14,7 @@ The owning plan and acceptance contract is
 ## Two separate installation pieces
 
 The Registry-compatible `packages/dinkusguide-chat` plugin owns safe public configuration and the ask
-transport. Set the exact approved ingress hostname in its manifest before building; `guide.example.com` is an inert example. The official Plugin CLI generates its descriptor and Registry bundle. Install it through the supported EmDash plugin flow and explicitly
+transport. Its manifest carries the one approved ingress hostname, `guide.dinkuskit.com`; another installation sets its own before building. The official Plugin CLI generates its descriptor and Registry bundle. Install it through the supported EmDash plugin flow and explicitly
 approve its declared public routes and outbound host. Configure its Guide
 endpoint and encrypted service credential in the server-side settings. Never
 put credentials in browser props, URLs, this file or a build flag.
@@ -33,8 +33,8 @@ installation's ID. Both values are non-secret build configuration.
 Every later deploy must build with them too, or the bubble disappears. The
 dinkuskit.com go-live order (Guide service, plugin, build switch, edge) and its
 checks are in [DEPLOY.md](../DEPLOY.md#ask-dinkusguide-chat-bubble-optional).
-The production build does not run sandboxed plugins yet, so going live also
-needs the change that adds the sandbox runner (step 2 there).
+On dinkuskit.com the plugin is loaded from this repository as a sandboxed
+plugin (ID `dinkusguide-chat`) rather than installed from the Registry.
 
 The component appears only on `/`, `/start`, `/getting-started`, `/docs`, the
 explicit `/docs/…` path family, `/support` and `/plugins`. Account, CMS/admin,

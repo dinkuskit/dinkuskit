@@ -3,7 +3,7 @@ import type { BlockResponse } from "@emdash-cms/blocks";
 export const DINKUSGUIDE_PLUGIN_ID = "dinkusguide-chat" as const;
 export const DINKUSGUIDE_PUBLISHER_DID = "did:plc:ekk4pjmkh3k3ql2kfoex3qt4" as const;
 export const DINKUSGUIDE_DEFAULT_ALLOWED_HOSTS = Object.freeze([
-  "guide.example.com",
+  "guide.dinkuskit.com",
 ]);
 
 export const DINKUSGUIDE_LIMIT_DEFAULTS = Object.freeze({

@@ -71,12 +71,24 @@ Articles that span plugins (start-here, the store-owner and developer guides, tr
 - the article page, sidebar, previous/next links, contents list and in-page search (`src/docs/components/`),
 - `/docs/markdown/<id>.md` and the Copy as Markdown and View as Markdown buttons, which convert Portable Text to Markdown (`src/docs/portable-text.ts`),
 - `/docs/search.json` and `/llms.txt`, which list published articles only, even in development.
+- `/docs/mcp`, the public read-only docs MCP. It searches and reads that same published list, including in local development, where drafts stay out.
 
-Production answers 404 for an unpublished article's HTML and Markdown, and leaves it out of search and `llms.txt`.
+Production answers 404 for an unpublished article's HTML and Markdown, and leaves it out of search, `llms.txt`, and the docs MCP.
+
+## Docs MCP
+
+`POST https://dinkuskit.com/docs/mcp` is a stateless Streamable HTTP server for published articles (protocol `2025-11-25`, and `2025-03-26`). `GET` and `DELETE` answer 405. There is no session and no token. A body larger than 64 KiB is rejected while it is read, before it is decoded. It is not the CMS server at `/_emdash/api/mcp`.
+
+| Tool | What an assistant gets |
+| --- | --- |
+| `search_docs` | Keyword matches among published articles: title, canonical URL, version scope, and a short excerpt. |
+| `get_docs` | Full Markdown for article ids from `search_docs`, such as `store-owners/test-order`. An unknown id, a draft, a URL, or any other path comes back with no content. The tool does not request URLs. |
+
+`src/docs/mcp.ts` only sees articles `getPublicDocs()` already selected, and it drops anything still marked draft. The page route is `src/pages/docs/mcp.ts`. This stays in `src/docs/` with the rest of the docs code. It is not the deferred `dinkuskit/docs` plugin, and connecting an assistant to the live site waits until this route is deployed.
 
 ## Keeping it portable
 
-The docs code is self-contained in `src/docs/` so it can become a `dinkuskit/docs` plugin or starter later. `catalog.ts` (selection, sections, Markdown export, search records, llms.txt), `portable-text.ts`, `search.ts` and the components take a list of articles and a `DocsSite` value; `site.ts` is the one DinkusKit-specific file (origin, name, section folders). `content.ts` is the EmDash adapter. The page routes in `src/pages/docs/` and `src/pages/llms.txt.ts` wrap the components in the site's own layout.
+The docs code is self-contained in `src/docs/` so it can become a `dinkuskit/docs` plugin or starter later. `catalog.ts` (selection, sections, Markdown export, search records, llms.txt), `portable-text.ts`, `search.ts`, `mcp.ts` and the components take a list of articles and a `DocsSite` value; `site.ts` is the one DinkusKit-specific file (origin, name, section folders). `content.ts` is the EmDash adapter. The page routes in `src/pages/docs/` and `src/pages/llms.txt.ts` wrap the components in the site's own layout. Packaging that as a plugin stays deferred until the docs run on dinkuskit.com.
 
 ## The thirteen starting articles
 
@@ -112,7 +124,7 @@ npm run dev:docs
 
 `npm run dev:docs` runs a documentation-only Node preview with its own SQLite EmDash database under `.grilltrack/work/docs-preview/`. Open `http://127.0.0.1:4321/_emdash/api/setup/dev-bypass?redirect=/docs` once to load the seed and sign in as a local admin; drafts then show with a "Draft for review." notice and noindex/no-store headers, and the admin at `/_emdash/admin` can publish them. `npm run dev` previews the full Cloudflare site the same way.
 
-- `npm run test:docs`: selection, sections, URLs, Markdown, search, llms.txt, Portable Text conversion, and the seed's collection and thirteen drafts.
+- `npm run test:docs`: selection, sections, URLs, Markdown, search, llms.txt, the docs MCP, Portable Text conversion, and the seed's collection and thirteen drafts.
 - `npm run test:docs-routes`: in the preview, loads the drafts, reloads them with the import script, publishes one through the EmDash API, then checks development and a production build of the same database: only the published article is served.
 - `npm run test:smoke`: on the production workerd build, the seed creates the collection with thirteen unpublished entries and none is served.
 

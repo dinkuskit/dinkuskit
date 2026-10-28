@@ -33,6 +33,7 @@ export default defineConfig({
             ['/docs', 'src/pages/docs/index.astro'],
             ['/docs/[...slug]', 'src/pages/docs/[...slug].astro'],
             ['/docs/search.json', 'src/pages/docs/search.json.ts'],
+            ['/docs/mcp', 'src/pages/docs/mcp.ts'],
             ['/docs/markdown/[...slug]', 'src/pages/docs/markdown/[...slug].ts'],
             ['/llms.txt', 'src/pages/llms.txt.ts'],
             // The CMS-drawn part of /start, without its Worker-only sign-in check.

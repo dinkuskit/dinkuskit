@@ -101,6 +101,30 @@ function request(base, path, options = {}) {
   });
 }
 
+async function assertDocsMcpClosed(base) {
+  const headers = {
+    'content-type': 'application/json',
+    accept: 'application/json, text/event-stream',
+    'mcp-protocol-version': '2025-11-25',
+    authorization: 'Bearer ec_pat_ignored',
+  };
+  const call = (method, params) => request(base, '/docs/mcp', {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }),
+  });
+  const listed = await call('tools/list', {});
+  assert.equal(listed.status, 200, 'docs MCP tools/list');
+  const tools = await listed.json();
+  assert.deepEqual(tools.result.tools.map(tool => tool.name), ['search_docs', 'get_docs']);
+  const searched = await call('tools/call', { name: 'search_docs', arguments: { query: 'Choose your path' } });
+  const read = await call('tools/call', { name: 'get_docs', arguments: { ids: ['start-here', 'store-owners/test-order', 'https://example.invalid/secret'] } });
+  const dumped = JSON.stringify({ searched: await searched.json(), read: await read.json() });
+  assert.equal(dumped.includes('Choose your path and check requirements'), false, 'docs MCP must not return a draft');
+  assert.equal(dumped.includes('What counts as success'), false, 'docs MCP must not return an unpublished test-order article');
+  assert.equal((await request(base, '/docs/mcp')).status, 405);
+}
+
 async function waitReady(record, base) {
   for (let attempt = 0; attempt < 120 && !record.exited(); attempt++) {
     rememberOwnedTree(record);
@@ -193,7 +217,8 @@ try {
     assert.equal(response.status, 404, `${path}: draft documentation is excluded`);
     assert.ok(!(await response.text()).includes('Choose your path and check requirements'), `${path}: no draft content`);
   }
-  checks.push('Production excludes draft documentation from HTML, Markdown, search and llms.txt; query parameters cannot enable previews');
+  await assertDocsMcpClosed(base);
+  checks.push('Production excludes draft documentation from HTML, Markdown, search, llms.txt and the docs MCP; query parameters cannot enable previews');
   await stopWorker(fresh);
 
   const fixture = await startWorker('cms-seed-fixture', fixtureConfig, port);
@@ -278,7 +303,8 @@ try {
     assert.equal(response.status, 404, `${path}: seeded draft documentation is excluded`);
     assert.ok(!(await response.text()).includes('Choose your path and check requirements'), `${path}: no draft content`);
   }
-  checks.push('Seeded production keeps the 13 unpublished docs entries out of HTML, Markdown, search and llms.txt');
+  await assertDocsMcpClosed(base);
+  checks.push('Seeded production keeps the 13 unpublished docs entries out of HTML, Markdown, search, llms.txt and the docs MCP');
   await denyCmsSurface(base, 'seeded-production');
   checks.push('Production /_emdash remains denied after fixture seed, including spoofed and encoded variants');
   const signup = await request(base, '/account/signup', { redirect: 'manual' });

@@ -336,6 +336,37 @@ rerun prints "Kept existing" and leaves edited wording alone. Leave
 is published, `/start` answers HTTP 503 "Content is not available yet". After
 that its words, steps and their order are edited in the admin like any page.
 
+## Add a footer link (existing website database)
+
+Footer columns are the EmDash menus `footer-get-started`, `footer-plugins`
+and `footer-dinkuskit`. Editing `seed/seed.json` updates a new database and a
+menu this script creates. It does not change a menu the site already has
+until this command runs. `--footer` inserts seed links whose URL is not
+already in that menu, at the seed's position, and does not rename or remove
+any link that is already there. It does not publish pages.
+
+```sh
+export CF_ACCESS_TOKEN="$(cloudflared access login https://dinkuskit.com/_emdash/admin >/dev/null && cloudflared access token -app=https://dinkuskit.com/_emdash/admin)"
+npm run pages:import -- --url https://dinkuskit.com --footer
+unset CF_ACCESS_TOKEN
+```
+
+The command above is a human Access session. It updates the menus and, when
+the title or tagline is empty, fills them from the seed. An EmDash API token
+(`EMDASH_TOKEN`) with `content:read` and `content:write` can insert the menu
+links: those scopes are the menu access in Agents, above. The production gate
+answers `/_emdash/api/settings` with 404 for that token, so the command leaves
+the title and tagline as they are and still updates the menus. It does not
+use `menus:read` or `menus:manage`. The first run prints `Added Demo store to
+menu footer-get-started`; a rerun prints `Kept existing menu
+footer-get-started`. A run that finds Demo store already created but still
+behind a later Get started seed link, including after a reorder that did not
+finish, prints `Placed Demo store in menu footer-get-started` and moves only
+that link. The Get started column then reads Demo store, then the links that
+were already there, in the order the editor left them. Plugins, DinkusKit,
+and any other footer menu keep the order already saved. The footer already
+renders that menu, so the link shows without a deploy.
+
 ## Post-deploy checks
 
 ```sh

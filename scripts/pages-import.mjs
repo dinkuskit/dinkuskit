@@ -10,13 +10,24 @@
 // overwrites: anything that already exists is kept as it is.
 // With --publish it also publishes the pages it added in this run, and never
 // one that was already there; without it an editor presses Publish in the admin.
-// With --footer it adds the seed's footer menus the site lacks (an existing menu
-// is kept with its links) and fills an empty site title or tagline from the
-// seed; the footer shows the title, tagline and those menus.
-// Authenticates with EMDASH_TOKEN (an EmDash API token) or CF_ACCESS_TOKEN
-// (a Cloudflare Access token from `cloudflared access token`).
+// With --footer it adds the seed's footer menus the site lacks. A menu the site
+// already has keeps every current link and the order an editor chose among
+// them. Seed links whose URL is not already in it are inserted at the seed's
+// position. Only Demo store in footer-get-started, left behind a later seed
+// link when a reorder did not finish, is placed on the next run. Plugins,
+// DinkusKit, and every other footer menu keep the order already saved. Other
+// seed links an editor reordered stay in that order, and an editor's own link
+// is not pulled into the seed sequence. Nothing is renamed or removed. An
+// empty site title or tagline is filled from the seed only when this sign-in
+// can read settings.
+// The footer shows the title, tagline and those menus.
+// Authenticates with EMDASH_TOKEN (an EmDash API token; menus use content:read
+// and content:write) or CF_ACCESS_TOKEN (a Cloudflare Access token from
+// `cloudflared access token`). Settings stay on the Access session: the
+// production gate does not admit an API token to /_emdash/api/settings.
 import { readFileSync } from 'node:fs';
 import { parseArgs } from 'node:util';
+import { pathToFileURL } from 'node:url';
 
 const SEED = new URL('../seed/seed.json', import.meta.url);
 const COLLECTION = 'pages';
@@ -135,14 +146,121 @@ async function push(origin, { slugs, footer, publish }) {
   }
 }
 
-// Footer menus are added whole; one the site already has is never changed.
-// Site settings are an Admin change, like adding a block type.
+// Where a seed link belongs among `items`, which must not already contain it.
+// The seed's next existing link is the anchor. A link the seed lists before
+// every existing seed link goes first, so editor links that currently lead
+// the menu follow it. Otherwise it sits immediately before that anchor, or
+// just after the previous seed link when nothing in the seed follows it.
+function footerInsertionIndex(items, seedItems, url) {
+  const myIndex = seedItems.findIndex(item => item.url === url);
+  let anchor = -1;
+  for (let i = myIndex + 1; i < seedItems.length; i++) {
+    const at = items.findIndex(item => item.customUrl === seedItems[i].url);
+    if (at !== -1) { anchor = at; break; }
+  }
+  const earlierExists = seedItems.slice(0, myIndex).some(item => items.some(existing => existing.customUrl === item.url));
+  if (!earlierExists) return 0;
+  if (anchor !== -1) return anchor;
+  for (let i = myIndex - 1; i >= 0; i--) {
+    const at = items.findIndex(item => item.customUrl === seedItems[i].url);
+    if (at !== -1) return at + 1;
+  }
+  return items.length;
+}
+
+function menuLink(item, url = item.customUrl) {
+  return { id: item.id, parentId: item.parentId ?? null, customUrl: url };
+}
+
+// Demo store is the only link an interrupted reorder is allowed to move, and
+// only inside Get started. Another column's first seed link, such as Commerce
+// or Account, is an editor's saved order and stays where it is.
+const DEMO_STORE_MENU = 'footer-get-started';
+const DEMO_STORE_URL = 'https://playground.dinkuskit.com/';
+
+function demoStoreLeftBehind(items, seedItems) {
+  const currentIndex = items.findIndex(item => item.customUrl === DEMO_STORE_URL);
+  if (currentIndex === -1) return -1;
+  const behind = seedItems.some(item => {
+    if (item.url === DEMO_STORE_URL) return false;
+    const at = items.findIndex(existing => existing.customUrl === item.url);
+    return at !== -1 && at < currentIndex;
+  });
+  return behind ? currentIndex : -1;
+}
+
+// Existing links keep their relative order, including seed links an editor
+// has moved earlier. Links in `createdByUrl` are inserted at the seed's
+// position. Demo store in Get started, left behind by an interrupted reorder,
+// is placed on the next run. No other menu is reordered to recover a link.
+export function reconcileFooterOrder(existing, seedItems, createdByUrl, { recoverDemoStore = false } = {}) {
+  const created = new Map(createdByUrl);
+  const items = existing.filter(item => !created.has(item.customUrl)).map(item => menuLink(item));
+  if (recoverDemoStore) {
+    const leftBehind = demoStoreLeftBehind(items, seedItems);
+    if (leftBehind !== -1) {
+      const [item] = items.splice(leftBehind, 1);
+      items.splice(footerInsertionIndex(items, seedItems, item.customUrl), 0, item);
+    }
+  }
+  for (const seedItem of seedItems) {
+    if (!created.has(seedItem.url)) continue;
+    const createdItem = created.get(seedItem.url);
+    if (!createdItem?.id) throw new Error(`Adding ${seedItem.label} did not return an item id`);
+    items.splice(footerInsertionIndex(items, seedItems, seedItem.url), 0, menuLink(createdItem, seedItem.url));
+  }
+  return items;
+}
+
+async function insertMissingFooterLinks(api, menu) {
+  const current = await api('GET', `/menus/${menu.name}`);
+  if (current.status !== 200) throw new Error(`Reading menu ${menu.name} failed: HTTP ${current.status} ${JSON.stringify(current.data)}`);
+  const existing = [...(current.data?.items ?? [])].sort((a, b) => a.sortOrder - b.sortOrder);
+  const have = new Set(existing.map(item => item.customUrl));
+  const missing = menu.items.filter(item => !have.has(item.url));
+  const createdByUrl = new Map();
+  for (const item of missing) {
+    const added = await api('POST', `/menus/${menu.name}/items`, { type: 'custom', label: item.label, customUrl: item.url });
+    if (!ok(added.status)) throw new Error(`Adding ${item.label} to menu ${menu.name} failed: HTTP ${added.status} ${JSON.stringify(added.data)}`);
+    createdByUrl.set(item.url, { id: added.data?.id, parentId: added.data?.parentId ?? null, customUrl: item.url });
+  }
+  const ordered = reconcileFooterOrder(existing, menu.items, createdByUrl, {
+    recoverDemoStore: menu.name === DEMO_STORE_MENU,
+  });
+  const same = ordered.length === existing.length && ordered.every((item, index) => item.id === existing[index]?.id);
+  if (same) { console.log(`Kept existing menu ${menu.name}`); return; }
+  const reordered = await api('POST', `/menus/${menu.name}/reorder`, {
+    items: ordered.map((item, sortOrder) => ({ id: item.id, parentId: item.parentId ?? null, sortOrder })),
+  });
+  if (!ok(reordered.status)) throw new Error(`Reordering menu ${menu.name} failed: HTTP ${reordered.status} ${JSON.stringify(reordered.data)}`);
+  if (missing.length) console.log(`Added ${missing.map(item => item.label).join(', ')} to menu ${menu.name}`);
+  // A neighbor that only shifts when another link is inserted is not placed.
+  // Placed means an existing seed link moved earlier past another seed link,
+  // which is how a created-but-unordered Demo store is recovered.
+  const placed = menu.items.filter(item => {
+    if (createdByUrl.has(item.url)) return false;
+    const before = existing.findIndex(entry => entry.customUrl === item.url);
+    const after = ordered.findIndex(entry => entry.customUrl === item.url);
+    if (before === -1 || after === -1 || after >= before) return false;
+    return menu.items.some(other => {
+      if (other.url === item.url) return false;
+      const otherBefore = existing.findIndex(entry => entry.customUrl === other.url);
+      const otherAfter = ordered.findIndex(entry => entry.customUrl === other.url);
+      return otherBefore !== -1 && otherBefore < before && otherAfter > after;
+    });
+  });
+  if (placed.length) console.log(`Placed ${placed.map(item => item.label).join(', ')} in menu ${menu.name}`);
+}
+
+// A missing footer menu is added whole. One the site already has keeps its
+// links; seed links whose URL is absent are inserted at the seed's position.
+// Site title and tagline are filled only when settings are readable.
 async function pushFooter(api, seed) {
   const listed = await api('GET', '/menus');
   if (listed.status !== 200) throw new Error(`Reading menus failed: HTTP ${listed.status} (check the sign-in token)`);
   const have = new Set((Array.isArray(listed.data) ? listed.data : listed.data?.items ?? []).map(menu => menu.name));
   for (const menu of seed.menus.filter(item => item.name.startsWith('footer-'))) {
-    if (have.has(menu.name)) { console.log(`Kept existing menu ${menu.name}`); continue; }
+    if (have.has(menu.name)) { await insertMissingFooterLinks(api, menu); continue; }
     const created = await api('POST', '/menus', { name: menu.name, label: menu.label });
     if (!ok(created.status)) throw new Error(`Adding menu ${menu.name} failed: HTTP ${created.status} ${JSON.stringify(created.data)}`);
     for (const [sortOrder, item] of menu.items.entries()) {
@@ -151,7 +269,17 @@ async function pushFooter(api, seed) {
     }
     console.log(`Added menu ${menu.name} with ${menu.items.length} links`);
   }
+  await fillEmptySiteText(api, seed);
+}
+
+// Settings are outside the API-token lane. A 404 here means the sign-in can
+// update menus and cannot read settings; the menu change still stands.
+export async function fillEmptySiteText(api, seed) {
   const settings = await api('GET', '/settings');
+  if (settings.status === 404) {
+    console.log('Left site title and tagline unchanged; settings need an Access session');
+    return;
+  }
   if (settings.status !== 200) throw new Error(`Reading site settings failed: HTTP ${settings.status}`);
   for (const key of ['title', 'tagline']) {
     const current = settings.data?.[key]?.trim();
@@ -162,9 +290,12 @@ async function pushFooter(api, seed) {
   }
 }
 
-const { values } = parseArgs({ options: { url: { type: 'string' }, page: { type: 'string', multiple: true }, footer: { type: 'boolean' }, publish: { type: 'boolean' } } });
-if (values.url && (values.page?.length || values.footer)) await push(values.url, { slugs: values.page ?? [], footer: values.footer === true, publish: values.publish === true });
-else {
-  console.error('Usage: pages-import.mjs --url <site origin> [--page <slug>]... [--footer] [--publish]');
-  process.exit(2);
+const invokedDirectly = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
+if (invokedDirectly) {
+  const { values } = parseArgs({ options: { url: { type: 'string' }, page: { type: 'string', multiple: true }, footer: { type: 'boolean' }, publish: { type: 'boolean' } } });
+  if (values.url && (values.page?.length || values.footer)) await push(values.url, { slugs: values.page ?? [], footer: values.footer === true, publish: values.publish === true });
+  else {
+    console.error('Usage: pages-import.mjs --url <site origin> [--page <slug>]... [--footer] [--publish]');
+    process.exit(2);
+  }
 }

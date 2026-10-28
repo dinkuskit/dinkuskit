@@ -330,6 +330,28 @@ rerun prints "Kept existing" and leaves edited wording alone. Leave
 is published, `/start` answers HTTP 503 "Content is not available yet". After
 that its words, steps and their order are edited in the admin like any page.
 
+## Add a footer link (existing website database)
+
+Footer columns are the EmDash menus `footer-get-started`, `footer-plugins`
+and `footer-dinkuskit`. Editing `seed/seed.json` updates a new database and a
+menu this script creates. It does not change a menu the site already has
+until this command runs. `--footer` inserts seed links whose URL is not
+already in that menu, at the seed's position, and does not rename or remove
+any link that is already there. It does not publish pages.
+
+```sh
+export CF_ACCESS_TOKEN="$(cloudflared access login https://dinkuskit.com/_emdash/admin >/dev/null && cloudflared access token -app=https://dinkuskit.com/_emdash/admin)"
+npm run pages:import -- --url https://dinkuskit.com --footer
+unset CF_ACCESS_TOKEN
+```
+
+An EmDash API token with `menus:read` and `menus:manage` works in place of
+the Access token (`EMDASH_TOKEN`). The first run prints `Added Demo store to
+menu footer-get-started`; a rerun prints `Kept existing menu
+footer-get-started`. The Get started column then reads Demo store, Start
+your store, How it works, Docs. The footer already renders that menu, so the
+link shows without a deploy.
+
 ## Post-deploy checks
 
 ```sh

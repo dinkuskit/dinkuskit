@@ -10,9 +10,11 @@
 // overwrites: anything that already exists is kept as it is.
 // With --publish it also publishes the pages it added in this run, and never
 // one that was already there; without it an editor presses Publish in the admin.
-// With --footer it adds the seed's footer menus the site lacks (an existing menu
-// is kept with its links) and fills an empty site title or tagline from the
-// seed; the footer shows the title, tagline and those menus.
+// With --footer it adds the seed's footer menus the site lacks. A menu the site
+// already has keeps every current link; seed links whose URL is not already in
+// it are inserted at the seed's position. Nothing is renamed or removed. It
+// also fills an empty site title or tagline from the seed. The footer shows
+// the title, tagline and those menus.
 // Authenticates with EMDASH_TOKEN (an EmDash API token) or CF_ACCESS_TOKEN
 // (a Cloudflare Access token from `cloudflared access token`).
 import { readFileSync } from 'node:fs';
@@ -135,14 +137,60 @@ async function push(origin, { slugs, footer, publish }) {
   }
 }
 
-// Footer menus are added whole; one the site already has is never changed.
+// Place seed links that were just created among the links already on the menu.
+// An existing link stays put. A new seed link sits where the seed lists it:
+// before the next seed link that is already there, and ahead of editor links
+// that follow that neighbor. Editor links before the first matching seed link
+// stay after a new link the seed puts first.
+function mergedFooterOrder(existing, seedItems, createdByUrl) {
+  const result = [];
+  let cursor = 0;
+  for (const seedItem of seedItems) {
+    const index = existing.findIndex((item, i) => i >= cursor && item.customUrl === seedItem.url);
+    if (index === -1) {
+      const created = createdByUrl.get(seedItem.url);
+      if (!created?.id) throw new Error(`Adding ${seedItem.label} did not return an item id`);
+      result.push(created);
+      continue;
+    }
+    for (let i = cursor; i < index; i++) result.push(existing[i]);
+    result.push(existing[index]);
+    cursor = index + 1;
+  }
+  for (let i = cursor; i < existing.length; i++) result.push(existing[i]);
+  return result;
+}
+
+async function insertMissingFooterLinks(api, menu) {
+  const current = await api('GET', `/menus/${menu.name}`);
+  if (current.status !== 200) throw new Error(`Reading menu ${menu.name} failed: HTTP ${current.status} ${JSON.stringify(current.data)}`);
+  const existing = [...(current.data?.items ?? [])].sort((a, b) => a.sortOrder - b.sortOrder);
+  const have = new Set(existing.map(item => item.customUrl));
+  const missing = menu.items.filter(item => !have.has(item.url));
+  if (!missing.length) { console.log(`Kept existing menu ${menu.name}`); return; }
+  const createdByUrl = new Map();
+  for (const item of missing) {
+    const added = await api('POST', `/menus/${menu.name}/items`, { type: 'custom', label: item.label, customUrl: item.url });
+    if (!ok(added.status)) throw new Error(`Adding ${item.label} to menu ${menu.name} failed: HTTP ${added.status} ${JSON.stringify(added.data)}`);
+    createdByUrl.set(item.url, { id: added.data?.id, parentId: added.data?.parentId ?? null, customUrl: item.url });
+  }
+  const ordered = mergedFooterOrder(existing, menu.items, createdByUrl);
+  const reordered = await api('POST', `/menus/${menu.name}/reorder`, {
+    items: ordered.map((item, sortOrder) => ({ id: item.id, parentId: item.parentId ?? null, sortOrder })),
+  });
+  if (!ok(reordered.status)) throw new Error(`Reordering menu ${menu.name} failed: HTTP ${reordered.status} ${JSON.stringify(reordered.data)}`);
+  console.log(`Added ${missing.map(item => item.label).join(', ')} to menu ${menu.name}`);
+}
+
+// A missing footer menu is added whole. One the site already has keeps its
+// links; seed links whose URL is absent are inserted at the seed's position.
 // Site settings are an Admin change, like adding a block type.
 async function pushFooter(api, seed) {
   const listed = await api('GET', '/menus');
   if (listed.status !== 200) throw new Error(`Reading menus failed: HTTP ${listed.status} (check the sign-in token)`);
   const have = new Set((Array.isArray(listed.data) ? listed.data : listed.data?.items ?? []).map(menu => menu.name));
   for (const menu of seed.menus.filter(item => item.name.startsWith('footer-'))) {
-    if (have.has(menu.name)) { console.log(`Kept existing menu ${menu.name}`); continue; }
+    if (have.has(menu.name)) { await insertMissingFooterLinks(api, menu); continue; }
     const created = await api('POST', '/menus', { name: menu.name, label: menu.label });
     if (!ok(created.status)) throw new Error(`Adding menu ${menu.name} failed: HTTP ${created.status} ${JSON.stringify(created.data)}`);
     for (const [sortOrder, item] of menu.items.entries()) {

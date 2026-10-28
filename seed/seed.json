@@ -375,6 +375,11 @@
       "items": [
         {
           "type": "custom",
+          "label": "Demo store",
+          "url": "https://playground.dinkuskit.com/"
+        },
+        {
+          "type": "custom",
           "label": "Start your store",
           "url": "/start"
         },

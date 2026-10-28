@@ -7,8 +7,10 @@ import { WORK, resetDatabase, start, unusedPort } from './lib/docs-preview.mjs';
 // SQLite database). The fixture starts from the seed as it was before /start,
 // the cards' plugin logo and the footer menus, as dinkuskit.com's database is;
 // the script adds the block types, the logo field, a draft, the footer menus
-// and an empty site title and tagline, a rerun keeps them, and Publish shows
-// the page with no rebuild.
+// and an empty site title and tagline. Get started already exists, as on
+// dinkuskit.com, with an editor link and without Demo store. The script inserts
+// that link first. A rerun keeps the menus, and Publish shows the page with
+// no rebuild.
 const OLD_SEED = new URL('../.emdash/seed.json', import.meta.url);
 const START_TYPES = ['plugin_row', 'start_account', 'start_checklist', 'start_step'];
 
@@ -53,6 +55,25 @@ try {
   });
   assert.equal((await development.request('/start')).status, 503, 'an older database has no start page');
 
+  // dinkuskit.com already has Get started, without Demo store, plus an editor link.
+  const createdMenu = await api('/menus', {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ name: 'footer-get-started', label: 'Get started' }),
+  });
+  assert.ok(createdMenu.status === 200 || createdMenu.status === 201, `create menu HTTP ${createdMenu.status}`);
+  for (const [sortOrder, item] of [
+    { label: 'Start your store', customUrl: '/start' },
+    { label: 'How it works', customUrl: '/getting-started' },
+    { label: 'Docs', customUrl: '/docs' },
+    { label: 'Office hours', customUrl: '/hours' },
+  ].entries()) {
+    const added = await api('/menus/footer-get-started/items', {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ type: 'custom', label: item.label, customUrl: item.customUrl, sortOrder }),
+    });
+    assert.equal(added.status, 201, `add ${item.label}`);
+  }
+
   const imported = await runImport(development.base, token, '--footer', '--publish');
   assert.equal(imported.code, 0, imported.output);
   for (const slug of START_TYPES) assert.match(imported.output, new RegExp(`^Added block type ${slug}$`, 'm'));
@@ -63,7 +84,16 @@ try {
   }
   assert.match(imported.output, /^Added draft page start$/m);
   assert.match(imported.output, /^Published page start$/m);
-  assert.match(imported.output, /^Added menu footer-get-started with 3 links$/m);
+  assert.match(imported.output, /^Added Demo store to menu footer-get-started$/m);
+  assert.doesNotMatch(imported.output, /Added menu footer-get-started/);
+  const getStarted = await (await api('/menus/footer-get-started')).json();
+  assert.deepEqual((getStarted.data?.items ?? []).map(item => [item.label, item.customUrl]), [
+    ['Demo store', 'https://playground.dinkuskit.com/'],
+    ['Start your store', '/start'],
+    ['How it works', '/getting-started'],
+    ['Docs', '/docs'],
+    ['Office hours', '/hours'],
+  ]);
   assert.match(imported.output, /^Added menu footer-plugins with 3 links$/m);
   assert.match(imported.output, /^Added menu footer-dinkuskit with 4 links$/m);
   assert.match(imported.output, /^Set site title "DinkusKit"$/m);
@@ -108,7 +138,7 @@ try {
   const commerceFileResponse = await development.request(commerceMedia.url);
   assert.equal(commerceFileResponse.status, 200);
   assert.equal(commerceFileResponse.headers.get('content-type'), 'image/webp');
-  console.log('PASS import script: added four block types and the card logo field, allowed them, registered six brand .webp media items in /_emdash/api/media, added and published /start, added the footer menus and site title and tagline; a rerun keeps everything');
+  console.log('PASS import script: added four block types and the card logo field, allowed them, registered six brand .webp media items in /_emdash/api/media, added and published /start, inserted Demo store into the existing Get started menu, added the other footer menus and site title and tagline; a rerun keeps everything');
 
 
   const response = await development.request('/start');
@@ -138,6 +168,15 @@ try {
   assert.deepEqual([...footer.matchAll(/<img src="\/brand\/(\w+)\.webp" alt="" width="20" height="20"/g)].map(match => match[1]), ['commerce', 'payments', 'ship'], 'plugin links show their logos');
   assert.match(footer, /href="\/docs\/reference\/commerce"/);
   assert.match(footer, /href="\/health"[^>]*>\s*Status/, 'the editor\'s link shows');
+  const started = footer.match(/<h2>Get started<\/h2>\s*<ul>([\s\S]*?)<\/ul>/)?.[1] ?? '';
+  assert.deepEqual([...started.matchAll(/<a href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/g)].map(match => [match[2].replace(/\s+/g, ' ').trim(), match[1]]), [
+    ['Demo store', 'https://playground.dinkuskit.com/'],
+    ['Start your store', '/start'],
+    ['How it works', '/getting-started'],
+    ['Docs', '/docs'],
+    ['Office hours', '/hours'],
+  ], 'Demo store is first under Get started and the editor link stays');
+  assert.equal(started.match(/playground\.dinkuskit\.com/g)?.length, 1, 'Demo store is not duplicated');
   assert.doesNotMatch(footer, /dinkuskit-f3/, 'no DinkusKit logo in the footer');
   const signedIn = await (await development.request('/start?as=owner%40example.com')).text();
   assert.match(signedIn, /Signed in as <strong>owner@example\.com<\/strong>/);

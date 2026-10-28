@@ -226,10 +226,11 @@ it on. Going live takes four pieces, in this order:
    one outbound host, `guide.dinkuskit.com`; a different Guide hostname means
    changing it there in a reviewed PR. With the pilot switched on (step 3),
    `astro.cloudflare.config.mjs` loads the built plugin as a sandboxed plugin
-   with ID `dinkusguide-chat`, run in an isolate through the `LOADER` Worker
-   Loader binding in `cloudflare/wrangler.jsonc` (Worker Loader needs a Workers
-   paid plan). The build stops with a clear error if the plugin was not built,
-   the ID does not match, or the binding is missing. After the first deploy
+   with ID `dinkusguide-chat`, run in an isolate through a `LOADER` Worker
+   Loader binding. Worker Loader needs a Workers paid plan, so only pilot
+   builds add that binding (to a generated copy of `cloudflare/wrangler.jsonc`);
+   builds with the pilot off do not need it. The build stops with a clear error
+   if the plugin was not built or the ID does not match. After the first deploy
    with the pilot on, the Admin opens **Plugins > DinkusGuide Chat** settings,
    enters the endpoint (`https://guide.dinkuskit.com/ask`) and the service
    token, then ticks **Enable public Ask DinkusGuide**. EmDash stores the

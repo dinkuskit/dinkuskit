@@ -1,11 +1,11 @@
-import { existsSync } from 'node:fs';
+import { existsSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import cloudflare from '@astrojs/cloudflare';
 import react from '@astrojs/react';
 import { access, d1, r2 } from '@emdash-cms/cloudflare';
 import { defineConfig } from 'astro/config';
 import emdash from 'emdash/astro';
-import { unstable_readConfig } from 'wrangler';
+import { experimental_readRawConfig } from 'wrangler';
 import { operatorAdminPlugin } from './src/operator-admin/descriptor.mjs';
 import { INSTALLED_EDITOR_ROLE } from './scripts/lib/access-namespace-gate.mjs';
 
@@ -25,11 +25,18 @@ async function dinkusGuideSandboxed() {
   if (process.env.DINKUS_GUIDE_PLUGIN_ID !== descriptor.id) {
     throw new Error(`DINKUS_GUIDE_PLUGIN_ID must be ${descriptor.id} when DINKUS_GUIDE_PILOT=true`);
   }
-  const config = unstable_readConfig({ config: './cloudflare/wrangler.jsonc' }, { hideWarnings: true });
-  if (!config.worker_loaders?.some(({ binding }) => binding === 'LOADER')) {
-    throw new Error('cloudflare/wrangler.jsonc must provide the LOADER Worker Loader binding for the DinkusGuide plugin');
-  }
   return [{ ...descriptor, entrypoint: fileURLToPath(new URL('plugin.mjs', dist)) }];
+}
+
+// Worker Loader needs a Workers paid plan, so only pilot builds ask for it: they
+// build from a generated copy of cloudflare/wrangler.jsonc with the LOADER
+// binding added, written next to it so its relative paths still resolve.
+function dinkusGuideWranglerConfig() {
+  const { rawConfig } = experimental_readRawConfig({ config: './cloudflare/wrangler.jsonc' });
+  const configPath = './cloudflare/wrangler.dinkusguide.json';
+  const config = { ...rawConfig, worker_loaders: [{ binding: 'LOADER' }] };
+  writeFileSync(new URL(configPath, import.meta.url), `${JSON.stringify(config, null, 2)}\n`);
+  return configPath;
 }
 
 export default defineConfig({
@@ -38,7 +45,7 @@ export default defineConfig({
   outDir: fileURLToPath(new URL('./dist/', workRoot)),
   cacheDir: fileURLToPath(new URL('./.astro/', workRoot)),
   adapter: cloudflare({
-    configPath: './cloudflare/wrangler.jsonc',
+    configPath: guidePilot ? dinkusGuideWranglerConfig() : './cloudflare/wrangler.jsonc',
     imageService: 'passthrough',
     prerenderEnvironment: 'node',
   }),

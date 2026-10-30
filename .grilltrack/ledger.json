@@ -10517,6 +10517,77 @@
       "superseded_by": null,
       "updated_at": "2026-10-27T22:45:48+00:00",
       "verification_ref": "proof/guide-pilot/PROOF.md: native host-verification P2 repaired; default build and real alternative-host build/bundle pass; six Node contract/build checks and eight sandbox cases pass; single-host restrictions retained"
+    },
+    {
+      "baseline_ref": "git:58ae36fc8368a179b19bbc2981cea77e36978efb",
+      "candidate_refs": [],
+      "choice": "Upgrade emdash, @emdash-cms/cloudflare and auth to exact 1.4.0 with public transitive dependencies; move the upgrade fixture baseline and audit checks to 1.4.0. No new core migrations exist between 1.2.0 and 1.4.0. Preserve CMS content, media, settings, plugin state and merchant organizations, memberships and site grants without reseeding. Keep the DinkusGuide plugin peer range. No new signer, authorization, grant, live endpoint or cross-repository feature; deployment stays a separate operator step.",
+      "context_ref": "https://github.com/emdash-cms/emdash/releases/tag/emdash%401.4.0",
+      "created_at": "2026-10-30T13:22:10+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [
+        "website-emdash12-025"
+      ],
+      "domain": "DinkusGuide read-only public pilot (#98)",
+      "history": [
+        {
+          "at": "2026-10-30T13:22:10+00:00",
+          "choice": "Upgrade emdash, @emdash-cms/cloudflare and auth to exact 1.4.0 with public transitive dependencies; move the upgrade fixture baseline and audit checks to 1.4.0. No new core migrations exist between 1.2.0 and 1.4.0. Preserve CMS content, media, settings, plugin state and merchant organizations, memberships and site grants without reseeding. Keep the DinkusGuide plugin peer range. No new signer, authorization, grant, live endpoint or cross-repository feature; deployment stays a separate operator step.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-30T13:25:47+00:00",
+          "choice": "Upgrade emdash, @emdash-cms/cloudflare and auth to exact 1.4.0 with public transitive dependencies; move the upgrade fixture baseline and audit checks to 1.4.0. No new core migrations exist between 1.2.0 and 1.4.0. Preserve CMS content, media, settings, plugin state and merchant organizations, memberships and site grants without reseeding. Keep the DinkusGuide plugin peer range. No new signer, authorization, grant, live endpoint or cross-repository feature; deployment stays a separate operator step.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-30T13:25:47+00:00",
+          "choice": "Upgrade emdash, @emdash-cms/cloudflare and auth to exact 1.4.0 with public transitive dependencies; move the upgrade fixture baseline and audit checks to 1.4.0. No new core migrations exist between 1.2.0 and 1.4.0. Preserve CMS content, media, settings, plugin state and merchant organizations, memberships and site grants without reseeding. Keep the DinkusGuide plugin peer range. No new signer, authorization, grant, live endpoint or cross-repository feature; deployment stays a separate operator step.",
+          "from": "implemented",
+          "implementation_ref": "branch claude/project-thread-xpqbvh: exact 1.4.0 pins, lockfile, audit/fixture baselines and docs",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": null
+        }
+      ],
+      "id": "website-emdash14-20261030",
+      "implementation_ref": "branch claude/project-thread-xpqbvh: exact 1.4.0 pins, lockfile, audit/fixture baselines and docs",
+      "question": "Should the DinkusKit website move from EmDash 1.2.0 to 1.4.0 in the same round as the plugins, before Commerce 0.7.0 stable?",
+      "rationale": "Ronald approved the EmDash 1.4 upgrade plan in the dinkus project thread on 30 Oct 2026 and asked that dinkuskit/dinkuskit join this round.",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [],
+      "review_ref": null,
+      "review_result": null,
+      "review_source_identity": null,
+      "status": "verified",
+      "superseded_by": null,
+      "updated_at": "2026-10-30T13:25:47+00:00",
+      "verification_ref": "Local npm run verify steps on Node 24.22.0 passed (audit, typecheck, build, smoke, dev-cms, merchant, shared-store, cms-operation, emdash-upgrade 'Upgraded 1.4 runtime restarted again with unchanged CMS/merchant state and migration ledger', cloudflare-candidate); test:history-archive and test:cms-operation-helpers fail in cloud containers on main too, left to CI"
     }
   ],
   "last_activation": {
@@ -10547,5 +10618,5 @@
   "status": "active",
   "title": "Composed integration",
   "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5",
-  "updated_at": "2026-10-27T22:45:48+00:00"
+  "updated_at": "2026-10-30T13:25:47+00:00"
 }

@@ -1,6 +1,6 @@
 # Local CMS-operation fixture
 
-Loopback-only Wrangler/workerd qualification for EmDash 1.2.0 Cloudflare D1/R2. Not a production config, hostname, or Access setup.
+Loopback-only Wrangler/workerd qualification for EmDash 1.4.0 Cloudflare D1/R2. Not a production config, hostname, or Access setup.
 
 Use Node 24.22.0 from `.nvmrc`. The fixture runs as `npm run test:cms-operation` and is included in `npm run verify`. It spawns `process.execPath` and asserts that version.
 

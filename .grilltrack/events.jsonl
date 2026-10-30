@@ -167,3 +167,7 @@
 {"action": "decision_reviewed", "at": "2026-10-27T22:45:00+00:00", "data": {"classifications": ["required_fix"], "decision_id": "dinkusguide-pilot-098", "ref": "https://github.com/dinkuskit/dinkuskit/pull/100#issuecomment-6455326707; accept P2 manifest-host build verification mismatch as required_fix", "result": "findings", "reviewed_at": "2026-10-27T22:45:00+00:00", "source_identity": "git:f80bb27f54b1fdf5467bc854cd03026bc29a0241"}, "event_id": "57c3aa02-d7a8-4873-bbe8-0316ebf6c830"}
 {"action": "decision_implemented", "at": "2026-10-27T22:45:01+00:00", "data": {"decision_id": "dinkusguide-pilot-098"}, "event_id": "07125270-5b85-411f-8e89-e483ccf505da"}
 {"action": "decision_verified", "at": "2026-10-27T22:45:48+00:00", "data": {"decision_id": "dinkusguide-pilot-098"}, "event_id": "f046f835-3d71-44c3-9248-28158bfdd63a"}
+{"action": "decision_proposed", "at": "2026-10-30T13:22:10+00:00", "data": {"decision_id": "website-emdash14-20261030"}, "event_id": "96e26f3e-a43c-40a3-bba4-347220fd095a"}
+{"action": "decision_locked", "at": "2026-10-30T13:22:10+00:00", "data": {"decision_id": "website-emdash14-20261030"}, "event_id": "35071a37-0cc6-4f65-bf7f-f152bbdb6532"}
+{"action": "decision_implemented", "at": "2026-10-30T13:25:47+00:00", "data": {"decision_id": "website-emdash14-20261030"}, "event_id": "871d42d3-4563-4f1e-bdf7-f4bb2bd53241"}
+{"action": "decision_verified", "at": "2026-10-30T13:25:47+00:00", "data": {"decision_id": "website-emdash14-20261030"}, "event_id": "764b3633-2474-41be-9256-1da3785fb7f0"}

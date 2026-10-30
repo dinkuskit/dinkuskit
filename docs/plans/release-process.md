@@ -13,6 +13,7 @@ Status: **plan only, nothing implemented yet**. Decided by Ryan (owner), 2026-10
 | ~~Betas cut on demand with a Cut beta button; a recorded journeys pass gates the final release PR; same release files in every plugin repo~~ (superseded by `release-branches-079`) | `release-beta-cut-071` |
 | Cut beta when a batch is worth giving a store; no calendar; never for docs/tests/CI only or same code | `release-beta-cadence-078` |
 | Betas and stable releases come from `release/X.Y.Z` branches; fixes are copies of reviewed main commits; main never waits | `release-branches-079` |
+| Cut beta moves an unpromoted `release/X.Y.Z` forward to main (same version) or deletes it (new version) itself; nobody deletes release branches by hand | `release-branch-recut-20261030` |
 | Tagging starts at v0.2.0; version from package.json | `release-baseline-067` |
 | Separate Changesets release workflow with its own GitHub App | `release-bot-068` |
 | No release-environment approver; Ryan's merge is the gate | `release-approver-069` |
@@ -72,6 +73,8 @@ Contrast: RepoGlance uses tag-only versions. A hand-pushed tag triggers its `rel
 >
 > 1. **Every change is a PR to main.** ClawSweeper reviews it as today. Main keeps taking merges while a beta is on test.
 > 2. **Cut beta** creates `release/X.Y.Z` from main, tags `vX.Y.Z-beta.1` on it, publishes the `-beta` package from the branch, and presses the journeys.
+> 
+>    If an unpromoted `release/*` is already there (`release-branch-recut-20261030`, 2026-10-30), Cut beta deals with it through the release App, the way OpenClaw re-cuts one branch name: when main still makes the same version it moves that branch forward to main and tags the next `beta.N`; when main now makes a new version it deletes the older unpromoted branch (its tags stay) and cuts the new one. It stops with nothing pushed if that branch holds a commit that is neither on main nor an Add fix copy of one, or while a `ci: release` PR is open. Released branches are never touched, and nobody deletes a release branch by hand.
 > 3. **A fix found on beta** merges to main through its normal PR. Then **Add fix to beta** copies that exact merged commit onto `release/X.Y.Z` and cuts the next `beta.N`. If the copy doesn't apply cleanly, it stops. Nothing reaches a release branch except copies of reviewed main commits and the release bot's version commit. No PR targets a release branch, so ClawSweeper needs no change.
 > 4. **Promote** (journeys passed on that beta) works out the version and changelog on the branch and opens the one `ci: release vX.Y.Z` PR to main. That PR carries only the version, the changelog section, and the removal of the changesets the release used. ClawSweeper reviews it, and Ronald's merge is the stable publish yes. On merge, the workflow writes the same version files onto the branch, checks that the branch differs from the beta tag only in those files, tags `vX.Y.Z` on the branch, and publishes stable from it.
 > 5. **A bug in a released version**: the fix merges to main, then gets copied onto `release/X.Y.(Z+1)`, made from the `vX.Y.Z` tag. That cuts `X.Y.(Z+1)-beta.1`, the journeys run, then Promote as above.

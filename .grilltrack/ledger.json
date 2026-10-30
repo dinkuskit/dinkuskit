@@ -10588,6 +10588,49 @@
       "superseded_by": null,
       "updated_at": "2026-10-30T13:25:47+00:00",
       "verification_ref": "Local npm run verify steps on Node 24.22.0 passed (audit, typecheck, build, smoke, dev-cms, merchant, shared-store, cms-operation, emdash-upgrade 'Upgraded 1.4 runtime restarted again with unchanged CMS/merchant state and migration ledger', cloudflare-candidate); test:history-archive and test:cms-operation-helpers fail in cloud containers on main too, left to CI"
+    },
+    {
+      "baseline_ref": null,
+      "candidate_refs": [],
+      "choice": "Cut beta handles it itself through the release GitHub App, amending point (2) of release-branches-079. (a) Same version: if main still makes X.Y.Z and release/X.Y.Z is unpromoted (no vX.Y.Z tag), Cut beta moves release/X.Y.Z forward to main's newest commit and tags the next vX.Y.Z-beta.N there; nothing is deleted. (b) New version: if main now makes a different version, Cut beta deletes the older unpromoted release/* branch (its tags stay) and cuts the new release/X.Y.Z and its first beta. (c) It stops with nothing pushed if the old branch carries a commit that is neither on main nor an Add fix copy (cherry-pick -x) of a main commit, or if a 'ci: release' PR from Promote is open. (d) The branch move or delete and the new tag go in one atomic push. (e) Released branches (with a vX.Y.Z tag) are never touched. (f) The release/* and v* rulesets stay as they are; only the App writes release branches, so nobody deletes one by hand. Add fix to beta and Promote are unchanged.",
+      "context_ref": "file:docs/plans/release-process.md",
+      "created_at": "2026-10-30T14:37:04+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [
+        "release-branches-079"
+      ],
+      "domain": "DinkusGuide read-only public pilot (#98)",
+      "history": [
+        {
+          "at": "2026-10-30T14:37:04+00:00",
+          "choice": "Cut beta handles it itself through the release GitHub App, amending point (2) of release-branches-079. (a) Same version: if main still makes X.Y.Z and release/X.Y.Z is unpromoted (no vX.Y.Z tag), Cut beta moves release/X.Y.Z forward to main's newest commit and tags the next vX.Y.Z-beta.N there; nothing is deleted. (b) New version: if main now makes a different version, Cut beta deletes the older unpromoted release/* branch (its tags stay) and cuts the new release/X.Y.Z and its first beta. (c) It stops with nothing pushed if the old branch carries a commit that is neither on main nor an Add fix copy (cherry-pick -x) of a main commit, or if a 'ci: release' PR from Promote is open. (d) The branch move or delete and the new tag go in one atomic push. (e) Released branches (with a vX.Y.Z tag) are never touched. (f) The release/* and v* rulesets stay as they are; only the App writes release branches, so nobody deletes one by hand. Add fix to beta and Promote are unchanged.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        }
+      ],
+      "id": "release-branch-recut-20261030",
+      "implementation_ref": null,
+      "question": "When Cut beta is pressed while an unpromoted release/X.Y.Z already exists, what happens to that branch? Today the button refuses and Ronald deletes the branch by hand each round, and the release/* rulesets disagree on who may delete.",
+      "rationale": "Ronald: 'I agree, and I approve the PRs' (30 Oct 2026 14:36 UTC).",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [],
+      "review_ref": null,
+      "review_result": null,
+      "review_source_identity": null,
+      "status": "locked",
+      "superseded_by": null,
+      "updated_at": "2026-10-30T14:37:04+00:00",
+      "verification_ref": null
     }
   ],
   "last_activation": {
@@ -10618,5 +10661,5 @@
   "status": "active",
   "title": "Composed integration",
   "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5",
-  "updated_at": "2026-10-30T13:25:47+00:00"
+  "updated_at": "2026-10-30T14:37:04+00:00"
 }

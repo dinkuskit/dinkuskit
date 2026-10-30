@@ -105,6 +105,61 @@ stays fully denied until the Cloudflare Access lane below is configured. The ope
 services) live inside it, so they stay unreachable until then too; the first 50
 organizations are still admitted automatically.
 
+### Deploy from Cloudflare Workers Builds
+
+Once the Worker is connected to this repository in Cloudflare Workers Builds,
+a deploy is a push to the deploy branch `deploy/dinkuskit-com`; nobody runs
+Wrangler on their own computer. Cloudflare builds and deploys with:
+
+| Setting | Value |
+| --- | --- |
+| Production branch | `deploy/dinkuskit-com` (builds for other branches off) |
+| Build command | `npm ci && npm run build:workers-builds` |
+| Deploy command | `npx wrangler deploy --keep-vars --config .grilltrack/work/cloudflare-candidate-20260930/dist/server/wrangler.json` |
+| Root directory | `/` |
+
+and these build variables (not Worker variables or secrets):
+
+| Build variable | Value |
+| --- | --- |
+| `NODE_VERSION` | `24.22.0` (Workers Builds reads it over `.nvmrc`) |
+| `DINKUS_EXPECTED_BRANCH` | `deploy/dinkuskit-com` |
+| `DINKUS_EXPECTED_ACCOUNT_ID` | the `account_id` in `cloudflare/wrangler.jsonc` |
+| `EMDASH_ACCESS_TEAM_DOMAIN` | `<team>.cloudflareaccess.com` |
+| `DINKUS_EXPECTED_COMMIT` | the deploy branch commit to build, set for each deploy |
+
+`npm run build:workers-builds` refuses to build unless Cloudflare checked out
+exactly `DINKUS_EXPECTED_BRANCH` at `DINKUS_EXPECTED_COMMIT` for
+`DINKUS_EXPECTED_ACCOUNT_ID` with clean tracked files, and the team domain is
+set. It then runs `npm run build:dinkusguide-plugin` and `npm run
+build:cloudflare` with `DINKUS_GUIDE_PILOT=true` and
+`DINKUS_GUIDE_PLUGIN_ID=dinkusguide-chat`, the same build as the commands
+above, so the Ask DinkusGuide bubble stays on.
+
+A deploy:
+
+```sh
+git fetch origin main deploy/dinkuskit-com
+git switch deploy/dinkuskit-com && git merge --ff-only origin/deploy/dinkuskit-com
+git merge --no-ff origin/main -m "Deploy dinkuskit.com from main $(git rev-parse --short origin/main)"
+git diff --stat origin/main HEAD   # must print nothing
+git rev-parse HEAD                 # set DINKUS_EXPECTED_COMMIT to this
+git push origin deploy/dinkuskit-com
+```
+
+Set `DINKUS_EXPECTED_COMMIT` before the push. The build's check run, "Workers
+Builds: dinkuskit-website-cloudflare-candidate", appears on the pushed commit
+on GitHub. Never press **Retry build**: it reruns the old commit and the source
+check refuses it. A deploy branch builds only from a new push.
+
+Wrangler keeps every Worker secret on deploy (`EMDASH_OPERATOR_ALLOWLIST`,
+`EMDASH_OPERATOR_SERVICE_TOKENS`, `CF_ACCESS_AUDIENCE` and the merchant
+secrets), and `--keep-vars` keeps any plain variable set in the dashboard.
+There is no migration step: the Worker applies merchant migrations itself.
+To go back, roll back to the previous version in the Worker's **Deployments**
+tab or with `npx wrangler rollback <version id> --name
+dinkuskit-website-cloudflare-candidate`, then run the post-deploy checks.
+
 ## Operator admin (Cloudflare Access)
 
 The operator signs in to the dinkuskit.com EmDash admin through Cloudflare

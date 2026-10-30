@@ -54,7 +54,7 @@ export async function prepareUpgradeConfig(root, generatedPath, origin, baseline
     d1_databases: [...config.d1_databases, {
       binding: 'MERCHANT_DB', database_name: 'dinkuskit-upgrade-merchant', database_id: 'local-dinkuskit-upgrade-merchant',
     }],
-    vars: { ...config.vars, EMDASH_SITE_URL: origin, UPGRADE_BASELINE: baseline ? '1.0.1' : '1.2.0' },
+    vars: { ...config.vars, EMDASH_SITE_URL: origin, UPGRADE_BASELINE: baseline ? '1.0.1' : '1.4.0' },
   };
   const target = join(output, 'wrangler.upgrade.json');
   await writeFile(target, `${JSON.stringify(upgraded, null, 2)}\n`);

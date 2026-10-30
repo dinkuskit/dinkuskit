@@ -107,6 +107,11 @@ try {
   assert.match(imported.output, /^Added draft page start$/m);
   assert.match(imported.output, /^Published page start$/m);
   assert.match(imported.output, /^Added Demo store to menu footer-get-started$/m);
+  // The live GitHub link predates its logo: the import marks it, nothing else.
+  assert.match(imported.output, /^Marked GitHub in menu footer-dinkuskit as social-github$/m);
+  assert.equal(imported.output.match(/^Marked /gm)?.length, 1, imported.output);
+  const marked = (await (await api('/menus/footer-dinkuskit')).json()).data?.items ?? [];
+  assert.deepEqual(marked.filter(item => item.cssClasses).map(item => [item.label, item.cssClasses]), [['GitHub', 'social-github']]);
   assert.doesNotMatch(imported.output, /Added menu footer-get-started/);
   const getStarted = await (await api('/menus/footer-get-started')).json();
   const editedOrder = [
@@ -131,7 +136,7 @@ try {
   assert.match(recovered.output, /^Placed Demo store in menu footer-get-started$/m);
   assert.match(recovered.output, /^Kept existing menu footer-plugins$/m);
   assert.match(recovered.output, /^Kept existing menu footer-dinkuskit$/m);
-  assert.doesNotMatch(recovered.output, /Added Demo store|Placed .+ footer-plugins|Placed .+ footer-dinkuskit/);
+  assert.doesNotMatch(recovered.output, /Added Demo store|Placed .+ footer-plugins|Placed .+ footer-dinkuskit|Marked/);
   const restored = await (await api('/menus/footer-get-started')).json();
   assert.deepEqual((restored.data?.items ?? []).map(item => [item.label, item.customUrl]), editedOrder);
   assert.deepEqual(await menuOrder('footer-plugins'), pluginOrder);
@@ -154,13 +159,16 @@ try {
   assert.equal((await api(`/content/pages/${entry.id}/publish`, { method: 'POST' })).status, 200);
   // An editor's footer link and tagline survive a rerun too.
   assert.equal((await api('/menus/footer-dinkuskit/items', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ type: 'custom', label: 'Status', customUrl: '/health' }) })).status, 201);
+  // So does a Discord link the editor marks and sets to open in a new tab.
+  // The fixture's invite is made up; it never reaches the seed.
+  assert.equal((await api('/menus/footer-dinkuskit/items', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ type: 'custom', label: 'Discord', customUrl: 'https://discord.gg/fixture', cssClasses: 'social-discord', target: '_blank' }) })).status, 201);
   assert.equal((await api('/settings', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ tagline: 'Edited tagline' }) })).status, 200);
   const again = await runImport(development.base, token, '--footer', '--publish');
   assert.equal(again.code, 0, again.output);
   assert.equal(again.output.match(/^Kept existing /gm)?.length, 9, again.output);
   assert.equal(again.output.match(/^Kept media /gm)?.length, 6, again.output);
   assert.match(again.output, /^Kept site tagline "Edited tagline"$/m);
-  assert.doesNotMatch(again.output, /Added|Allowed|Published|Set site|Uploaded/);
+  assert.doesNotMatch(again.output, /Added|Allowed|Marked|Published|Set site|Uploaded/);
 
   const mediaResponse = await api('/media');
   assert.equal(mediaResponse.status, 200);
@@ -215,7 +223,22 @@ try {
   const dinkuskit = footer.match(/<h2>DinkusKit<\/h2>\s*<ul>([\s\S]*?)<\/ul>/)?.[1] ?? '';
   const columnLinks = list => [...list.matchAll(/<a href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/g)].map(match => [match[2].replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim(), match[1]]);
   assert.deepEqual(columnLinks(plugins), pluginOrder, 'the edited Plugins menu stays');
-  assert.deepEqual(columnLinks(dinkuskit), [...dinkusOrder, ['Status', '/health']], 'the edited DinkusKit menu stays, with the editor link at the end');
+  const withoutLogos = dinkusOrder.filter(([label]) => label !== 'GitHub');
+  assert.deepEqual(columnLinks(dinkuskit), [...withoutLogos, ['Status', '/health']], 'the edited DinkusKit menu stays, with the editor link at the end and the logo links out of the column');
+  // Discord and GitHub as logos (issue #106): the same links, names and tab
+  // choice beside the tagline and in the header, in the menu's order.
+  const logoLinks = part => [...(part.match(/<ul class="social-links">([\s\S]*?)<\/ul>/)?.[1] ?? '').matchAll(/<a class="social-link" href="([^"]+)"([^>]*)>\s*<svg[^>]*aria-hidden="true"[\s\S]*?<\/svg>\s*<span class="visually-hidden">([^<]+)<\/span>/g)]
+    .map(match => [match[1], match[3].trim(), /target="_blank"/.test(match[2]) && /rel="noopener noreferrer"/.test(match[2])]);
+  const logos = [
+    ['https://github.com/dinkuskit', 'DinkusKit on GitHub', false],
+    ['https://discord.gg/fixture', 'Join DinkusKit on Discord (opens in a new tab)', true],
+  ];
+  const head = footer.match(/<div class="site-footer-head">([\s\S]*?)<div class="fx-strip"/)?.[1] ?? '';
+  assert.deepEqual(logoLinks(head), logos, 'footer logos');
+  const header = html.match(/<header>[\s\S]*?<\/header>/)?.[0] ?? '';
+  assert.deepEqual(logoLinks(header), logos, 'header logos');
+  assert.doesNotMatch(header, />GitHub</, 'no GitHub text link in the header');
+  assert.equal(html.match(/href="https:\/\/discord\.gg\/fixture"/g)?.length, 2, 'Discord shows once in each place');
   assert.match(footer, /href="\/docs\/reference\/commerce"/);
   assert.match(footer, /href="\/health"[^>]*>\s*Status/, 'the editor\'s link shows');
   const started = footer.match(/<h2>Get started<\/h2>\s*<ul>([\s\S]*?)<\/ul>/)?.[1] ?? '';

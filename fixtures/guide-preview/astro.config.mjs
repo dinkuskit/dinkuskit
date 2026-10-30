@@ -5,6 +5,7 @@ import node from '@astrojs/node';
 import react from '@astrojs/react';
 import emdash, { local } from 'emdash/astro';
 import { sqlite } from 'emdash/db';
+import { socialIcons } from '../../src/components/social-icons.mjs';
 
 // Synthetic UI/outer-gate fixture only. Not an installed-plugin or live-Guide proof.
 const root = new URL('../../', import.meta.url);
@@ -16,6 +17,7 @@ export default defineConfig({
   adapter: node({ mode: 'standalone' }),
   integrations: [
     react(),
+    socialIcons(),
     emdash({ database: sqlite({ url: `file:${fileURLToPath(new URL('./data.db', work))}` }),
       storage: local({ directory: fileURLToPath(new URL('./uploads/', work)), baseUrl: '/_emdash/api/media/file' }),
       middleware: { outer: './src/emdash-namespace-guard.ts' },

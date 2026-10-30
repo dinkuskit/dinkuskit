@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { fillEmptySiteText, reconcileFooterOrder } from '../scripts/pages-import.mjs';
+import { fillEmptySiteText, missingClasses, reconcileFooterOrder } from '../scripts/pages-import.mjs';
 
 const seed = [
   { label: 'Demo store', url: 'https://playground.dinkuskit.com/' },
@@ -101,4 +101,12 @@ test('a settings failure other than 404 still fails the import', async () => {
     () => fillEmptySiteText(api, { settings: { title: 'DinkusKit', tagline: 'Built with EmDash.' } }),
     /HTTP 500/,
   );
+});
+
+test('adds a seed link\'s classes to the site\'s link and keeps its own', () => {
+  assert.equal(missingClasses(null, 'social-github'), 'social-github');
+  assert.equal(missingClasses('', 'social-github'), 'social-github');
+  assert.equal(missingClasses('wide', 'social-github'), 'wide social-github');
+  assert.equal(missingClasses('social-github wide', 'social-github'), null, 'already marked');
+  assert.equal(missingClasses('wide', undefined), null, 'a seed link with no classes changes nothing');
 });

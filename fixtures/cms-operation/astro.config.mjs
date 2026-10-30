@@ -4,6 +4,7 @@ import react from '@astrojs/react';
 import { d1, r2 } from '@emdash-cms/cloudflare';
 import { defineConfig } from 'astro/config';
 import emdash from 'emdash/astro';
+import { socialIcons } from '../../src/components/social-icons.mjs';
 
 const workRoot = new URL(process.env.DK_CMS_FIXTURE_UPGRADE === '1'
   ? '../../.grilltrack/work/emdash-upgrade-20261007/'
@@ -21,6 +22,7 @@ export default defineConfig({
   }),
   integrations: [
     react(),
+    socialIcons(),
     emdash({
       database: d1({ binding: 'DB' }),
       storage: r2({ binding: 'MEDIA' }),

@@ -367,6 +367,23 @@ were already there, in the order the editor left them. Plugins, DinkusKit,
 and any other footer menu keep the order already saved. The footer already
 renders that menu, so the link shows without a deploy.
 
+### Discord and GitHub logos
+
+The header and the footer show Discord and GitHub as logos. Both come from
+the DinkusKit footer menu (`footer-dinkuskit`): a link whose CSS classes
+include `social-github` or `social-discord` is drawn as that logo, beside the
+tagline and in the header, instead of as text in its column. Editors change
+either link in Menus, and both places follow. Take the class off and the link
+goes back to text in its column and leaves the header.
+
+The live GitHub link predates this. `--footer` adds the seed's class to the
+menu link with the same URL when it lacks it, keeps any other class on it,
+and prints `Marked GitHub in menu footer-dinkuskit as social-github`; a rerun
+prints nothing for it. Run it before the deploy that carries the logos (the
+older footer ignores the class) or right after; until it runs, the header has
+no GitHub link and the footer keeps GitHub as text. An editor can instead type
+`social-github` into that link's CSS classes in Menus.
+
 ## Post-deploy checks
 
 ```sh

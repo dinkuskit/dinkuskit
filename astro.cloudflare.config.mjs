@@ -7,6 +7,7 @@ import { defineConfig } from 'astro/config';
 import emdash from 'emdash/astro';
 import { experimental_readRawConfig } from 'wrangler';
 import { operatorAdminPlugin } from './src/operator-admin/descriptor.mjs';
+import { socialIcons } from './src/components/social-icons.mjs';
 import { INSTALLED_EDITOR_ROLE } from './scripts/lib/access-namespace-gate.mjs';
 
 const workRoot = new URL('./.grilltrack/work/cloudflare-candidate-20260930/', import.meta.url);
@@ -51,6 +52,7 @@ export default defineConfig({
   }),
   integrations: [
     react(),
+    socialIcons(),
     emdash({
       database: d1({ binding: 'DB' }),
       storage: r2({ binding: 'MEDIA' }),

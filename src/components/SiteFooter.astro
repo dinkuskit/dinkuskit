@@ -1,14 +1,22 @@
 ---
 import { getMenu, getSiteSettings } from 'emdash';
 import { PLUGIN_LOGOS } from './plugin-logos.ts';
+import SocialLinks from './SocialLinks.astro';
+import { SOCIAL_MENU, isSocialLink, socialLinks } from './social-links.ts';
 
 // Footer (Stitch round 8, pick 3B): the site title set large with the tagline,
 // the wash's dither as a strip, then one link column per footer menu. Editors
 // change the words in Settings and the links in Menus; a column whose menu is
-// missing or empty is left out. Plugin links show their plugin's logo.
-const MENUS = ['footer-get-started', 'footer-plugins', 'footer-dinkuskit'];
+// missing or empty is left out. Plugin links show their plugin's logo. The
+// Discord and GitHub links show as logos beside the tagline, as in the header,
+// instead of in their column.
+const MENUS = ['footer-get-started', 'footer-plugins', SOCIAL_MENU];
 const [settings, ...menus] = await Promise.all([getSiteSettings(), ...MENUS.map(name => getMenu(name))]);
-const columns = menus.filter((menu): menu is NonNullable<typeof menu> => Boolean(menu?.items.length));
+const social = socialLinks(menus[MENUS.indexOf(SOCIAL_MENU)]?.items ?? []);
+const columns = menus
+  .filter((menu): menu is NonNullable<typeof menu> => Boolean(menu))
+  .map(menu => ({ ...menu, items: menu.items.filter(item => !isSocialLink(item)) }))
+  .filter(menu => menu.items.length > 0);
 const title = settings.title?.trim() || 'DinkusKit';
 const tagline = settings.tagline?.trim();
 ---
@@ -16,6 +24,7 @@ const tagline = settings.tagline?.trim();
   <div class="site-footer-head">
     <p class="site-footer-name">{title}</p>
     {tagline && <p class="site-footer-tagline">{tagline}</p>}
+    <SocialLinks links={social} />
   </div>
   <div class="fx-strip" aria-hidden="true"></div>
   {columns.length > 0 && (

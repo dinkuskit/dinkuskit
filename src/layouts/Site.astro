@@ -1,9 +1,12 @@
 ---
 import { OPERATOR_APPROVALS_PATH } from '../operator-admin/paths.ts';
 import { getVisibleDocs } from '../docs/content.ts';
+import { getMenu } from 'emdash';
+import { SOCIAL_MENU, socialLinks } from '../components/social-links.ts';
 interface Props { title: string; description: string; wide?: boolean; noindex?: boolean }
 const { title, description, wide = false, noindex = false } = Astro.props;
 const hasDocs = (await getVisibleDocs()).length > 0;
+const social = socialLinks((await getMenu(SOCIAL_MENU))?.items ?? []);
 const canonical = new URL(Astro.url.pathname, Astro.site);
 // Round 3 type lock (Stitch F1): served from this site, not a font CDN.
 import '@fontsource/inter/400.css';
@@ -15,6 +18,7 @@ import '@fontsource/space-mono/700.css';
 import '../styles/site.css';
 import { Role } from '@emdash-cms/auth';
 import SiteFooter from '../components/SiteFooter.astro';
+import SocialLinks from '../components/SocialLinks.astro';
 import ThemeSwitch from '../components/ThemeSwitch.astro';
 import DinkusGuide from '../../packages/dinkusguide-ui/src/Guide.astro';
 import { guideAllowedPage, guidePilot } from '../guide/policy.ts';
@@ -45,7 +49,7 @@ const guide = guidePilot(import.meta.env.DINKUS_GUIDE_PILOT, import.meta.env.DIN
         <a href="/account">Account</a>
         {Astro.locals.merchant ? <a href="/account/sites" aria-current={Astro.url.pathname === '/account/sites' || Astro.url.pathname === '/account/sites/archive' ? 'page' : undefined}>Your stores</a> : null}
         {Astro.locals.user?.role === Role.ADMIN && !Astro.locals.user.disabled ? <a href={OPERATOR_APPROVALS_PATH}>Operator admin</a> : null}
-        <a href="https://github.com/dinkuskit">GitHub</a>
+        <SocialLinks links={social} />
         <ThemeSwitch />
       </nav>
     </header>

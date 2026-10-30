@@ -4,6 +4,7 @@ import { d1, r2, sandbox } from '@emdash-cms/cloudflare';
 import { defineConfig } from 'astro/config';
 import emdash from 'emdash/astro';
 import { operatorAdminPlugin } from './src/operator-admin/descriptor.mjs';
+import { socialIcons } from './src/components/social-icons.mjs';
 
 export default defineConfig({
   site: 'https://dinkuskit.com',
@@ -11,6 +12,7 @@ export default defineConfig({
   adapter: cloudflare(),
   integrations: [
     react(),
+    socialIcons(),
     emdash({
       siteUrl: 'https://dinkuskit.com',
       database: d1({ binding: 'DB', session: 'disabled' }),

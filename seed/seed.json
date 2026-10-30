@@ -433,7 +433,14 @@
         {
           "type": "custom",
           "label": "GitHub",
-          "url": "https://github.com/dinkuskit"
+          "url": "https://github.com/dinkuskit",
+          "cssClasses": "social-github"
+        },
+        {
+          "type": "custom",
+          "label": "Discord",
+          "url": "https://discord.gg/7yHZGj8p88",
+          "cssClasses": "social-discord"
         },
         {
           "type": "custom",

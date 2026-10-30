@@ -170,6 +170,13 @@ try {
       assert.equal(response.headers.get('x-robots-tag'), null);
       assert.ok(!response.body.includes('name="robots"'));
       assert.match(response.body, /<h2 id="what-counts-as-success">What counts as success<\/h2>/);
+      // A fresh seed draws its marked links as logos in the header, then the footer (issue #106).
+      const seedLogos = [['https://github.com/dinkuskit', 'DinkusKit on GitHub'], ['https://discord.gg/7yHZGj8p88', 'Join DinkusKit on Discord']];
+      const logos = [...response.body.matchAll(/<a class="social-link" href="([^"]+)"[^>]*>[\s\S]*?<span class="visually-hidden">([^<]+)<\/span>/g)].map(match => [match[1], match[2]]);
+      assert.deepEqual(logos, [...seedLogos, ...seedLogos]);
+      const column = response.body.match(/<h2>DinkusKit<\/h2>\s*<ul>([\s\S]*?)<\/ul>/)?.[1] ?? '';
+      assert.match(column, /href="https:\/\/github\.com\/dinkuskit\/dinkuskit"[^>]*>\s*Website source/, 'Website source stays in its column');
+      assert.doesNotMatch(column, /href="https:\/\/github\.com\/dinkuskit"/, 'the GitHub link is out of its column');
       const embedded = JSON.parse(response.body.match(/id="docs-search-data"[^>]*>([\s\S]*?)<\/script>/)[1]);
       assert.deepEqual(embedded.map(item => item.id), [PUBLISHED], 'the page embeds only published articles');
       assert.equal(markdown.status, 200);

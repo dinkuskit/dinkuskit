@@ -17,7 +17,10 @@
 // link when a reorder did not finish, is placed on the next run. Plugins,
 // DinkusKit, and every other footer menu keep the order already saved. Other
 // seed links an editor reordered stay in that order, and an editor's own link
-// is not pulled into the seed sequence. Nothing is renamed or removed. An
+// is not pulled into the seed sequence. Nothing is renamed or removed. A seed
+// link's CSS classes (social-github, social-discord: SocialLinks.astro) are
+// added to the site's link with the same URL when it lacks them; its other
+// classes stay. An
 // empty site title or tagline is filled from the seed only when this sign-in
 // can read settings.
 // The footer shows the title, tagline and those menus.
@@ -212,15 +215,37 @@ export function reconcileFooterOrder(existing, seedItems, createdByUrl, { recove
   return items;
 }
 
+// The classes `current` (a space-separated string, or null) needs so it also
+// carries every class in `seedClasses`, or null when it already does.
+export function missingClasses(current, seedClasses) {
+  const have = (current ?? '').split(/\s+/).filter(Boolean);
+  const add = (seedClasses ?? '').split(/\s+/).filter(name => name && !have.includes(name));
+  return add.length ? [...have, ...add].join(' ') : null;
+}
+
+async function classExistingFooterLinks(api, menu, existing) {
+  for (const item of existing) {
+    const seedItem = menu.items.find(entry => entry.url === item.customUrl);
+    const cssClasses = missingClasses(item.cssClasses, seedItem?.cssClasses);
+    if (!cssClasses) continue;
+    const updated = await api('PUT', `/menus/${menu.name}/items/${item.id}`, { cssClasses });
+    if (!ok(updated.status)) throw new Error(`Marking ${item.label} in menu ${menu.name} failed: HTTP ${updated.status} ${JSON.stringify(updated.data)}`);
+    console.log(`Marked ${item.label} in menu ${menu.name} as ${cssClasses}`);
+  }
+}
+
+const customItem = item => ({ type: 'custom', label: item.label, customUrl: item.url, ...(item.cssClasses ? { cssClasses: item.cssClasses } : {}) });
+
 async function insertMissingFooterLinks(api, menu) {
   const current = await api('GET', `/menus/${menu.name}`);
   if (current.status !== 200) throw new Error(`Reading menu ${menu.name} failed: HTTP ${current.status} ${JSON.stringify(current.data)}`);
   const existing = [...(current.data?.items ?? [])].sort((a, b) => a.sortOrder - b.sortOrder);
+  await classExistingFooterLinks(api, menu, existing);
   const have = new Set(existing.map(item => item.customUrl));
   const missing = menu.items.filter(item => !have.has(item.url));
   const createdByUrl = new Map();
   for (const item of missing) {
-    const added = await api('POST', `/menus/${menu.name}/items`, { type: 'custom', label: item.label, customUrl: item.url });
+    const added = await api('POST', `/menus/${menu.name}/items`, customItem(item));
     if (!ok(added.status)) throw new Error(`Adding ${item.label} to menu ${menu.name} failed: HTTP ${added.status} ${JSON.stringify(added.data)}`);
     createdByUrl.set(item.url, { id: added.data?.id, parentId: added.data?.parentId ?? null, customUrl: item.url });
   }
@@ -264,7 +289,7 @@ async function pushFooter(api, seed) {
     const created = await api('POST', '/menus', { name: menu.name, label: menu.label });
     if (!ok(created.status)) throw new Error(`Adding menu ${menu.name} failed: HTTP ${created.status} ${JSON.stringify(created.data)}`);
     for (const [sortOrder, item] of menu.items.entries()) {
-      const added = await api('POST', `/menus/${menu.name}/items`, { type: 'custom', label: item.label, customUrl: item.url, sortOrder });
+      const added = await api('POST', `/menus/${menu.name}/items`, { ...customItem(item), sortOrder });
       if (!ok(added.status)) throw new Error(`Adding ${item.label} to menu ${menu.name} failed: HTTP ${added.status} ${JSON.stringify(added.data)}`);
     }
     console.log(`Added menu ${menu.name} with ${menu.items.length} links`);

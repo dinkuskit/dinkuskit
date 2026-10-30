@@ -4,6 +4,7 @@ import node from '@astrojs/node';
 import react from '@astrojs/react';
 import emdash, { local } from 'emdash/astro';
 import { sqlite } from 'emdash/db';
+import { socialIcons } from '../../src/components/social-icons.mjs';
 
 // Local documentation renderer. It serves the actual docs routes, content
 // adapter and Site layout from its own EmDash database (SQLite under
@@ -21,6 +22,7 @@ export default defineConfig({
   adapter: node({ mode: 'standalone' }),
   integrations: [
     react(),
+    socialIcons(),
     emdash({
       database: sqlite({ url: `file:${fileURLToPath(new URL('./data.db', work))}` }),
       storage: local({ directory: fileURLToPath(new URL('./uploads/', work)), baseUrl: '/_emdash/api/media/file' }),

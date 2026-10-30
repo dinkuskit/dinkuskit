@@ -1,0 +1,20 @@
+---
+// The Discord and GitHub logo links (social-links.ts). The name is real text
+// for screen readers; the logo itself is hidden from them.
+import { Icon } from 'astro-iconset/components';
+import type { SocialLink } from './social-links.ts';
+interface Props { links: SocialLink[] }
+const { links } = Astro.props;
+---
+{links.length > 0 && (
+  <ul class="social-links">
+    {links.map(link => (
+      <li>
+        <a class="social-link" href={link.url} target={link.newTab ? '_blank' : undefined} rel={link.newTab ? 'noopener noreferrer' : undefined}>
+          <Icon name={link.icon} aria-hidden="true" />
+          <span class="visually-hidden">{link.name}{link.newTab && ' (opens in a new tab)'}</span>
+        </a>
+      </li>
+    ))}
+  </ul>
+)}

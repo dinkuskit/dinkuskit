@@ -86,7 +86,7 @@ try {
     ['Website source', 'https://github.com/dinkuskit/dinkuskit'],
     ['Account', '/account'],
   ];
-  const DISCORD = 'https://discord.gg/GYaJEMjtN';
+  const DISCORD = 'https://discord.gg/7yHZGj8p88';
   const dinkusImported = [...dinkusOrder.slice(0, 2), ['Discord', DISCORD], ...dinkusOrder.slice(2)];
   await addMenu('footer-get-started', 'Get started', [
     { label: 'Docs', customUrl: '/docs' },

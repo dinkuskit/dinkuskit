@@ -40,7 +40,7 @@ trademarks of Discord Inc. and GitHub, Inc.
 ## Fresh seed and existing CMS
 
 - Fresh seed: `seed/seed.json` marks GitHub `social-github` and adds Discord
-  (`https://discord.gg/GYaJEMjtN`, from Ronald) marked `social-discord`.
+  (`https://discord.gg/7yHZGj8p88`, from Ronald) marked `social-discord`.
 - Existing CMS (dinkuskit.com): `npm run pages:import -- --url … --footer`
   adds the seed's class to the menu link with the same URL when it lacks it,
   keeps the link's other classes, label and position, and inserts Discord
@@ -66,6 +66,6 @@ in the header, focus ring shown (`desktop-light-header-focus.webp`).
 ## Limits
 
 - Discord's API answers the invite with the DinkusKit server (guild
-  "DinkusKit") and `expires_at` 2026-11-29: it is a 30-day invite. A
-  never-expiring one replaces it in the seed and in Menus.
+  "DinkusKit") and no `expires_at`: it does not expire. Not checked: the join
+  screen as seen by a signed-out visitor in a browser.
 - Local proof only: nothing was deployed and the live CMS was not changed.

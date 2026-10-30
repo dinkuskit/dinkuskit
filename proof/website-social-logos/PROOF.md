@@ -65,7 +65,16 @@ in the header, focus ring shown (`desktop-light-header-focus.webp`).
 
 ## Limits
 
-- Discord's API answers the invite with the DinkusKit server (guild
-  "DinkusKit") and no `expires_at`: it does not expire. Not checked: the join
-  screen as seen by a signed-out visitor in a browser.
 - Local proof only: nothing was deployed and the live CMS was not changed.
+- Live deployment is a separate step: run the footer import on dinkuskit.com
+  before the deploy (`DEPLOY.md`), so the header never lacks GitHub.
+
+## Discord invite
+
+`https://discord.gg/7yHZGj8p88`, from Ronald. Discord's API answers it with
+the DinkusKit server (guild "DinkusKit") and no `expires_at`: it does not
+expire. Opened signed out in a fresh headless Chromium (no cookies), it
+redirects to `discord.com/invite/7yHZGj8p88` and shows "DinkusKit (dinkuskit)
+invited you to join DinkusKit" with the sign-up form
+(`discord-invite-signed-out.webp`). Nothing was submitted; no account or
+membership was created.

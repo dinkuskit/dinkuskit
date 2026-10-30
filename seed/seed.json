@@ -438,6 +438,12 @@
         },
         {
           "type": "custom",
+          "label": "Discord",
+          "url": "https://discord.gg/GYaJEMjtN",
+          "cssClasses": "social-discord"
+        },
+        {
+          "type": "custom",
           "label": "Website source",
           "url": "https://github.com/dinkuskit/dinkuskit"
         }

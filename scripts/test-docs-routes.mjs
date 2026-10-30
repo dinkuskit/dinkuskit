@@ -171,7 +171,7 @@ try {
       assert.ok(!response.body.includes('name="robots"'));
       assert.match(response.body, /<h2 id="what-counts-as-success">What counts as success<\/h2>/);
       // A fresh seed draws its marked links as logos in the header, then the footer (issue #106).
-      const seedLogos = [['https://github.com/dinkuskit', 'DinkusKit on GitHub']];
+      const seedLogos = [['https://github.com/dinkuskit', 'DinkusKit on GitHub'], ['https://discord.gg/GYaJEMjtN', 'Join DinkusKit on Discord']];
       const logos = [...response.body.matchAll(/<a class="social-link" href="([^"]+)"[^>]*>[\s\S]*?<span class="visually-hidden">([^<]+)<\/span>/g)].map(match => [match[1], match[2]]);
       assert.deepEqual(logos, [...seedLogos, ...seedLogos]);
       const column = response.body.match(/<h2>DinkusKit<\/h2>\s*<ul>([\s\S]*?)<\/ul>/)?.[1] ?? '';

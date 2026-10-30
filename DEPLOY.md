@@ -379,7 +379,9 @@ goes back to text in its column and leaves the header.
 The live GitHub link predates this. `--footer` adds the seed's class to the
 menu link with the same URL when it lacks it, keeps any other class on it,
 and prints `Marked GitHub in menu footer-dinkuskit as social-github`; a rerun
-prints nothing for it. Run it before the deploy that carries the logos (the
+prints nothing for it. Discord is a new seed link, so the same run inserts it
+after GitHub, already marked, and prints `Added Discord to menu
+footer-dinkuskit`. Run it before the deploy that carries the logos (the
 older footer ignores the class) or right after; until it runs, the header has
 no GitHub link and the footer keeps GitHub as text. An editor can instead type
 `social-github` into that link's CSS classes in Menus.

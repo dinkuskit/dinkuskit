@@ -39,19 +39,22 @@ trademarks of Discord Inc. and GitHub, Inc.
 
 ## Fresh seed and existing CMS
 
-- Fresh seed: `seed/seed.json` marks GitHub `social-github`.
+- Fresh seed: `seed/seed.json` marks GitHub `social-github` and adds Discord
+  (`https://discord.gg/GYaJEMjtN`, from Ronald) marked `social-discord`.
 - Existing CMS (dinkuskit.com): `npm run pages:import -- --url … --footer`
   adds the seed's class to the menu link with the same URL when it lacks it,
-  keeps the link's other classes, label and position, and changes nothing
-  else (`DEPLOY.md`, "Discord and GitHub logos").
+  keeps the link's other classes, label and position, and inserts Discord
+  after GitHub like any new seed link; nothing else changes (`DEPLOY.md`,
+  "Discord and GitHub logos").
 
 ## Checks (Node 24.22.0)
 
 | Command | Result |
 | --- | --- |
 | `npm run typecheck` | 0 errors, 0 warnings |
-| `npm run test:pages-import` | 15 unit tests pass; the existing-CMS run marks GitHub once, a rerun marks nothing, editor order kept; `/start` shows GitHub and an editor's Discord link as logos with their names in header and footer, Discord's new-tab choice with `rel` and text, no GitHub text in the header or the column |
-| `npm run test:docs-routes` | a fresh seed's published page shows the GitHub logo in header and footer, Website source stays in its column |
+| `npm run test:pages-import` | 15 unit tests pass; the existing-CMS run marks GitHub once and adds Discord after it, a rerun changes nothing, editor order kept; `/start` shows both logos with their names in header and footer, an editor's new-tab choice for Discord with `rel` and text, no GitHub text in the header or the column |
+| `npm run test:docs-routes` | a fresh seed's published page shows both logos in header and footer, Website source stays in its column |
+| `npm run test:cms-operation`, `npm run test:emdash-upgrade` | pass; the upgrade check builds the cms-operation config inside the pinned 1.0.1 source, which has no logos, so that config adds the icon integration only when the logos exist |
 | `npm run build`, `npm run build:cloudflare` | both build |
 | `npm run test:theme-switch`, `npm run audit:repo` | pass |
 
@@ -62,7 +65,7 @@ in the header, focus ring shown (`desktop-light-header-focus.webp`).
 
 ## Limits
 
-- The screenshots' Discord link is a made-up fixture invite
-  (`https://discord.gg/fixture`), added as an editor would; the real invite is
-  not in this proof yet.
+- Discord's API answers the invite with the DinkusKit server (guild
+  "DinkusKit") and `expires_at` 2026-11-29: it is a 30-day invite. A
+  never-expiring one replaces it in the seed and in Menus.
 - Local proof only: nothing was deployed and the live CMS was not changed.

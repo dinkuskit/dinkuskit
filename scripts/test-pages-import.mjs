@@ -86,6 +86,8 @@ try {
     ['Website source', 'https://github.com/dinkuskit/dinkuskit'],
     ['Account', '/account'],
   ];
+  const DISCORD = 'https://discord.gg/GYaJEMjtN';
+  const dinkusImported = [...dinkusOrder.slice(0, 2), ['Discord', DISCORD], ...dinkusOrder.slice(2)];
   await addMenu('footer-get-started', 'Get started', [
     { label: 'Docs', customUrl: '/docs' },
     { label: 'Start your store', customUrl: '/start' },
@@ -110,8 +112,10 @@ try {
   // The live GitHub link predates its logo: the import marks it, nothing else.
   assert.match(imported.output, /^Marked GitHub in menu footer-dinkuskit as social-github$/m);
   assert.equal(imported.output.match(/^Marked /gm)?.length, 1, imported.output);
+  // Discord is new: it goes in after GitHub, already marked.
+  assert.match(imported.output, /^Added Discord to menu footer-dinkuskit$/m);
   const marked = (await (await api('/menus/footer-dinkuskit')).json()).data?.items ?? [];
-  assert.deepEqual(marked.filter(item => item.cssClasses).map(item => [item.label, item.cssClasses]), [['GitHub', 'social-github']]);
+  assert.deepEqual(marked.filter(item => item.cssClasses).map(item => [item.label, item.cssClasses]), [['GitHub', 'social-github'], ['Discord', 'social-discord']]);
   assert.doesNotMatch(imported.output, /Added menu footer-get-started/);
   const getStarted = await (await api('/menus/footer-get-started')).json();
   const editedOrder = [
@@ -140,12 +144,11 @@ try {
   const restored = await (await api('/menus/footer-get-started')).json();
   assert.deepEqual((restored.data?.items ?? []).map(item => [item.label, item.customUrl]), editedOrder);
   assert.deepEqual(await menuOrder('footer-plugins'), pluginOrder);
-  assert.deepEqual(await menuOrder('footer-dinkuskit'), dinkusOrder);
+  assert.deepEqual(await menuOrder('footer-dinkuskit'), dinkusImported);
   assert.match(imported.output, /^Kept existing menu footer-plugins$/m);
-  assert.match(imported.output, /^Kept existing menu footer-dinkuskit$/m);
   assert.doesNotMatch(imported.output, /Placed|Added menu footer-/);
   assert.deepEqual(await menuOrder('footer-plugins'), pluginOrder);
-  assert.deepEqual(await menuOrder('footer-dinkuskit'), dinkusOrder);
+  assert.deepEqual(await menuOrder('footer-dinkuskit'), dinkusImported);
   assert.match(imported.output, /^Set site title "DinkusKit"$/m);
   assert.match(imported.output, /^Set site tagline "Built with EmDash\. Growing in the open\."$/m);
 
@@ -159,9 +162,9 @@ try {
   assert.equal((await api(`/content/pages/${entry.id}/publish`, { method: 'POST' })).status, 200);
   // An editor's footer link and tagline survive a rerun too.
   assert.equal((await api('/menus/footer-dinkuskit/items', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ type: 'custom', label: 'Status', customUrl: '/health' }) })).status, 201);
-  // So does a Discord link the editor marks and sets to open in a new tab.
-  // The fixture's invite is made up; it never reaches the seed.
-  assert.equal((await api('/menus/footer-dinkuskit/items', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ type: 'custom', label: 'Discord', customUrl: 'https://discord.gg/fixture', cssClasses: 'social-discord', target: '_blank' }) })).status, 201);
+  // So does the editor's choice to open Discord in a new tab.
+  const discordItem = (await (await api('/menus/footer-dinkuskit')).json()).data.items.find(item => item.customUrl === DISCORD);
+  assert.equal((await api(`/menus/footer-dinkuskit/items/${discordItem.id}`, { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ target: '_blank' }) })).status, 200);
   assert.equal((await api('/settings', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ tagline: 'Edited tagline' }) })).status, 200);
   const again = await runImport(development.base, token, '--footer', '--publish');
   assert.equal(again.code, 0, again.output);
@@ -231,14 +234,14 @@ try {
     .map(match => [match[1], match[3].trim(), /target="_blank"/.test(match[2]) && /rel="noopener noreferrer"/.test(match[2])]);
   const logos = [
     ['https://github.com/dinkuskit', 'DinkusKit on GitHub', false],
-    ['https://discord.gg/fixture', 'Join DinkusKit on Discord (opens in a new tab)', true],
+    [DISCORD, 'Join DinkusKit on Discord (opens in a new tab)', true],
   ];
   const head = footer.match(/<div class="site-footer-head">([\s\S]*?)<div class="fx-strip"/)?.[1] ?? '';
   assert.deepEqual(logoLinks(head), logos, 'footer logos');
   const header = html.match(/<header>[\s\S]*?<\/header>/)?.[0] ?? '';
   assert.deepEqual(logoLinks(header), logos, 'header logos');
   assert.doesNotMatch(header, />GitHub</, 'no GitHub text link in the header');
-  assert.equal(html.match(/href="https:\/\/discord\.gg\/fixture"/g)?.length, 2, 'Discord shows once in each place');
+  assert.equal(html.split(`href="${DISCORD}"`).length - 1, 2, 'Discord shows once in each place');
   assert.match(footer, /href="\/docs\/reference\/commerce"/);
   assert.match(footer, /href="\/health"[^>]*>\s*Status/, 'the editor\'s link shows');
   const started = footer.match(/<h2>Get started<\/h2>\s*<ul>([\s\S]*?)<\/ul>/)?.[1] ?? '';

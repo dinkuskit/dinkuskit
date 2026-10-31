@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFileSync } from 'node:fs';
 import { marked } from 'marked';
-import { articleId, articleMarkdown, docsSections, llmsText, searchRecord, selectArticles } from '../src/docs/catalog.ts';
+import { articleId, articleMarkdown, docsSections, llmsFullText, llmsText, searchRecord, selectArticles } from '../src/docs/catalog.ts';
 import { markdownToPortableText, portableTextToMarkdown, headingAnchors } from '../src/docs/portable-text.ts';
 import { searchDocs } from '../src/docs/search.ts';
 import { compareParagraph, randomParagraph } from './docs-markdown-fuzz.mjs';
@@ -48,6 +48,11 @@ test('Markdown, search and llms.txt come from the same published list', () => {
   assert.equal(searchRecord(site, article).url, '/docs/reference/commerce');
   assert.ok(llmsText(site, [article]).includes('- [Catalog integration](https://docs.example/docs/markdown/reference/commerce.md): Read public products.'));
   assert.equal(llmsText(site, []), null);
+  assert.equal(llmsFullText(site, []), null);
+  const full = llmsFullText(site, [article]);
+  assert.ok(full.includes('- [Catalog integration](https://docs.example/docs/markdown/reference/commerce.md): Read public products.'));
+  assert.ok(full.includes('Canonical URL: https://docs.example/docs/reference/commerce'));
+  assert.ok(full.includes(body));
 });
 
 test('Portable Text keeps marks, links, tables, code and heading anchors', () => {

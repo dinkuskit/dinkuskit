@@ -25,13 +25,26 @@ const CORE_META_DESCRIPTIONS: Readonly<Record<string, string>> = {
     'Terms of Service for DinkusKit merchant accounts and hosted ecommerce services, including DinkusKit Payments for Stripe checkout and Ship for USPS labels.',
 };
 
-const DEFAULT_SEED_SUMMARIES: Readonly<Record<string, string>> = {
-  '/': 'A store on your own EmDash site, built from open-source plugins you can add one by one: Commerce for your catalog and cart, Payments for Stripe checkout, Ship for USPS labels, and the agent you choose on the same tools.',
-  '/getting-started':
+const DEFAULT_SEED_SUMMARIES: Readonly<Record<string, ReadonlyArray<string>>> = {
+  '/': [
+    'A store on your own EmDash site, built from open-source plugins you can add one by one: Commerce for your catalog and cart, Payments for Stripe checkout, Ship for USPS labels, and the agent you choose on the same tools.',
+    'A store on your own EmDash site. Manage products, orders and USPS labels from the admin, and let the agent you choose help through the same tools, with only the access you give it. You keep your site, your data and your own payment account.',
+    'Open-source, agentic and composable commerce for your own EmDash site on Astro. Manage products, orders and USPS labels from the admin, and let the agent you choose help through the same tools, with only the access you give it. You keep your site, your data and your own payment account.',
+    'Open-source, agentic and composable commerce for your own EmDash ecommerce CMS on Astro. Manage products, orders and USPS shipping labels from the admin, and let the agent you choose help through the same tools, with only the access you give it. You keep your site, your data and your own payment account.',
+  ],
+  '/getting-started': [
     'Commerce runs the catalog and cart in your EmDash site. Payments and Ship add Stripe checkout and USPS labels when you want them, and an optional DinkusKit account connects them.',
-  '/start':
+    'Useful pieces you add one at a time, run by you from the admin, with your own agent helping where you allow it.',
+    'Composable, headless commerce plugins for EmDash CMS and Astro: useful pieces you add one at a time, run by you from the admin, with your own agent helping where you allow it.',
+    'Composable, headless commerce plugins for the EmDash ecommerce CMS and Astro: useful pieces you add one at a time, run by you from the admin, with your own agent helping where you allow it.',
+  ],
+  '/start': [
     'Walk the demo store first, or go straight to building yours: start an EmDash store from the template, connect your DinkusKit account, add Payments and Ship, and place a test order.',
-  '/terms': 'Effective date: October 17, 2026',
+    'Your store is an EmDash site you own. DinkusKit adds the shop: Commerce for products and orders, Payments for card checkout, and Ship for postage. Four steps get you from nothing to a test order.',
+    'Your store is an EmDash and Astro site you own on Cloudflare. DinkusKit adds open-source ecommerce: Commerce for products and orders, Payments for Stripe card checkout, and Ship for USPS postage. Four steps get you from nothing to a test order.',
+    'Your store is an EmDash ecommerce CMS and Astro site you own on Cloudflare. DinkusKit adds open-source ecommerce: Commerce for products and orders, Payments for Stripe card checkout, and Ship to buy USPS shipping labels. Four steps get you from nothing to a test order.',
+  ],
+  '/terms': ['Effective date: October 17, 2026'],
 };
 
 export function normalizeCanonicalPathname(pathname: string): string {
@@ -86,7 +99,8 @@ export function pageMetaDescription(pathname: string, description: string, limit
   const normalized = normalizeCanonicalPathname(pathname);
   const clean = description.replace(/\s+/g, ' ').trim();
   const curated = CORE_META_DESCRIPTIONS[normalized];
-  if (curated && (!clean || clean === DEFAULT_SEED_SUMMARIES[normalized])) {
+  const defaultSummaries = DEFAULT_SEED_SUMMARIES[normalized] ?? [];
+  if (curated && (!clean || defaultSummaries.includes(clean))) {
     return metaDescription(curated, limit);
   }
   return metaDescription(clean || curated || SITE_NAME, limit);

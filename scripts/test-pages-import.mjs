@@ -259,6 +259,51 @@ try {
   assert.match(signedIn, /href="\/account\/sites">Your stores</);
   assert.doesNotMatch(signedIn, /href="\/account\/signup"/);
   console.log('PASS development: /start is drawn from the CMS with no rebuild, and keeps the editor\'s wording and logo pick; the footer shows the menus and settings');
+
+  // Verify pullLiveSeed mirrors live CMS edits (page, menus, settings) into a seed file,
+  // and --sync-pages updates an existing published page using _rev while refusing if an admin draft is waiting.
+  process.env.EMDASH_TOKEN = token;
+  const { pullLiveSeed } = await import('./pages-import.mjs');
+  const tempSeed = new URL('./temp-seed.json', WORK);
+  writeFileSync(tempSeed, readFileSync(new URL('../seed/seed.json', import.meta.url), 'utf8'));
+  const driftCheck = await pullLiveSeed(development.base, { seedUrl: tempSeed, check: true });
+  assert.equal(driftCheck.inSync, false, 'pullLiveSeed --check detects drift after admin edits');
+  process.exitCode = 0;
+  const pulled = await pullLiveSeed(development.base, { seedUrl: tempSeed });
+  assert.equal(pulled.inSync, true);
+  assert.ok(pulled.changed.includes('page:start'), 'pulled page:start');
+  assert.ok(pulled.changed.includes('setting:tagline'), 'pulled setting:tagline');
+  const pulledJson = JSON.parse(readFileSync(tempSeed, 'utf8'));
+  assert.equal(pulledJson.content.pages.find(p => p.slug === 'start').data.title, 'Edited in the admin');
+  assert.equal(pulledJson.settings.tagline, 'Edited tagline');
+  const cleanCheck = await pullLiveSeed(development.base, { seedUrl: tempSeed, check: true });
+  assert.equal(cleanCheck.inSync, true, 'pullLiveSeed --check passes after pull');
+
+  // Stage an unpublished draft in the admin: --sync-pages must refuse to overwrite it.
+  const beforeDraft = await (await api('/content/pages/start')).json();
+  assert.equal(
+    (await api(`/content/pages/${beforeDraft.data.item.id}`, {
+      method: 'PUT',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ data: { ...beforeDraft.data.item.data, title: 'Unpublished admin draft' }, _rev: beforeDraft.data._rev }),
+    })).status,
+    200,
+  );
+  const refusedSync = await runImport(development.base, token, '--sync-pages', '--publish');
+  assert.notEqual(refusedSync.code, 0, '--sync-pages refuses when an unpublished admin draft is waiting');
+  assert.match(refusedSync.output, /unpublished edits waiting in the admin/);
+
+  // Publish the admin draft, then run --sync-pages --publish to sync seed/seed.json's /start back and publish.
+  const afterDraft = await (await api('/content/pages/start')).json();
+  assert.equal((await api(`/content/pages/${afterDraft.data.item.id}/publish`, { method: 'POST' })).status, 200);
+  const synced = await runImport(development.base, token, '--sync-pages', '--publish');
+  assert.equal(synced.code, 0, synced.output);
+  assert.match(synced.output, /^Updated page start$/m);
+  assert.match(synced.output, /^Published page start$/m);
+  const syncedHtml = await (await development.request('/start')).text();
+  assert.match(syncedHtml, /Now run your own\./, '--sync-pages --publish updated /start to seed/seed.json copy');
+  rmSync(tempSeed, { force: true });
+  console.log('PASS seed sync: pullLiveSeed mirrors live admin edits to seed.json, and --sync-pages updates published pages with _rev while refusing to clobber waiting admin drafts');
 } finally {
   await development.stop();
   rmSync(OLD_SEED, { force: true });

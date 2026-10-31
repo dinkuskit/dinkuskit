@@ -1,11 +1,11 @@
 ---
 article: reference/payments
-base: sha256:e8e4818d9c9b6f05ddb3ed58ad9ea6e51d8be7fc44d1ae333ee9d5f83a299700
+base: sha256:cf4bd823b2a3a014c5b0aaafbdbaeb373877555ccdf1a6c25bdc25df9ad7f3b7
 title: "Payments"
 summary: "Understand the payment connection, test-order evidence, and Commerce handoff."
 audience: "Store owners and developers"
 product: "DinkusKit Payments"
-version_scope: "Payments 0.4.0"
+version_scope: "Payments 0.5.0"
 ---
 
 ## What Payments owns
@@ -16,7 +16,7 @@ One provider is active per store. A shopper cannot select a processor in checkou
 
 ## Release scope
 
-This reference describes Payments `0.4.0`, released on the EmDash Registry as `dinkus-payments` on 23 October 2026 (tag `v0.4.0`). It requires EmDash `1.2.0`. Changes merged after that release are not described here until they ship in a stable release.
+This reference describes Payments `0.5.0`, released on the EmDash Registry as `dinkus-payments` on 31 October 2026 (tag `v0.5.0`). It requires EmDash `1.4.0`. Changes merged after that release are not described here until they ship in a stable release.
 
 The Registry plugin, hosted Payments service and DinkusKit account service have separate versions. A connected account does not prove that a particular plugin version is installed or that live payments are enabled.
 
@@ -24,9 +24,9 @@ The Registry plugin, hosted Payments service and DinkusKit account service have 
 
 Connect [Commerce](/docs/reference/commerce) first: Commerce's Connect makes the store at DinkusKit.com. Until it does, Payments says "Connect the Commerce plugin first."
 
-Then open **Payments status** in the store admin to reach **Payment setup**. Select **Authorize Payments at DinkusKit** and press **Approve** there. DinkusKit.com brings you back, the page checks your approval on its own, and it hands Payments its own store key. Nothing is pasted: the plugin keeps the key in its encrypted Connect setting and uses it to read payment status. Stores that pasted a key into the old Store key setting press Connect again once; that setting is gone.
+Then open **Dinkus Payments > Payment settings** in the store admin to reach **Payment setup**, and press **Connect**. Select the **Authorize Payments at DinkusKit** link that appears and press **Approve** there. DinkusKit.com brings you back, the page checks your approval on its own, and it hands Payments its own store key. Nothing is pasted: the plugin keeps the key in its encrypted Connect setting and uses it to read payment status. Stores that pasted a key into the old Store key setting press Connect again once; that setting is gone.
 
-If no processor is connected yet, the **Connect payments** step offers **Set up Stripe**. When Stripe needs more information, use **Set up or resume Stripe**, which lists what is missing. Press **Check connection** to read the current status.
+If no processor is connected yet, the **Connect payments** step asks you to set up Stripe. First choose your **Business country**, the country where your business is registered, then press **Set up Stripe**. The list holds the countries where Stripe opens accounts. Stripe can't change an account's country, so the choice is fixed once setup starts: the page then shows your business country without a way to change it, and the button reads **Set up or resume Stripe**. Authorize.net stores are never asked, because their merchant account already has its country. If you already have a Stripe account, sign in to it during Stripe's setup and choose to reuse its details; Stripe copies your verified business details and bank, and the store gets its own Stripe account under the same login. Use the same button when Stripe needs more information; Stripe's setup lists what is missing. Press **Check connection** to read the current status.
 
 A verified Stripe test connection shows **Connected: Stripe test mode**. Shoppers can then pay with Stripe test cards; real customer payments need a live Stripe connection. Until a check has run, the page shows "Payment status not checked", and "Not ready to sell" means a step is still incomplete.
 
@@ -67,14 +67,14 @@ Follow [Complete and verify a test order](/docs/store-owners/test-order) after t
 
 ## Sources
 
-Read-only source review of the `v0.4.0` release on 2026-10-25. No provider transaction was run for this update; source links do not establish live-payment availability.
+This article lives in the Payments repository, is reviewed with the code it describes, and was published from the `v0.5.0` tag. No provider transaction is run for this article; source links do not establish live-payment availability.
 
-- [Release notes](https://github.com/dinkuskit/payments/releases/tag/v0.4.0) and [changelog](https://github.com/dinkuskit/payments/blob/82c19d0d347d2c78a8e44dd2a3b2f00e530beb84/CHANGELOG.md)
-- [Package identity](https://github.com/dinkuskit/payments/blob/82c19d0d347d2c78a8e44dd2a3b2f00e530beb84/package.json) and [plugin manifest](https://github.com/dinkuskit/payments/blob/82c19d0d347d2c78a8e44dd2a3b2f00e530beb84/emdash-plugin.jsonc)
-- [Test-order contract](https://github.com/dinkuskit/payments/blob/82c19d0d347d2c78a8e44dd2a3b2f00e530beb84/docs/test-order-check.md)
-- [Registry status decoder](https://github.com/dinkuskit/payments/blob/82c19d0d347d2c78a8e44dd2a3b2f00e530beb84/src/registry/status.ts)
-- [Setup screen and recovery wording](https://github.com/dinkuskit/payments/blob/82c19d0d347d2c78a8e44dd2a3b2f00e530beb84/src/registry/setup.ts)
-- [Store TEST readiness agreement](https://github.com/dinkuskit/payments/blob/82c19d0d347d2c78a8e44dd2a3b2f00e530beb84/docs/store-test-readiness.md)
+- [Release notes](https://github.com/dinkuskit/payments/releases/tag/v0.5.0) and [changelog](https://github.com/dinkuskit/payments/blob/v0.5.0/CHANGELOG.md)
+- [Package identity](https://github.com/dinkuskit/payments/blob/v0.5.0/package.json) and [plugin manifest](https://github.com/dinkuskit/payments/blob/v0.5.0/emdash-plugin.jsonc)
+- [Test-order contract](https://github.com/dinkuskit/payments/blob/v0.5.0/docs/test-order-check.md)
+- [Registry status decoder](https://github.com/dinkuskit/payments/blob/v0.5.0/src/registry/status.ts)
+- [Setup screen and recovery wording](https://github.com/dinkuskit/payments/blob/v0.5.0/src/registry/setup.ts)
+- [Store TEST readiness agreement](https://github.com/dinkuskit/payments/blob/v0.5.0/docs/store-test-readiness.md)
 - [Commerce acknowledgement conditions](https://github.com/dinkuskit/commerce/blob/7b9923d8dfd3bc83513efe5ac80cff0bd6656e12/src/features/checkout/wake.ts)
 - [Commerce retryable Orders handoff](https://github.com/dinkuskit/commerce/blob/7b9923d8dfd3bc83513efe5ac80cff0bd6656e12/src/features/checkout/paid-orders.ts)
 - [Current stable Payments Registry release](https://registry.emdashcms.com/xrpc/com.emdashcms.experimental.aggregator.getLatestRelease?did=did:plc:ekk4pjmkh3k3ql2kfoex3qt4&package=dinkus-payments)

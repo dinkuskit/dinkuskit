@@ -5,7 +5,7 @@ export const docsSite: DocsSite = {
   origin: 'https://dinkuskit.com',
   name: 'DinkusKit',
   description:
-    'Open-source agentic and composable commerce plugins for EmDash CMS on Astro and Cloudflare Workers: merchant-owned storefronts, catalog and cart (DinkusKit Commerce), Stripe and Authorize.Net checkout (DinkusKit Payments), stock ledger (DinkusKit Inventory), and USPS shipping labels (DinkusKit Ship). Manage your store from the EmDash admin or with the AI agent you choose through the same tools.',
+    'Open-source agentic and composable commerce plugins for EmDash CMS on Astro and Cloudflare Workers: merchant-owned storefronts, catalog and cart (DinkusKit Commerce), Stripe checkout (DinkusKit Payments; Authorize.Net planned), and USPS shipping labels (DinkusKit Ship), with stock ledger (DinkusKit Inventory) planned after v1. Manage your store from the EmDash admin or with the AI agent you choose through the same tools.',
   platformLinks: [
     {
       title: 'DinkusKit Home',
@@ -17,7 +17,7 @@ export const docsSite: DocsSite = {
       title: 'How DinkusKit Works',
       url: 'https://dinkuskit.com/getting-started',
       summary:
-        'Architecture overview of EmDash storefronts, Commerce, Payments, Inventory, Ship, and scoped agent access.',
+        'Architecture overview of EmDash storefronts, Commerce, Payments, Ship, planned Inventory, and scoped agent access.',
     },
     {
       title: 'Start Your Store',

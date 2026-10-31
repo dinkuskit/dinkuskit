@@ -362,8 +362,8 @@ export async function fillEmptySiteText(api, seed) {
 
 // Pull live published pages, footer menus, and settings from the EmDash API
 // back into seed/seed.json so admin edits stay mirrored in the repository.
-export async function pullLiveSeed(origin, { seedUrl = SEED, check = false } = {}) {
-  const { api } = makeClient(origin);
+export async function pullLiveSeed(origin, { seedUrl = SEED, check = false, api: customApi } = {}) {
+  const api = customApi ?? makeClient(origin).api;
   const beforeText = readFileSync(seedUrl, 'utf8');
   const seed = JSON.parse(beforeText);
   const changed = [];
@@ -385,6 +385,7 @@ export async function pullLiveSeed(origin, { seedUrl = SEED, check = false } = {
     const current = await api('GET', `/menus/${menu.name}`);
     if (current.status === 404) continue;
     if (current.status !== 200) throw new Error(`Reading menu ${menu.name} failed: HTTP ${current.status}`);
+    const liveLabel = typeof current.data?.label === 'string' && current.data.label.trim() ? current.data.label.trim() : menu.label;
     const liveItems = [...(current.data?.items ?? [])]
       .sort((a, b) => a.sortOrder - b.sortOrder)
       .map(item => {
@@ -393,7 +394,8 @@ export async function pullLiveSeed(origin, { seedUrl = SEED, check = false } = {
         if (item.target) entry.target = item.target;
         return entry;
       });
-    if (!isDeepStrictEqual(menu.items, liveItems)) {
+    if (menu.label !== liveLabel || !isDeepStrictEqual(menu.items, liveItems)) {
+      menu.label = liveLabel;
       menu.items = liveItems;
       changed.push(`menu:${menu.name}`);
     }
@@ -401,10 +403,14 @@ export async function pullLiveSeed(origin, { seedUrl = SEED, check = false } = {
 
   if (seed.settings) {
     const settings = await api('GET', '/settings');
-    if (settings.status === 200) {
-      for (const key of ['title', 'tagline']) {
-        const val = settings.data?.[key]?.trim();
-        if (val && seed.settings[key] !== val) {
+    if (settings.status !== 200) {
+      throw new Error(`Reading site settings failed: HTTP ${settings.status}`);
+    }
+    for (const key of ['title', 'tagline']) {
+      const raw = settings.data?.[key];
+      if (typeof raw === 'string') {
+        const val = raw.trim();
+        if (seed.settings[key] !== val) {
           seed.settings[key] = val;
           changed.push(`setting:${key}`);
         }

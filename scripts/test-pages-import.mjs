@@ -302,8 +302,26 @@ try {
   assert.match(synced.output, /^Published page start$/m);
   const syncedHtml = await (await development.request('/start')).text();
   assert.match(syncedHtml, /Now run your own\./, '--sync-pages --publish updated /start to seed/seed.json copy');
+
+  // Verify a pulled seed restores edited pages, footer menu headings, and settings into a fresh EmDash database.
+  pulledJson.menus.find(m => m.name === 'footer-plugins').label = 'Shop plugins';
+  writeFileSync(OLD_SEED, `${JSON.stringify(pulledJson, null, 2)}\n`);
+  await development.stop();
+  await resetDatabase();
+  const restoredServer = start('development', await unusedPort());
+  try {
+    await restoredServer.ready();
+    const restoredBypass = await (await restoredServer.request('/_emdash/api/setup/dev-bypass?token=1', { method: 'POST' })).json();
+    assert.ok(restoredBypass.data?.token, 'fresh database restored from pulled seed');
+    const restoredHtml = await (await restoredServer.request('/start')).text();
+    assert.match(restoredHtml, /Edited in the admin/, 'restored database renders pulled page title');
+    assert.match(restoredHtml, /<p class="site-footer-tagline">Edited tagline<\/p>/, 'restored database renders pulled tagline');
+    assert.match(restoredHtml, /<h2>Shop plugins<\/h2>/, 'restored database renders pulled footer menu heading');
+  } finally {
+    await restoredServer.stop();
+  }
   rmSync(tempSeed, { force: true });
-  console.log('PASS seed sync: pullLiveSeed mirrors live admin edits to seed.json, and --sync-pages updates published pages with _rev while refusing to clobber waiting admin drafts');
+  console.log('PASS seed sync: pullLiveSeed mirrors live admin edits to seed.json, restores into a fresh EmDash DB, and --sync-pages updates published pages with _rev while refusing to clobber waiting admin drafts');
 } finally {
   await development.stop();
   rmSync(OLD_SEED, { force: true });

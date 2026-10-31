@@ -173,6 +173,8 @@ test('keyword search uses full text, prefers titles, and bounds results', () => 
 
 test('the seed defines the docs collection and holds the thirteen articles as drafts', async () => {
   const { docsSite } = await import('../src/docs/site.ts');
+  assert.match(docsSite.description, /Authorize\.Net planned/);
+  assert.match(docsSite.description, /with stock ledger \(DinkusKit Inventory\) planned after v1/);
   const collection = seed.collections.find(item => item.slug === 'docs');
   assert.deepEqual(collection.supports, ['drafts', 'revisions']);
   assert.deepEqual(collection.fields.map(field => [field.slug, field.type]), [

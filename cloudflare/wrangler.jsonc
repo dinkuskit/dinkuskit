@@ -11,6 +11,10 @@
     {
       "pattern": "dinkuskit.com",
       "custom_domain": true
+    },
+    {
+      "pattern": "www.dinkuskit.com",
+      "custom_domain": true
     }
   ],
   "observability": {

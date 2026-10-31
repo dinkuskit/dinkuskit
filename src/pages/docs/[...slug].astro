@@ -3,6 +3,7 @@ import { getVisibleDocs } from '../../docs/content.ts';
 import { docsSite } from '../../docs/site.ts';
 import DocsArticle from '../../docs/components/DocsArticle.astro';
 import Site from '../../layouts/Site.astro';
+import { docsArticleJsonLd } from '../../seo.ts';
 const entries = await getVisibleDocs();
 const entry = entries.find(item => item.id === Astro.params.slug);
 if (!entry) Astro.response.status = 404;
@@ -12,7 +13,14 @@ if (entry?.draft) {
 }
 ---
 {entry ? (
-  <Site title={entry.title} description={entry.summary} wide noindex={entry.draft}><DocsArticle site={docsSite} entry={entry} entries={entries} /></Site>
+  <Site
+    title={entry.title}
+    description={entry.summary}
+    wide
+    noindex={entry.draft}
+    ogType="article"
+    structured={entry.draft ? null : docsArticleJsonLd(entry)}
+  ><DocsArticle site={docsSite} entry={entry} entries={entries} /></Site>
 ) : (
-  <Site title="Page not found" description="This documentation page is not available."><div class="intro"><h1>Page not found.</h1><p>This documentation page is not available.</p><a href="/getting-started">How it works</a></div></Site>
+  <Site title="Page not found" description="This documentation page is not available." noindex><div class="intro"><h1>Page not found.</h1><p>This documentation page is not available.</p><a href="/getting-started">How it works</a></div></Site>
 )}

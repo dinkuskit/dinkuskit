@@ -245,6 +245,30 @@ test('pullLiveSeed fails explicitly when a seeded page is deleted (404), unpubli
       }),
       /Seeded menu footer-shop is missing in CMS \(HTTP 404\)/,
     );
+
+    await assert.rejects(
+      () => pullLiveSeed('https://dinkuskit.example', {
+        seedUrl,
+        check: true,
+        api: async (_method, path) => {
+          if (path === '/content/pages/home') {
+            return { status: 200, data: { item: { slug: 'home', status: 'published', data: { title: 'Home', content: [] } } } };
+          }
+          if (path === '/menus/footer-shop') {
+            return {
+              status: 200,
+              data: {
+                name: 'footer-shop',
+                label: 'Shop',
+                items: [{ type: 'content', label: 'Start', customUrl: null, sortOrder: 0 }],
+              },
+            };
+          }
+          return { status: 200, data: {} };
+        },
+      }),
+      /Unsupported footer menu item "Start" in footer-shop \(type: content\)/,
+    );
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }

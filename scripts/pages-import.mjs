@@ -398,7 +398,11 @@ export async function pullLiveSeed(origin, { seedUrl = SEED, check = false, api:
     const liveItems = [...(current.data?.items ?? [])]
       .sort((a, b) => a.sortOrder - b.sortOrder)
       .map(item => {
-        const entry = { type: item.type ?? 'custom', label: item.label, url: item.customUrl };
+        const itemType = item.type ?? 'custom';
+        if (itemType !== 'custom' || typeof item.customUrl !== 'string' || !item.customUrl.trim()) {
+          throw new Error(`Unsupported footer menu item "${item.label ?? ''}" in ${menu.name} (type: ${itemType}); footer menus require custom URL items`);
+        }
+        const entry = { type: 'custom', label: item.label, url: item.customUrl };
         if (item.cssClasses) entry.cssClasses = item.cssClasses;
         if (item.target) entry.target = item.target;
         return entry;

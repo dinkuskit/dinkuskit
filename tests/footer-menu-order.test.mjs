@@ -183,3 +183,69 @@ test('pullLiveSeed captures renamed footer menu labels and deliberately cleared 
     rmSync(dir, { recursive: true, force: true });
   }
 });
+
+test('pullLiveSeed fails explicitly when a seeded page is deleted (404), unpublished, or a seeded footer menu is missing', async () => {
+  const dir = mkdtempSync(join(tmpdir(), 'dinkuskit-seed-test-'));
+  try {
+    const seedPath = join(dir, 'seed.json');
+    const seedUrl = pathToFileURL(seedPath);
+    writeFileSync(seedPath, `${JSON.stringify({
+      content: {
+        pages: [{
+          slug: 'home',
+          status: 'published',
+          data: { title: 'Home', content: [] },
+        }],
+      },
+      menus: [{
+        name: 'footer-shop',
+        label: 'Shop',
+        items: [{ type: 'custom', label: 'Docs', url: '/docs' }],
+      }],
+      settings: { title: 'DinkusKit', tagline: 'Built with EmDash.' },
+    }, null, 2)}\n`);
+
+    await assert.rejects(
+      () => pullLiveSeed('https://dinkuskit.example', {
+        seedUrl,
+        check: true,
+        api: async (_method, path) => {
+          if (path === '/content/pages/home') return { status: 404, data: null };
+          return { status: 200, data: {} };
+        },
+      }),
+      /Seeded page home is missing in CMS \(HTTP 404\)/,
+    );
+
+    await assert.rejects(
+      () => pullLiveSeed('https://dinkuskit.example', {
+        seedUrl,
+        check: true,
+        api: async (_method, path) => {
+          if (path === '/content/pages/home') {
+            return { status: 200, data: { item: { slug: 'home', status: 'draft', data: { title: 'Home', content: [] } } } };
+          }
+          return { status: 200, data: {} };
+        },
+      }),
+      /Seeded page home is not published in CMS \(status: draft\)/,
+    );
+
+    await assert.rejects(
+      () => pullLiveSeed('https://dinkuskit.example', {
+        seedUrl,
+        check: true,
+        api: async (_method, path) => {
+          if (path === '/content/pages/home') {
+            return { status: 200, data: { item: { slug: 'home', status: 'published', data: { title: 'Home', content: [] } } } };
+          }
+          if (path === '/menus/footer-shop') return { status: 404, data: null };
+          return { status: 200, data: {} };
+        },
+      }),
+      /Seeded menu footer-shop is missing in CMS \(HTTP 404\)/,
+    );
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});

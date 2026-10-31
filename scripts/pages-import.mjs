@@ -370,12 +370,19 @@ export async function pullLiveSeed(origin, { seedUrl = SEED, check = false, api:
 
   for (const page of seed.content[COLLECTION] ?? []) {
     const found = await api('GET', `/content/${COLLECTION}/${page.slug}`);
-    if (found.status === 404) continue;
+    if (found.status === 404) {
+      throw new Error(`Seeded page ${page.slug} is missing in CMS (HTTP 404); remove it from seed/seed.json or restore it before pulling`);
+    }
     if (found.status !== 200) throw new Error(`Reading page ${page.slug} failed: HTTP ${found.status}`);
     const item = found.data?.item;
-    if (!item || item.status !== 'published') continue;
+    if (!item || item.status !== 'published') {
+      throw new Error(`Seeded page ${page.slug} is not published in CMS (status: ${item?.status ?? 'missing'}); publish it or update seed/seed.json manually`);
+    }
     const liveData = item.draftRevisionId ? item.liveData : item.data;
-    if (liveData && !isDeepStrictEqual(page.data, liveData)) {
+    if (!liveData) {
+      throw new Error(`Seeded page ${page.slug} has no live published data in CMS`);
+    }
+    if (!isDeepStrictEqual(page.data, liveData)) {
       page.data = liveData;
       changed.push(`page:${page.slug}`);
     }
@@ -383,7 +390,9 @@ export async function pullLiveSeed(origin, { seedUrl = SEED, check = false, api:
 
   for (const menu of (seed.menus ?? []).filter(item => item.name.startsWith('footer-'))) {
     const current = await api('GET', `/menus/${menu.name}`);
-    if (current.status === 404) continue;
+    if (current.status === 404) {
+      throw new Error(`Seeded menu ${menu.name} is missing in CMS (HTTP 404); restore it or remove it from seed/seed.json before pulling`);
+    }
     if (current.status !== 200) throw new Error(`Reading menu ${menu.name} failed: HTTP ${current.status}`);
     const liveLabel = typeof current.data?.label === 'string' && current.data.label.trim() ? current.data.label.trim() : menu.label;
     const liveItems = [...(current.data?.items ?? [])]

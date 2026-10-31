@@ -263,6 +263,8 @@ try {
     assert.ok(html.includes(heading), `${path}: CMS title`);
     assert.ok(html.includes('data-native-blocks'), `${path}: native blocks wrapper`);
     assert.ok(html.includes(body), `${path}: native block content rendered`);
+    assert.ok(html.includes('property="og:image" content="https://dinkuskit.com/social-card.png"'), `${path}: og:image`);
+    assert.ok(html.includes('type="application/ld+json"'), `${path}: JSON-LD structured data`);
     checks.push(`${path}: seeded CMS title and native block content on production workerd`);
     if (path === '/') {
       assert.ok(html.includes('the agent you choose help through the same tools, with only the access you give it'), 'Home describes the owner\'s own agent on the same tools, limited to the access given');
@@ -298,6 +300,18 @@ try {
   }
   // The seed loads every docs article unpublished; production serves none of them.
   assert.deepEqual(await (await request(base, '/docs/search.json')).json(), []);
+  const sitemapRes = await request(base, '/sitemap.xml');
+  assert.equal(sitemapRes.status, 200, '/sitemap.xml status');
+  const sitemapBody = await sitemapRes.text();
+  assert.ok(sitemapBody.includes('<loc>https://dinkuskit.com/</loc>'), 'sitemap includes /');
+  assert.ok(sitemapBody.includes('<loc>https://dinkuskit.com/getting-started</loc>'), 'sitemap includes /getting-started');
+  assert.ok(sitemapBody.includes('<loc>https://dinkuskit.com/start</loc>'), 'sitemap includes /start');
+  assert.ok(sitemapBody.includes('<loc>https://dinkuskit.com/terms</loc>'), 'sitemap includes /terms');
+  assert.ok(!sitemapBody.includes('/docs/'), 'sitemap excludes unpublished draft docs');
+  const robotsRes = await request(base, '/robots.txt');
+  assert.equal(robotsRes.status, 200, '/robots.txt status');
+  const robotsBody = await robotsRes.text();
+  assert.ok(robotsBody.includes('Sitemap: https://dinkuskit.com/sitemap.xml'), 'robots.txt references canonical sitemap');
   for (const path of ['/docs', '/docs/start-here', '/docs/store-owners/test-order', '/docs/reference/commerce', '/docs/markdown/start-here.md', '/docs/start-here?preview=1', '/llms.txt']) {
     const response = await request(base, path);
     assert.equal(response.status, 404, `${path}: seeded draft documentation is excluded`);

@@ -88,11 +88,11 @@
           "to": "needs_reverification"
         },
         {
-          "at": "2026-11-01T04:28:00+00:00",
+          "at": "2026-11-01T05:13:16+00:00",
           "choice": "Native CMS signup still uses operator-allowed domains. A custom AuthAdapter can implement public getAllowedDomain for general SUBSCRIBER signup without domain rows or internals. Use exported requestSignup/completeSignup/sendMagicLink/verifyMagicLink through that adapter. SignupConfig cannot configure native CMS URLs; record that coupling without calling the helpers internal. Native tokens remain opaque CMS credentials, not service JWTs. Keep DinkusKit-owned account IDs, site-control-before-grant, and a narrow proof-labeled JWT bridge. Do not ship homemade signup/session as a product auth platform or add a public login route. Native browser/provider integration remains unproven; recommend Better Auth as the next maintained provider proof.",
           "from": "needs_reverification",
           "implementation_ref": "file:src/account/;file:tests/;file:scripts/merchant-auth-proof.mjs;file:docs/authentication-research.md;file:docs/CHARTER.md;file:proof/merchant-auth-proof/README.md",
-          "note": "It is pinned to 'EmDash 1.0.1', a 'bounded repair' and 'recommend Better Auth as the next maintained provider proof', but merchant-better-auth-008 and later work already adopted Better Auth, so agents are told the provider is unproven.",
+          "note": "Superseded by merchant-better-auth-008.",
           "repair_required": false,
           "review_classifications": [],
           "review_ref": null,
@@ -141,7 +141,7 @@
       "review_source_identity": null,
       "status": "superseded",
       "superseded_by": "merchant-better-auth-008",
-      "updated_at": "2026-11-01T04:28:00+00:00",
+      "updated_at": "2026-11-01T05:13:16+00:00",
       "verification_ref": null
     },
     {
@@ -755,7 +755,7 @@
       "choice": "Use a required service/contact channel choice, separate unchecked optional email and SMS promotions, and a separate agreement. Phone SMS remains unavailable pending qualification of the selected dedicated transport; email qualification must continue without it.",
       "context_ref": "file:docs/merchant-account-model.md",
       "created_at": "2026-10-07T01:45:12+00:00",
-      "deferred_reason": "'Phone SMS remains unavailable pending qualification' freezes a temporary transport-readiness pause as active law, and the durable consent rules it repeats are already held by merchant-signup-contact-016.",
+      "deferred_reason": "Sequencing pause from prior grill session; deferred until explicitly reopened.",
       "delivery_ref": null,
       "dependencies": [
         "merchant-signup-contact-016"
@@ -933,11 +933,11 @@
           "to": "needs_reverification"
         },
         {
-          "at": "2026-11-01T04:28:00+00:00",
+          "at": "2026-11-01T05:13:18+00:00",
           "choice": "Use a required service/contact channel choice, separate unchecked optional email and SMS promotions, and a separate agreement. Phone SMS remains unavailable pending qualification of the selected dedicated transport; email qualification must continue without it.",
           "from": "needs_reverification",
           "implementation_ref": "file:migrations/merchant/0004_account_foundation.sql;file:src/account/migration-sql.ts;file:tests/merchant-migrations.test.mjs;file:.grilltrack/work/account-foundation-20261006/MIGRATION-REVIEW-ADJUDICATION.md",
-          "note": "'Phone SMS remains unavailable pending qualification' freezes a temporary transport-readiness pause as active law, and the durable consent rules it repeats are already held by merchant-signup-contact-016.",
+          "note": "Sequencing pause from prior grill session; deferred until explicitly reopened.",
           "repair_required": false,
           "review_classifications": [],
           "review_ref": null,
@@ -1014,7 +1014,7 @@
       "review_source_identity": null,
       "status": "deferred",
       "superseded_by": null,
-      "updated_at": "2026-11-01T04:28:00+00:00",
+      "updated_at": "2026-11-01T05:13:18+00:00",
       "verification_ref": null
     },
     {
@@ -2078,7 +2078,7 @@
       "choice": "Select the dedicated-phone SMS route for later qualification only. Website owns OTP expiry, attempt, rate, and one-use rules; no live SMS, provider, device assignment, or fake supported transport is implemented in this slice.",
       "context_ref": "file:docs/merchant-account-model.md",
       "created_at": "2026-10-07T01:56:19+00:00",
-      "deferred_reason": "'Select the dedicated-phone SMS route for later qualification only' and 'no live SMS... in this slice' is a sequencing pause that a locked status turns into an active prohibition.",
+      "deferred_reason": "Sequencing pause from prior grill session; deferred until explicitly reopened.",
       "delivery_ref": null,
       "dependencies": [
         "merchant-signup-contact-016",
@@ -2187,11 +2187,11 @@
           "to": "needs_reverification"
         },
         {
-          "at": "2026-11-01T04:28:00+00:00",
+          "at": "2026-11-01T05:13:19+00:00",
           "choice": "Select the dedicated-phone SMS route for later qualification only. Website owns OTP expiry, attempt, rate, and one-use rules; no live SMS, provider, device assignment, or fake supported transport is implemented in this slice.",
           "from": "needs_reverification",
           "implementation_ref": "file:migrations/merchant/0004_account_foundation.sql;file:src/account/migration-sql.ts;file:tests/merchant-migrations.test.mjs;file:.grilltrack/work/account-foundation-20261006/MIGRATION-REVIEW-ADJUDICATION.md",
-          "note": "'Select the dedicated-phone SMS route for later qualification only' and 'no live SMS... in this slice' is a sequencing pause that a locked status turns into an active prohibition.",
+          "note": "Sequencing pause from prior grill session; deferred until explicitly reopened.",
           "repair_required": false,
           "review_classifications": [],
           "review_ref": null,
@@ -2254,7 +2254,7 @@
       "review_source_identity": null,
       "status": "deferred",
       "superseded_by": null,
-      "updated_at": "2026-11-01T04:28:00+00:00",
+      "updated_at": "2026-11-01T05:13:19+00:00",
       "verification_ref": null
     },
     {
@@ -3094,7 +3094,7 @@
       "choice": "Record long-term intent for three possible subscription tiers differentiated by included sites and/or Inventory pools as an incentive. Leave prices, counts, eligibility, enforcement, billing, trial treatment, and whether user seats are quota dimensions undecided; add no billing framework or runtime.",
       "context_ref": "file:docs/product-roadmap.md",
       "created_at": "2026-10-07T01:15:29+00:00",
-      "deferred_reason": "It locks 'three possible subscription tiers' while 'prices, counts, eligibility, enforcement, billing... undecided' and its own rationale says 'future intent only', so a locked status makes an unresolved roadmap idea look settled.",
+      "deferred_reason": "Sequencing pause from prior grill session; deferred until explicitly reopened.",
       "delivery_ref": null,
       "dependencies": [
         "merchant-membership-013"
@@ -3144,11 +3144,11 @@
           "to": "needs_reverification"
         },
         {
-          "at": "2026-11-01T04:28:00+00:00",
+          "at": "2026-11-01T05:13:19+00:00",
           "choice": "Record long-term intent for three possible subscription tiers differentiated by included sites and/or Inventory pools as an incentive. Leave prices, counts, eligibility, enforcement, billing, trial treatment, and whether user seats are quota dimensions undecided; add no billing framework or runtime.",
           "from": "needs_reverification",
           "implementation_ref": null,
-          "note": "It locks 'three possible subscription tiers' while 'prices, counts, eligibility, enforcement, billing... undecided' and its own rationale says 'future intent only', so a locked status makes an unresolved roadmap idea look settled.",
+          "note": "Sequencing pause from prior grill session; deferred until explicitly reopened.",
           "repair_required": false,
           "review_classifications": [],
           "review_ref": null,
@@ -3187,7 +3187,7 @@
       "review_source_identity": null,
       "status": "deferred",
       "superseded_by": null,
-      "updated_at": "2026-11-01T04:28:00+00:00",
+      "updated_at": "2026-11-01T05:13:19+00:00",
       "verification_ref": null
     },
     {
@@ -3619,11 +3619,11 @@
           "to": "needs_reverification"
         },
         {
-          "at": "2026-11-01T04:28:00+00:00",
+          "at": "2026-11-01T05:13:16+00:00",
           "choice": "Inventory is Coming soon and develops concurrently without holding Commerce v1. Plan hosted onboarding and a documented open-source self-hosted path; use the verified release matrix for payments, checkout, shipping, coupons and bundles. Pricing, billing and exact hosted rollout remain undecided.",
           "from": "needs_reverification",
           "implementation_ref": "file:seed/seed.json;file:docs/getting-started.md;scope:availability guidance, coordinated release matrix pending",
-          "note": "'Inventory is Coming soon', 'develops concurrently without holding Commerce v1' and 'Pricing, billing and exact hosted rollout remain undecided' come from a 2026-09-30 plan and no longer match the shipped store-connect and rollout decisions.",
+          "note": "Superseded by store-connect-rollout-084.",
           "repair_required": false,
           "review_classifications": [],
           "review_ref": null,
@@ -3662,7 +3662,7 @@
       "review_source_identity": null,
       "status": "superseded",
       "superseded_by": "store-connect-rollout-084",
-      "updated_at": "2026-11-01T04:28:00+00:00",
+      "updated_at": "2026-11-01T05:13:16+00:00",
       "verification_ref": null
     },
     {
@@ -3787,7 +3787,7 @@
       "choice": "No. Set up Commerce shows Coupons as coming soon with no Turn on button, and the page refuses a request to turn it on. Payments and Ship work as decided in 043. The store-passes route still answers coupons:checkout for a store that has Coupons on, so offering Coupons again later is only a page change.",
       "context_ref": "file:docs/shared-store-connections.md",
       "created_at": "2026-10-10T22:34:24+00:00",
-      "deferred_reason": "'Coupons as coming soon with no Turn on button' rests on Commerce's v1 build refusing every coupon code, a temporary state recorded as a standing ruling that could mislead once coupons are unhooked or replaced by an add-ons door.",
+      "deferred_reason": "Sequencing pause from prior grill session; deferred until explicitly reopened.",
       "delivery_ref": null,
       "dependencies": [
         "website-store-services-opt-in-043"
@@ -3851,11 +3851,11 @@
           "to": "needs_reverification"
         },
         {
-          "at": "2026-11-01T04:28:00+00:00",
+          "at": "2026-11-01T05:13:18+00:00",
           "choice": "No. Set up Commerce shows Coupons as coming soon with no Turn on button, and the page refuses a request to turn it on. Payments and Ship work as decided in 043. The store-passes route still answers coupons:checkout for a store that has Coupons on, so offering Coupons again later is only a page change.",
           "from": "needs_reverification",
           "implementation_ref": "file:src/account/config.ts;file:src/pages/account/sites.astro;file:docs/shared-store-connections.md",
-          "note": "'Coupons as coming soon with no Turn on button' rests on Commerce's v1 build refusing every coupon code, a temporary state recorded as a standing ruling that could mislead once coupons are unhooked or replaced by an add-ons door.",
+          "note": "Sequencing pause from prior grill session; deferred until explicitly reopened.",
           "repair_required": false,
           "review_classifications": [],
           "review_ref": null,
@@ -3894,7 +3894,7 @@
       "review_source_identity": null,
       "status": "deferred",
       "superseded_by": null,
-      "updated_at": "2026-11-01T04:28:00+00:00",
+      "updated_at": "2026-11-01T05:13:18+00:00",
       "verification_ref": null
     },
     {
@@ -4459,11 +4459,11 @@
           "to": "needs_reverification"
         },
         {
-          "at": "2026-11-01T04:28:00+00:00",
+          "at": "2026-11-01T05:13:15+00:00",
           "choice": "Upgrade direct core, Cloudflare and auth packages to exact 1.2.0 with public transitive dependencies. Preserve existing CMS content, media references, settings and plugin state without reseeding; preserve merchant organization, membership and site grants. Prove local pending core migrations, restart preservation, signed-in versus anonymous responses and selected organization isolation. Keep metadata-only Inventory behavior and absent live purpose runtime. Retain historical 1.0.1 evidence and require current checks and reviews. No new signer, authorization, grant, live endpoint, deployment or cross-repository feature.",
           "from": "needs_reverification",
           "implementation_ref": "file:package.json; scripts/lib/emdash-upgrade-fixture.mjs; scripts/cms-operation-fixture.mjs",
-          "note": "It still directs 'exact 1.2.0' upgrades and 'Retain historical 1.0.1 evidence', but website-emdash14-20261030 moves the site to 1.4.0 and this upgrade chore is long done.",
+          "note": "Superseded by website-emdash14-20261030.",
           "repair_required": false,
           "review_classifications": [],
           "review_ref": null,
@@ -4512,7 +4512,7 @@
       "review_source_identity": null,
       "status": "superseded",
       "superseded_by": "website-emdash14-20261030",
-      "updated_at": "2026-11-01T04:28:00+00:00",
+      "updated_at": "2026-11-01T05:13:15+00:00",
       "verification_ref": null
     },
     {
@@ -4521,7 +4521,7 @@
       "choice": "Retain subscription management and a standalone multi-store inventory portal as future possibilities. They require stable shared identity, but billing, pricing, team roles and portal screens are outside the current scaffold. The initial Inventory trial requires no payment details; limits and pricing are undecided.",
       "context_ref": "file:docs/CHARTER.md",
       "created_at": "2026-09-30T02:14:17+00:00",
-      "deferred_reason": "It records 'future possibilities' (subscriptions, standalone inventory portal, 'limits and pricing are undecided') as a non-deferred decision, turning a sequencing pause into an active scope boundary.",
+      "deferred_reason": "Sequencing pause from prior grill session; deferred until explicitly reopened.",
       "delivery_ref": null,
       "dependencies": [],
       "domain": "Runnable EmDash website scaffold and shared account boundaries",
@@ -4562,11 +4562,11 @@
           "to": "needs_reverification"
         },
         {
-          "at": "2026-11-01T04:28:00+00:00",
+          "at": "2026-11-01T05:13:17+00:00",
           "choice": "Retain subscription management and a standalone multi-store inventory portal as future possibilities. They require stable shared identity, but billing, pricing, team roles and portal screens are outside the current scaffold. The initial Inventory trial requires no payment details; limits and pricing are undecided.",
           "from": "needs_reverification",
           "implementation_ref": null,
-          "note": "It records 'future possibilities' (subscriptions, standalone inventory portal, 'limits and pricing are undecided') as a non-deferred decision, turning a sequencing pause into an active scope boundary.",
+          "note": "Sequencing pause from prior grill session; deferred until explicitly reopened.",
           "repair_required": false,
           "review_classifications": [],
           "review_ref": null,
@@ -4605,7 +4605,7 @@
       "review_source_identity": null,
       "status": "deferred",
       "superseded_by": null,
-      "updated_at": "2026-11-01T04:28:00+00:00",
+      "updated_at": "2026-11-01T05:13:17+00:00",
       "verification_ref": null
     },
     {
@@ -4791,11 +4791,11 @@
           "to": "needs_reverification"
         },
         {
-          "at": "2026-11-01T04:28:00+00:00",
+          "at": "2026-11-01T05:13:15+00:00",
           "choice": "Build selected-organization and independently authorized single-organization operator metadata screens using a dedicated read-token/transport seam. Require current server-owned organization mapping and purpose-specific grants; merchant membership, CMS access and broad inventory:admin alone never confer overview read authority. Prove signed synthetic local reads, isolation, timestamps, available empty and unavailable states. Keep real principals/grant provider, signing trust, fixed hosted endpoint and activation unavailable pending a separate concrete activation approval. No products, SKUs, stock, bulk directory, billing, suspension, recovery or deletion execution.",
           "from": "needs_reverification",
           "implementation_ref": "proof/inventory-overview/FRESHNESS-REPAIR.md; src/account/inventory-overview.ts",
-          "note": "It prescribes a read-token operator metadata screen 'pending a separate concrete activation approval', while website-operator-admin-emdash-access-035 retires the hand-granted operator directory and moves the operator into the EmDash admin, leaving 13 history entries of drift.",
+          "note": "Superseded by website-operator-admin-emdash-access-035.",
           "repair_required": false,
           "review_classifications": [],
           "review_ref": null,
@@ -4856,7 +4856,7 @@
       "review_source_identity": null,
       "status": "superseded",
       "superseded_by": "website-operator-admin-emdash-access-035",
-      "updated_at": "2026-11-01T04:28:00+00:00",
+      "updated_at": "2026-11-01T05:13:15+00:00",
       "verification_ref": null
     },
     {
@@ -5058,11 +5058,11 @@
           "to": "needs_reverification"
         },
         {
-          "at": "2026-11-01T04:28:00+00:00",
+          "at": "2026-11-01T05:13:15+00:00",
           "choice": "Preserve the approved design; qualify actual persistent EmDash content management with safe operator editing and understandable installation/theme/storefront guidance. The static introduction remains an honest initial release.",
           "from": "needs_reverification",
           "implementation_ref": "file:scripts/cms-operation-fixture.mjs;file:docs/getting-started.md;scope:local qualification and candidate, hosted operation pending",
-          "note": "'The static introduction remains an honest initial release' and the 2026-09-30 usable-site plan predate the live CMS-driven, redesigned site, so agents may treat the static intro as current.",
+          "note": "Superseded by website-design-20261023.",
           "repair_required": false,
           "review_classifications": [],
           "review_ref": null,
@@ -5101,7 +5101,7 @@
       "review_source_identity": null,
       "status": "superseded",
       "superseded_by": "website-design-20261023",
-      "updated_at": "2026-11-01T04:28:00+00:00",
+      "updated_at": "2026-11-01T05:13:15+00:00",
       "verification_ref": null
     },
     {
@@ -5902,11 +5902,11 @@
           "to": "needs_reverification"
         },
         {
-          "at": "2026-11-01T04:28:00+00:00",
+          "at": "2026-11-01T05:13:16+00:00",
           "choice": "The operator admin lists stores with one column per service: Payments, Inventory, Coupons and Ship. Coupons and Ship stay empty, marked 'cannot connect yet', until they get DinkusKit.com passes; adding them later needs no change to the view's shape.",
           "from": "needs_reverification",
           "implementation_ref": "file:src/operator-admin/pages.ts",
-          "note": "It says Coupons and Ship stay 'cannot connect yet', yet the Connect decisions let Ship connect with ship:admin and Coupons is now 'coming soon', so the operator view's described columns are out of date.",
+          "note": "Superseded by store-connect-per-plugin-key-080.",
           "repair_required": false,
           "review_classifications": [],
           "review_ref": null,
@@ -5945,7 +5945,7 @@
       "review_source_identity": null,
       "status": "superseded",
       "superseded_by": "store-connect-per-plugin-key-080",
-      "updated_at": "2026-11-01T04:28:00+00:00",
+      "updated_at": "2026-11-01T05:13:16+00:00",
       "verification_ref": null
     },
     {
@@ -6919,11 +6919,11 @@
           "to": "needs_reverification"
         },
         {
-          "at": "2026-11-01T04:28:00+00:00",
+          "at": "2026-11-01T05:13:14+00:00",
           "choice": "Prepare the current two public EmDash pages as a frozen Workers Static Assets release for dinkuskit.com. Merchant accounts, hosted Connect, service activation and payments remain unavailable. Source remains EmDash/native blocks; changes require rebuild and republication.",
           "from": "needs_reverification",
           "implementation_ref": "file:scripts/prepare-public-release.mjs;file:scripts/test-public-release-reuse.mjs",
-          "note": "It still says 'frozen Workers Static Assets release' with 'merchant accounts, hosted Connect... remain unavailable', but later decisions (test-mode deploy 031, production Connect 032, store passes) have a merchant sign-up and Connect surface on dinkuskit.com.",
+          "note": "Superseded by website-production-store-connect-032.",
           "repair_required": false,
           "review_classifications": [],
           "review_ref": null,
@@ -6991,7 +6991,7 @@
       "review_source_identity": null,
       "status": "superseded",
       "superseded_by": "website-production-store-connect-032",
-      "updated_at": "2026-11-01T04:28:00+00:00",
+      "updated_at": "2026-11-01T05:13:14+00:00",
       "verification_ref": null
     },
     {
@@ -7861,11 +7861,11 @@
           "to": "needs_reverification"
         },
         {
-          "at": "2026-11-01T04:28:00+00:00",
+          "at": "2026-11-01T05:13:14+00:00",
           "choice": "One key covers Payments checkout, Coupons and Ship, but each service is on or off separately, so a store can use any one, two or all three. Payments is on while the store's Payments Connect is active. The owner turns Coupons and Ship on and off in Set up Commerce, and turning one on is the owner's consent for that service. A pass is refused for a service that is off, for an operator cut-off (until the operator restores it and the owner turns it on again), and for a suspended business or owner.",
           "from": "needs_reverification",
           "implementation_ref": "file:src/account/store-passes.ts;file:src/pages/account/sites.astro;file:src/account/operator-admin.ts;file:src/operator-admin/pages.ts;file:docs/shared-store-connections.md",
-          "note": "It still says 'One key covers Payments checkout, Coupons and Ship', but its sibling 042 was superseded by store-connect-per-plugin-key-080, so the single-key premise is dead while this stays unsuperseded.",
+          "note": "Superseded by store-connect-per-plugin-key-080.",
           "repair_required": false,
           "review_classifications": [],
           "review_ref": null,
@@ -7904,7 +7904,7 @@
       "review_source_identity": null,
       "status": "superseded",
       "superseded_by": "store-connect-per-plugin-key-080",
-      "updated_at": "2026-11-01T04:28:00+00:00",
+      "updated_at": "2026-11-01T05:13:14+00:00",
       "verification_ref": null
     },
     {
@@ -7982,11 +7982,11 @@
           "to": "needs_reverification"
         },
         {
-          "at": "2026-11-01T04:28:00+00:00",
+          "at": "2026-11-01T05:13:14+00:00",
           "choice": "Commerce v1 and Template Store release as an exact verified pair. Consume the coordinator handoff and add verified real Try the demo and Use this template/setup paths for the actual interactive frontend, using synthetic content and explicit safe demo behavior; no unavailable inventory or real charges.",
           "from": "needs_reverification",
           "implementation_ref": "file:seed/seed.json;file:README.md;file:docs/getting-started.md;file:docs/CHARTER.md;file:scripts/smoke.mjs;file:scripts/test-safe-http-url.mjs",
-          "note": "It demands verified 'Try the demo' and 'Use this template' paths from a 'coordinator handoff' under a 'bounded website follow-up' with 'no current frozen candidate expansion', a one-time launch-era instruction whose demo and Template Store surfaces may no longer exist.",
+          "note": "Superseded by website-start-pages-20261027.",
           "repair_required": false,
           "review_classifications": [],
           "review_ref": null,
@@ -8025,7 +8025,7 @@
       "review_source_identity": null,
       "status": "superseded",
       "superseded_by": "website-start-pages-20261027",
-      "updated_at": "2026-11-01T04:28:00+00:00",
+      "updated_at": "2026-11-01T05:13:14+00:00",
       "verification_ref": null
     },
     {
@@ -8203,11 +8203,11 @@
           "to": "needs_reverification"
         },
         {
-          "at": "2026-11-01T04:28:00+00:00",
+          "at": "2026-11-01T05:13:14+00:00",
           "choice": "Retain the current light background, green accents, typography and simple layout shown in the inspected public preview.",
           "from": "needs_reverification",
           "implementation_ref": "file:design.md;file:docs/CHARTER.md",
-          "note": "It pins the 'current light background' as 'shown in the inspected public preview', which is a point-in-time snapshot that conflicts with the later light/dark switch decision (website-theme-switch-20261023) and with 005's 'visual styling is provisional'.",
+          "note": "Superseded by website-theme-switch-20261023.",
           "repair_required": false,
           "review_classifications": [],
           "review_ref": null,
@@ -8254,7 +8254,7 @@
       "review_source_identity": null,
       "status": "superseded",
       "superseded_by": "website-theme-switch-20261023",
-      "updated_at": "2026-11-01T04:28:00+00:00",
+      "updated_at": "2026-11-01T05:13:14+00:00",
       "verification_ref": null
     },
     {
@@ -9070,11 +9070,11 @@
           "verification_ref": null
         },
         {
-          "at": "2026-11-01T04:28:00+00:00",
+          "at": "2026-11-01T05:13:15+00:00",
           "choice": "Repository-owned Markdown in an Astro content collection; reuse Site styles with expandable grouped left navigation, search, active article, contextual contents and accessible mobile drawer. Draft thirteen articles using pinned module sources. Show drafts only in local development, exclude them from production HTML and all public machine outputs. Prepare native Markdown, search and llms.txt selection; docs MCP and runtime product proof remain separate follow-up work.",
           "from": "implemented",
           "implementation_ref": "file:docs/documentation-authoring.md",
-          "note": "It still prescribes 'Repository-owned Markdown in an Astro content collection' and 'Draft thirteen articles', but website-docs-collection-075 moved the docs into an EmDash collection and removed src/content/docs.",
+          "note": "Superseded by website-docs-collection-075.",
           "repair_required": false,
           "review_classifications": [],
           "review_ref": null,
@@ -9096,7 +9096,7 @@
       "review_source_identity": null,
       "status": "superseded",
       "superseded_by": "website-docs-collection-075",
-      "updated_at": "2026-11-01T04:28:00+00:00",
+      "updated_at": "2026-11-01T05:13:15+00:00",
       "verification_ref": null
     },
     {
@@ -9153,6 +9153,20 @@
           "review_source_identity": null,
           "to": "verified",
           "verification_ref": null
+        },
+        {
+          "at": "2026-11-01T05:13:15+00:00",
+          "choice": "Add editorial update dates and a compact copy/view Markdown row using the canonical article renderer; preview draft Markdown only in local development with noindex/no-store and preserve production exclusion. Correct source review, delivery and deployment records. Verify the exact changes on Node 22.23.2, update the existing fork PR with authorship preserved, and keep all thirteen articles draft. No merge, deployment, publication, MCP expansion or product changes.",
+          "from": "verified",
+          "implementation_ref": "file:docs/documentation-authoring.md",
+          "note": "dependency website-docs-drafts-073 changed: Superseded by website-docs-collection-075.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "needs_reverification",
+          "verification_ref": "file:proof/documentation-drafts/PROOF.md"
         }
       ],
       "id": "website-docs-review-074",
@@ -9165,9 +9179,9 @@
       "review_ref": null,
       "review_result": null,
       "review_source_identity": null,
-      "status": "verified",
+      "status": "needs_reverification",
       "superseded_by": null,
-      "updated_at": "2026-10-19T19:38:29+00:00",
+      "updated_at": "2026-11-01T05:13:15+00:00",
       "verification_ref": "file:proof/documentation-drafts/PROOF.md"
     },
     {
@@ -9210,6 +9224,20 @@
           "review_source_identity": null,
           "to": "implemented",
           "verification_ref": null
+        },
+        {
+          "at": "2026-11-01T05:13:15+00:00",
+          "choice": "Docs live in an EmDash collection 'docs' defined only in seed/seed.json (drafts and revisions) with fields title, summary, audience, product, version_scope (EmDash reserves 'version'), section (select of the six sidebar groups), order (integer), nav_label (optional short sidebar name, falls back to title) and body (Portable Text: headings, lists, links, tables, code). EmDash's Publish replaces the draft flag and the entry's last-saved time replaces the updated date. The thirteen articles are converted once from Markdown and loaded as unpublished drafts: the seed carries them for new and local databases, and a one-time script loads the collection and drafts into an existing site through the EmDash API. src/content/docs and src/content.config.ts are removed. Today's /docs URLs stay: entry slug under a fixed folder per section (store-owners, developers, reference). Page, sidebar, search, Markdown export, Copy and View buttons and llms.txt read one list of published entries (drafts too only in local development). Docs code stays in src/docs with a single site config file so it can become a plugin or starter later. No deploy, live import or publication in this change.",
+          "from": "implemented",
+          "implementation_ref": "file:docs/documentation-authoring.md",
+          "note": "dependency website-docs-drafts-073 changed: Superseded by website-docs-collection-075.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "needs_reverification",
+          "verification_ref": null
         }
       ],
       "id": "website-docs-collection-075",
@@ -9222,9 +9250,9 @@
       "review_ref": null,
       "review_result": null,
       "review_source_identity": null,
-      "status": "implemented",
+      "status": "needs_reverification",
       "superseded_by": null,
-      "updated_at": "2026-10-19T21:26:44+00:00",
+      "updated_at": "2026-11-01T05:13:15+00:00",
       "verification_ref": null
     },
     {
@@ -9367,6 +9395,20 @@
           "review_source_identity": null,
           "to": "verified",
           "verification_ref": null
+        },
+        {
+          "at": "2026-11-01T05:13:15+00:00",
+          "choice": "A doc change is a file docs/updates/<article id>.md in a dinkuskit/dinkuskit PR: the article's fields as frontmatter (version_scope must name a release such as 'Commerce 0.3.0' or 'Requires Commerce 0.4.0', or say 'Unreleased'), the body as Markdown converted with src/docs/portable-text.ts, and base = the sha256 of the article's public Markdown export when the PR was written ('new' for a new article); npm run docs:pull -- <article id> writes the file from the public export. A plugin PR carries a 'Docs impact' line linking to that PR or saying 'none, because ...' (PR template; dinkuskit/dinkuskit first, then Commerce and Ship only, tracker #64). On a push to main, one serialized GitHub workflow (no cancelling) checks out the newest main and reconciles every update file against the site through the EmDash API with a Cloudflare Access service token (Editor via EMDASH_OPERATOR_SERVICE_TOKENS): live export equals the file's own render = already done, skip; live equals base and no unpublished admin draft waits = save with EmDash _rev and Publish; anything else (changed in the admin, a draft waiting, a 409) = stop for that article and open or update one GitHub issue, never overwrite. All 13 articles are published (Ronald, 21 Oct); a merged file publishes its article whether new or existing. After a publish, and on the 1st and 15th of each month, a freshness check confirms the article page, Markdown export, search.json and llms.txt match each update file; a live export still equal to base means the publish lagged or failed, so it retries once, then opens an issue. No new collection fields, no seed re-import, no deploy; nothing publishes until Ronald adds the service token secret. Status-text cleanup in plugin repos is later, one small PR per repo, Commerce and Ship first.",
+          "from": "verified",
+          "implementation_ref": "git:cf16f3a08e68581465c6f3ce24fe7885a1914f3e",
+          "note": "dependency website-docs-drafts-073 changed: Superseded by website-docs-collection-075.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "needs_reverification",
+          "verification_ref": "url:https://github.com/dinkuskit/dinkuskit/pull/65"
         }
       ],
       "id": "website-docs-sync-077",
@@ -9379,9 +9421,9 @@
       "review_ref": null,
       "review_result": null,
       "review_source_identity": null,
-      "status": "verified",
+      "status": "needs_reverification",
       "superseded_by": null,
-      "updated_at": "2026-10-21T03:07:09+00:00",
+      "updated_at": "2026-11-01T05:13:15+00:00",
       "verification_ref": "url:https://github.com/dinkuskit/dinkuskit/pull/65"
     },
     {
@@ -10149,6 +10191,20 @@
           "review_source_identity": null,
           "to": "locked",
           "verification_ref": null
+        },
+        {
+          "at": "2026-11-01T05:13:15+00:00",
+          "choice": "1) Each plugin repo (Commerce, Payments, Ship first) keeps its reference article as a docs update file (same format as dinkuskit docs/updates/reference/<plugin>.md), edited in the same PR as the code it describes, so ClawSweeper and Ronald review docs and code together (EmDash practice). 2) ClawSweeper records docs as up to date, missing or not applicable on each plugin PR; missing is a finding to fix before merge, not a hard CI block (OpenClaw practice). 3) Only a stable release publishes: the plugin's release workflow copies the reviewed article at the release tag into dinkuskit docs/updates and pushes it to dinkuskit main with no second review PR; Docs publish then runs as today, keeping its base/_rev guard (an admin edit opens an issue and changes nothing). Main is ahead of the Registry, so nothing publishes on merge. 4) Articles that span plugins (start-here, store-owners/*, developers/*, troubleshooting) stay in dinkuskit, edited there. 5) Version alarm, interim: the twice-monthly Docs publish check compares each article's version_scope with the Registry's latest stable releases and opens one issue per article that is behind. 6) Later checkpoint, not part of this build: benchmark the self-hosted documentation assistant against a subscription model on the same docs-maintenance cases (find stale lines after a release, propose correct replacement text). Goal: a final setup like OpenClaw's, where a docs agent runs daily and keeps every article current; once the chosen agent passes the benchmark and runs daily, the twice-monthly alarm in 5 is retired. The agent's write authority and model choice are decided at that checkpoint.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "dependency website-docs-drafts-073 changed: Superseded by website-docs-collection-075.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "needs_reverification",
+          "verification_ref": null
         }
       ],
       "id": "website-docs-from-plugin-releases-086",
@@ -10161,9 +10217,9 @@
       "review_ref": null,
       "review_result": null,
       "review_source_identity": null,
-      "status": "locked",
+      "status": "needs_reverification",
       "superseded_by": null,
-      "updated_at": "2026-10-25T20:58:04+00:00",
+      "updated_at": "2026-11-01T05:13:15+00:00",
       "verification_ref": null
     },
     {
@@ -10172,7 +10228,7 @@
       "choice": "Before 0.7.0 stable: lock these decisions and publish the dependency/ownership map; nothing changes Commerce's permissions. Then the commerce#197 reliability fixes ride 0.7.x betas, Smoky Club makes its first sale, and only then is the reference deployment built and proved. Source changes and local tests may start any time; creating Cloudflare accounts, keys, deploys and outside traffic each need Ronald's go, and .github#18 authorizes no production deploy or purchase.",
       "context_ref": "artifact:https://claude.ai/artifact/3EXUqt3cVXQn6wjoQV34zg",
       "created_at": "2026-10-27T19:20:48+00:00",
-      "deferred_reason": "'Before 0.7.0 stable... Then the commerce#197 fixes... Smoky Club makes its first sale, and only then is the reference deployment built' is a time-ordered pause that a locked status makes read like a permanent prohibition on building the deployment.",
+      "deferred_reason": "Sequencing pause from prior grill session; deferred until explicitly reopened.",
       "delivery_ref": null,
       "dependencies": [],
       "domain": "Merchant-owned Cloudflare deployment (dinkuskit/.github#18)",
@@ -10192,11 +10248,11 @@
           "verification_ref": null
         },
         {
-          "at": "2026-11-01T04:28:00+00:00",
+          "at": "2026-11-01T05:13:21+00:00",
           "choice": "Before 0.7.0 stable: lock these decisions and publish the dependency/ownership map; nothing changes Commerce's permissions. Then the commerce#197 reliability fixes ride 0.7.x betas, Smoky Club makes its first sale, and only then is the reference deployment built and proved. Source changes and local tests may start any time; creating Cloudflare accounts, keys, deploys and outside traffic each need Ronald's go, and .github#18 authorizes no production deploy or purchase.",
           "from": "locked",
           "implementation_ref": null,
-          "note": "'Before 0.7.0 stable... Then the commerce#197 fixes... Smoky Club makes its first sale, and only then is the reference deployment built' is a time-ordered pause that a locked status makes read like a permanent prohibition on building the deployment.",
+          "note": "Sequencing pause from prior grill session; deferred until explicitly reopened.",
           "repair_required": false,
           "review_classifications": [],
           "review_ref": null,
@@ -10218,7 +10274,7 @@
       "review_source_identity": null,
       "status": "deferred",
       "superseded_by": null,
-      "updated_at": "2026-11-01T04:28:00+00:00",
+      "updated_at": "2026-11-01T05:13:21+00:00",
       "verification_ref": null
     },
     {
@@ -10350,7 +10406,7 @@
       "choice": "Ronald's dad (tsaari71), when the reference deployment is ready.",
       "context_ref": "artifact:https://claude.ai/artifact/3EXUqt3cVXQn6wjoQV34zg",
       "created_at": "2026-10-27T19:20:49+00:00",
-      "deferred_reason": "Naming a specific person as the second operator 'when the reference deployment is ready' is a conditional future task, not a product invariant, and it will mislead agents once the plan or person changes.",
+      "deferred_reason": "Sequencing pause from prior grill session; deferred until explicitly reopened.",
       "delivery_ref": null,
       "dependencies": [],
       "domain": "Merchant-owned Cloudflare deployment (dinkuskit/.github#18)",
@@ -10370,11 +10426,11 @@
           "verification_ref": null
         },
         {
-          "at": "2026-11-01T04:28:00+00:00",
+          "at": "2026-11-01T05:13:20+00:00",
           "choice": "Ronald's dad (tsaari71), when the reference deployment is ready.",
           "from": "locked",
           "implementation_ref": null,
-          "note": "Naming a specific person as the second operator 'when the reference deployment is ready' is a conditional future task, not a product invariant, and it will mislead agents once the plan or person changes.",
+          "note": "Sequencing pause from prior grill session; deferred until explicitly reopened.",
           "repair_required": false,
           "review_classifications": [],
           "review_ref": null,
@@ -10396,7 +10452,7 @@
       "review_source_identity": null,
       "status": "deferred",
       "superseded_by": null,
-      "updated_at": "2026-11-01T04:28:00+00:00",
+      "updated_at": "2026-11-01T05:13:20+00:00",
       "verification_ref": null
     },
     {
@@ -10824,6 +10880,20 @@
           "review_source_identity": null,
           "to": "verified",
           "verification_ref": null
+        },
+        {
+          "at": "2026-11-01T05:13:15+00:00",
+          "choice": "Upgrade emdash, @emdash-cms/cloudflare and auth to exact 1.4.0 with public transitive dependencies; move the upgrade fixture baseline and audit checks to 1.4.0. No new core migrations exist between 1.2.0 and 1.4.0. Preserve CMS content, media, settings, plugin state and merchant organizations, memberships and site grants without reseeding. Keep the DinkusGuide plugin peer range. No new signer, authorization, grant, live endpoint or cross-repository feature; deployment stays a separate operator step.",
+          "from": "verified",
+          "implementation_ref": "branch claude/project-thread-xpqbvh: exact 1.4.0 pins, lockfile, audit/fixture baselines and docs",
+          "note": "dependency website-emdash12-025 changed: Superseded by website-emdash14-20261030.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "needs_reverification",
+          "verification_ref": "Local npm run verify steps on Node 24.22.0 passed (audit, typecheck, build, smoke, dev-cms, merchant, shared-store, cms-operation, emdash-upgrade 'Upgraded 1.4 runtime restarted again with unchanged CMS/merchant state and migration ledger', cloudflare-candidate); test:history-archive and test:cms-operation-helpers fail in cloud containers on main too, left to CI"
         }
       ],
       "id": "website-emdash14-20261030",
@@ -10836,9 +10906,9 @@
       "review_ref": null,
       "review_result": null,
       "review_source_identity": null,
-      "status": "verified",
+      "status": "needs_reverification",
       "superseded_by": null,
-      "updated_at": "2026-10-30T13:25:47+00:00",
+      "updated_at": "2026-11-01T05:13:15+00:00",
       "verification_ref": "Local npm run verify steps on Node 24.22.0 passed (audit, typecheck, build, smoke, dev-cms, merchant, shared-store, cms-operation, emdash-upgrade 'Upgraded 1.4 runtime restarted again with unchanged CMS/merchant state and migration ledger', cloudflare-candidate); test:history-archive and test:cms-operation-helpers fail in cloud containers on main too, left to CI"
     },
     {
@@ -10913,5 +10983,5 @@
   "status": "active",
   "title": "Composed integration",
   "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5",
-  "updated_at": "2026-11-01T04:28:00+00:00"
+  "updated_at": "2026-11-01T05:13:21+00:00"
 }

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 SAARIUS_REPO="https://github.com/saariuslystoned/SaariusSkills.git"
-SAARIUS_SHA="776dc8f6db7d8b39421e8b969512e63607990c47"
+SAARIUS_SHA="1c914f7905cec0be1854c437ba39d3a78ffc3ced"
 EMDASH_COMMERCE_SHA="23f2bb1208b3baa7aedaa87faec00395f9bdd061"
 SKILL_NAMES=(grilltrack emdash-sites building-emdash-site creating-plugins emdash-cli upgrading-emdash)
 ROOT="$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"

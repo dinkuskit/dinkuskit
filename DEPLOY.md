@@ -344,8 +344,11 @@ deploy with Access:
    DinkusKit fits together."
 
 Setup runs once. Later deploys keep the pages, and later edits to
-`seed/seed.json` do not change a database that already has them; edit the pages
-in the EmDash admin instead. Nothing needs to move from the earlier static site:
+`seed/seed.json` do not automatically change a database that already has them.
+To keep `seed/seed.json` and the live EmDash admin in sync:
+- Pull live admin edits (`pages`, `menus`, and `settings`) back into `seed/seed.json` for easy restoration: `npm run pages:pull -- --url https://dinkuskit.com` (or `--check` in CI).
+- Push reviewed `seed/seed.json` page updates to the live CMS (using `_rev` concurrency and refusing if an unpublished admin draft is waiting): `npm run pages:sync -- --url https://dinkuskit.com`.
+Nothing needs to move from the earlier static site:
 it was a frozen copy of the same two pages from the same seed.
 
 ## Load the docs collection (existing website database, once)

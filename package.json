@@ -54,6 +54,8 @@
     "test:pages-import": "node --experimental-strip-types --test tests/footer-menu-order.test.mjs tests/social-links.test.mjs && node --experimental-strip-types scripts/test-pages-import.mjs",
     "docs:import": "node --experimental-strip-types scripts/docs-import.mjs push --url",
     "pages:import": "node --experimental-strip-types scripts/pages-import.mjs",
+    "pages:pull": "node --experimental-strip-types scripts/pages-import.mjs --pull",
+    "pages:sync": "node --experimental-strip-types scripts/pages-import.mjs --page home --page getting-started --page start --sync-pages --publish",
     "docs:pull": "node --experimental-strip-types scripts/docs-sync.mjs pull",
     "docs:release": "node --experimental-strip-types scripts/docs-sync.mjs release",
     "test:docs-sync": "node --experimental-strip-types scripts/test-docs-sync.mjs",

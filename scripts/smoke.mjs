@@ -212,7 +212,7 @@ try {
   checks.push('Fresh production /_emdash GET/POST, spoofed Host/Origin/forwarded/cookie/query, encoded variants, and media are denied before any setup mutation');
   // Draft documentation must never become a public corpus, even through a guessed URL.
   assert.deepEqual(await (await request(base, '/docs/search.json')).json(), []);
-  for (const path of ['/docs', '/docs/start-here', '/docs/start-here?preview=1', '/docs/markdown/start-here.md', '/llms.txt', '/docs/internal-plan']) {
+  for (const path of ['/docs', '/docs/start-here', '/docs/start-here?preview=1', '/docs/markdown/start-here.md', '/llms.txt', '/llms-full.txt', '/docs/internal-plan']) {
     const response = await request(base, path);
     assert.equal(response.status, 404, `${path}: draft documentation is excluded`);
     assert.ok(!(await response.text()).includes('Choose your path and check requirements'), `${path}: no draft content`);
@@ -312,7 +312,7 @@ try {
   assert.equal(robotsRes.status, 200, '/robots.txt status');
   const robotsBody = await robotsRes.text();
   assert.ok(robotsBody.includes('Sitemap: https://dinkuskit.com/sitemap.xml'), 'robots.txt references canonical sitemap');
-  for (const path of ['/docs', '/docs/start-here', '/docs/store-owners/test-order', '/docs/reference/commerce', '/docs/markdown/start-here.md', '/docs/start-here?preview=1', '/llms.txt']) {
+  for (const path of ['/docs', '/docs/start-here', '/docs/store-owners/test-order', '/docs/reference/commerce', '/docs/markdown/start-here.md', '/docs/start-here?preview=1', '/llms.txt', '/llms-full.txt']) {
     const response = await request(base, path);
     assert.equal(response.status, 404, `${path}: seeded draft documentation is excluded`);
     assert.ok(!(await response.text()).includes('Choose your path and check requirements'), `${path}: no draft content`);

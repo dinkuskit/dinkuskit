@@ -69,11 +69,11 @@ Articles that span plugins (start-here, the store-owner and developer guides, tr
 `getPublicDocs()` in `src/docs/content.ts` returns published entries only. `getVisibleDocs()` adds drafts only in Astro's local development server; there is no request parameter or deployment setting that shows drafts in production. Every surface reads one of those two lists:
 
 - the article page, sidebar, previous/next links, contents list and in-page search (`src/docs/components/`),
-- `/docs/markdown/<id>.md` and the Copy as Markdown and View as Markdown buttons, which convert Portable Text to Markdown (`src/docs/portable-text.ts`),
-- `/docs/search.json` and `/llms.txt`, which list published articles only, even in development.
+- `/docs/markdown/<id>.md`, `<link rel="alternate" type="text/markdown">` + `Link` HTTP header on published `/docs/*` pages, and the Copy as Markdown and View as Markdown buttons, which convert Portable Text to Markdown (`src/docs/portable-text.ts`),
+- `/docs/search.json`, `/llms.txt` and `/llms-full.txt`, which list and export published articles only, even in development.
 - `/docs/mcp`, the public read-only docs MCP. It searches and reads that same published list, including in local development, where drafts stay out.
 
-Production answers 404 for an unpublished article's HTML and Markdown, and leaves it out of search, `llms.txt`, and the docs MCP.
+Production answers 404 for an unpublished article's HTML and Markdown, and leaves it out of search, `llms.txt`, `llms-full.txt`, and the docs MCP.
 
 ## Docs MCP
 

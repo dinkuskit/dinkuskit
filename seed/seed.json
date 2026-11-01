@@ -458,7 +458,7 @@
         "status": "published",
         "data": {
           "title": "Run your store yourself, or with the agent you choose.",
-          "description": "A store on your own EmDash site. Manage products, orders and USPS labels from the admin, and let the agent you choose help through the same tools, with only the access you give it. You keep your site, your data and your own payment account.",
+          "description": "Open-source, agentic and composable commerce for your own EmDash ecommerce CMS on Astro. Manage products, orders and USPS shipping labels from the admin, and let the agent you choose help through the same tools, with only the access you give it. You keep your site, your data and your own payment account.",
           "action_label": "Start your store",
           "action_href": "/start",
           "layout": [
@@ -468,7 +468,7 @@
               "_key": "home-0",
               "plugin_logo": "Commerce",
               "heading": "Your agent or your hands, same tools",
-              "body": "Do the work yourself in the EmDash admin, or let an agent you already use help through the same tools. Give it only the access it needs, and take its key back any time. If you are moving from WordPress/WooCommerce, Shopify or BigCommerce, you get a professional online store without having to learn the technical side of running one. You bring your products and pages over with your agent or by hand; automated store import tools are not built yet."
+              "body": "Do the work yourself in the EmDash admin, or let an agent you already use help through the same tools. Give it only the access it needs, and take its key back any time. If you are looking for an open-source Shopify, WooCommerce or BigCommerce alternative on Astro and Cloudflare, you can build an online store without having to learn the technical side of running one. You bring your products and pages over with your agent or by hand; automated store import tools are not built yet."
             },
             {
               "_type": "text_section",
@@ -476,7 +476,7 @@
               "_key": "home-1",
               "plugin_logo": "Ship",
               "heading": "Products, orders and USPS labels",
-              "body": "Commerce, Payments and Ship are live on the EmDash Registry today. Commerce handles your products, prices, cart, checkout, orders and shopper accounts, while Ship buys and prints USPS shipping labels and writes tracking back to the order (in test mode until live postage opens). Use only the pieces you need: without Ship you mark orders shipped by hand with a tracking number, and Inventory and Coupons are optional extras still to come."
+              "body": "Commerce, Payments and Ship are live on the EmDash Registry today. Commerce handles your products, prices, cart, checkout, orders and shopper accounts, while Ship lets you buy and print USPS shipping labels and writes tracking back to the order (in test mode until live postage opens). Use only the pieces you need: without Ship you mark orders shipped by hand with a tracking number, and Inventory and Coupons are optional extras still to come."
             },
             {
               "_type": "text_section",
@@ -484,7 +484,7 @@
               "_key": "home-2",
               "plugin_logo": "Payments",
               "heading": "Your site, your data, your payment account",
-              "body": "Your storefront and pages run on your own EmDash site, so you keep your site, your content and your customer relationships. Payments connects your business's own Stripe account, so customers pay you directly. Authorize.net is next. You can place test orders first before opening your store to live payments."
+              "body": "Your storefront and pages run on your own EmDash ecommerce CMS, so you keep your site, your content and your customer relationships. Payments connects your business's own Stripe ecommerce account, so customers pay you directly. Authorize.net is next. You can place test orders first before opening your store to live payments."
             },
             {
               "_type": "text_section",
@@ -502,7 +502,7 @@
         "status": "published",
         "data": {
           "title": "How DinkusKit fits together.",
-          "description": "Useful pieces you add one at a time, run by you from the admin, with your own agent helping where you allow it.",
+          "description": "Composable, headless commerce plugins for the EmDash ecommerce CMS and Astro: useful pieces you add one at a time, run by you from the admin, with your own agent helping where you allow it.",
           "layout": [
             {
               "_type": "text_section",
@@ -556,7 +556,7 @@
         "status": "published",
         "data": {
           "title": "You've tried the playground. Now run your own.",
-          "description": "Your store is an EmDash site you own. DinkusKit adds the shop: Commerce for products and orders, Payments for card checkout, and Ship for postage. Four steps get you from nothing to a test order.",
+          "description": "Your store is an EmDash ecommerce CMS and Astro site you own on Cloudflare. DinkusKit adds open-source ecommerce: Commerce for products and orders, Payments for Stripe card checkout, and Ship to buy USPS shipping labels. Four steps get you from nothing to a test order.",
           "layout": [
             {
               "_type": "plugin_row",

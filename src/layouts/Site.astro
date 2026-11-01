@@ -21,12 +21,14 @@ interface Props {
   noindex?: boolean;
   ogType?: 'website' | 'article';
   structured?: Record<string, unknown> | null;
+  markdownUrl?: string;
 }
-const { title, description, wide = false, noindex = false, ogType = 'website', structured } = Astro.props;
+const { title, description, wide = false, noindex = false, ogType = 'website', structured, markdownUrl } = Astro.props;
 const hasDocs = (await getVisibleDocs()).length > 0;
 const social = socialLinks((await getMenu(SOCIAL_MENU))?.items ?? []);
 const shouldNoIndex = noindex || isNoIndexPathname(Astro.url.pathname) || Astro.response.status === 404;
 const canonical = canonicalUrl(Astro.url.pathname, Astro.site);
+const alternateMarkdown = !shouldNoIndex && markdownUrl ? new URL(markdownUrl, Astro.site).toString() : null;
 const metaDesc = pageMetaDescription(Astro.url.pathname, description);
 const fullTitle = seoTitle(title, Astro.url.pathname);
 const socialImage = new URL(DEFAULT_SOCIAL_IMAGE, Astro.site).toString();
@@ -55,6 +57,7 @@ const guide = guidePilot(import.meta.env.DINKUS_GUIDE_PILOT, import.meta.env.DIN
     <meta name="description" content={metaDesc} />
     {shouldNoIndex && <meta name="robots" content="noindex, nofollow" />}
     <link rel="canonical" href={canonical} />
+    {alternateMarkdown && <link rel="alternate" type="text/markdown" href={alternateMarkdown} />}
     <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={metaDesc} />
     <meta property="og:type" content={ogType} />

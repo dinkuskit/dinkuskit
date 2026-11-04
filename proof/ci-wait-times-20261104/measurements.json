@@ -1,0 +1,119 @@
+{
+  "captured_on": "2026-11-04",
+  "base": "badde899a21369cce1c4fdaae9179644af3ed37d",
+  "node": "24.22.0",
+  "baseline_source_sha256": "778f018c06c7d6998502b04b953a78c2d22b2d173bc50c164bf250adcc6a40bb",
+  "candidate_source_sha256": "aaa95ceb18a770009573a64d73fb980ddd54cc3a365948f8cf7774b346e892d3",
+  "commands": {
+    "focused": "node --experimental-strip-types --test --test-concurrency=1 --test-timeout=180000 tests/merchant-migrations.test.mjs",
+    "merchant": "npm run test:merchant",
+    "full": "npm run verify"
+  },
+  "runs": [
+    {
+      "label": "baseline-full",
+      "source": "baseline",
+      "exit": 0,
+      "wall_seconds": 449.2655355419847,
+      "user_seconds": 515.920401,
+      "system_seconds": 119.042473,
+      "node_test_groups": 17,
+      "node_tests": 259,
+      "node_pass": 259,
+      "node_fail": 0
+    },
+    {
+      "label": "baseline-focused-1",
+      "source": "baseline",
+      "exit": 0,
+      "wall_seconds": 81.53409337499761,
+      "user_seconds": 101.48997,
+      "system_seconds": 16.486154,
+      "node_tests": 9,
+      "node_pass": 9,
+      "node_fail": 0
+    },
+    {
+      "label": "baseline-focused-2",
+      "source": "baseline",
+      "exit": 0,
+      "wall_seconds": 79.12750262499321,
+      "user_seconds": 98.251014,
+      "system_seconds": 15.339996,
+      "node_tests": 9,
+      "node_pass": 9,
+      "node_fail": 0
+    },
+    {
+      "label": "candidate-focused-1",
+      "source": "candidate",
+      "exit": 0,
+      "wall_seconds": 66.53093712500413,
+      "user_seconds": 86.059115,
+      "system_seconds": 13.877831,
+      "node_tests": 9,
+      "node_pass": 9,
+      "node_fail": 0
+    },
+    {
+      "label": "candidate-focused-2",
+      "source": "candidate",
+      "exit": 0,
+      "wall_seconds": 70.30447925001499,
+      "user_seconds": 87.731775,
+      "system_seconds": 14.770562,
+      "node_tests": 9,
+      "node_pass": 9,
+      "node_fail": 0
+    },
+    {
+      "label": "candidate-merchant",
+      "source": "candidate",
+      "exit": 0,
+      "wall_seconds": 119.4628942910058,
+      "user_seconds": 175.95095799999999,
+      "system_seconds": 32.902401,
+      "node_test_groups": 1,
+      "node_tests": 24,
+      "node_pass": 24,
+      "node_fail": 0
+    },
+    {
+      "label": "candidate-full",
+      "source": "candidate",
+      "exit": 0,
+      "wall_seconds": 453.1028552080097,
+      "user_seconds": 518.602639,
+      "system_seconds": 136.228472,
+      "node_test_groups": 17,
+      "node_tests": 259,
+      "node_pass": 259,
+      "node_fail": 0
+    }
+  ],
+  "focused_summary": {
+    "baseline_wall_seconds": [81.53409337499761, 79.12750262499321],
+    "candidate_wall_seconds": [66.53093712500413, 70.30447925001499],
+    "baseline_mean_wall_seconds": "80.33079799999541",
+    "candidate_mean_wall_seconds": "68.41770818750956",
+    "mean_delta_seconds": "-11.91308981248585",
+    "slowest_candidate_minus_fastest_baseline_seconds": "-8.82302337497822",
+    "tests_each_run": { "tests": 9, "pass": 9, "fail": 0 }
+  },
+  "full_verify_summary": {
+    "baseline_wall_seconds": 449.2655355419847,
+    "candidate_wall_seconds": 453.1028552080097,
+    "delta_seconds": "3.837319666025",
+    "samples_each": 1,
+    "exit_each": 0,
+    "node_tests_each": { "groups": 17, "tests": 259, "pass": 259, "fail": 0 },
+    "wall_savings_claimed": false
+  },
+  "merchant_summary": {
+    "baseline_samples": 0,
+    "candidate_exit": 0,
+    "candidate_wall_seconds": 119.4628942910058,
+    "candidate_node_tests": { "tests": 24, "pass": 24, "fail": 0 },
+    "wall_savings_claimed": false
+  }
+}

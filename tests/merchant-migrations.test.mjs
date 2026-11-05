@@ -44,15 +44,49 @@ function applyAllMigrations(persistTo) {
   return result;
 }
 
+const ledgerSelect = 'SELECT version, name FROM dinkuskit_schema_migrations ORDER BY version';
+
+function mapLedger(results) {
+  return results.map(row => ({ version: Number(row.version), name: String(row.name) }));
+}
+
 function ledgerRows(persistTo) {
   const result = wranglerD1(persistTo, [
     'execute', '--yes', '--json',
-    '--command', 'SELECT version, name FROM dinkuskit_schema_migrations ORDER BY version',
+    '--command', ledgerSelect,
   ]);
   assert.equal(result.status, 0, result.stderr || result.stdout);
   const payload = JSON.parse(result.stdout);
   const batch = Array.isArray(payload) ? payload[0] : payload;
-  return (batch?.results ?? []).map(row => ({ version: Number(row.version), name: String(row.name) }));
+  return mapLedger(batch?.results ?? []);
+}
+
+// One --command for adjacent successful reads. Each statement needs its own result set.
+function readOnlyResultSets(persistTo, statements) {
+  assert.equal(Array.isArray(statements) && statements.length > 0, true, 'read-only batch requires statements');
+  const sql = statements.map(statement => {
+    assert.equal(typeof statement, 'string', 'read-only batch statements are SQL strings');
+    const text = statement.trim().replace(/;+\s*$/, '');
+    assert.equal(text.length > 0, true, 'read-only batch rejects an empty statement');
+    assert.equal(text.includes(';'), false, 'each read-only inspection is one statement');
+    assert.equal(text.includes('?'), false, 'read-only inspections do not use bound parameters');
+    assert.equal(/^(SELECT|PRAGMA)\b/i.test(text), true, 'read-only inspections are SELECT or PRAGMA');
+    assert.equal(/^PRAGMA\s+\S+\s*=/i.test(text), false, 'PRAGMA assignments stay outside read-only batches');
+    return text;
+  });
+  const result = wranglerD1(persistTo, [
+    'execute', '--yes', '--json', '--command', sql.join('; '),
+  ]);
+  assert.equal(result.status, 0, result.stderr || result.stdout);
+  const payload = JSON.parse(result.stdout);
+  assert.equal(Array.isArray(payload), true, 'Wrangler --json must return a result-set array');
+  assert.equal(payload.length, sql.length, 'Wrangler --json must return one result set per statement');
+  return payload.map((entry, index) => {
+    assert.equal(entry !== null && typeof entry === 'object' && !Array.isArray(entry), true, `result set ${index} must be an object`);
+    assert.equal(entry.success, true, `result set ${index} must be successful`);
+    assert.equal(Array.isArray(entry.results), true, `result set ${index} must include results`);
+    return entry.results;
+  });
 }
 
 async function assertAccountAndConnect(runtime, siteId) {
@@ -140,20 +174,16 @@ test('merchant D1 migration 0006 preserves populated v5 organization references'
     const runtime = await startMerchantTestRuntime({ persistTo, secret: testSecret() });
     await assertAccountAndConnect(runtime, 'v5-populated');
     await stopRuntime({ ...runtime, ownedPersist: false });
-    assert.deepEqual(ledgerRows(persistTo), expectedLedger);
-    const check = wranglerD1(persistTo, ['execute', '--yes', '--json', '--command', 'PRAGMA foreign_key_check']);
-    assert.equal(check.status, 0, check.stderr || check.stdout);
-    const payload = JSON.parse(check.stdout);
-    const batch = Array.isArray(payload) ? payload[0] : payload;
-    assert.deepEqual(batch?.results ?? [], []);
-    const rows = wranglerD1(persistTo, ['execute', '--yes', '--json', '--command',
+    const [ledger, foreignKeys, counts] = readOnlyResultSets(persistTo, [
+      ledgerSelect,
+      'PRAGMA foreign_key_check',
       `SELECT (SELECT count(*) FROM dinkuskit_membership WHERE organization_id='v5-org') memberships,
         (SELECT count(*) FROM dinkuskit_admission WHERE first_organization_id='v5-org') admissions,
-        (SELECT count(*) FROM dinkuskit_user_selection WHERE organization_id='v5-org') selections`]);
-    assert.equal(rows.status, 0, rows.stderr || rows.stdout);
-    const rowPayload = JSON.parse(rows.stdout);
-    const rowBatch = Array.isArray(rowPayload) ? rowPayload[0] : rowPayload;
-    assert.deepEqual(rowBatch.results, [{ memberships: 1, admissions: 1, selections: 1 }]);
+        (SELECT count(*) FROM dinkuskit_user_selection WHERE organization_id='v5-org') selections`,
+    ]);
+    assert.deepEqual(mapLedger(ledger), expectedLedger);
+    assert.deepEqual(foreignKeys, []);
+    assert.deepEqual(counts, [{ memberships: 1, admissions: 1, selections: 1 }]);
   } finally {
     await rm(persistTo, { recursive: true, force: true });
   }
@@ -176,13 +206,12 @@ test('merchant D1 migration 0009 marks earlier cut-offs and keeps the operator h
     const runtime = await startMerchantTestRuntime({ persistTo, secret: testSecret() });
     await assertAccountAndConnect(runtime, 'v8-populated');
     await stopRuntime({ ...runtime, ownedPersist: false });
-    assert.deepEqual(ledgerRows(persistTo), expectedLedger);
-    const rows = wranglerD1(persistTo, ['execute', '--yes', '--json', '--command',
-      `SELECT service, revoked_by FROM dinkuskit_service_grant WHERE site_id='v8-site' ORDER BY service`]);
-    assert.equal(rows.status, 0, rows.stderr || rows.stdout);
-    const payload = JSON.parse(rows.stdout);
-    const batch = Array.isArray(payload) ? payload[0] : payload;
-    assert.deepEqual(batch.results, [
+    const [ledger, grants] = readOnlyResultSets(persistTo, [
+      ledgerSelect,
+      `SELECT service, revoked_by FROM dinkuskit_service_grant WHERE site_id='v8-site' ORDER BY service`,
+    ]);
+    assert.deepEqual(mapLedger(ledger), expectedLedger);
+    assert.deepEqual(grants, [
       { service: 'coupons', revoked_by: null },
       { service: 'inventory', revoked_by: 'owner' },
       { service: 'payments', revoked_by: 'operator' },
@@ -214,11 +243,6 @@ test('merchant D1 migration 0013 preserves populated schema-12 Ship authority wi
   const challenge = createHash('sha256').update(verifier).digest('base64url');
   const expires = Math.floor(Date.now() / 1000) + 3600;
   const sessionExpiry = new Date(Date.now() + 86400000).toISOString();
-  const query = sql => {
-    const answer = wranglerD1(persistTo, ['execute', '--yes', '--json', '--command', sql]);
-    assert.equal(answer.status, 0, 'local D1 query succeeds');
-    return JSON.parse(answer.stdout).at(-1).results;
-  };
   try {
     const schema = (await Promise.all(expectedLedger.filter(m => m.version <= 12).map(m => readFile(`migrations/merchant/${m.name}`, 'utf8')))).join('\n');
     const seed = join(persistTo, 'schema12.sql');
@@ -236,17 +260,27 @@ test('merchant D1 migration 0013 preserves populated schema-12 Ship authority wi
       ${refreshes.map((refresh, i) => `INSERT INTO dinkuskit_ship_sign_in (sign_in_id,site_id,user_id,session_id,email,token_hash,previous_hash,created_at,refreshed_at,ended_at) VALUES ('ship-v12-family-${i}','ship-v12-site','ship-v12-user','ship-v12-session','ship-v12@example.test','${hash(refresh)}',NULL,1,1,NULL);`).join('\n')}
     `, { mode: 0o600 });
     applySql(persistTo, seed);
-    assert.deepEqual(ledgerRows(persistTo), expectedLedger.filter(m => m.version <= 12));
-    assert.equal(query("PRAGMA table_info('dinkuskit_ship_sign_in')").some(c => c.name === 'ship_recipient'), false);
-    assert.deepEqual(query('SELECT count(*) n FROM dinkuskit_ship_sign_in_code'), [{ n: 2 }]);
-    assert.deepEqual(query('SELECT count(*) n FROM dinkuskit_ship_sign_in'), [{ n: 2 }]);
+    const [partialLedger, shipColumns, signInCodes, signIns] = readOnlyResultSets(persistTo, [
+      ledgerSelect,
+      "PRAGMA table_info('dinkuskit_ship_sign_in')",
+      'SELECT count(*) n FROM dinkuskit_ship_sign_in_code',
+      'SELECT count(*) n FROM dinkuskit_ship_sign_in',
+    ]);
+    assert.deepEqual(mapLedger(partialLedger), expectedLedger.filter(m => m.version <= 12));
+    assert.equal(shipColumns.some(c => c.name === 'ship_recipient'), false);
+    assert.deepEqual(signInCodes, [{ n: 2 }]);
+    assert.deepEqual(signIns, [{ n: 2 }]);
 
     runtime = await startMerchantTestRuntime({ persistTo });
     assert.equal((await request(runtime, new Map(), '/account/.well-known/jwks.json')).status, 200, 'compiled runtime applies 0013');
-    assert.deepEqual(ledgerRows(persistTo), expectedLedger);
-    for (const table of ['dinkuskit_ship_sign_in_code', 'dinkuskit_ship_sign_in']) {
-      assert.deepEqual(query(`SELECT ship_recipient,ship_generation,ship_mode FROM ${table}`), Array.from({ length: 2 }, () => ({ ship_recipient: null, ship_generation: null, ship_mode: null })));
-    }
+    const [appliedLedger, codeProbe, signInProbe] = readOnlyResultSets(persistTo, [
+      ledgerSelect,
+      'SELECT ship_recipient,ship_generation,ship_mode FROM dinkuskit_ship_sign_in_code',
+      'SELECT ship_recipient,ship_generation,ship_mode FROM dinkuskit_ship_sign_in',
+    ]);
+    assert.deepEqual(mapLedger(appliedLedger), expectedLedger);
+    assert.deepEqual(codeProbe, Array.from({ length: 2 }, () => ({ ship_recipient: null, ship_generation: null, ship_mode: null })));
+    assert.deepEqual(signInProbe, Array.from({ length: 2 }, () => ({ ship_recipient: null, ship_generation: null, ship_mode: null })));
     const exchange = body => request(runtime, new Map(), '/api/ship-sign-in/token', { method: 'POST', body: JSON.stringify(body) });
     const redeemed = await exchange({ code: codes[0], code_verifier: verifier });
     assert.equal(redeemed.status, 200);
@@ -270,8 +304,12 @@ test('merchant D1 migration 0013 preserves populated schema-12 Ship authority wi
       assert.equal(denied.status, 400);
       assert.deepEqual(await denied.json(), { error: 'invalid_grant' });
     }
-    assert.deepEqual(ledgerRows(persistTo), expectedLedger, 'restart leaves additive migration idempotent');
-    assert.deepEqual(query('PRAGMA foreign_key_check'), []);
+    const [restartLedger, foreignKeys] = readOnlyResultSets(persistTo, [
+      ledgerSelect,
+      'PRAGMA foreign_key_check',
+    ]);
+    assert.deepEqual(mapLedger(restartLedger), expectedLedger, 'restart leaves additive migration idempotent');
+    assert.deepEqual(foreignKeys, []);
   } finally {
     if (runtime) await stopRuntime(runtime);
     await rm(persistTo, { recursive: true, force: true });
@@ -283,11 +321,6 @@ test('merchant D1 migration 0014 keeps a populated schema-13 store, grants and c
   let runtime;
   const legacyKey = `dk_store_${randomBytes(32).toString('base64url')}`;
   const keyHash = createHash('sha256').update(legacyKey).digest('hex');
-  const query = sql => {
-    const answer = wranglerD1(persistTo, ['execute', '--yes', '--json', '--command', sql]);
-    assert.equal(answer.status, 0, 'local D1 query succeeds');
-    return JSON.parse(answer.stdout).at(-1).results;
-  };
   try {
     const schema = (await Promise.all(expectedLedger.filter(m => m.version <= 13).map(m => readFile(`migrations/merchant/${m.name}`, 'utf8')))).join('\n');
     const seed = join(persistTo, 'schema13.sql');
@@ -303,13 +336,21 @@ test('merchant D1 migration 0014 keeps a populated schema-13 store, grants and c
       INSERT INTO dinkuskit_store_key (site_id,key_hash,created_by_user_id,created_at,last_used_at,window_start,window_count) VALUES ('keys-v13-site','${keyHash}','keys-v13-user',1,NULL,0,0);
     `, { mode: 0o600 });
     applySql(persistTo, seed);
-    assert.deepEqual(ledgerRows(persistTo), expectedLedger.filter(m => m.version <= 13));
-    assert.deepEqual(query("SELECT name FROM sqlite_master WHERE name = 'dinkuskit_plugin_key'"), []);
+    const [partialLedger, pluginTable] = readOnlyResultSets(persistTo, [
+      ledgerSelect,
+      "SELECT name FROM sqlite_master WHERE name = 'dinkuskit_plugin_key'",
+    ]);
+    assert.deepEqual(mapLedger(partialLedger), expectedLedger.filter(m => m.version <= 13));
+    assert.deepEqual(pluginTable, []);
 
     runtime = await startMerchantTestRuntime({ persistTo });
     assert.equal((await request(runtime, new Map(), '/account/.well-known/jwks.json')).status, 200, 'compiled runtime applies 0014');
-    assert.deepEqual(ledgerRows(persistTo), expectedLedger);
-    assert.deepEqual(query('SELECT count(*) n FROM dinkuskit_plugin_key'), [{ n: 0 }], 'nothing is made up for old stores');
+    const [appliedLedger, pluginKeys] = readOnlyResultSets(persistTo, [
+      ledgerSelect,
+      'SELECT count(*) n FROM dinkuskit_plugin_key',
+    ]);
+    assert.deepEqual(mapLedger(appliedLedger), expectedLedger);
+    assert.deepEqual(pluginKeys, [{ n: 0 }], 'nothing is made up for old stores');
     // The pasted key's row stays, but it trades for nothing (store-connect-no-paste-082): the store presses Connect.
     const trade = async (scope, audience) => {
       const response = await request(runtime, new Map(), '/api/store-passes', { method: 'POST', headers: { authorization: `Bearer ${legacyKey}` }, body: JSON.stringify({ site_id: 'keys-v13-site', scope, audience }) });
@@ -319,17 +360,24 @@ test('merchant D1 migration 0014 keeps a populated schema-13 store, grants and c
     for (const [scope, audience] of [['payments:checkout', 'dinkus-payments'], ['ship:orders', 'dinkus-ship'], ['ship:admin', 'dinkus-ship'], ['commerce:settings', 'dinkuskit']]) {
       assert.deepEqual(await trade(scope, audience), gone, scope);
     }
-    assert.deepEqual(query("SELECT shipping_mode, shipping_minor, shipping_revision, live FROM dinkuskit_commerce_settings WHERE site_id = 'keys-v13-site'"),
-      [{ shipping_mode: 'flat', shipping_minor: 450, shipping_revision: 3, live: 0 }]);
-    assert.deepEqual(query("SELECT service, revoked FROM dinkuskit_service_grant WHERE site_id = 'keys-v13-site' ORDER BY service"),
-      [{ service: 'payments', revoked: 0 }, { service: 'ship', revoked: 0 }]);
-    assert.deepEqual(query("SELECT key_hash, last_used_at FROM dinkuskit_store_key WHERE site_id = 'keys-v13-site'"), [{ key_hash: keyHash, last_used_at: null }], 'the old row is kept, never used');
+    const [commerce, serviceGrants, storeKey] = readOnlyResultSets(persistTo, [
+      "SELECT shipping_mode, shipping_minor, shipping_revision, live FROM dinkuskit_commerce_settings WHERE site_id = 'keys-v13-site'",
+      "SELECT service, revoked FROM dinkuskit_service_grant WHERE site_id = 'keys-v13-site' ORDER BY service",
+      "SELECT key_hash, last_used_at FROM dinkuskit_store_key WHERE site_id = 'keys-v13-site'",
+    ]);
+    assert.deepEqual(commerce, [{ shipping_mode: 'flat', shipping_minor: 450, shipping_revision: 3, live: 0 }]);
+    assert.deepEqual(serviceGrants, [{ service: 'payments', revoked: 0 }, { service: 'ship', revoked: 0 }]);
+    assert.deepEqual(storeKey, [{ key_hash: keyHash, last_used_at: null }], 'the old row is kept, never used');
     const prior = runtime;
     await stopRuntime({ ...prior, ownedPersist: false }); runtime = undefined;
     runtime = await startMerchantTestRuntime({ persistTo, secret: prior.secret, jwt: prior.jwt });
     assert.deepEqual(await trade('payments:checkout', 'dinkus-payments'), gone, 'still refused after a restart');
-    assert.deepEqual(ledgerRows(persistTo), expectedLedger, 'restart leaves additive migration idempotent');
-    assert.deepEqual(query('PRAGMA foreign_key_check'), []);
+    const [restartLedger, foreignKeys] = readOnlyResultSets(persistTo, [
+      ledgerSelect,
+      'PRAGMA foreign_key_check',
+    ]);
+    assert.deepEqual(mapLedger(restartLedger), expectedLedger, 'restart leaves additive migration idempotent');
+    assert.deepEqual(foreignKeys, []);
   } finally {
     if (runtime) await stopRuntime(runtime);
     await rm(persistTo, { recursive: true, force: true });
@@ -340,11 +388,6 @@ test('merchant D1 migration 0014 keeps a populated schema-13 store, grants and c
 test('merchant D1 migration 0015 keeps a schema-14 store\'s checkout choices and gives it no free-shipping amount', async () => {
   const persistTo = await mkdtemp(join(tmpdir(), 'dk-v14-free-over-'));
   let runtime;
-  const query = sql => {
-    const answer = wranglerD1(persistTo, ['execute', '--yes', '--json', '--command', sql]);
-    assert.equal(answer.status, 0, 'local D1 query succeeds');
-    return JSON.parse(answer.stdout).at(-1).results;
-  };
   try {
     const schema = (await Promise.all(expectedLedger.filter(m => m.version <= 14).map(m => readFile(`migrations/merchant/${m.name}`, 'utf8')))).join('\n');
     const seed = join(persistTo, 'schema14.sql');
@@ -361,9 +404,12 @@ test('merchant D1 migration 0015 keeps a schema-14 store\'s checkout choices and
 
     runtime = await startMerchantTestRuntime({ persistTo });
     assert.equal((await request(runtime, new Map(), '/account/.well-known/jwks.json')).status, 200, 'compiled runtime applies 0015');
-    assert.deepEqual(ledgerRows(persistTo), expectedLedger);
-    assert.deepEqual(query("SELECT shipping_mode, shipping_minor, shipping_revision, live, shipping_free_over_minor FROM dinkuskit_commerce_settings WHERE site_id = 'free-v14-site'"),
-      [{ shipping_mode: 'flat', shipping_minor: 450, shipping_revision: 3, live: 0, shipping_free_over_minor: null }]);
+    const [appliedLedger, shipping] = readOnlyResultSets(persistTo, [
+      ledgerSelect,
+      "SELECT shipping_mode, shipping_minor, shipping_revision, live, shipping_free_over_minor FROM dinkuskit_commerce_settings WHERE site_id = 'free-v14-site'",
+    ]);
+    assert.deepEqual(mapLedger(appliedLedger), expectedLedger);
+    assert.deepEqual(shipping, [{ shipping_mode: 'flat', shipping_minor: 450, shipping_revision: 3, live: 0, shipping_free_over_minor: null }]);
     const refused = wranglerD1(persistTo, ['execute', '--yes', '--command', "UPDATE dinkuskit_commerce_settings SET shipping_free_over_minor = 0"]);
     assert.notEqual(refused.status, 0, 'a zero amount is refused by the table itself');
     const prior = runtime;

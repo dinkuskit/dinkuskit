@@ -8,7 +8,7 @@ export const SITE_ORIGIN = 'https://dinkuskit.com';
 export const SITE_NAME = 'DinkusKit';
 export const DEFAULT_SOCIAL_IMAGE = '/social-card.png';
 export const DEFAULT_SOCIAL_IMAGE_ALT =
-  'DinkusKit — open-source commerce plugins for EmDash CMS on Astro and Cloudflare Workers';
+  'DinkusKit — open-source commerce and business OS plugins for EmDash CMS on Astro and Cloudflare Workers';
 
 const CANONICAL_HOST = 'dinkuskit.com';
 const WWW_HOST = 'www.dinkuskit.com';
@@ -16,11 +16,11 @@ const WWW_HOST = 'www.dinkuskit.com';
 export const CORE_PUBLIC_PATHS = ['/', '/getting-started', '/start', '/terms'] as const;
 
 const CORE_META_DESCRIPTIONS: Readonly<Record<string, string>> = {
-  '/': 'Open-source headless commerce plugins for EmDash CMS on Astro: Commerce catalog & cart, Stripe checkout, USPS shipping labels, and agent-ready store tools.',
+  '/': 'Open-source headless commerce & business OS plugins for EmDash CMS on Astro: catalog & cart, Stripe checkout, USPS shipping labels, and supervised agents.',
   '/getting-started':
-    'See how DinkusKit fits together on EmDash CMS and Astro: open-source Commerce for catalog and cart, plus optional hosted Payments for Stripe and Ship for USPS.',
+    'See how DinkusKit fits together on EmDash CMS and Astro: headless commerce for catalog & cart, Stripe payment processing, USPS shipping labels, and agents.',
   '/start':
-    'Launch your open-source EmDash ecommerce store on Cloudflare: try the demo store, deploy the Astro template, connect Payments and Ship, and run a test order.',
+    'Launch your open-source EmDash ecommerce store on Astro & Cloudflare: try the demo store, connect Stripe Payments and USPS Ship, and place a test order.',
   '/terms':
     'Terms of Service for DinkusKit merchant accounts and hosted ecommerce services, including DinkusKit Payments for Stripe checkout and Ship for USPS labels.',
 };
@@ -31,18 +31,21 @@ const DEFAULT_SEED_SUMMARIES: Readonly<Record<string, ReadonlyArray<string>>> = 
     'A store on your own EmDash site. Manage products, orders and USPS labels from the admin, and let the agent you choose help through the same tools, with only the access you give it. You keep your site, your data and your own payment account.',
     'Open-source, agentic and composable commerce for your own EmDash site on Astro. Manage products, orders and USPS labels from the admin, and let the agent you choose help through the same tools, with only the access you give it. You keep your site, your data and your own payment account.',
     'Open-source, agentic and composable commerce for your own EmDash ecommerce CMS on Astro. Manage products, orders and USPS shipping labels from the admin, and let the agent you choose help through the same tools, with only the access you give it. You keep your site, your data and your own payment account.',
+    'Enterprise business tools. Zero enterprise bloat. So easy a Dinkus could do it. Open-source, agentic and composable commerce for your own EmDash ecommerce CMS on Astro: manage products, orders, Stripe payments and USPS shipping labels from the admin, and let the agent you choose help through the same tools, with only the access you give it. You keep your site, your data and your own payment account.',
   ],
   '/getting-started': [
     'Commerce runs the catalog and cart in your EmDash site. Payments and Ship add Stripe checkout and USPS labels when you want them, and an optional DinkusKit account connects them.',
     'Useful pieces you add one at a time, run by you from the admin, with your own agent helping where you allow it.',
     'Composable, headless commerce plugins for EmDash CMS and Astro: useful pieces you add one at a time, run by you from the admin, with your own agent helping where you allow it.',
     'Composable, headless commerce plugins for the EmDash ecommerce CMS and Astro: useful pieces you add one at a time, run by you from the admin, with your own agent helping where you allow it.',
+    'Composable, headless commerce and business operating system plugins for the EmDash ecommerce CMS and Astro: standalone tools you add one at a time, run by you from the admin, with your own agent helping where you allow it—so easy a Dinkus could do it.',
   ],
   '/start': [
     'Walk the demo store first, or go straight to building yours: start an EmDash store from the template, connect your DinkusKit account, add Payments and Ship, and place a test order.',
     'Your store is an EmDash site you own. DinkusKit adds the shop: Commerce for products and orders, Payments for card checkout, and Ship for postage. Four steps get you from nothing to a test order.',
     'Your store is an EmDash and Astro site you own on Cloudflare. DinkusKit adds open-source ecommerce: Commerce for products and orders, Payments for Stripe card checkout, and Ship for USPS postage. Four steps get you from nothing to a test order.',
     'Your store is an EmDash ecommerce CMS and Astro site you own on Cloudflare. DinkusKit adds open-source ecommerce: Commerce for products and orders, Payments for Stripe card checkout, and Ship to buy USPS shipping labels. Four steps get you from nothing to a test order.',
+    'Your store is an EmDash ecommerce CMS and Astro site you own on Cloudflare. DinkusKit adds open-source ecommerce—so easy a Dinkus could do it: Commerce for products and orders, Payments for Stripe card checkout, and Ship to buy USPS shipping labels. Four steps get you from nothing to a test order.',
   ],
   '/terms': ['Effective date: October 17, 2026'],
 };
@@ -190,9 +193,9 @@ export function corePageJsonLd(
             priceCurrency: 'USD',
           },
           featureList: [
-            'DinkusKit Commerce: open-source catalog, cart, orders, REST API, and MCP tools for EmDash CMS',
-            'DinkusKit Payments: Stripe Checkout and webhook verification for EmDash stores',
-            'DinkusKit Ship: USPS shipping rates and label printing for EmDash stores',
+            'DinkusKit Commerce: headless commerce for the rest of us — open-source catalog, cart, orders, REST API, and MCP tools for EmDash CMS',
+            'DinkusKit Payments: online payment processing, Stripe Checkout, headless checkout, and webhook verification for EmDash stores',
+            'DinkusKit Ship: order fulfillment software, USPS shipping rates, and shipping label printing for EmDash stores',
           ],
         },
       ],

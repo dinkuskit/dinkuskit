@@ -5,19 +5,19 @@ export const docsSite: DocsSite = {
   origin: 'https://dinkuskit.com',
   name: 'DinkusKit',
   description:
-    'Open-source agentic and composable commerce plugins for EmDash CMS on Astro and Cloudflare Workers: merchant-owned storefronts, catalog and cart (DinkusKit Commerce), Stripe checkout (DinkusKit Payments; Authorize.Net planned), and USPS shipping labels (DinkusKit Ship), with stock ledger (DinkusKit Inventory) planned after v1. Manage your store from the EmDash admin or with the AI agent you choose through the same tools.',
+    'Enterprise business tools. Zero enterprise bloat. So easy a Dinkus could do it. Open-source, agentic and composable commerce and business operating system plugins for EmDash CMS on Astro and Cloudflare Workers: merchant-owned storefronts, catalog and cart (DinkusKit Commerce), online payment processing and Stripe checkout (DinkusKit Payments; Authorize.Net planned), and order fulfillment software for USPS shipping labels (DinkusKit Ship), with stock ledger (DinkusKit Inventory) planned after v1 alongside standalone plugins for promotions (DinkusKit Coupons) and AI bookkeeping / small business bookkeeping software (DinkusKit Books). Manage your store from the EmDash admin or with the AI agent you choose through the same tools.',
   platformLinks: [
     {
       title: 'DinkusKit Home',
       url: 'https://dinkuskit.com/',
       summary:
-        'Open-source commerce plugins for EmDash CMS on Astro—run your store yourself in the admin or with the agent you choose.',
+        'Enterprise business tools, zero enterprise bloat—open-source commerce and business OS plugins for EmDash CMS on Astro, managed in the admin or with the agent you choose.',
     },
     {
       title: 'How DinkusKit Works',
       url: 'https://dinkuskit.com/getting-started',
       summary:
-        'Architecture overview of EmDash storefronts, Commerce, Payments, Ship, planned Inventory, and scoped agent access.',
+        'Architecture overview of standalone EmDash plugins (Commerce, Payments, Ship, plus planned Inventory, Coupons and Books) and scoped agent access.',
     },
     {
       title: 'Start Your Store',

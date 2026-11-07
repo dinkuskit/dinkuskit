@@ -159,4 +159,23 @@ test('robotsTxt and social card assets match production SEO requirements', () =>
   assert.match(layout, /property="og:image"/);
   assert.match(layout, /name="twitter:card" content="summary_large_image"/);
   assert.match(layout, /type="application\/ld\+json"/);
+
+  const seed = JSON.parse(readFileSync(new URL('../seed/seed.json', import.meta.url), 'utf8'));
+  const homePage = seed.content.pages.find(page => page.id === 'home');
+  const gettingStartedPage = seed.content.pages.find(page => page.id === 'getting-started');
+  assert.ok(homePage?.data?.description?.includes('Enterprise business tools. Zero enterprise bloat. So easy a Dinkus could do it.'));
+  assert.equal(pageMetaDescription('/', homePage.data.description), pageMetaDescription('/', ''));
+  assert.equal(pageMetaDescription('/getting-started', gettingStartedPage.data.description), pageMetaDescription('/getting-started', ''));
+  const homeBody = homePage.data.layout.map(block => block.body).join(' ');
+  for (const phrase of [
+    "Running a business shouldn't require an engineering team.",
+    'headless commerce for the rest of us',
+    'shipping label software',
+    'online payment processing',
+    'ecommerce inventory management',
+    'small business bookkeeping software',
+    'AI bookkeeping',
+  ]) {
+    assert.ok(homeBody.includes(phrase), `missing seeded phrase: ${phrase}`);
+  }
 });

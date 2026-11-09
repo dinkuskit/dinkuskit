@@ -155,6 +155,11 @@ try {
   console.log(JSON.stringify({ output, artifact_sha256: artifactSha, files: entries }, null, 2));
 } finally {
   if (!exited) child.kill('SIGTERM');
-  await Promise.race([exit, sleep(5000)]);
+  let graceTimer;
+  try {
+    await Promise.race([exit, new Promise(resolve => { graceTimer = setTimeout(resolve, 5000); })]);
+  } finally {
+    clearTimeout(graceTimer);
+  }
   if (!exited) { child.kill('SIGKILL'); await exit; }
 }

@@ -71,12 +71,12 @@ function sync(base, token, ...args) {
   });
 }
 
-/** Commit the working tree; Git dates have one-second resolution, so keep commits and admin saves apart. */
-async function commit(message) {
-  await delay(1100);
+/** Keep timestamp-sensitive commits apart from admin saves; Git dates have one-second resolution. */
+async function commit(message, { separateFromAdmin = false } = {}) {
+  if (separateFromAdmin) await delay(1100);
   git('add', '-A');
   git('commit', '-q', '-m', message);
-  await delay(1100);
+  if (separateFromAdmin) await delay(1100);
   return git('rev-parse', 'HEAD');
 }
 
@@ -212,7 +212,7 @@ try {
   assert.equal((await api('POST', `/content/docs/${setupEntry.item.id}/publish`, {})).status, 200);
   const adminLive = await liveHash(setup);
   edit(setup, update => ({ summary: `${update.summary} Again.` }));
-  await commit('Update the setup article again, still on the old text');
+  await commit('Update the setup article again, still on the old text', { separateFromAdmin: true });
   run = await sync(base, token, 'publish', '--report');
   assert.match(run.output, /^PROBLEM store-owners\/setup: The live article changed after this update was written/m);
   assert.equal(await liveHash(setup), adminLive, 'the admin edit stays live');
@@ -232,7 +232,7 @@ try {
   const ai = 'ai-assistants';
   assert.equal((await sync(base, token, 'pull', ai)).code, 0);
   edit(ai, update => ({ summary: `${update.summary} From a merge.` }), 'Commerce 0.3.0');
-  await commit('Update the assistants article');
+  await commit('Update the assistants article', { separateFromAdmin: true });
   const aiEntry = (await api('GET', '/content/docs/ai-assistants')).data;
   faults.beforePut = async () => {
     assert.equal((await api('PUT', `/content/docs/${aiEntry.item.id}`, { data: { summary: 'Admin got there first.' } })).status, 200);
@@ -394,7 +394,7 @@ try {
   assert.match((await sync(base, token, 'publish')).output, /^PUBLISHED reference\/ship( \(revision [^)]+\))?$/m);
   assert.equal((await sync(base, token, 'pull', ship)).code, 0);
   const second = edit(ship, () => ({}), 'Ship 0.1.0; Requires Ship 0.2.0 for the kept pass');
-  await commit('Ship article, second update');
+  await commit('Ship article, second update', { separateFromAdmin: true });
   assert.match((await sync(base, token, 'publish')).output, /^PUBLISHED reference\/ship( \(revision [^)]+\))?$/m);
   git('checkout', '-q', first);
   run = await sync(base, token, 'publish');

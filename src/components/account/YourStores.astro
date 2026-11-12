@@ -57,7 +57,7 @@ const serviceNote = (binding: { revoked: boolean; revokedBy: string | null }) =>
         <h2 id="commerce-setup">Set up Commerce</h2>
         <p>Each plugin connects itself: press Connect in Commerce first, then in Payments and Ship. Commerce reads the checkout settings you choose here by itself.</p>
         {visibleStores.map(store => (
-          <div class="account-form">
+          <div class="account-form store-setup">
             <h3>{store.siteOrigin}</h3>
             <p>Store ID: <code>{store.siteId}</code></p>
             <ul aria-label="Connected plugins">
@@ -99,17 +99,19 @@ const serviceNote = (binding: { revoked: boolean; revokedBy: string | null }) =>
               ))}
             </ul>
             {isOwner ? (
-              <form method="post" action={formAction}>
+              <form method="post" action={formAction} class="checkout-settings">
                 <input type="hidden" name="action" value="checkout_settings" />
                 <input type="hidden" name="site_id" value={store.siteId} />
                 <input type="hidden" name="organization_id" value={organizationId} />
                 <fieldset>
                   <legend>Shipping charge</legend>
-                  <label><input type="radio" name="shipping_mode" value="free" checked={saved.get(store.siteId)?.shippingMode !== 'flat'} /> Free</label>
-                  <label><input type="radio" name="shipping_mode" value="flat" checked={saved.get(store.siteId)?.shippingMode === 'flat'} /> Flat amount in dollars</label>
-                  <input type="text" name="shipping_amount" inputmode="decimal" aria-label="Flat shipping charge in dollars"
-                    value={saved.get(store.siteId)?.shippingMode === 'flat' ? (saved.get(store.siteId)!.shippingMinor / 100).toFixed(2) : ''} />
-                  <label>Free shipping when the goods in an order reach this many dollars (optional, flat charge only)
+                  <label class="checkout-choice"><input type="radio" name="shipping_mode" value="free" checked={saved.get(store.siteId)?.shippingMode !== 'flat'} /> Free</label>
+                  <label class="checkout-choice"><input type="radio" name="shipping_mode" value="flat" checked={saved.get(store.siteId)?.shippingMode === 'flat'} /> Flat amount in dollars</label>
+                  <label class="checkout-field">Flat shipping charge in dollars
+                    <input type="text" name="shipping_amount" inputmode="decimal" aria-label="Flat shipping charge in dollars"
+                      value={saved.get(store.siteId)?.shippingMode === 'flat' ? (saved.get(store.siteId)!.shippingMinor / 100).toFixed(2) : ''} />
+                  </label>
+                  <label class="checkout-field">Free shipping when the goods in an order reach this many dollars (optional, flat charge only)
                     <input type="text" name="shipping_free_over" inputmode="decimal"
                       value={saved.get(store.siteId)?.shippingMode === 'flat' && saved.get(store.siteId)?.freeOverMinor ? ((saved.get(store.siteId)?.freeOverMinor ?? 0) / 100).toFixed(2) : ''} />
                   </label>
@@ -117,8 +119,8 @@ const serviceNote = (binding: { revoked: boolean; revokedBy: string | null }) =>
                 </fieldset>
                 <fieldset>
                   <legend>Payments</legend>
-                  <label><input type="radio" name="payments_mode" value="test" checked={!saved.get(store.siteId)?.live} /> Test (no real money)</label>
-                  <label><input type="radio" name="payments_mode" value="live" checked={saved.get(store.siteId)?.live === true} /> Live (takes real money once Payments is live too)</label>
+                  <label class="checkout-choice"><input type="radio" name="payments_mode" value="test" checked={!saved.get(store.siteId)?.live} /> Test (no real money)</label>
+                  <label class="checkout-choice"><input type="radio" name="payments_mode" value="live" checked={saved.get(store.siteId)?.live === true} /> Live (takes real money once Payments is live too)</label>
                 </fieldset>
                 <button type="submit">Save checkout settings</button>
               </form>
@@ -139,3 +141,17 @@ const serviceNote = (binding: { revoked: boolean; revokedBy: string | null }) =>
     <p><a href="/account">Back to account</a></p>
   </div>
 </Site>
+<style>
+  .store-setup { grid-template-columns: minmax(0, 1fr); }
+  .store-setup h3, .store-setup code { overflow-wrap: anywhere; }
+  .checkout-settings { display: grid; gap: 1rem; min-width: 0; }
+  .checkout-settings fieldset { display: grid; gap: .75rem; min-width: 0; margin: 0; padding: 1rem; border: 1px solid var(--line); }
+  .checkout-settings legend { padding-inline: .25rem; font-weight: 600; }
+  .checkout-choice { display: flex; align-items: baseline; gap: .6rem; min-height: 44px; padding-block: .4rem; }
+  .checkout-choice input { flex: none; margin: 0; }
+  .checkout-field { display: grid; gap: .4rem; min-width: 0; }
+  .checkout-field input { width: 100%; min-width: 0; min-height: 44px; font: inherit; color: var(--ink); }
+  .checkout-settings input:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+  .checkout-settings p { margin: 0; color: var(--muted); }
+  .checkout-settings button { justify-self: start; max-width: 100%; min-height: 44px; }
+</style>

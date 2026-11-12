@@ -53,7 +53,9 @@ connected, it says to install the DinkusKit Commerce plugin in the EmDash
 store, open Commerce Settings and press Connect, then do the same in Payments
 and Ship. Set up Commerce shows which plugins are connected and the checkout
 settings Commerce reads by itself; there is no store key to make or paste.
-That section is only for those connected stores.
+That section is only for those connected stores. Checkout settings keep each shipping choice, dollar field and
+payment mode on its own row. The flat charge has a visible associated label as
+well as its existing accessible name; this does not change form fields or POSTs.
 
 Revoke still turns one service off. It does not delete the store or add a
 remove button. When nothing is left on, the store leaves this page.

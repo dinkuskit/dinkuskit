@@ -78,7 +78,13 @@ test('shared service routes require separate consent and display processor setup
     assert.match((await showSettings(owner,{shipping_amount:'five'})).html,/Enter the flat shipping charge in dollars/);
     assert.equal((await request(runtime,new Map(),'/__proof/payments-status',{method:'POST',body:JSON.stringify({site_id:siteId,body:{state:'ready',bindingRef:'bind_route_1',connectionEvidence:{provider:'stripe',accountRef:'acct_1RouteTest'}}})})).status,200);
     const shown=await showSettings(owner); assert.equal(shown.status,200); assert.match(shown.html,/Saved. Commerce reads these itself/);
-    const settings=JSON.parse(unescape(shown.html.match(/<pre><code>([\s\S]*?)<\/code><\/pre>/)[1]));
+    // Astro's scoped component styles add attributes to both tags.
+    const savedSettings = html => {
+      const match = html.match(/<pre\b[^>]*><code\b[^>]*>([\s\S]*?)<\/code><\/pre>/);
+      assert.ok(match, 'saved settings include their JSON code block');
+      return JSON.parse(unescape(match[1]));
+    };
+    const settings=savedSettings(shown.html);
     assert.equal(settings.schema,'dinkuskit.commerce.registry-checkout/v1'); assert.equal(settings.commerceOrigin,origin); assert.equal(settings.siteId,siteId);
     assert.deepEqual([settings.bindingRef,settings.providerId,settings.stripeAccountId,settings.mode],['bind_route_1','stripe','acct_1RouteTest','test']);
     assert.deepEqual(settings.shipping,{configurationId:`shipping-${siteId}`,revision:1,mode:'flat',amount:{currency:'USD',minor:'500'}});
@@ -91,7 +97,7 @@ test('shared service routes require separate consent and display processor setup
     const turnOffShip=await post(owner,{action:'service',site_id:siteId,service:'ship',on:'0'});
     assert.equal(turnOffShip.headers.get('location'),`/account/sites?changed=${siteId}`);
     assert.match(await (await request(runtime,owner,`/account/sites?changed=${siteId}`)).text(),/Commerce picks up the change within 5 minutes/);
-    const withoutShip=JSON.parse(unescape((await showSettings(owner)).html.match(/<pre><code>([\s\S]*?)<\/code><\/pre>/)[1]));
+    const withoutShip=savedSettings((await showSettings(owner)).html);
     assert.equal('ship' in withoutShip,false,'Ship is left out once it is off'); assert.equal(withoutShip.shipping.revision,1,'the charge did not change');
 
     // Sign in with DinkusKit.com for Ship's label page.
@@ -132,7 +138,7 @@ test('shared service routes require separate consent and display processor setup
     assert.deepEqual([machineClaims.aud,machineClaims.ship_recipient,machineClaims.ship_generation,machineClaims.ship_mode],['dinkus-ship-sandbox','ship-sandbox','test-generation-1','test']);
     assert.equal((await shipToken({code:oldBack.searchParams.get('code'),code_verifier:oldPending.verifier})).status,400,'legacy code cannot upgrade');
     assert.equal((await shipToken({grant_type:'refresh_token',refresh_token:legacyRefresh})).status,400,'legacy family cannot upgrade');
-    const isolatedSettings = JSON.parse(unescape((await showSettings(owner)).html.match(/<pre><code>([\s\S]*?)<\/code><\/pre>/)[1]));
+    const isolatedSettings = savedSettings((await showSettings(owner)).html);
     assert.deepEqual(isolatedSettings.ship,{origin:'https://ship.sm0ky.dev',audience:'dinkus-ship-sandbox',recipient:'ship-sandbox',generation:'test-generation-1',mode:'test'});
     assert.equal((await showSettings(owner,{payments_mode:'live'})).status,400);
     assert.equal((await sandboxPass('test-generation-1')).status,200,'refused live save did not change persisted TEST setting');

@@ -75,7 +75,7 @@ The useful part: **our template store already produces the Google Merchant feed 
 
 ## How ours would work
 
-1. **Listing.** A store that is connected to DinkusKit, approved, and able to take payment can be listed. The owner sees a "List my products in the DinkusKit catalog" switch.
+1. **Listing.** A store that is connected to DinkusKit, approved, and able to take payment can be listed. The owner sees a "List my products in the DinkusKit catalog" switch in the store admin, under Commerce settings.
 2. **Filling the index.** The catalog reads the store's agent feed from the store's own public address. Only things a shopper can already see on the store leave it: name, description, photos (as links to the store's own images), price, in stock or not, sizes and colours, brand, barcode, part number, product link, store name, shipping and returns links. No stock counts, no orders, no customer details, no cost prices.
 3. **Staying fresh.** When an owner publishes, changes a price, or something sells out, the store sends dinkuskit.com a small signed "my catalog changed" note and the catalog re-reads that store. Once a day it re-reads everyone as a safety net. When an agent asks for one product's full detail, the catalog checks price and stock with the store at that moment.
 4. **Searching.** An agent calls `search_catalog` at `catalog.dinkuskit.com/api/ucp/mcp`. Words are matched both exactly and by meaning. Results come back in UCP's standard shape, each with the store's name, the product page, and the `/buy` link.
@@ -141,6 +141,8 @@ Locked in the dinkuskit ledger as `agent-catalog-*-20261113`.
 | 12 | Goal wording | "DinkusKit stores appear in the major AI shopping apps at no cost to the owner. DinkusKit never pays another platform to be listed." | "agreed" |
 
 I read the ditto marks on 6, 7 and 8 as "copy Shopify". If you meant plain "agreed", the only differences are: 6 adds inferred matching later, 7 drops the cap of 3 results per store that I first recommended.
+
+**Where the owner's switch lives (15:33 UTC, `agent-catalog-toggle-home-20261113`).** One switch only, in the store admin under Commerce > Settings > Catalog, starting on. There is no switch on dinkuskit.com, so nothing has to be kept in sync. While it is off the store's catalog feed lists nothing, and the catalog drops the store on its next read. His words: "Having it in two places seems a little overcomplicated. It also leaves room for error."
 
 **Still open: star ratings.** Shopify's catalog does filter by rating. I recommend leaving it out for now because no DinkusKit store has reviews, so there is nothing to filter on. Recorded as proposed, not locked.
 

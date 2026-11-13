@@ -218,3 +218,5 @@
 {"action": "decision_locked", "at": "2026-11-13T14:31:20+00:00", "data": {"decision_id": "agent-catalog-google-20261113"}, "event_id": "5dfc1347-5496-47f5-a34c-65ea714bab01"}
 {"action": "decision_locked", "at": "2026-11-13T14:31:20+00:00", "data": {"decision_id": "agent-catalog-applications-20261113"}, "event_id": "ffb7e480-8542-44d1-bd8e-78b8fbe233c9"}
 {"action": "shared_understanding_confirmed", "at": "2026-11-13T14:31:20+00:00", "data": {"summary": "Ronald answered all twelve questions on 13 Nov 2026 (14:27 to 14:30 UTC). Twelve decisions locked. The ratings filter stays proposed until he answers it."}, "event_id": "7bc07895-198d-44d6-bc95-80f9911f9bf7"}
+{"action": "decision_proposed", "at": "2026-11-13T15:34:59+00:00", "data": {"decision_id": "agent-catalog-toggle-home-20261113"}, "event_id": "def4b682-9f0e-4b4c-87b7-4003c52bbb7e"}
+{"action": "decision_locked", "at": "2026-11-13T15:34:59+00:00", "data": {"decision_id": "agent-catalog-toggle-home-20261113"}, "event_id": "5cc9060c-39a9-48ba-a395-197206847a01"}

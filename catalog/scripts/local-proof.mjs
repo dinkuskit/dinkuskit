@@ -217,12 +217,15 @@ try {
 
   console.log('\n== 10. Limits count by address; a new agent profile does not open a new allowance ==');
   const asAgent = number => post({ jsonrpc: '2.0', id: 1, method: 'tools/call', params: { name: 'search_catalog', arguments: { meta: { 'ucp-agent': { profile: `https://agent.example/${number}` } }, catalog: { query: 'hat' } } } }, '198.51.100.7');
+  // A limit's window can roll over once while the requests are being sent, so each run sends more than two
+  // windows' worth: however the windows fall, at least ten must be refused.
   const named = [];
-  for (let number = 1; number <= 55; number += 1) named.push((await asAgent(number)).status);
-  check('55 requests from one address, each under a different profile', { answered: named.filter(status => status === 200).length, refused: named.filter(status => status === 429).length }, { answered: 50, refused: 5 });
+  for (let number = 1; number <= 110; number += 1) named.push((await asAgent(number)).status);
+  const tally = statuses => ({ sent: statuses.length, answered_within_two_windows: statuses.filter(status => status === 200).length <= statuses.length - 10, refused_at_least_ten: statuses.filter(status => status === 429).length >= 10 });
+  check('110 requests from one address, each under a different profile, against 50 per 10 seconds', tally(named), { sent: 110, answered_within_two_windows: true, refused_at_least_ten: true });
   const unnamed = [];
-  for (let number = 1; number <= 33; number += 1) unnamed.push((await post({ jsonrpc: '2.0', id: 1, method: 'tools/list' }, '198.51.100.8')).status);
-  check('33 requests from an agent that does not name itself', { answered: unnamed.filter(status => status === 200).length, refused: unnamed.filter(status => status === 429).length }, { answered: 30, refused: 3 });
+  for (let number = 1; number <= 70; number += 1) unnamed.push((await post({ jsonrpc: '2.0', id: 1, method: 'tools/list' }, '198.51.100.8')).status);
+  check('70 requests from an agent that does not name itself, against 30 a minute', tally(unnamed), { sent: 70, answered_within_two_windows: true, refused_at_least_ten: true });
 } finally {
   await mf?.dispose();
   await rm(outDir, { recursive: true, force: true });

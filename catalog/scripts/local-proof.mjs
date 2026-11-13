@@ -33,9 +33,16 @@ const hat = (origin, title, price) => ({
   id: 'hat', sku: 'HAT', title, canonicalUrl: `${origin}/products/hat`, description: 'A warm wool hat.', price: usd(price),
   availability: { status: 'in_stock', sellable: true }, brand: 'Northpeak', gtin: '4006381333931',
 });
+const tee = origin => ({
+  id: 'tee', sku: 'TEE', title: 'Trail Tee', canonicalUrl: `${origin}/products/tee`, description: 'Soft cotton tee.', availability: { status: 'in_stock', sellable: true },
+  variants: { productId: 'tee', options: [], members: [['Blue', 'S'], ['Blue', 'M'], ['Red', 'M']].map(([color, size]) => ({
+    catalogItemId: `tee-${color}-${size}`.toLowerCase(), price: usd(1800), availability: { status: 'in_stock', sellable: true },
+    selections: [{ optionLabel: 'Color', valueLabel: color }, { optionLabel: 'Size', valueLabel: size }],
+  })) },
+});
 /** What each store's feed address answers right now; `null` is a store that is down. */
 const feeds = {
-  [ALPHA]: feed(ALPHA, 'Alpha Outfitters', [hat(ALPHA, 'Wool Trail Hat', 2500)]),
+  [ALPHA]: feed(ALPHA, 'Alpha Outfitters', [hat(ALPHA, 'Wool Trail Hat', 2500), tee(ALPHA)]),
   [BETA]: feed(BETA, 'Beta Goods', [hat(BETA, 'Northpeak Wool Hat', 2300)]),
   [PLAYGROUND]: feed(PLAYGROUND, 'Playground', [hat(PLAYGROUND, 'Test Hat', 100)]),
 };
@@ -125,6 +132,15 @@ try {
   check('with no model bound the answer says it matched words only', first.messages.map(entry => entry.code), ['meaning_search_unavailable']);
   check('lookup_catalog by product id', await lookup(productId), ['Beta Goods 2300', 'Alpha Outfitters 2500']);
   check('get_product by product page address', await detail(`${ALPHA}/products/hat`), ['Beta Goods 2300', 'Alpha Outfitters 2500']);
+
+  const teeProduct = (await tool('search_catalog', { query: 'tee' })).products[0];
+  const redTee = teeProduct.variants.find(variant => variant.title === 'Red / M').id;
+  const opened = (await tool('get_product', { id: redTee })).product;
+  check('get_product by one variant id opens on that variant and still knows the other colour', { selected: opened.selected.map(pick => pick.label), colours: opened.options.find(option => option.name === 'Color').values.map(value => `${value.label}:${value.exists}`) }, { selected: ['Red', 'M'], colours: ['Blue:true', 'Red:true'] });
+  const blue = (await tool('get_product', { id: redTee, selected: [{ name: 'Color', label: 'Blue' }] })).product;
+  check('and switching to the other colour from there works', blue.variants.map(variant => variant.title), ['Blue / S', 'Blue / M']);
+  const photo = await tool('search_catalog', { query: 'wool hat', like: [{ image: { content_type: 'image/jpeg', data: 'AAAA' } }] });
+  check('a photo with words, when looks cannot be matched, still matches the words only', { titles: photo.products.map(entry => entry.title), said: photo.messages.map(entry => entry.code) }, { titles: ['Northpeak Wool Hat'], said: ['similarity_search_unavailable'] });
 
   console.log('\n== 2. A price change shows in full detail at once, and in search by the next read ==');
   feeds[BETA].products[0].price = usd(1999);

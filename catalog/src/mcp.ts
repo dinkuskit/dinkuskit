@@ -142,7 +142,8 @@ async function searchTool(db: D1Database, catalog: Json, meaning?: Meaning) {
   if (like && !query && !nearest) nearest = [];
   const found = await searchCatalog(db, {
     // A photo or a product to match stands in for the words; with both, the words narrow the match.
-    query: like?.picture ? undefined : query || undefined,
+    // Without a match by looks (no model, or it failed) the words are all there is, so they are kept.
+    query: like?.picture && nearest ? undefined : query || undefined,
     available: filters.available, priceMin: filters.priceMin, priceMax: filters.priceMax,
     shops: filters.shops, categories: meaning?.categories ? filters.categories : undefined, exclude,
     limit, offset: readCursor(pagination.cursor),
@@ -167,7 +168,12 @@ async function lookupTool(db: D1Database, catalog: Json) {
 
 async function productTool(db: D1Database, catalog: Json, live?: LiveCheck) {
   const id = typeof catalog.id === 'string' ? catalog.id : '';
-  const find = async () => (id ? await lookupCatalog(db, [id], false) : { products: [], notFound: [id] }).products[0];
+  // A variant id or page address stands for its whole product: every variant is loaded, so the other
+  // sizes and colours can be told apart from ones that do not exist.
+  const find = async () => {
+    const upid = id ? await resolveUpid(db, id) : null;
+    return upid ? (await lookupCatalog(db, [upid], false)).products[0] : undefined;
+  };
   let product = await find();
   if (product && live) {
     // Full detail is checked with each store that sells the product before it is answered.

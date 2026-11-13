@@ -154,6 +154,14 @@ test('lookup and get_product answer by product id, variant id and page address',
   const relaxed = await call(db, 'get_product', { id: tee.id, selected: [{ name: 'Color', label: 'Red' }, { name: 'Size', label: 'S' }], preferences: ['Color', 'Size'] });
   assert.deepEqual(relaxed.product.selected, [{ name: 'Color', label: 'Red' }], 'no red in S, so size is relaxed first');
   assert.equal((await call(db, 'get_product', { id: 'dkp_nope' })).ucp.status, 'error');
+
+  // Opened by one variant's id, the product still knows its other colours and sizes.
+  const byVariant = await call(db, 'get_product', { id: red.id });
+  assert.deepEqual(byVariant.product.selected, [{ name: 'Color', label: 'Red' }, { name: 'Size', label: 'M' }], 'the variant asked for is where it opens');
+  assert.deepEqual(byVariant.product.options.find(option => option.name === 'Color').values.map(value => [value.label, value.exists]), [['Blue', true], ['Red', true]]);
+  const switched = await call(db, 'get_product', { id: red.id, selected: [{ name: 'Color', label: 'Blue' }] });
+  assert.deepEqual(switched.product.selected, [{ name: 'Color', label: 'Blue' }]);
+  assert.deepEqual(switched.product.variants.map(variant => variant.title), ['Blue / S', 'Blue / M']);
 });
 
 test('a store that changes, fails or leaves the list is kept right', async () => {
@@ -422,6 +430,9 @@ test('search by meaning, by photo and by "similar to this", with categories work
   const fallback = await call(db, 'search_catalog', { query: 'wool hat' }, meaning);
   assert.equal(fallback.products.length, 1, 'the catalog still answers by words when the model is down');
   assert.equal(fallback.messages[0].code, 'meaning_search_unavailable');
+  const photoDown = await call(db, 'search_catalog', { query: 'wool hat', like: [{ image: { content_type: 'image/jpeg', data: btoa('HATPHOTO') } }] }, meaning);
+  assert.deepEqual(photoDown.products.map(product => product.id), [fallback.products[0].id], 'a photo search that falls back still matches the words, not just anything');
+  assert.equal(photoDown.messages[0].code, 'meaning_search_unavailable');
   meaning.calls.down = false;
 
   await refreshCatalog(db, [stores[0]], pictureFetcher(feeds), 1900, meaning);

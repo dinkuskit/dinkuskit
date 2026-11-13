@@ -434,6 +434,11 @@ test('search by meaning, by photo and by "similar to this", with categories work
   assert.deepEqual(photoDown.products.map(product => product.id), [fallback.products[0].id], 'a photo search that falls back still matches the words, not just anything');
   assert.equal(photoDown.messages[0].code, 'meaning_search_unavailable');
   meaning.calls.down = false;
+  // The model answers but the index holds no vectors yet (products just read, not yet indexed).
+  const unindexed = { ...meaning, products: memoryIndex() };
+  const photoEmpty = await call(db, 'search_catalog', { query: 'wool hat', like: [{ image: { content_type: 'image/jpeg', data: btoa('HATPHOTO') } }] }, unindexed);
+  assert.deepEqual(photoEmpty.products.map(product => product.id), [fallback.products[0].id], 'with nothing to match by looks, the words still find the hat');
+  assert.equal((await call(db, 'search_catalog', { like: [{ image: { content_type: 'image/jpeg', data: btoa('HATPHOTO') } }] }, unindexed)).products.length, 0, 'a photo alone with nothing indexed finds nothing');
 
   await refreshCatalog(db, [stores[0]], pictureFetcher(feeds), 1900, meaning);
   clock = 1900;

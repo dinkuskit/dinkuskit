@@ -142,8 +142,9 @@ async function searchTool(db: D1Database, catalog: Json, meaning?: Meaning) {
   if (like && !query && !nearest) nearest = [];
   const found = await searchCatalog(db, {
     // A photo or a product to match stands in for the words; with both, the words narrow the match.
-    // Without a match by looks (no model, or it failed) the words are all there is, so they are kept.
-    query: like?.picture && nearest ? undefined : query || undefined,
+    // Without a match by looks (no model, it failed, or the index holds nothing near) the words are all
+    // there is, so they are kept.
+    query: like?.picture && nearest?.length ? undefined : query || undefined,
     available: filters.available, priceMin: filters.priceMin, priceMax: filters.priceMax,
     shops: filters.shops, categories: meaning?.categories ? filters.categories : undefined, exclude,
     limit, offset: readCursor(pagination.cursor),

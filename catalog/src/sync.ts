@@ -1,5 +1,6 @@
 import { FEED_PATH, parseAgentCatalogFeed, type ParsedFeed } from './feed.ts';
 import { offerId, universalProductId, variantId } from './ids.ts';
+import { forgetStore, indexStore, type Meaning } from './meaning.ts';
 
 /**
  * Keeps the catalog in step with each listed store (GrillTrack
@@ -100,12 +101,21 @@ export async function refreshStore(db: D1Database, store: ListedStore, fetcher: 
   return { siteId: store.siteId, outcome: 'updated', products: await storeFeed(db, store, feed, feedHash, now) };
 }
 
-/** One pass over every listed store; stores that left the list are removed. */
-export async function refreshCatalog(db: D1Database, listed: ListedStore[], fetcher: typeof fetch, now: number): Promise<RefreshResult[]> {
+/** One pass over every listed store; stores that left the list are removed. With `meaning`, search vectors and categories follow. */
+export async function refreshCatalog(db: D1Database, listed: ListedStore[], fetcher: typeof fetch, now: number, meaning?: Meaning): Promise<RefreshResult[]> {
   const held = await db.prepare('SELECT site_id FROM catalog_store').all<{ site_id: string }>();
   const keep = new Set(listed.map(store => store.siteId));
-  for (const row of held.results ?? []) if (!keep.has(row.site_id)) await removeStore(db, row.site_id);
+  for (const row of held.results ?? []) {
+    if (keep.has(row.site_id)) continue;
+    await removeStore(db, row.site_id);
+    if (meaning) await forgetStore(db, meaning, row.site_id).catch(() => undefined);
+  }
   const results: RefreshResult[] = [];
-  for (const store of listed) results.push(await refreshStore(db, store, fetcher, now));
+  for (const store of listed) {
+    const result = await refreshStore(db, store, fetcher, now);
+    // A product that could not get its vector this time is tried again on the next pass; word search already has it.
+    if (meaning && result.outcome !== 'failed') await indexStore(db, meaning, store.siteId, fetcher).catch(() => undefined);
+    results.push(result);
+  }
   return results;
 }

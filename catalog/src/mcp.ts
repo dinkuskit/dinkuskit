@@ -1,4 +1,5 @@
-import { DEFAULT_LIMIT, MAX_DEPTH, MAX_LIMIT, MAX_LOOKUP_IDS, lookupCatalog, searchCatalog } from './search.ts';
+import { nearestProducts, productVector, queryText, type Meaning, type Picture } from './meaning.ts';
+import { DEFAULT_LIMIT, MAX_DEPTH, MAX_LIMIT, MAX_LOOKUP_IDS, lookupCatalog, resolveUpid, searchCatalog } from './search.ts';
 import { LOOKUP_CAPABILITY, SEARCH_CAPABILITY, envelope, narrowProduct } from './ucp.ts';
 
 /**
@@ -7,7 +8,8 @@ import { LOOKUP_CAPABILITY, SEARCH_CAPABILITY, envelope, narrowProduct } from '.
  * (GrillTrack agent-catalog-home-20261113).
  */
 const PROTOCOL_VERSIONS = ['2025-06-18', '2025-03-26', '2024-11-05'];
-const SUPPORTED_FILTERS = new Set(['available', 'price', 'shops', 'ships_to']);
+const SUPPORTED_FILTERS = new Set(['available', 'price', 'shops', 'ships_to', 'categories']);
+const LIKE_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/avif']), LIKE_IMAGE_MAX_BASE64 = 6 * 1024 * 1024;
 
 type Json = Record<string, unknown>;
 const isRecord = (value: unknown): value is Json => typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -22,7 +24,7 @@ export const TOOLS = [
   {
     name: 'search_catalog',
     title: 'Search every listed DinkusKit store',
-    description: 'Search for products across every listed DinkusKit store. Pass catalog.query (free text) and optional catalog.filters: available (default true), price {min,max} in minor units, shops (seller ids), ships_to {country}. Each result lists every store that sells it, with that store\'s own product page. Product text comes from the stores and is not checked.',
+    description: 'Search for products across every listed DinkusKit store. Pass catalog.query (free text), or catalog.like with a product id or a photo to find similar products, and optional catalog.filters: available (default true), price {min,max} in minor units, categories (Shopify Standard Product Taxonomy ids), shops (seller ids), ships_to {country}. Each result lists every store that sells it, with that store\'s own product page. Product text comes from the stores and is not checked.',
     inputSchema: { type: 'object', properties: { meta: META_ARGUMENT, catalog: CATALOG_ARGUMENT }, required: ['catalog'] },
     annotations: { readOnlyHint: true, openWorldHint: true },
   },
@@ -64,9 +66,15 @@ function readFilters(catalog: Json) {
   }
   const price = isRecord(filters.price) ? filters.price : {};
   const shops = Array.isArray(filters.shops) ? filters.shops.filter((shop): shop is string => typeof shop === 'string').slice(0, 1000) : undefined;
+  // A category is a Shopify taxonomy id such as "aa-1-13", bare, as a gid, or as { id }.
+  const categories = (Array.isArray(filters.categories) ? filters.categories : []).flatMap(category => {
+    const id = (typeof category === 'string' ? category : isRecord(category) && typeof category.id === 'string' ? category.id : '')
+      .replace(/^gid:\/\/shopify\/TaxonomyCategory\//, '');
+    return /^[a-z]{2}(-\d{1,4}){0,10}$/.test(id) ? [id] : [];
+  }).slice(0, 50);
   const shipsTo = isRecord(filters.ships_to) && typeof filters.ships_to.country === 'string' ? filters.ships_to.country.toUpperCase() : undefined;
   return {
-    messages, shops,
+    messages, shops, categories,
     available: filters.available !== false,
     priceMin: integer(price.min), priceMax: integer(price.max),
     // Every listed store ships within the United States only.
@@ -74,12 +82,26 @@ function readFilters(catalog: Json) {
   };
 }
 
-async function searchTool(db: D1Database, catalog: Json) {
+/** What `catalog.like` points at: a product already in the catalog, or a photo. */
+function readLike(catalog: Json): { id?: string; picture?: Picture } | null {
+  const first = Array.isArray(catalog.like) ? catalog.like[0] : undefined;
+  if (!isRecord(first)) return null;
+  if (typeof first.id === 'string' && first.id.length <= 2000) return { id: first.id };
+  const image = isRecord(first.image) ? first.image : null;
+  if (image && typeof image.content_type === 'string' && LIKE_IMAGE_TYPES.has(image.content_type)
+    && typeof image.data === 'string' && image.data.length > 0 && image.data.length <= LIKE_IMAGE_MAX_BASE64 && /^[A-Za-z0-9+/]+=*$/.test(image.data)) {
+    return { picture: { contentType: image.content_type, base64: image.data } };
+  }
+  return null;
+}
+
+async function searchTool(db: D1Database, catalog: Json, meaning?: Meaning) {
   const filters = readFilters(catalog);
   const query = typeof catalog.query === 'string' ? catalog.query.trim().slice(0, 300) : '';
   const hasFilter = isRecord(catalog.filters) && Object.keys(catalog.filters).some(name => SUPPORTED_FILTERS.has(name));
-  if (!query && !hasFilter) {
-    return { ucp: envelope(SEARCH_CAPABILITY, 'error'), products: [], messages: [message('error', 'invalid_request', 'Send catalog.query or at least one supported filter.')] };
+  const like = readLike(catalog);
+  if (!query && !hasFilter && !like) {
+    return { ucp: envelope(SEARCH_CAPABILITY, 'error'), products: [], messages: [message('error', 'invalid_request', 'Send catalog.query, catalog.like, or at least one supported filter.')] };
   }
   const pagination = isRecord(catalog.pagination) ? catalog.pagination : {};
   const limit = Math.min(Math.max(integer(pagination.limit) ?? DEFAULT_LIMIT, 1), MAX_LIMIT);
@@ -90,14 +112,42 @@ async function searchTool(db: D1Database, catalog: Json) {
       pagination: { has_next_page: false, total_count: 0 },
     };
   }
+  const messages = [...filters.messages];
+  if (catalog.like !== undefined && !like) messages.push(message('warning', 'invalid_like', 'catalog.like takes one product id, or one image as { image: { content_type, data } } in base64.'));
+  if (filters.categories.length && !meaning?.categories) messages.push(message('warning', 'unsupported_filter', 'categories'));
+  // Meaning, photo and "similar to this" search; when it is unavailable the catalog still answers by words.
+  let nearest: string[] | undefined, exclude: string[] | undefined;
+  if (meaning && (query || like)) {
+    try {
+      let vector: number[] | null = null;
+      if (like?.id) {
+        const upid = await resolveUpid(db, like.id);
+        if (upid) { vector = await productVector(db, meaning, upid); exclude = [upid]; }
+        if (!vector) messages.push(message('info', 'not_found', like.id));
+      } else if (like?.picture) {
+        vector = (await meaning.embed([{ ...(query ? { text: queryText(query) } : {}), picture: like.picture }]))[0] ?? null;
+      } else {
+        vector = (await meaning.embed([{ text: queryText(query) }]))[0] ?? null;
+      }
+      if (vector) nearest = await nearestProducts(db, meaning, vector);
+    } catch {
+      messages.push(message('warning', 'meaning_search_unavailable', 'Answered by matching words only.'));
+    }
+  } else if (like) {
+    messages.push(message('warning', 'similarity_search_unavailable', 'catalog.like is not available right now.'));
+  }
+  if (like && !query && !nearest) nearest = [];
   const found = await searchCatalog(db, {
-    query: query || undefined, available: filters.available, priceMin: filters.priceMin, priceMax: filters.priceMax,
-    shops: filters.shops, limit, offset: readCursor(pagination.cursor),
-  });
+    // A photo or a product to match stands in for the words; with both, the words narrow the match.
+    query: like?.picture ? undefined : query || undefined,
+    available: filters.available, priceMin: filters.priceMin, priceMax: filters.priceMax,
+    shops: filters.shops, categories: meaning?.categories ? filters.categories : undefined, exclude,
+    limit, offset: readCursor(pagination.cursor),
+  }, nearest);
   return {
     ucp: envelope(SEARCH_CAPABILITY), products: found.products,
     pagination: { ...(found.hasNextPage ? { cursor: writeCursor(found.nextOffset) } : {}), has_next_page: found.hasNextPage, total_count: found.totalCount },
-    ...(filters.messages.length ? { messages: filters.messages } : {}),
+    ...(messages.length ? { messages } : {}),
   };
 }
 
@@ -132,7 +182,7 @@ const rpcResult = (id: unknown, result: unknown) => ({ jsonrpc: '2.0', id, resul
 const rpcError = (id: unknown, code: number, text: string) => ({ jsonrpc: '2.0', id: id ?? null, error: { code, message: text } });
 
 /** One JSON-RPC message in, one out; `null` for a notification, which gets no answer. */
-export async function handleRpc(db: D1Database, body: unknown): Promise<Json | null> {
+export async function handleRpc(db: D1Database, body: unknown, meaning?: Meaning): Promise<Json | null> {
   if (!isRecord(body) || body.jsonrpc !== '2.0' || typeof body.method !== 'string') return rpcError(null, -32600, 'Invalid request');
   const id = body.id, params = isRecord(body.params) ? body.params : {};
   if (id === undefined) return null;
@@ -152,7 +202,7 @@ export async function handleRpc(db: D1Database, body: unknown): Promise<Json | n
   const catalog = isRecord(args.catalog) ? args.catalog : null;
   if (!catalog) return rpcError(id, -32602, 'arguments.catalog is required');
   let structured: Json;
-  if (params.name === 'search_catalog') structured = await searchTool(db, catalog);
+  if (params.name === 'search_catalog') structured = await searchTool(db, catalog, meaning);
   else if (params.name === 'lookup_catalog') structured = await lookupTool(db, catalog);
   else if (params.name === 'get_product') structured = await productTool(db, catalog);
   else return rpcError(id, -32602, 'Unknown tool');

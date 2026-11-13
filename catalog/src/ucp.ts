@@ -12,6 +12,7 @@ export type OfferRow = {
   images: string; options: string; variants: string; highlights: string;
   price_min: number; price_max: number; currency: string; sellable: number; updated_at: number;
   site_origin: string; store_name: string; policies: string;
+  category_id: string | null; category_name: string | null;
 };
 
 export type UcpVariant = {
@@ -24,6 +25,7 @@ export type UcpVariant = {
 };
 export type UcpProduct = {
   id: string; title: string; description: { plain: string }; url: string;
+  categories?: { value: string; taxonomy: string }[];
   price_range: { min: { amount: number; currency: string }; max: { amount: number; currency: string } };
   media: { type: 'image'; url: string; alt_text: string }[];
   options: { name: string; values: { label: string; available?: boolean; exists?: boolean }[] }[];
@@ -72,6 +74,7 @@ export function toProduct(rows: OfferRow[], availableOnly: boolean): UcpProduct 
   const sellers = new Set(rows.map(row => row.site_id));
   return {
     id: lead.upid, title: lead.title, description: { plain: lead.description }, url: lead.url,
+    ...(lead.category_id ? { categories: [{ value: lead.category_id, taxonomy: 'shopify' }] } : {}),
     price_range: { min: { amount: Math.min(...prices), currency: lead.currency }, max: { amount: Math.max(...prices), currency: lead.currency } },
     media: parse<string[]>(lead.images, []).map(url => ({ type: 'image' as const, url, alt_text: lead.title })),
     options, variants,
@@ -80,6 +83,8 @@ export function toProduct(rows: OfferRow[], availableOnly: boolean): UcpProduct 
       ...(lead.gtin ? { gtin: lead.gtin } : {}),
       ...(lead.mpn ? { mpn: lead.mpn } : {}),
       ...(parse<string[]>(lead.highlights, []).length ? { highlights: parse<string[]>(lead.highlights, []) } : {}),
+      // The category is worked out by the catalog from the product's words and picture, not set by the store.
+      ...(lead.category_id && lead.category_name ? { category: { id: lead.category_id, name: lead.category_name, inferred: true } } : {}),
       seller_count: sellers.size,
       // Words and pictures come from each store and are not checked by DinkusKit.
       content_trust: 'untrusted_merchant_content',

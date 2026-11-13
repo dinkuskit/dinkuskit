@@ -6,9 +6,11 @@ import { parseAgentCatalogFeed, FEED_SCHEMA } from '../catalog/src/feed.ts';
 import { universalProductId } from '../catalog/src/ids.ts';
 import { listListedStores } from '../catalog/src/listing.ts';
 import { handleRpc } from '../catalog/src/mcp.ts';
+import { VECTOR_DIMENSIONS, fuseRanks, workersAiEmbedder } from '../catalog/src/meaning.ts';
 import { matchExpression } from '../catalog/src/search.ts';
 import { refreshCatalog } from '../catalog/src/sync.ts';
 import { handleRequest } from '../catalog/src/worker.ts';
+import { categoryText, parseCategories } from '../catalog/scripts/seed-categories.mjs';
 
 /** better-sqlite3 behind the D1 calls the catalog uses; batch runs in one transaction. */
 function d1(sqlite) {
@@ -31,7 +33,7 @@ function d1(sqlite) {
 
 async function catalogDb() {
   const sqlite = new Database(':memory:');
-  sqlite.exec(await readFile(new URL('../catalog/migrations/0001_catalog.sql', import.meta.url), 'utf8'));
+  for (const file of ['0001_catalog.sql', '0002_meaning_and_categories.sql']) sqlite.exec(await readFile(new URL(`../catalog/migrations/${file}`, import.meta.url), 'utf8'));
   return d1(sqlite);
 }
 
@@ -68,7 +70,7 @@ const fetcher = (feeds) => async (address) => {
   return feeds[origin] ? new Response(JSON.stringify(feeds[origin]), { status: 200 }) : new Response('no', { status: 503 });
 };
 const stores = [{ siteId: 'site-alpha', siteOrigin: ALPHA }, { siteId: 'site-beta', siteOrigin: BETA }];
-const call = async (db, name, catalog) => (await handleRpc(db, { jsonrpc: '2.0', id: 1, method: 'tools/call', params: { name, arguments: { catalog } } })).result.structuredContent;
+const call = async (db, name, catalog, meaning) => (await handleRpc(db, { jsonrpc: '2.0', id: 1, method: 'tools/call', params: { name, arguments: { catalog } } }, meaning)).result.structuredContent;
 
 test('a feed is read as plain, checked rows and refused when it is for another site', () => {
   const parsed = parseAgentCatalogFeed(alphaFeed(), ALPHA);
@@ -215,4 +217,115 @@ test('only connected, approved, payment-ready stores the owner left on are liste
   sqlite.prepare("INSERT INTO dinkuskit_service_grant VALUES ('site-cutoff', 'ship', 1, 'operator')").run();
   sqlite.prepare("INSERT INTO dinkuskit_service_grant VALUES ('site-listed', 'catalog', 0, NULL)").run();
   assert.deepEqual(await listListedStores(d1(sqlite), ['https://test.example']), [{ siteId: 'site-listed', siteOrigin: 'https://listed.example' }]);
+});
+
+/** A stand-in for the model: each idea is one direction, so "beanie" lands beside "hat" and a hat photo beside hats. */
+const IDEAS = [['hat', 'beanie', 'cap', 'headwear', 'HATPHOTO'], ['tee', 'shirt', 'top', 'cotton'], ['mug', 'cup', 'enamel', 'drinkware']];
+const ideaVector = (text) => {
+  const vector = IDEAS.map(words => words.filter(word => text.toLowerCase().includes(word.toLowerCase())).length);
+  const length = Math.hypot(...vector) || 1;
+  return vector.map(value => value / length);
+};
+function memoryIndex(seed = []) {
+  const held = new Map(seed.map(row => [row.id, row]));
+  const cosine = (a, b) => a.reduce((sum, value, index) => sum + value * b[index], 0);
+  return {
+    held,
+    async upsert(vectors) { for (const vector of vectors) held.set(vector.id, vector); },
+    async query(vector, { topK }) {
+      const matches = [...held.values()].map(row => ({ id: row.id, score: cosine(vector, row.values), metadata: row.metadata }))
+        .filter(match => match.score > 0).sort((a, b) => b.score - a.score).slice(0, topK);
+      return { matches };
+    },
+    async getByIds(ids) { return ids.flatMap(id => held.get(id) ?? []); },
+    async deleteByIds(ids) { for (const id of ids) held.delete(id); },
+  };
+}
+function fakeMeaning() {
+  const calls = { embedded: 0, down: false };
+  return {
+    calls,
+    products: memoryIndex(),
+    categories: memoryIndex([
+      { id: 'aa-2-17', values: ideaVector('hat'), metadata: { name: 'Apparel & Accessories > Clothing Accessories > Hats' } },
+      { id: 'aa-1-13', values: ideaVector('tee'), metadata: { name: 'Apparel & Accessories > Clothing > Clothing Tops' } },
+      { id: 'hg-11', values: ideaVector('mug'), metadata: { name: 'Home & Garden > Kitchen & Dining' } },
+    ]),
+    async embed(inputs) {
+      if (calls.down) throw new Error('model down');
+      calls.embedded += inputs.length;
+      return inputs.map(input => ideaVector(`${input.text ?? ''} ${input.picture ? atob(input.picture.base64) : ''}`));
+    },
+  };
+}
+const pictureFetcher = (feeds) => async (address) => {
+  if (/\/media\//.test(address)) return new Response(address.includes('hat') ? 'HATPHOTO' : 'plain', { status: 200, headers: { 'content-type': 'image/jpeg' } });
+  return fetcher(feeds)(address);
+};
+
+test('search by meaning, by photo and by "similar to this", with categories worked out by the catalog', async () => {
+  const db = await catalogDb(), meaning = fakeMeaning();
+  const feeds = { [ALPHA]: alphaFeed(), [BETA]: betaFeed() };
+  await refreshCatalog(db, stores, pictureFetcher(feeds), 1000, meaning);
+  assert.equal(meaning.calls.embedded, 4, 'one vector per product per store');
+  assert.equal(meaning.products.held.size, 4);
+
+  const beanie = await call(db, 'search_catalog', { query: 'beanie' }, meaning);
+  assert.deepEqual(beanie.products.map(product => product.metadata.seller_count), [2], 'no product says "beanie", but the hat is found by meaning');
+  assert.deepEqual(beanie.products[0].categories, [{ value: 'aa-2-17', taxonomy: 'shopify' }]);
+  assert.equal(beanie.products[0].metadata.category.inferred, true);
+  assert.equal((await call(db, 'search_catalog', { query: 'beanie' })).products.length, 0, 'words alone do not find it');
+
+  const photo = await call(db, 'search_catalog', { like: [{ image: { content_type: 'image/jpeg', data: btoa('HATPHOTO') } }] }, meaning);
+  assert.equal(photo.products.length, 1);
+  assert.equal(photo.products[0].id, beanie.products[0].id);
+
+  const tee = (await call(db, 'search_catalog', { query: 'tee' }, meaning)).products[0];
+  const similar = await call(db, 'search_catalog', { like: [{ id: beanie.products[0].id }] }, meaning);
+  assert.ok(!similar.products.some(product => product.id === beanie.products[0].id), 'the product itself is left out');
+  const clothing = await call(db, 'search_catalog', { filters: { categories: ['aa-1'] } }, meaning);
+  assert.deepEqual(clothing.products.map(product => product.id), [tee.id], 'a category matches everything beneath it');
+  const gid = await call(db, 'search_catalog', { filters: { categories: ['gid://shopify/TaxonomyCategory/aa-2-17'], available: true } }, meaning);
+  assert.equal(gid.products.length, 1);
+
+  const before = meaning.calls.embedded;
+  await refreshCatalog(db, stores, pictureFetcher(feeds), 1300, meaning);
+  feeds[BETA].products[0].price = usd(1999);
+  await refreshCatalog(db, stores, pictureFetcher(feeds), 1600, meaning);
+  assert.equal(meaning.calls.embedded, before, 'a price change works no vector out again');
+
+  meaning.calls.down = true;
+  const fallback = await call(db, 'search_catalog', { query: 'wool hat' }, meaning);
+  assert.equal(fallback.products.length, 1, 'the catalog still answers by words when the model is down');
+  assert.equal(fallback.messages[0].code, 'meaning_search_unavailable');
+  meaning.calls.down = false;
+
+  await refreshCatalog(db, [stores[0]], pictureFetcher(feeds), 1900, meaning);
+  assert.equal(meaning.products.held.size, 3, 'a delisted store takes its vectors with it');
+  const noModel = await call(db, 'search_catalog', { like: [{ id: tee.id }] });
+  assert.equal(noModel.messages[0].code, 'similarity_search_unavailable');
+});
+
+test('ranks by words and by meaning are joined, and the model is asked in the documented shape', async () => {
+  assert.deepEqual(fuseRanks([['a', 'b', 'c'], ['c', 'a', 'd']]), ['a', 'c', 'b', 'd']);
+  const asked = [];
+  const embed = workersAiEmbedder({ async run(model, input) { asked.push([model, input]); return { data: input.messages.map(() => ({ embedding: Array(VECTOR_DIMENSIONS).fill(0) })) }; } });
+  const vectors = await embed([{ text: 'words' }, { text: 'both', picture: { contentType: 'image/png', base64: 'AAAA' } }]);
+  assert.equal(vectors.length, 2);
+  assert.equal(asked[0][0], '@cf/google/embeddinggemma-2');
+  assert.deepEqual(asked[0][1].messages[0], [{ role: 'user', content: 'words' }]);
+  assert.deepEqual(asked[0][1].messages[1][0].content, [{ type: 'text', text: 'both' }, { type: 'image_url', image_url: { url: 'data:image/png;base64,AAAA' } }]);
+  await assert.rejects(workersAiEmbedder({ async run() { return { data: [] }; } })([{ text: 'x' }]), /embedding_failed/);
+});
+
+test('Shopify\'s category list is read into ids and names', () => {
+  const rows = parseCategories(`# Shopify Product Taxonomy - Categories: 2026-10
+# Format: {GID} : {Ancestor name} > ... > {Category name}
+
+gid://shopify/TaxonomyCategory/aa                : Apparel & Accessories
+gid://shopify/TaxonomyCategory/aa-1-13           : Apparel & Accessories > Clothing > Clothing Tops
+not a category line
+`);
+  assert.deepEqual(rows, [{ id: 'aa', name: 'Apparel & Accessories' }, { id: 'aa-1-13', name: 'Apparel & Accessories > Clothing > Clothing Tops' }]);
+  assert.equal(categoryText(rows[1].name), 'title: Clothing Tops | text: Apparel & Accessories > Clothing > Clothing Tops');
 });

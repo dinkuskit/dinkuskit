@@ -9,6 +9,9 @@ One catalog across every listed DinkusKit store, for shoppers' AI agents. Decisi
 - **Buying:** each result points to the store's own product page. The catalog never holds a cart or takes money.
 - **Limits:** agents that send `meta["ucp-agent"].profile` get 50 requests per 10 seconds; others share 30 a minute per address.
 
-Not built yet: search by meaning, categories, photo search, the owner's toggle on Your stores.
+- **Search by meaning, photo and "similar to this":** each product gets one vector from its words and first picture (Workers AI `@cf/google/embeddinggemma-2`, a Vectorize index). `catalog.like` takes a product id or a base64 photo. Word and meaning ranks are joined. With the model or index missing or down, the catalog answers by words and says so in `messages`.
+- **Categories:** each product's category is worked out by the catalog against Shopify's open Standard Product Taxonomy (MIT) and marked `inferred`. `filters.categories` takes taxonomy ids; a category matches everything beneath it. `scripts/seed-categories.mjs` fills the category index (about 14,600 categories, a little over Vectorize's included storage on its own; cents a month).
 
-Run the tests with `npm run test:catalog`. `wrangler.jsonc` holds placeholder ids only; deploying, creating the database and adding the `catalog.dinkuskit.com` address need the owner's go.
+Not built yet: the owner's toggle on Your stores, matching the same product with no GTIN or MPN, and a checkout link per offer (waits for the store's `/buy` links).
+
+Run the tests with `npm run test:catalog`. `wrangler.jsonc` holds placeholder ids only; deploying, creating the database and the two Vectorize indexes (768 dimensions, cosine), seeding categories and adding the `catalog.dinkuskit.com` address need the owner's go.

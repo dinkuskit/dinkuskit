@@ -12,6 +12,11 @@
     { "binding": "CATALOG_DB", "database_name": "dinkuskit-catalog", "database_id": "00000000-0000-0000-0000-000000000020", "migrations_dir": "./migrations" },
     { "binding": "MERCHANT_DB", "database_name": "dinkuskit-merchant-local", "database_id": "00000000-0000-0000-0000-000000000001" }
   ],
+  "ai": { "binding": "AI" },
+  "vectorize": [
+    { "binding": "PRODUCT_INDEX", "index_name": "dinkuskit-catalog-products" },
+    { "binding": "CATEGORY_INDEX", "index_name": "dinkuskit-catalog-categories" }
+  ],
   "ratelimits": [
     { "name": "NAMED_AGENT_LIMIT", "namespace_id": "2001", "simple": { "limit": 50, "period": 10 } },
     { "name": "UNNAMED_AGENT_LIMIT", "namespace_id": "2002", "simple": { "limit": 30, "period": 60 } }

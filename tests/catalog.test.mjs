@@ -166,6 +166,11 @@ test('a store that changes, fails or leaves the list is kept right', async () =>
   await refreshCatalog(db, [stores[0]], fetcher(feeds), 1900);
   const after = await call(db, 'search_catalog', { query: 'wool hat' });
   assert.deepEqual(after.products[0].variants.map(variant => variant.seller.name), ['Alpha Outfitters'], 'a delisted store is gone');
+
+  // The owner's switch in the store admin empties the store's feed; the next read drops its products.
+  feeds[ALPHA] = { ...alphaFeed(), products: [] };
+  assert.deepEqual((await refreshCatalog(db, [stores[0]], fetcher(feeds), 2200)).map(result => result.outcome), ['updated']);
+  assert.equal((await call(db, 'search_catalog', { query: 'wool hat', filters: { available: false } })).products.length, 0, 'a store switched off in its admin lists nothing');
 });
 
 test('search words never reach the query language', () => {
@@ -213,10 +218,11 @@ test('only connected, approved, payment-ready stores the owner left on are liste
   store('listed'); store('off'); store('cutoff'); store('pending'); store('test');
   store('nopay', { payments: false });
   store('local', { origin: 'http://localhost:4321' });
-  sqlite.prepare("INSERT INTO dinkuskit_service_grant VALUES ('site-off', 'catalog', 1, 'owner')").run();
+  // An owner turning Ship off is not a catalog choice: that switch lives in the store admin and empties the store's feed.
+  sqlite.prepare("INSERT INTO dinkuskit_service_grant VALUES ('site-off', 'ship', 1, 'owner')").run();
   sqlite.prepare("INSERT INTO dinkuskit_service_grant VALUES ('site-cutoff', 'ship', 1, 'operator')").run();
-  sqlite.prepare("INSERT INTO dinkuskit_service_grant VALUES ('site-listed', 'catalog', 0, NULL)").run();
-  assert.deepEqual(await listListedStores(d1(sqlite), ['https://test.example']), [{ siteId: 'site-listed', siteOrigin: 'https://listed.example' }]);
+  assert.deepEqual(await listListedStores(d1(sqlite), ['https://test.example']), [
+    { siteId: 'site-listed', siteOrigin: 'https://listed.example' }, { siteId: 'site-off', siteOrigin: 'https://off.example' }]);
 });
 
 /** A stand-in for the model: each idea is one direction, so "beanie" lands beside "hat" and a hat photo beside hats. */

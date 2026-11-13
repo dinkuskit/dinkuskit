@@ -12,6 +12,8 @@ One catalog across every listed DinkusKit store, for shoppers' AI agents. Decisi
 - **Search by meaning, photo and "similar to this":** each product gets one vector from its words and first picture (Workers AI `@cf/google/embeddinggemma-2`, a Vectorize index). `catalog.like` takes a product id or a base64 photo. Word and meaning ranks are joined. With the model or index missing or down, the catalog answers by words and says so in `messages`.
 - **Categories:** each product's category is worked out by the catalog against Shopify's open Standard Product Taxonomy (MIT) and marked `inferred`. `filters.categories` takes taxonomy ids; a category matches everything beneath it. `scripts/seed-categories.mjs` fills the category index (about 14,600 categories, a little over Vectorize's included storage on its own; cents a month).
 
-Not built yet: the owner's toggle on Your stores, matching the same product with no GTIN or MPN, and a checkout link per offer (waits for the store's `/buy` links).
+The owner's on/off switch lives in the store admin only (Commerce > Settings > Catalog); while it is off the store's feed lists no products and the next read drops them here.
+
+Not built yet: matching the same product with no GTIN or MPN, and a checkout link per offer (waits for the store's `/buy` links).
 
 Run the tests with `npm run test:catalog`. `wrangler.jsonc` holds placeholder ids only; deploying, creating the database and the two Vectorize indexes (768 dimensions, cosine), seeding categories and adding the `catalog.dinkuskit.com` address need the owner's go.

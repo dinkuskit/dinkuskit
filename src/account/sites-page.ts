@@ -9,6 +9,7 @@ import { checkoutSettingsJson, dollarsToMinor, loadCommerceSettings, readPayment
 import { getInjectedTransports } from './transports.ts';
 import type { ResolvedMerchant } from './session.ts';
 
+export type StoreTab = 'plugins' | 'shipping' | 'payments';
 export type SitesShown = { siteId: string; json?: string; note?: string; error?: string };
 export type SitesPageView = {
   showingArchive: boolean;
@@ -22,6 +23,8 @@ export type SitesPageView = {
   shown: SitesShown | null;
   changedSite: string | null;
   saved: Map<string, CommerceSettings | null>;
+  selectedStore: string | null;
+  selectedTab: StoreTab | null;
 };
 
 const SETTINGS_ERROR: Record<string, string> = {
@@ -51,6 +54,9 @@ export async function loadSitesPage(input: {
     throw error;
   }
   let shown: SitesShown | null = null;
+  let selectedStore = input.url.searchParams.get('store');
+  const tab = input.url.searchParams.get('tab');
+  let selectedTab: StoreTab | null = tab === 'plugins' || tab === 'shipping' || tab === 'payments' ? tab : null;
   // A store the business still owns, on the live page only while a service is on or a plugin is connected.
   const connected = (store: StoreSetup) => Object.values(store.plugins).some(Boolean);
   const homeFor = async (siteId: string) => {
@@ -66,6 +72,15 @@ export async function loadSitesPage(input: {
     if (!known) return '/account/sites';
     return active.some(binding => binding.siteId === siteId) || setups.some(store => store.siteId === siteId && connected(store))
       ? '/account/sites' : '/account/sites/archive';
+  };
+  const returnHome = async (siteId: string, changed = false) => {
+    const params = new URLSearchParams();
+    if (changed) params.set('changed', siteId);
+    if (selectedStore === siteId && selectedTab === 'plugins') {
+      params.set('store', siteId);
+      params.set('tab', 'plugins');
+    }
+    return `${await homeFor(siteId)}${params.size ? `?${params}` : ''}`;
   };
   if (input.request.method === 'POST') {
     const blocked = rejectCrossOriginMutation(input.request, env.MERCHANT_BASE_URL);
@@ -86,19 +101,29 @@ export async function loadSitesPage(input: {
     if (form.get('action') === 'service' && siteId && OWNER_ENABLED_SERVICES.includes(ownerService) && !(turnOn && COMING_SOON_SERVICES.includes(ownerService))) {
       await setOwnerService(env.MERCHANT_DB, { ...owner, service: ownerService, on: turnOn });
       // Commerce picks up the change itself within 5 minutes, or at once on Get checkout settings.
-      if (await loadCommerceSettings(env.MERCHANT_DB, siteId)) return seeOther(`${await homeFor(siteId)}?changed=${encodeURIComponent(siteId)}`);
+      if (await loadCommerceSettings(env.MERCHANT_DB, siteId)) return seeOther(await returnHome(siteId, true));
     }
-    if (form.get('action') === 'checkout_settings' && siteId) {
-      if (shipRecipient(siteId, env.SHIP_SANDBOX_REGISTRATION) && form.get('payments_mode') === 'live') return new Response(JSON.stringify({ error: 'ship_test_required' }), { status: 400, headers: { 'content-type': 'application/json' } });
-      const flat = form.get('shipping_mode') === 'flat';
-      const minor = flat ? dollarsToMinor(String(form.get('shipping_amount') ?? '')) : 0;
+    const action = form.get('action');
+    if ((action === 'checkout_settings' || action === 'shipping_settings' || action === 'payments_settings') && siteId) {
+      const section = action === 'shipping_settings' ? 'shipping' : action === 'payments_settings' ? 'payments' : undefined;
+      selectedStore = siteId;
+      selectedTab = section ?? 'shipping';
+      if ((section === 'shipping' && !['free', 'flat'].includes(String(form.get('shipping_mode'))))
+        || (section === 'payments' && !['test', 'live'].includes(String(form.get('payments_mode'))))) {
+        return new Response(JSON.stringify({ error: 'invalid_settings' }), { status: 400 });
+      }
+      const previous = await loadCommerceSettings(env.MERCHANT_DB, siteId);
+      const live = section === 'shipping' ? previous?.live ?? false : form.get('payments_mode') === 'live';
+      if (shipRecipient(siteId, env.SHIP_SANDBOX_REGISTRATION) && live) return new Response(JSON.stringify({ error: 'ship_test_required' }), { status: 400, headers: { 'content-type': 'application/json' } });
+      const flat = section === 'payments' ? previous?.shippingMode === 'flat' : form.get('shipping_mode') === 'flat';
+      const minor = section === 'payments' ? previous?.shippingMinor ?? 0 : flat ? dollarsToMinor(String(form.get('shipping_amount') ?? '')) : 0;
       // Optional: empty means no free-shipping amount (checkout-free-shipping-over-20261027).
-      const freeOverText = flat ? String(form.get('shipping_free_over') ?? '').trim() : '';
-      const freeOver = freeOverText ? dollarsToMinor(freeOverText) : null;
+      const freeOverText = section !== 'payments' && flat ? String(form.get('shipping_free_over') ?? '').trim() : '';
+      const freeOver = section === 'payments' ? previous?.freeOverMinor ?? null : freeOverText ? dollarsToMinor(freeOverText) : null;
       // The same range saveCommerceSettings keeps, so a too-large amount says so instead of failing as a permission error.
       const invalid = minor === null ? 'invalid_amount' : freeOverText && !(freeOver && freeOver <= 100_000_00) ? 'invalid_free_over' : null;
       const settings = invalid ? null : await saveCommerceSettings(env.MERCHANT_DB, {
-        ...owner, choices: { shippingMode: flat ? 'flat' : 'free', shippingMinor: minor!, freeOverMinor: freeOver, live: form.get('payments_mode') === 'live' },
+        ...owner, section, choices: { shippingMode: flat ? 'flat' : 'free', shippingMinor: minor!, freeOverMinor: freeOver, live },
       });
       if (invalid || !settings) {
         shown = { siteId, error: SETTINGS_ERROR[invalid ?? 'forbidden'] };
@@ -122,7 +147,7 @@ export async function loadSitesPage(input: {
     if (form.get('action') === 'disconnect_plugin' && siteId) {
       await disconnectPlugin(env.MERCHANT_DB, { ...owner, plugin: String(form.get('plugin') ?? '') as KeyedPlugin });
     }
-    if (!shown) return seeOther(await homeFor(siteId));
+    if (!shown) return seeOther(await returnHome(siteId));
   }
   const readMembership = await authorizeOrganization(env.MERCHANT_DB, merchant.userId, merchant.organizationId);
   if (!readMembership || (readMembership.role !== 'owner' && !readMembership.permissions.includes('site:view'))) return new Response(null, { status: 403 });
@@ -149,5 +174,7 @@ export async function loadSitesPage(input: {
     shown,
     changedSite: input.url.searchParams.get('changed'),
     saved,
+    selectedStore,
+    selectedTab,
   };
 }

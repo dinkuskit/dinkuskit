@@ -5,9 +5,15 @@ import type { SitesPageView } from '../../account/sites-page.ts';
 
 type Props = SitesPageView;
 const {
-  showingArchive, businessName, visibleBindings, visibleStores, showArchiveLink, isOwner,
-  formAction, organizationId, shown, changedSite, saved,
+  showingArchive, businessName, visibleBindings: allBindings, visibleStores, showArchiveLink, isOwner,
+  formAction, organizationId, shown, changedSite, saved, selectedStore, selectedTab,
 } = Astro.props;
+// Legacy Inventory bindings have no plugin row here. Keep them visible, but do
+// not duplicate a store's Payments service controls above its selected tab.
+const visibleBindings = allBindings.filter(binding => binding.service !== 'payments' || !visibleStores.some(store => store.siteId === binding.siteId));
+const tabFor = (store: SitesPageView['visibleStores'][number]) => selectedStore === store.siteId && selectedTab
+  ? selectedTab : store.plugins.commerce ? 'shipping' : 'plugins';
+const tabHref = (siteId: string, tab: string) => `${formAction}?${new URLSearchParams({ store: siteId, tab })}#store-${siteId}`;
 const when = (seconds: number) => `${new Date(seconds * 1000).toISOString().slice(0, 16).replace('T', ' ')} UTC`;
 const SERVICE_LABEL = { payments: 'Payments', coupons: 'Coupons', ship: 'Ship' } as const;
 const PLUGIN_LABEL = { commerce: 'Commerce', payments: 'Payments', ship: 'Ship' } as const;
@@ -57,9 +63,17 @@ const serviceNote = (binding: { revoked: boolean; revokedBy: string | null }) =>
         <h2 id="commerce-setup">Set up Commerce</h2>
         <p>Each plugin connects itself: press Connect in Commerce first, then in Payments and Ship. Commerce reads the checkout settings you choose here by itself.</p>
         {visibleStores.map(store => (
-          <div class="account-form store-setup">
+          <div class="account-form store-setup" id={`store-${store.siteId}`}>
             <h3>{store.siteOrigin}</h3>
             <p>Store ID: <code>{store.siteId}</code></p>
+            <nav class="store-tabs" aria-label={`Settings for ${store.siteOrigin}`}>
+              {(['plugins', 'shipping', 'payments'] as const).map(tab => (
+                <a href={tabHref(store.siteId, tab)} aria-current={tabFor(store) === tab ? 'page' : undefined}>
+                  {{ plugins: 'Plugins', shipping: 'Shipping', payments: 'Payments' }[tab]}
+                </a>
+              ))}
+            </nav>
+            {tabFor(store) === 'plugins' ? <>
             <ul aria-label="Connected plugins">
               {(['commerce', 'payments', 'ship'] as const).map(plugin => (
                 <li>
@@ -68,7 +82,7 @@ const serviceNote = (binding: { revoked: boolean; revokedBy: string | null }) =>
                     : plugin === 'commerce' ? 'not connected. Press Connect in the Commerce plugin in EmDash.'
                     : `not connected. Press Connect in the ${PLUGIN_LABEL[plugin]} plugin in EmDash, after Commerce.`}
                   {isOwner && store.plugins[plugin] ? (
-                    <form method="post" action={formAction}>
+                    <form method="post" action={tabHref(store.siteId, 'plugins')}>
                       <input type="hidden" name="action" value="disconnect_plugin" />
                       <input type="hidden" name="site_id" value={store.siteId} />
                       <input type="hidden" name="plugin" value={plugin} />
@@ -85,8 +99,17 @@ const serviceNote = (binding: { revoked: boolean; revokedBy: string | null }) =>
                   {SERVICE_LABEL[service]}: {store.services[service] === 'cut_off' ? 'Cut off by DinkusKit. Contact DinkusKit to have it restored.'
                     : store.services[service] === 'on' ? 'On' : service === 'payments' ? 'Off. Press Connect in the Payments plugin to turn it on.'
                     : comingSoon(service) ? 'Coming soon. Commerce does not take coupon codes yet.' : 'Off'}
+                  {isOwner && service === 'payments' && store.services.payments === 'on' ? (
+                    <form method="post" action={tabHref(store.siteId, 'plugins')}>
+                      <input type="hidden" name="action" value="revoke" />
+                      <input type="hidden" name="site_id" value={store.siteId} />
+                      <input type="hidden" name="service" value="payments" />
+                      <input type="hidden" name="organization_id" value={organizationId} />
+                      <button type="submit">Revoke payments</button>
+                    </form>
+                  ) : null}
                   {isOwner && service !== 'payments' && store.services[service] !== 'cut_off' && (store.services[service] === 'on' || !comingSoon(service)) ? (
-                    <form method="post" action={formAction}>
+                    <form method="post" action={tabHref(store.siteId, 'plugins')}>
                       <input type="hidden" name="action" value="service" />
                       <input type="hidden" name="site_id" value={store.siteId} />
                       <input type="hidden" name="service" value={service} />
@@ -98,31 +121,41 @@ const serviceNote = (binding: { revoked: boolean; revokedBy: string | null }) =>
                 </li>
               ))}
             </ul>
-            {isOwner ? (
-              <form method="post" action={formAction} class="checkout-settings">
-                <input type="hidden" name="action" value="checkout_settings" />
+            </> : null}
+            {isOwner && tabFor(store) === 'shipping' ? (
+              <form method="post" action={tabHref(store.siteId, 'shipping')} class="checkout-settings shipping-settings">
+                <input type="hidden" name="action" value="shipping_settings" />
                 <input type="hidden" name="site_id" value={store.siteId} />
                 <input type="hidden" name="organization_id" value={organizationId} />
                 <fieldset>
                   <legend>Shipping charge</legend>
-                  <label class="checkout-choice"><input type="radio" name="shipping_mode" value="free" checked={saved.get(store.siteId)?.shippingMode !== 'flat'} /> Free</label>
-                  <label class="checkout-choice"><input type="radio" name="shipping_mode" value="flat" checked={saved.get(store.siteId)?.shippingMode === 'flat'} /> Flat amount in dollars</label>
-                  <label class="checkout-field">Flat shipping charge in dollars
-                    <input type="text" name="shipping_amount" inputmode="decimal" aria-label="Flat shipping charge in dollars"
-                      value={saved.get(store.siteId)?.shippingMode === 'flat' ? (saved.get(store.siteId)!.shippingMinor / 100).toFixed(2) : ''} />
-                  </label>
-                  <label class="checkout-field">Free shipping when the goods in an order reach this many dollars (optional, flat charge only)
-                    <input type="text" name="shipping_free_over" inputmode="decimal"
-                      value={saved.get(store.siteId)?.shippingMode === 'flat' && saved.get(store.siteId)?.freeOverMinor ? ((saved.get(store.siteId)?.freeOverMinor ?? 0) / 100).toFixed(2) : ''} />
-                  </label>
-                  <p>Needs Commerce 0.7.0 or later; an older Commerce charges the flat amount.</p>
+                  <label class="checkout-choice"><input type="radio" name="shipping_mode" value="free" checked={saved.get(store.siteId)?.shippingMode !== 'flat'} /> Free shipping on every order</label>
+                  <label class="checkout-choice"><input type="radio" name="shipping_mode" value="flat" checked={saved.get(store.siteId)?.shippingMode === 'flat'} /> Flat charge per order</label>
+                  <div class="flat-amounts">
+                    <label class="checkout-field">Flat charge
+                      <span class="dollar-field"><span aria-hidden="true">$</span><input type="text" name="shipping_amount" inputmode="decimal" aria-label="Flat charge in dollars"
+                        value={saved.get(store.siteId)?.shippingMode === 'flat' ? (saved.get(store.siteId)!.shippingMinor / 100).toFixed(2) : ''} /></span>
+                    </label>
+                    <label class="checkout-field">Free shipping over (optional)
+                      <span class="dollar-field"><span aria-hidden="true">$</span><input type="text" name="shipping_free_over" inputmode="decimal" aria-label="Free shipping over in dollars (optional)"
+                        value={saved.get(store.siteId)?.shippingMode === 'flat' && saved.get(store.siteId)?.freeOverMinor ? ((saved.get(store.siteId)?.freeOverMinor ?? 0) / 100).toFixed(2) : ''} /></span>
+                    </label>
+                  </div>
                 </fieldset>
+                <button type="submit">Save shipping</button>
+              </form>
+            ) : null}
+            {isOwner && tabFor(store) === 'payments' ? (
+              <form method="post" action={tabHref(store.siteId, 'payments')} class="checkout-settings payment-settings">
+                <input type="hidden" name="action" value="payments_settings" />
+                <input type="hidden" name="site_id" value={store.siteId} />
+                <input type="hidden" name="organization_id" value={organizationId} />
                 <fieldset>
                   <legend>Payments</legend>
-                  <label class="checkout-choice"><input type="radio" name="payments_mode" value="test" checked={!saved.get(store.siteId)?.live} /> Test (no real money)</label>
-                  <label class="checkout-choice"><input type="radio" name="payments_mode" value="live" checked={saved.get(store.siteId)?.live === true} /> Live (takes real money once Payments is live too)</label>
+                  <label class="checkout-choice payment-choice"><input type="radio" name="payments_mode" value="test" checked={!saved.get(store.siteId)?.live} /> <span>Test<small>No real money moves</small></span></label>
+                  <label class="checkout-choice payment-choice"><input type="radio" name="payments_mode" value="live" checked={saved.get(store.siteId)?.live === true} /> <span>Live<small>Takes real money once Payments is live too</small></span></label>
                 </fieldset>
-                <button type="submit">Save checkout settings</button>
+                <button type="submit">Save payments</button>
               </form>
             ) : null}
             {changedSite === store.siteId ? <p role="status">You changed which services are on. Commerce picks up the change within 5 minutes, or at once when you press Get checkout settings in Commerce.</p> : null}
@@ -144,6 +177,18 @@ const serviceNote = (binding: { revoked: boolean; revokedBy: string | null }) =>
 <style>
   .store-setup { grid-template-columns: minmax(0, 1fr); }
   .store-setup h3, .store-setup code { overflow-wrap: anywhere; }
+  .store-tabs { display: flex; flex-wrap: nowrap; overflow-x: auto; border-bottom: 1px solid var(--line); }
+  .store-tabs a { display: flex; align-items: center; flex: none; min-height: 44px; padding: .5rem .75rem; color: var(--muted); text-decoration: none; border-bottom: 2px solid transparent; }
+  .store-tabs a:hover { color: var(--ink); }
+  .store-tabs a[aria-current="page"] { color: var(--ink); border-bottom-color: var(--accent); font-weight: 600; }
+  .store-tabs a:focus-visible { outline: 3px solid var(--focus); outline-offset: -3px; }
+  .flat-amounts { display: none; gap: .75rem; min-width: 0; }
+  .shipping-settings:has(input[value="flat"]:checked) .flat-amounts { display: grid; }
+  .dollar-field { display: flex; align-items: center; gap: .5rem; min-width: 0; }
+  .dollar-field > span { font-weight: 400; }
+  .payment-choice { border: 1px solid var(--line); padding: .75rem; }
+  .payment-choice:has(:checked) { border-color: var(--accent); }
+  .payment-choice small { display: block; color: var(--muted); font-size: .875rem; font-weight: 400; }
   .checkout-settings { display: grid; gap: 1rem; min-width: 0; }
   .checkout-settings fieldset { display: grid; gap: .75rem; min-width: 0; margin: 0; padding: 1rem; border: 1px solid var(--line); }
   .checkout-settings legend { padding-inline: .25rem; font-weight: 600; }

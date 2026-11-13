@@ -37,12 +37,22 @@ export async function loadCommerceSettings(db: D1Database, siteId: string): Prom
  */
 export async function saveCommerceSettings(db: D1Database, input: {
   subject: string; siteId: string; organizationId: string; actorUserId: string; choices: CommerceChoices;
+  section?: 'shipping' | 'payments';
 }): Promise<CommerceSettings | null> {
   const { shippingMode, live } = input.choices;
   const shippingMinor = shippingMode === 'free' ? 0 : input.choices.shippingMinor;
   const freeOverMinor = shippingMode === 'free' ? null : input.choices.freeOverMinor ?? null;
   if ((shippingMode !== 'free' && shippingMode !== 'flat') || !Number.isSafeInteger(shippingMinor) || shippingMinor < 0 || shippingMinor > 100_000_00) return null;
   if (freeOverMinor !== null && (!Number.isSafeInteger(freeOverMinor) || freeOverMinor < 1 || freeOverMinor > 100_000_00)) return null;
+  // Update only the submitted half, atomically: two tabs saved concurrently cannot
+  // overwrite each other's current values with an earlier read or hidden field.
+  const shippingUpdate = input.section === 'payments' ? '' : `
+      shipping_revision = dinkuskit_commerce_settings.shipping_revision
+        + (dinkuskit_commerce_settings.shipping_mode IS NOT excluded.shipping_mode OR dinkuskit_commerce_settings.shipping_minor IS NOT excluded.shipping_minor
+          OR dinkuskit_commerce_settings.shipping_free_over_minor IS NOT excluded.shipping_free_over_minor),
+      shipping_mode = excluded.shipping_mode, shipping_minor = excluded.shipping_minor,
+      shipping_free_over_minor = excluded.shipping_free_over_minor,`;
+  const paymentsUpdate = input.section === 'shipping' ? '' : 'live = excluded.live,';
   const result = await db.prepare(`INSERT INTO dinkuskit_commerce_settings
       (site_id, shipping_mode, shipping_minor, shipping_free_over_minor, shipping_revision, live, updated_by_user_id, updated_at)
     SELECT ?, ?, ?, ?, 1, ?, ?, ? WHERE EXISTS (SELECT 1 FROM dinkuskit_store_identity i WHERE i.site_id = ? AND i.account_subject = ?)
@@ -52,11 +62,8 @@ export async function saveCommerceSettings(db: D1Database, input: {
         WHERE m.organization_id = ? AND m.user_id = ? AND m.role = 'owner' AND m.status = 'active'
           AND a.disabled = 0 AND o.status = 'active' AND o.authority_subject = ?)
     ON CONFLICT(site_id) DO UPDATE SET
-      shipping_revision = dinkuskit_commerce_settings.shipping_revision
-        + (dinkuskit_commerce_settings.shipping_mode IS NOT excluded.shipping_mode OR dinkuskit_commerce_settings.shipping_minor IS NOT excluded.shipping_minor
-          OR dinkuskit_commerce_settings.shipping_free_over_minor IS NOT excluded.shipping_free_over_minor),
-      shipping_mode = excluded.shipping_mode, shipping_minor = excluded.shipping_minor,
-      shipping_free_over_minor = excluded.shipping_free_over_minor, live = excluded.live,
+      ${shippingUpdate}
+      ${paymentsUpdate}
       updated_by_user_id = excluded.updated_by_user_id, updated_at = excluded.updated_at`)
     .bind(input.siteId, shippingMode, shippingMinor, freeOverMinor, live ? 1 : 0, input.actorUserId, now(),
       input.siteId, input.subject, input.organizationId, input.actorUserId, input.subject).run() as { meta?: { changes?: number } };

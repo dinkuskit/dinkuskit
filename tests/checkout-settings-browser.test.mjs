@@ -1,114 +1,134 @@
 import assert from 'node:assert/strict';
-import { createHash, randomBytes } from 'node:crypto';
 import { mkdir } from 'node:fs/promises';
 import test from 'node:test';
 import { chromium } from 'playwright';
-import { accountForm, request, signup, startMerchantTestRuntime, stopRuntime } from './helpers/merchant-harness.mjs';
-
-// Normal local consent with the harness's explicit store-proof simulation.
-// No hosted session, real processor or remote store is involved.
-async function connectStore(runtime, owner, label) {
-  const origin = `https://${label}.stores.example`;
-  const callback = `${origin}/_emdash/admin/plugins/dinkus-inventory/inventory`;
-  const challenge = createHash('sha256').update(randomBytes(32)).digest('base64url');
-  const response = await request(runtime, new Map(), '/api/store-connections', {
-    method: 'POST', body: JSON.stringify({ protocol_version: 2, client_id: 'dinkus-inventory-emdash',
-      service: 'inventory', site_origin: origin, callback_uri: callback,
-      code_challenge: challenge, code_challenge_method: 'S256' }),
-  });
-  assert.equal(response.status, 200);
-  const body = await response.json();
-  assert.equal((await request(runtime, new Map(), '/__proof/receipt', {
-    method: 'POST', body: JSON.stringify({ version: 2, connection_id: body.connection_id,
-      challenge: body.challenge, client_id: 'dinkus-inventory-emdash', service: 'inventory',
-      site_id: body.site_id, site_origin: origin, callback_uri: callback,
-      code_challenge: challenge, expires_at: body.expires_at }),
-  })).status, 200);
-  const approved = await request(runtime, owner, `/account/connect?connection_id=${body.connection_id}`, {
-    method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' },
-    body: await accountForm(runtime, owner, 'action=approve'),
-  });
-  assert.equal(approved.headers.get('location'), callback);
-  return body.site_id;
-}
+import { startMerchantTestRuntime, stopRuntime } from './helpers/merchant-harness.mjs';
+import { checkoutSettingsFixture, settingsPost } from './helpers/checkout-settings-fixture.mjs';
 
 const box = locator => locator.boundingBox();
-test('checkout settings keep labels, choices and amounts separate without JavaScript', { timeout: 180_000 }, async t => {
-  t.diagnostic('Starting isolated merchant runtime');
+test('store tabs and independent settings saves work without JavaScript', { timeout: 240_000 }, async t => {
   const runtime = await startMerchantTestRuntime();
-  const owner = new Map();
   let browser;
   try {
-    t.diagnostic('Creating synthetic owner and two stores');
-    await signup(runtime, 'settings-layout@example.com', owner);
-    const first = await connectStore(runtime, owner, 'settings-one');
-    await connectStore(runtime, owner, 'settings-two');
-    t.diagnostic('Launching Chromium');
+    const { owner, first, second, cookies } = await checkoutSettingsFixture(runtime);
     browser = await chromium.launch({ headless: true });
-    const cookies = [...owner.values()].map(pair => {
-      const eq = pair.indexOf('=');
-      return { name: pair.slice(0, eq), value: pair.slice(eq + 1), url: runtime.origin };
-    });
     for (const width of [1440, 390]) for (const theme of ['light', 'dark']) {
       t.diagnostic(`Checking ${width}px ${theme}`);
+      // Reset only this synthetic fixture. Never submit settings to the hosted account.
+      await settingsPost(runtime, owner, first, { action: 'checkout_settings', shipping_mode: 'free', payments_mode: 'test' });
+      await settingsPost(runtime, owner, first, { action: 'service', service: 'ship', on: '0' });
       const context = await browser.newContext({ viewport: { width, height: 900 }, javaScriptEnabled: false, colorScheme: theme });
       context.setDefaultTimeout(10_000);
       context.setDefaultNavigationTimeout(30_000);
       try {
         await context.addCookies(cookies);
         const page = await context.newPage();
-        await page.goto(`${runtime.origin}/account/sites`, { waitUntil: 'domcontentloaded', timeout: 30_000 });
-        const forms = page.locator('form.checkout-settings');
-        assert.equal(await forms.count(), 2);
-        if (process.env.CHECKOUT_SETTINGS_ARTIFACT_DIR) {
-          await mkdir(process.env.CHECKOUT_SETTINGS_ARTIFACT_DIR, { recursive: true });
-          await forms.first().screenshot({ path: `${process.env.CHECKOUT_SETTINGS_ARTIFACT_DIR}/${width}-${theme}.png` });
-        }
+        await page.goto(`${runtime.origin}/account/sites`, { waitUntil: 'domcontentloaded' });
+        const card = page.locator(`[id="store-${first}"]`);
+        const other = page.locator(`[id="store-${second}"]`);
+        const current = c => c.locator('.store-tabs [aria-current=page]');
+        assert.equal(await current(card).innerText(), 'Shipping', 'connected Commerce defaults to Shipping');
+        assert.equal(await current(other).innerText(), 'Plugins', 'without Commerce, default to Plugins');
         const ids = await page.locator('[id]').evaluateAll(es => es.map(e => e.id));
         assert.equal(new Set(ids).size, ids.length, 'multiple stores have no duplicate IDs');
-        for (const form of await forms.all()) {
-          const flat = form.getByRole('textbox', { name: 'Flat shipping charge in dollars', exact: true });
-          const over = form.locator('[name=shipping_free_over]');
-          assert.equal(await flat.evaluate(e => e.labels.length), 1, 'flat amount has a visible associated label');
-          const checkLayout = async (enlarged = false) => {
-            const flatBox = await box(flat);
-            const overLabel = await box(over.locator('..'));
-            assert.ok(overLabel.y >= flatBox.y + flatBox.height + 8, 'threshold label starts below the flat amount');
-            const choices = form.getByRole('radio');
-            for (const radio of await choices.all()) {
-              const label = radio.locator('..');
-              assert.ok((await box(label)).height >= 44, 'whole radio label is a touch target');
-            }
-            const formFits = await form.evaluate(e => {
-              const bounds = e.getBoundingClientRect();
-              return { left: bounds.left, right: bounds.right, viewport: innerWidth, scroll: e.scrollWidth, client: e.clientWidth };
-            });
-            assert.ok(formFits.left >= 0 && formFits.right <= formFits.viewport + 1 && formFits.scroll <= formFits.client + 1, `checkout fields fit the viewport and form: ${JSON.stringify(formFits)}`);
-            // Global header/list reflow is outside this focused form repair.
-            if (!enlarged) assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'no page overflow at default text size');
-          };
-          await checkLayout();
-          await form.getByRole('radio', { name: 'Flat amount in dollars', exact: true }).check();
-          await flat.fill('5.00');
-          await over.fill('75.00');
-          assert.equal(await form.getByRole('radio', { name: 'Test (no real money)', exact: true }).isChecked(), true);
-          await flat.focus();
-          await page.keyboard.press('Tab');
-          assert.equal(await over.evaluate(e => e === document.activeElement), true, 'threshold follows flat amount in keyboard order');
-          if (width === 390) {
-            await page.evaluate(() => { document.documentElement.style.fontSize = '200%'; });
-            await checkLayout(true);
-            await page.evaluate(() => { document.documentElement.style.fontSize = ''; });
+        const checkLayout = async (enlarged = false) => {
+          for (const label of await card.locator('.checkout-choice').all()) assert.ok((await box(label)).height >= 44);
+          const nav = card.locator('.store-tabs');
+          for (const link of await nav.getByRole('link').all()) {
+            assert.ok((await box(link)).height >= 44, 'native links have 44px targets');
+            assert.ok(new URL(await link.getAttribute('href'), runtime.origin).searchParams.get('store') === first);
           }
+          const tabs = await nav.getByRole('link').all();
+          assert.equal((await box(tabs[0])).y, (await box(tabs[2])).y, 'tabs never wrap');
+          const bounds = await card.evaluate(e => ({ scroll: e.scrollWidth, client: e.clientWidth, left: e.getBoundingClientRect().left, right: e.getBoundingClientRect().right, viewport: innerWidth }));
+          assert.ok(bounds.scroll <= bounds.client + 1 && bounds.left >= 0 && bounds.right <= bounds.viewport + 1, `card fits: ${JSON.stringify(bounds)}`);
+          if (!enlarged) assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'no page overflow at default text size');
+        };
+        const capture = async tab => {
+          if (!process.env.CHECKOUT_SETTINGS_ARTIFACT_DIR || theme !== 'light') return;
+          await mkdir(process.env.CHECKOUT_SETTINGS_ARTIFACT_DIR, { recursive: true });
+          await card.screenshot({ path: `${process.env.CHECKOUT_SETTINGS_ARTIFACT_DIR}/${tab}-${width}.png` });
+        };
+        const open = async tab => {
+          await Promise.all([page.waitForNavigation({ waitUntil: 'domcontentloaded' }), card.locator('.store-tabs').getByRole('link', { name: tab, exact: true }).click()]);
+          assert.equal(await current(card).innerText(), tab);
+          assert.equal(await current(other).innerText(), 'Plugins', 'another store retains its default');
+          await checkLayout();
+        };
+        const save = async name => {
+          await Promise.all([page.waitForNavigation({ waitUntil: 'domcontentloaded' }), card.getByRole('button', { name, exact: true }).click()]);
+        };
+        const json = async () => JSON.parse(await card.locator('pre code').innerText());
+        const flat = card.locator('[name=shipping_amount]');
+        const over = card.locator('[name=shipping_free_over]');
+        assert.equal(await flat.isVisible(), false, 'Free hides irrelevant amount boxes');
+        assert.equal(await card.locator('[name=payments_mode]').count(), 0, 'Shipping never submits Payments');
+        await card.getByRole('radio', { name: 'Flat charge per order', exact: true }).check();
+        assert.equal(await flat.isVisible(), true, 'CSS reveals Flat without JavaScript');
+        assert.equal(await flat.evaluate(e => e.labels.length), 1);
+        await flat.fill('5.00'); await over.fill('75.00');
+        const flatBox = await box(flat), overLabel = await box(over.locator('../..'));
+        assert.ok(overLabel.y >= flatBox.y + flatBox.height + 8, 'threshold follows amount on its own row');
+        await flat.focus(); await page.keyboard.press('Tab');
+        assert.equal(await over.evaluate(e => e === document.activeElement), true, 'keyboard amount → threshold');
+        await checkLayout();
+        if (width === 390) {
+          await page.evaluate(() => { document.documentElement.style.fontSize = '200%'; });
+          await checkLayout(true);
+          await page.evaluate(() => { document.documentElement.style.fontSize = ''; });
         }
-        // Real native POST and validation in isolated local state, never hosted changes.
-        const form = forms.filter({ has: page.locator(`[name=site_id][value="${first}"]`) });
-        await form.getByRole('textbox', { name: 'Flat shipping charge in dollars', exact: true }).fill('five');
-        await Promise.all([page.waitForNavigation({ waitUntil: 'domcontentloaded' }), form.getByRole('button', { name: 'Save checkout settings' }).click()]);
-        assert.match(await page.getByRole('alert').innerText(), /Enter the flat shipping charge in dollars/);
-        assert.equal(await page.locator('form.checkout-settings').count(), 2);
-      } catch (error) { console.error(`Checkout settings ${width}px ${theme}: ${error.message}`); throw error; }
-      finally { await context.close(); }
+        await save('Save shipping');
+        let saved = await json();
+        assert.equal(saved.mode, 'test');
+        assert.deepEqual(saved.shipping.amount, { currency: 'USD', minor: '500' });
+        assert.deepEqual(saved.shipping.freeOver, { currency: 'USD', minor: '7500' });
+        // A fresh GET proves durable read-back without resubmitting the POST.
+        await page.goto(page.url(), { waitUntil: 'domcontentloaded' });
+        assert.equal(await flat.inputValue(), '5.00'); assert.equal(await over.inputValue(), '75.00');
+        await capture('shipping');
+        await open('Payments');
+        assert.equal(await card.locator('[name=shipping_mode]').count(), 0, 'Payments never submits Shipping');
+        assert.equal(await card.getByRole('radio', { name: 'Test No real money moves', exact: true }).isChecked(), true);
+        await capture('payments');
+        const shippingBeforePayments = saved.shipping;
+        // Live is a local saved preference with simulated status, never a processor operation.
+        await card.getByRole('radio', { name: 'Live Takes real money once Payments is live too', exact: true }).check();
+        await save('Save payments'); saved = await json();
+        assert.equal(saved.mode, 'live');
+        assert.deepEqual(saved.shipping, shippingBeforePayments, 'saving Payments preserves all Shipping fields and revision');
+        const revision = saved.shipping.revision;
+        await open('Shipping');
+        await flat.fill('6.00'); await save('Save shipping'); saved = await json();
+        assert.equal(saved.mode, 'live', 'saving Shipping preserves nondefault Payments mode');
+        assert.equal(saved.shipping.revision, revision + 1);
+        await open('Payments');
+        await card.getByRole('radio', { name: 'Test No real money moves', exact: true }).check();
+        await save('Save payments'); saved = await json();
+        assert.equal(saved.mode, 'test'); assert.equal(saved.shipping.amount.minor, '600');
+        assert.equal(saved.shipping.revision, revision + 1, 'saving Payments leaves Shipping revision unchanged');
+        await open('Shipping');
+        await flat.fill('five'); await save('Save shipping');
+        assert.match(await card.getByRole('alert').innerText(), /Enter the flat shipping charge in dollars/);
+        assert.equal(await current(card).innerText(), 'Shipping', 'validation stays on submitted tab');
+        await flat.fill('6.00'); await over.fill('0'); await save('Save shipping');
+        assert.match(await card.getByRole('alert').innerText(), /Enter the free-shipping amount/);
+        await card.getByRole('radio', { name: 'Free shipping on every order', exact: true }).check();
+        assert.equal(await flat.isVisible(), false);
+        await save('Save shipping'); saved = await json();
+        assert.equal(saved.shipping.mode, 'free'); assert.equal('amount' in saved.shipping, false); assert.equal('freeOver' in saved.shipping, false);
+        await open('Plugins');
+        assert.equal(await card.getByRole('list', { name: 'Connected plugins' }).count(), 1);
+        assert.equal(await card.getByRole('button', { name: 'Disconnect Commerce', exact: true }).count(), 1);
+        assert.equal(await card.getByRole('button', { name: 'Turn on Ship', exact: true }).count(), 1);
+        assert.equal(await card.locator('.checkout-settings').count(), 0);
+        await capture('plugins');
+        await save('Turn on Ship');
+        assert.equal(await current(card).innerText(), 'Plugins', 'service change returns to Plugins');
+        assert.equal(await card.getByRole('button', { name: 'Turn off Ship', exact: true }).count(), 1);
+        // Unknown links fall back per store; they neither reveal another store nor write settings.
+        await page.goto(`${runtime.origin}/account/sites?store=unknown&tab=shipping`);
+        assert.equal(await current(card).innerText(), 'Shipping'); assert.equal(await current(other).innerText(), 'Plugins');
+      } finally { await context.close(); }
     }
   } finally { await browser?.close(); await stopRuntime(runtime); }
 });

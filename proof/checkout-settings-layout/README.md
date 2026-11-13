@@ -1,4 +1,30 @@
-# Checkout settings layout candidate
+# Store settings tabs · PR #124
+
+The [recorded owner request](https://github.com/dinkuskit/dinkuskit/pull/124#issuecomment-6857438600)
+reworks the existing candidate, rather than opening another dashboard redesign.
+Each store now has server-rendered Plugins / Shipping / Payments links, separate
+native saves and flat-only dollar fields. Existing tokens, narrow wrapper,
+permissions, service contracts and legacy combined POST remain; independent
+SQL conflict updates preserve the other half even after stale reads.
+
+`tests/helpers/checkout-settings-fixture.mjs` retains the normal-consent fixture
+with explicit simulated store-proof and Payments-status transports. The retained
+browser test covers two stores, 1440/390px, light/dark, JavaScript disabled,
+keyboard order, 44px targets, default/selected/unknown tabs, conditional amounts,
+invalid values, durable GET read-back and both independent native save orders.
+Phone synthetic 200% root-font checks cover only the changed card, not browser
+font preferences or global reflow. Pure SQLite tests additionally send stale
+opposite-half values and recheck staff/cross-business refusal.
+
+Read-only hosted observation on November 13 still shows the old inline form at
+both widths with TEST / $5 / $75 unchanged. Local simulated service proof is not
+hosted deployment, a real processor operation or signed plugin acceptance. The
+prior four public images stay intact; refreshed tab captures and exact-source
+verification are recorded in the PR body when qualification completes.
+
+## Historical qualification · original f520af9 form-only candidate
+
+The following records the prior head only, not the tabbed revision's gates.
 
 Read-only Backroad Bum setup on hosted `/account/sites` confirmed the flat shipping input and following threshold label share a line at 1440px and 390px, matching existing issue [#123](https://github.com/dinkuskit/dinkuskit/issues/123). The field already has an accessible name; this candidate adds its visible associated label, stacks native choices/fields and lets the existing store grid shrink around long addresses. It preserves the narrow wrapper, field names, POSTs, mode defaults, authorization and persistence; the wider dashboard redesign remains outside this patch.
 

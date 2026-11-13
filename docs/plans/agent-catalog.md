@@ -100,25 +100,25 @@ So cost is not a reason to wait or to charge stores.
 | Product text written to trick an agent | Results are marked as untrusted content, the same as our browser tools do. Text is stored as plain text. |
 | Someone copying the whole catalog | Speed limits per agent and per address. Usage rules copied from Shopify's. Everything in it is already public on each store, so the exposure is small. |
 | Stale prices | The change note plus the live check on `get_product`. Checkout is always the final word, as UCP says. |
-| A big store drowning out small ones | A cap on how many results one store gets per page. See question 7. |
+| A big store drowning out small ones | No per-store cap (decision 7, copying Shopify). Results are ordered by best match and buyable now, and the same product from several stores shows once. |
 | A search surge slowing dinkuskit.com sign-in | The catalog runs as its own Worker, not inside the website. |
 
-## What the first version leaves out
+## What the first version covers
 
-From the 11 gaps, here is my call on each.
+Each of the 11 gaps, as settled by the decisions below.
 
 | Gap | First version | Why |
 | --- | --- | --- |
-| 1. Matching the same product with no barcode | No. Group only on an exact barcode, or brand plus part number. | With a handful of stores there is little to match. Guessing wrong puts the wrong seller under a product. |
-| 2. One shared category list | No category filter yet. | Shopify's Standard Product Taxonomy is open source and maps to Google's list. Adopting it is a Commerce product field and its own decision. |
+| 1. Matching the same product with no barcode | Exact barcode, or brand plus part number, first. Inferred matching follows and is marked as inferred (decision 6). | With a handful of stores there is little to match. Guessing wrong puts the wrong seller under a product. |
+| 2. One shared category list | Yes. A category filter on Shopify's open Standard Product Taxonomy (decision 9). | The list is open source (MIT). The catalog works out each product's category itself, so Commerce needs no new field. |
 | 3. Star ratings | No. | We have no reviews anywhere. |
 | 4. Ships to and ships from | "Ships to US" only. | Ship is US only. |
 | 5. Price tiers | No. Plain price range only. | Tiers need categories and volume. |
-| 6. Photo and "similar to this" search | No. | Nice to have, separate index. |
+| 6. Photo and "similar to this" search | Yes (decision 9). | Uses the same meaning index as text search. |
 | 7. Agent-only product copy | Yes, read it where a store has it. | Already in our agent feed. |
 | 8. Local shops with in-store stock | No. | No store locations in Commerce. |
 | 9. Live prices and stock | Yes. Change notes plus a live check. | Cheap to do right from the start. |
-| 10. Signed agents, higher limits, personal results | Anyone may search at a limited speed. No tiers, no personal results. | Matches the locked "which agents may shop" answer. |
+| 10. Signed agents, higher limits, personal results | Anyone may search with no key. Unnamed agents share a low limit and named agents get 5 a second (decision 8). No personal results. | Copies Shopify's default limits. |
 | 11. Deals with the AI apps | Google through a store-builder account, then free applications to the others (questions 10 and 11). | This is the goal. |
 
 ## Decisions (Ronald, 13 Nov 2026, 14:27 to 14:30 UTC)
@@ -140,7 +140,7 @@ Locked in the dinkuskit ledger as `agent-catalog-*-20261113`.
 | 11 | Apply to ChatGPT, Copilot, Perplexity? | Yes, once one real store is live. | "agreed" |
 | 12 | Goal wording | "DinkusKit stores appear in the major AI shopping apps at no cost to the owner. DinkusKit never pays another platform to be listed." | "agreed" |
 
-I read the ditto marks on 6, 7 and 8 as "copy Shopify". If you meant plain "agreed", the only differences are: 6 adds inferred matching later, 7 drops my cap of 3 per store.
+I read the ditto marks on 6, 7 and 8 as "copy Shopify". If you meant plain "agreed", the only differences are: 6 adds inferred matching later, 7 drops the cap of 3 results per store that I first recommended.
 
 **Still open: star ratings.** Shopify's catalog does filter by rating. I recommend leaving it out for now because no DinkusKit store has reviews, so there is nothing to filter on. Recorded as proposed, not locked.
 

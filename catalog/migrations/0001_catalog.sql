@@ -7,7 +7,9 @@ CREATE TABLE catalog_store (
   store_name TEXT NOT NULL,
   policies TEXT NOT NULL DEFAULT '[]',
   feed_hash TEXT,
+  -- read_at is the last try; validated_at is the last time the feed was read and found valid.
   read_at INTEGER,
+  validated_at INTEGER,
   changed_at INTEGER,
   last_error TEXT
 );

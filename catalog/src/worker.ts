@@ -1,7 +1,7 @@
 import { listListedStores } from './listing.ts';
 import { agentProfile, handleRpc } from './mcp.ts';
 import { workersAiEmbedder, type Meaning, type VectorStore } from './meaning.ts';
-import { refreshCatalog } from './sync.ts';
+import { recheckStores, refreshCatalog } from './sync.ts';
 import { LOOKUP_CAPABILITY, SEARCH_CAPABILITY, UCP_VERSION } from './ucp.ts';
 
 /**
@@ -19,7 +19,7 @@ export type CatalogEnv = {
   CATEGORY_INDEX?: VectorStore;
   /** Space-separated store addresses that are never listed: test and playground stores. */
   CATALOG_EXCLUDED_ORIGINS?: string;
-  /** Agents that name themselves: 5 requests a second. */
+  /** Agents that name themselves: 5 requests a second per address. */
   NAMED_AGENT_LIMIT?: RateLimit;
   /** Agents that do not: a low limit per address. */
   UNNAMED_AGENT_LIMIT?: RateLimit;
@@ -53,7 +53,9 @@ function profile(origin: string) {
   };
 }
 
-export async function handleRequest(request: Request, env: CatalogEnv): Promise<Response> {
+const excludedOrigins = (env: CatalogEnv) => (env.CATALOG_EXCLUDED_ORIGINS ?? '').split(/\s+/).filter(Boolean);
+
+export async function handleRequest(request: Request, env: CatalogEnv, fetcher: typeof fetch = fetch): Promise<Response> {
   const url = new URL(request.url);
   if (url.pathname === '/.well-known/ucp' && request.method === 'GET') return json(200, profile(url.origin), { 'cache-control': 'public, max-age=300' });
   if (url.pathname !== MCP_PATH) return json(404, { error: 'not_found' });
@@ -63,19 +65,22 @@ export async function handleRequest(request: Request, env: CatalogEnv): Promise<
   try { body = await request.json(); } catch { return json(400, { jsonrpc: '2.0', id: null, error: { code: -32700, message: 'Parse error' } }); }
   if (Array.isArray(body)) return json(400, { jsonrpc: '2.0', id: null, error: { code: -32600, message: 'Send one request at a time' } });
   const address = request.headers.get('cf-connecting-ip') ?? 'unknown', named = agentProfile(body);
+  // The profile an agent sends is not checked, so it only chooses the limit; both limits count by address alone.
   const limiter = named ? env.NAMED_AGENT_LIMIT : env.UNNAMED_AGENT_LIMIT;
-  if (limiter && !(await limiter.limit({ key: named ? `${named}|${address}` : address })).success) {
+  if (limiter && !(await limiter.limit({ key: address })).success) {
     return json(429, { jsonrpc: '2.0', id: null, error: { code: -32000, message: 'Too many requests. Slow down, or name your agent with meta["ucp-agent"].profile for a higher limit.' } }, { 'retry-after': '10' });
   }
-  const answer = await handleRpc(env.CATALOG_DB, body, meaningFor(env));
+  const now = Math.floor(Date.now() / 1000);
+  const answer = await handleRpc(env.CATALOG_DB, body, meaningFor(env), {
+    now, live: async siteIds => recheckStores(env.CATALOG_DB, await listListedStores(env.MERCHANT_DB, excludedOrigins(env)), siteIds, fetcher, now),
+  });
   return answer ? json(200, answer) : new Response(null, { status: 202 });
 }
 
 export default {
   fetch: (request: Request, env: CatalogEnv) => handleRequest(request, env),
   async scheduled(_controller: unknown, env: CatalogEnv) {
-    const excluded = (env.CATALOG_EXCLUDED_ORIGINS ?? '').split(/\s+/).filter(Boolean);
-    const listed = await listListedStores(env.MERCHANT_DB, excluded);
+    const listed = await listListedStores(env.MERCHANT_DB, excludedOrigins(env));
     await refreshCatalog(env.CATALOG_DB, listed, fetch, Math.floor(Date.now() / 1000), meaningFor(env));
   },
 };

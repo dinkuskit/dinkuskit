@@ -1,5 +1,6 @@
 import { nearestProducts, productVector, queryText, type Meaning, type Picture } from './meaning.ts';
 import { DEFAULT_LIMIT, MAX_DEPTH, MAX_LIMIT, MAX_LOOKUP_IDS, lookupCatalog, resolveUpid, searchCatalog } from './search.ts';
+import { expireStale } from './sync.ts';
 import { LOOKUP_CAPABILITY, SEARCH_CAPABILITY, envelope, narrowProduct } from './ucp.ts';
 
 /**
@@ -135,6 +136,8 @@ async function searchTool(db: D1Database, catalog: Json, meaning?: Meaning) {
     }
   } else if (like) {
     messages.push(message('warning', 'similarity_search_unavailable', 'catalog.like is not available right now.'));
+  } else if (query) {
+    messages.push(message('warning', 'meaning_search_unavailable', 'Answered by matching words only.'));
   }
   if (like && !query && !nearest) nearest = [];
   const found = await searchCatalog(db, {
@@ -162,10 +165,15 @@ async function lookupTool(db: D1Database, catalog: Json) {
   return { ucp: envelope(LOOKUP_CAPABILITY), products: found.products, ...(messages.length ? { messages } : {}) };
 }
 
-async function productTool(db: D1Database, catalog: Json) {
+async function productTool(db: D1Database, catalog: Json, live?: LiveCheck) {
   const id = typeof catalog.id === 'string' ? catalog.id : '';
-  const found = id ? await lookupCatalog(db, [id], false) : { products: [], notFound: [id] };
-  const product = found.products[0];
+  const find = async () => (id ? await lookupCatalog(db, [id], false) : { products: [], notFound: [id] }).products[0];
+  let product = await find();
+  if (product && live) {
+    // Full detail is checked with each store that sells the product before it is answered.
+    const checked = await live([...new Set(product.variants.map(variant => variant.seller.id))]).then(() => true, () => false);
+    if (checked) product = await find();
+  }
   if (!product) {
     return { ucp: envelope(LOOKUP_CAPABILITY, 'error'), messages: [message('error', 'not_found', id || 'catalog.id is required.')] };
   }
@@ -181,8 +189,12 @@ async function productTool(db: D1Database, catalog: Json) {
 const rpcResult = (id: unknown, result: unknown) => ({ jsonrpc: '2.0', id, result });
 const rpcError = (id: unknown, code: number, text: string) => ({ jsonrpc: '2.0', id: id ?? null, error: { code, message: text } });
 
+/** Checks the stores selling a product again, by site id, before its full detail is answered. */
+export type LiveCheck = (siteIds: string[]) => Promise<void>;
+export type RpcOptions = { now?: number; live?: LiveCheck };
+
 /** One JSON-RPC message in, one out; `null` for a notification, which gets no answer. */
-export async function handleRpc(db: D1Database, body: unknown, meaning?: Meaning): Promise<Json | null> {
+export async function handleRpc(db: D1Database, body: unknown, meaning?: Meaning, options: RpcOptions = {}): Promise<Json | null> {
   if (!isRecord(body) || body.jsonrpc !== '2.0' || typeof body.method !== 'string') return rpcError(null, -32600, 'Invalid request');
   const id = body.id, params = isRecord(body.params) ? body.params : {};
   if (id === undefined) return null;
@@ -201,11 +213,13 @@ export async function handleRpc(db: D1Database, body: unknown, meaning?: Meaning
   const args = isRecord(params.arguments) ? params.arguments : {};
   const catalog = isRecord(args.catalog) ? args.catalog : null;
   if (!catalog) return rpcError(id, -32602, 'arguments.catalog is required');
+  if (!TOOLS.some(tool => tool.name === params.name)) return rpcError(id, -32602, 'Unknown tool');
+  // Nothing older than the freshness limit is ever answered, even if the timer that re-reads stores has stopped.
+  await expireStale(db, options.now ?? Math.floor(Date.now() / 1000), meaning);
   let structured: Json;
   if (params.name === 'search_catalog') structured = await searchTool(db, catalog, meaning);
   else if (params.name === 'lookup_catalog') structured = await lookupTool(db, catalog);
-  else if (params.name === 'get_product') structured = await productTool(db, catalog);
-  else return rpcError(id, -32602, 'Unknown tool');
+  else structured = await productTool(db, catalog, options.live);
   return rpcResult(id, { content: [{ type: 'text', text: JSON.stringify(structured) }], structuredContent: structured });
 }
 

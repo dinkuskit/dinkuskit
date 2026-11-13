@@ -56,7 +56,7 @@ async function sha256(text: string): Promise<string> {
 /** A product picture from the store, or nothing when it is missing, too big or not a picture. */
 export async function fetchPicture(url: string, fetcher: typeof fetch): Promise<Picture | null> {
   try {
-    const response = await fetcher(url, { redirect: 'error', signal: AbortSignal.timeout(IMAGE_TIMEOUT_MS) });
+    const response = await fetcher(url, { redirect: 'manual', signal: AbortSignal.timeout(IMAGE_TIMEOUT_MS) });
     const contentType = (response.headers.get('content-type') ?? '').split(';')[0]!.trim().toLowerCase();
     if (!response.ok || !IMAGE_TYPES.has(contentType)) return null;
     const bytes = new Uint8Array(await response.arrayBuffer());

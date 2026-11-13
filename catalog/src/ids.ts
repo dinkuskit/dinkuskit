@@ -11,12 +11,14 @@ async function digest(text: string, length: number): Promise<string> {
 }
 
 const fold = (text: string) => text.toLowerCase().replace(/[^a-z0-9]+/g, '');
+/** A part number matches exactly, bar letter case and spacing: AB-12 and A-B12 are different parts. */
+const partNumber = (text: string) => text.trim().toUpperCase().replace(/\s+/g, ' ');
 
 export async function universalProductId(input: {
   gtin: string | null; brand: string | null; mpn: string | null; siteId: string; storeProductId: string;
 }): Promise<{ upid: string; basis: UpidBasis }> {
   if (input.gtin) return { upid: `dkp_${await digest(`gtin:${input.gtin.padStart(14, '0')}`, 24)}`, basis: 'gtin' };
-  const brand = input.brand ? fold(input.brand) : '', mpn = input.mpn ? fold(input.mpn) : '';
+  const brand = input.brand ? fold(input.brand) : '', mpn = input.mpn ? partNumber(input.mpn) : '';
   if (brand && mpn) return { upid: `dkp_${await digest(`brand_mpn:${brand}:${mpn}`, 24)}`, basis: 'brand_mpn' };
   return { upid: `dkp_${await digest(`store:${input.siteId}:${input.storeProductId}`, 24)}`, basis: 'store' };
 }

@@ -8,7 +8,7 @@ import { listListedStores } from '../catalog/src/listing.ts';
 import { handleRpc } from '../catalog/src/mcp.ts';
 import { VECTOR_DIMENSIONS, fuseRanks, workersAiEmbedder } from '../catalog/src/meaning.ts';
 import { matchExpression } from '../catalog/src/search.ts';
-import { refreshCatalog } from '../catalog/src/sync.ts';
+import { recheckStores, refreshCatalog } from '../catalog/src/sync.ts';
 import { handleRequest } from '../catalog/src/worker.ts';
 import { categoryText, parseCategories } from '../catalog/scripts/seed-categories.mjs';
 
@@ -70,7 +70,10 @@ const fetcher = (feeds) => async (address) => {
   return feeds[origin] ? new Response(JSON.stringify(feeds[origin]), { status: 200 }) : new Response('no', { status: 503 });
 };
 const stores = [{ siteId: 'site-alpha', siteOrigin: ALPHA }, { siteId: 'site-beta', siteOrigin: BETA }];
-const call = async (db, name, catalog, meaning) => (await handleRpc(db, { jsonrpc: '2.0', id: 1, method: 'tools/call', params: { name, arguments: { catalog } } }, meaning)).result.structuredContent;
+/** The time, in seconds, the catalog is asked at; each test sets it beside its own feed reads. */
+let clock = 1000;
+const call = async (db, name, catalog, meaning, live) => (await handleRpc(db, { jsonrpc: '2.0', id: 1, method: 'tools/call', params: { name, arguments: { catalog } } }, meaning, { now: clock, live })).result.structuredContent;
+const WORDS_ONLY = { type: 'warning', code: 'meaning_search_unavailable', content: 'Answered by matching words only.' };
 
 test('a feed is read as plain, checked rows and refused when it is for another site', () => {
   const parsed = parseAgentCatalogFeed(alphaFeed(), ALPHA);
@@ -90,13 +93,15 @@ test('the same barcode, or brand and part number, gives one product id; otherwis
   assert.equal(one.upid, two.upid);
   assert.equal(one.basis, 'gtin');
   const three = await universalProductId({ ...base, brand: 'North Peak', mpn: 'WH-01' });
-  const four = await universalProductId({ ...base, brand: 'northpeak', mpn: 'wh01', siteId: 'b' });
-  assert.equal(three.upid, four.upid);
+  const four = await universalProductId({ ...base, brand: 'northpeak', mpn: ' wh-01 ', siteId: 'b' });
+  assert.equal(three.upid, four.upid, 'letter case and spacing aside, the part number is the same');
+  const other = await universalProductId({ ...base, brand: 'Northpeak', mpn: 'W-H01' });
+  assert.notEqual(three.upid, other.upid, 'WH-01 and W-H01 are different parts');
   assert.notEqual((await universalProductId(base)).upid, (await universalProductId({ ...base, siteId: 'b' })).upid);
 });
 
 test('search groups one product across stores, hides what cannot be bought, and filters by price and shop', async () => {
-  const db = await catalogDb();
+  const db = await catalogDb(); clock = 1000;
   const results = await refreshCatalog(db, stores, fetcher({ [ALPHA]: alphaFeed(), [BETA]: betaFeed() }), 1000);
   assert.deepEqual(results.map(result => [result.outcome, result.products]), [['updated', 3], ['updated', 1]]);
 
@@ -118,7 +123,8 @@ test('search groups one product across stores, hides what cannot be bought, and 
   assert.equal(onlyBeta.products.length, 1);
   assert.equal((await call(db, 'search_catalog', { query: 'hat', filters: { ships_to: { country: 'DE' } } })).products.length, 0);
   const ignored = await call(db, 'search_catalog', { query: 'hat', filters: { rating: { variant: { min: 4 } } } });
-  assert.deepEqual(ignored.messages, [{ type: 'warning', code: 'unsupported_filter', content: 'rating' }]);
+  assert.deepEqual(ignored.messages, [{ type: 'warning', code: 'unsupported_filter', content: 'rating' }, WORDS_ONLY], 'with no model bound, a typed search says it matched words only');
+  assert.equal(cheap.messages, undefined, 'a search with no words has nothing to say about meaning');
   assert.equal((await call(db, 'search_catalog', {})).ucp.status, 'error');
 
   const paged = await call(db, 'search_catalog', { query: 'trail hat tee', pagination: { limit: 1 } });
@@ -129,7 +135,7 @@ test('search groups one product across stores, hides what cannot be bought, and 
 });
 
 test('lookup and get_product answer by product id, variant id and page address', async () => {
-  const db = await catalogDb();
+  const db = await catalogDb(); clock = 1000;
   await refreshCatalog(db, stores, fetcher({ [ALPHA]: alphaFeed(), [BETA]: betaFeed() }), 1000);
   const tee = (await call(db, 'search_catalog', { query: 'tee' })).products[0];
   const red = tee.variants.find(variant => variant.title === 'Red / M');
@@ -160,17 +166,97 @@ test('a store that changes, fails or leaves the list is kept right', async () =>
   delete feeds[ALPHA];
   const third = await refreshCatalog(db, stores, fetcher(feeds), 1600);
   assert.deepEqual(third.map(result => result.outcome), ['failed', 'updated']);
+  clock = 1600;
   const hats = await call(db, 'search_catalog', { query: 'wool hat' });
-  assert.deepEqual(hats.products[0].variants.map(variant => variant.price.amount), [1999, 2500], 'a store that cannot be read keeps its last good products');
+  assert.deepEqual(hats.products[0].variants.map(variant => variant.price.amount), [1999, 2500], 'a store that cannot be read keeps its last good products for now');
 
-  await refreshCatalog(db, [stores[0]], fetcher(feeds), 1900);
+  await refreshCatalog(db, [stores[0]], fetcher(feeds), 1800);
+  clock = 1800;
   const after = await call(db, 'search_catalog', { query: 'wool hat' });
   assert.deepEqual(after.products[0].variants.map(variant => variant.seller.name), ['Alpha Outfitters'], 'a delisted store is gone');
 
   // The owner's switch in the store admin empties the store's feed; the next read drops its products.
   feeds[ALPHA] = { ...alphaFeed(), products: [] };
-  assert.deepEqual((await refreshCatalog(db, [stores[0]], fetcher(feeds), 2200)).map(result => result.outcome), ['updated']);
+  assert.deepEqual((await refreshCatalog(db, [stores[0]], fetcher(feeds), 1850)).map(result => result.outcome), ['updated']);
+  clock = 1850;
   assert.equal((await call(db, 'search_catalog', { query: 'wool hat', filters: { available: false } })).products.length, 0, 'a store switched off in its admin lists nothing');
+
+  // A feed address that sends the reader elsewhere is not followed.
+  const moved = async () => new Response(null, { status: 301, headers: { location: 'https://elsewhere.example/feed.json' } });
+  assert.deepEqual((await refreshCatalog(await catalogDb(), [stores[0]], moved, 1000)).map(result => result.error), ['feed_status_301']);
+});
+
+test('nothing older than ten minutes is answered, whether a store went quiet or the timer stopped', async () => {
+  const db = await catalogDb();
+  const feeds = { [ALPHA]: alphaFeed(), [BETA]: betaFeed() };
+  await refreshCatalog(db, stores, fetcher(feeds), 1000);
+  clock = 1000;
+  const hat = (await call(db, 'search_catalog', { query: 'wool hat' })).products[0];
+  const alphaHat = hat.variants.find(variant => variant.seller.name === 'Alpha Outfitters');
+
+  // Alpha stops answering. Its failed reads do not count as fresh.
+  delete feeds[ALPHA];
+  await refreshCatalog(db, stores, fetcher(feeds), 1300);
+  await refreshCatalog(db, stores, fetcher(feeds), 1600);
+  clock = 1600;
+  assert.equal((await call(db, 'lookup_catalog', { ids: [alphaHat.id] })).products.length, 1, 'ten minutes after its last good read the store is still shown');
+  await refreshCatalog(db, stores, fetcher(feeds), 1601);
+  clock = 1601;
+  const sellers = (await call(db, 'search_catalog', { query: 'wool hat' })).products[0].variants.map(variant => variant.seller.name);
+  assert.deepEqual(sellers, ['Beta Goods'], 'past ten minutes the unread store is gone');
+  assert.deepEqual((await call(db, 'lookup_catalog', { ids: [alphaHat.id] })).messages, [{ type: 'info', code: 'not_found', content: alphaHat.id }], 'and a product id an agent kept no longer answers');
+  assert.equal((await call(db, 'get_product', { id: `${ALPHA}/products/tee` })).ucp.status, 'error');
+
+  // The timer itself stops: no more reads at all. Every answer checks the age first.
+  clock = 1601 + 600;
+  assert.equal((await call(db, 'search_catalog', { query: 'wool hat' })).products.length, 1, 'Beta was last read ten minutes ago');
+  clock += 1;
+  assert.equal((await call(db, 'search_catalog', { query: 'wool hat', filters: { available: false } })).products.length, 0);
+  assert.equal((await call(db, 'lookup_catalog', { ids: [hat.id] })).products.length, 0);
+  assert.equal((await call(db, 'get_product', { id: hat.id })).ucp.status, 'error');
+
+  // A store comes back with its next good read.
+  feeds[ALPHA] = alphaFeed();
+  await refreshCatalog(db, stores, fetcher(feeds), clock);
+  assert.equal((await call(db, 'search_catalog', { query: 'wool hat' })).products[0].variants.length, 2);
+});
+
+test('full product detail is checked with the stores that sell it', async () => {
+  const db = await catalogDb();
+  const feeds = { [ALPHA]: alphaFeed(), [BETA]: betaFeed() };
+  await refreshCatalog(db, stores, fetcher(feeds), 1000);
+  clock = 1100;
+  let listed = stores, reads = 0;
+  const counting = async (address) => { reads += 1; return fetcher(feeds)(address); };
+  const live = siteIds => recheckStores(db, listed, siteIds, counting, clock);
+  const hat = (await call(db, 'search_catalog', { query: 'wool hat' })).products[0];
+
+  // Beta drops its price between two timed reads; search still holds the old one, full detail does not.
+  feeds[BETA].products[0].price = usd(1899);
+  assert.equal((await call(db, 'search_catalog', { query: 'wool hat' })).products[0].price_range.min.amount, 2300);
+  const fresh = await call(db, 'get_product', { id: hat.id }, undefined, live);
+  assert.deepEqual(fresh.product.variants.map(variant => [variant.seller.name, variant.price.amount]), [['Beta Goods', 1899], ['Alpha Outfitters', 2500]]);
+  assert.equal(reads, 2, 'each selling store is read once');
+  await call(db, 'get_product', { id: hat.id }, undefined, live);
+  assert.equal(reads, 2, 'a store read moments ago is not read again');
+
+  // The operator cuts Beta off, or its Payments is disconnected: it is no longer in the list of listed stores.
+  listed = [stores[0]];
+  clock = 1200;
+  const cut = await call(db, 'get_product', { id: hat.id }, undefined, live);
+  assert.deepEqual(cut.product.variants.map(variant => variant.seller.name), ['Alpha Outfitters'], 'a store that lost its listing leaves before the answer');
+  assert.equal((await call(db, 'search_catalog', { query: 'wool hat' })).products[0].metadata.seller_count, 1);
+
+  // The owner switches the catalog off in the store admin: the feed lists nothing.
+  feeds[ALPHA] = { ...alphaFeed(), products: [] };
+  clock = 1300;
+  assert.equal((await call(db, 'get_product', { id: hat.id }, undefined, live)).ucp.status, 'error', 'a switched-off store answers nothing, even for an id an agent kept');
+
+  // A store that cannot be reached during the check keeps what was last read.
+  const quiet = await catalogDb();
+  await refreshCatalog(quiet, stores, fetcher({ [ALPHA]: alphaFeed(), [BETA]: betaFeed() }), 1000);
+  const down = siteIds => recheckStores(quiet, stores, siteIds, fetcher({}), clock);
+  assert.equal((await call(quiet, 'get_product', { id: hat.id }, undefined, down)).product.variants.length, 2);
 });
 
 test('search words never reach the query language', () => {
@@ -180,7 +266,12 @@ test('search words never reach the query language', () => {
 
 test('the agent address speaks MCP and publishes the UCP profile', async () => {
   const db = await catalogDb();
-  const env = { CATALOG_DB: db, MERCHANT_DB: db, UNNAMED_AGENT_LIMIT: { limit: async ({ key }) => ({ success: key !== '203.0.113.9' }) } };
+  const namedKeys = [];
+  const env = {
+    CATALOG_DB: db, MERCHANT_DB: db,
+    UNNAMED_AGENT_LIMIT: { limit: async ({ key }) => ({ success: key !== '203.0.113.9' }) },
+    NAMED_AGENT_LIMIT: { limit: async ({ key }) => { namedKeys.push(key); return { success: namedKeys.length < 3 }; } },
+  };
   const post = (body, headers = {}) => handleRequest(new Request('https://catalog.dinkuskit.com/api/ucp/mcp', { method: 'POST', headers, body: JSON.stringify(body) }), env);
   const init = await (await post({ jsonrpc: '2.0', id: 1, method: 'initialize', params: { protocolVersion: '2025-06-18' } })).json();
   assert.equal(init.result.serverInfo.name, 'dinkuskit-catalog');
@@ -188,6 +279,9 @@ test('the agent address speaks MCP and publishes the UCP profile', async () => {
   assert.deepEqual(tools.result.tools.map(tool => tool.name), ['search_catalog', 'lookup_catalog', 'get_product']);
   assert.equal((await post({ jsonrpc: '2.0', method: 'notifications/initialized' })).status, 202);
   assert.equal((await post({ jsonrpc: '2.0', id: 3, method: 'tools/list' }, { 'cf-connecting-ip': '203.0.113.9' })).status, 429);
+  const asAgent = (profile) => post({ jsonrpc: '2.0', id: 4, method: 'tools/call', params: { name: 'search_catalog', arguments: { meta: { 'ucp-agent': { profile } }, catalog: { query: 'hat' } } } }, { 'cf-connecting-ip': '198.51.100.7' });
+  assert.deepEqual([(await asAgent('https://agent.example/1')).status, (await asAgent('https://agent.example/2')).status, (await asAgent('https://agent.example/3')).status], [200, 200, 429]);
+  assert.deepEqual(namedKeys, ['198.51.100.7', '198.51.100.7', '198.51.100.7'], 'a new profile address does not open a new allowance');
   assert.equal((await handleRequest(new Request('https://catalog.dinkuskit.com/api/ucp/mcp'), env)).status, 405);
   assert.equal((await handleRequest(new Request('https://catalog.dinkuskit.com/elsewhere'), env)).status, 404);
   const profile = await (await handleRequest(new Request('https://catalog.dinkuskit.com/.well-known/ucp'), env)).json();
@@ -271,6 +365,7 @@ const pictureFetcher = (feeds) => async (address) => {
 
 test('search by meaning, by photo and by "similar to this", with categories worked out by the catalog', async () => {
   const db = await catalogDb(), meaning = fakeMeaning();
+  clock = 1000;
   const feeds = { [ALPHA]: alphaFeed(), [BETA]: betaFeed() };
   await refreshCatalog(db, stores, pictureFetcher(feeds), 1000, meaning);
   assert.equal(meaning.calls.embedded, 4, 'one vector per product per store');
@@ -280,7 +375,9 @@ test('search by meaning, by photo and by "similar to this", with categories work
   assert.deepEqual(beanie.products.map(product => product.metadata.seller_count), [2], 'no product says "beanie", but the hat is found by meaning');
   assert.deepEqual(beanie.products[0].categories, [{ value: 'aa-2-17', taxonomy: 'shopify' }]);
   assert.equal(beanie.products[0].metadata.category.inferred, true);
-  assert.equal((await call(db, 'search_catalog', { query: 'beanie' })).products.length, 0, 'words alone do not find it');
+  const wordsOnly = await call(db, 'search_catalog', { query: 'beanie' });
+  assert.equal(wordsOnly.products.length, 0, 'words alone do not find it');
+  assert.deepEqual(wordsOnly.messages, [WORDS_ONLY], 'and the answer says it matched words only');
 
   const photo = await call(db, 'search_catalog', { like: [{ image: { content_type: 'image/jpeg', data: btoa('HATPHOTO') } }] }, meaning);
   assert.equal(photo.products.length, 1);
@@ -299,6 +396,7 @@ test('search by meaning, by photo and by "similar to this", with categories work
   feeds[BETA].products[0].price = usd(1999);
   await refreshCatalog(db, stores, pictureFetcher(feeds), 1600, meaning);
   assert.equal(meaning.calls.embedded, before, 'a price change works no vector out again');
+  clock = 1600;
 
   meaning.calls.down = true;
   const fallback = await call(db, 'search_catalog', { query: 'wool hat' }, meaning);
@@ -307,20 +405,15 @@ test('search by meaning, by photo and by "similar to this", with categories work
   meaning.calls.down = false;
 
   await refreshCatalog(db, [stores[0]], pictureFetcher(feeds), 1900, meaning);
+  clock = 1900;
   assert.equal(meaning.products.held.size, 3, 'a delisted store takes its vectors with it');
   const noModel = await call(db, 'search_catalog', { like: [{ id: tee.id }] });
   assert.equal(noModel.messages[0].code, 'similarity_search_unavailable');
 });
 
-test('ranks by words and by meaning are joined, and the model is asked in the documented shape', async () => {
+test('ranks by words and by meaning are joined, and a short or missing answer from the model is refused', async () => {
   assert.deepEqual(fuseRanks([['a', 'b', 'c'], ['c', 'a', 'd']]), ['a', 'c', 'b', 'd']);
-  const asked = [];
-  const embed = workersAiEmbedder({ async run(model, input) { asked.push([model, input]); return { data: input.messages.map(() => ({ embedding: Array(VECTOR_DIMENSIONS).fill(0) })) }; } });
-  const vectors = await embed([{ text: 'words' }, { text: 'both', picture: { contentType: 'image/png', base64: 'AAAA' } }]);
-  assert.equal(vectors.length, 2);
-  assert.equal(asked[0][0], '@cf/google/embeddinggemma-2');
-  assert.deepEqual(asked[0][1].messages[0], [{ role: 'user', content: 'words' }]);
-  assert.deepEqual(asked[0][1].messages[1][0].content, [{ type: 'text', text: 'both' }, { type: 'image_url', image_url: { url: 'data:image/png;base64,AAAA' } }]);
+  await assert.rejects(workersAiEmbedder({ async run() { return { data: [{ embedding: Array(VECTOR_DIMENSIONS - 1).fill(0) }] }; } })([{ text: 'x' }]), /embedding_failed/);
   await assert.rejects(workersAiEmbedder({ async run() { return { data: [] }; } })([{ text: 'x' }]), /embedding_failed/);
 });
 

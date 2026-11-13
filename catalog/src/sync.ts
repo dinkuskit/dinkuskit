@@ -5,10 +5,15 @@ import { forgetStore, indexStore, type Meaning } from './meaning.ts';
 /**
  * Keeps the catalog in step with each listed store (GrillTrack
  * agent-catalog-freshness-20261113): every listed store's feed is re-read on a
- * short timer, so a price or availability here is never more than 10 minutes old.
+ * short timer, and a store whose feed has not been read and found valid within
+ * FRESH_SECONDS leaves the catalog, so a price or availability here is never more
+ * than 10 minutes old, whether a store went quiet or the timer itself stopped.
  */
-export const REFRESH_SECONDS = 300;
+export const REFRESH_SECONDS = 300, FRESH_SECONDS = 600;
 const FEED_TIMEOUT_MS = 10_000, FEED_MAX_BYTES = 8 * 1024 * 1024;
+/** Full product detail re-reads a store's feed unless it was read this recently; at most this many stores, each given this long. */
+export const LIVE_SECONDS = 30;
+const LIVE_STORES = 8, LIVE_TIMEOUT_MS = 3000;
 
 export type ListedStore = { siteId: string; siteOrigin: string };
 export type StoredVariant = {
@@ -23,12 +28,12 @@ async function sha256(text: string): Promise<string> {
 /** Writes one store's feed over what the catalog held for that store. */
 export async function storeFeed(db: D1Database, store: ListedStore, feed: ParsedFeed, feedHash: string, now: number): Promise<number> {
   const statements: D1PreparedStatement[] = [
-    db.prepare(`INSERT INTO catalog_store (site_id, site_origin, store_name, policies, feed_hash, read_at, changed_at, last_error)
-      VALUES (?, ?, ?, ?, ?, ?, ?, NULL)
+    db.prepare(`INSERT INTO catalog_store (site_id, site_origin, store_name, policies, feed_hash, read_at, validated_at, changed_at, last_error)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL)
       ON CONFLICT(site_id) DO UPDATE SET site_origin = excluded.site_origin, store_name = excluded.store_name,
         policies = excluded.policies, feed_hash = excluded.feed_hash, read_at = excluded.read_at,
-        changed_at = excluded.changed_at, last_error = NULL`)
-      .bind(store.siteId, store.siteOrigin, feed.storeName, JSON.stringify(feed.policies), feedHash, now, now),
+        validated_at = excluded.validated_at, changed_at = excluded.changed_at, last_error = NULL`)
+      .bind(store.siteId, store.siteOrigin, feed.storeName, JSON.stringify(feed.policies), feedHash, now, now, now),
     db.prepare('DELETE FROM catalog_text WHERE offer_id IN (SELECT offer_id FROM catalog_offer WHERE site_id = ?)').bind(store.siteId),
     db.prepare('DELETE FROM catalog_variant WHERE offer_id IN (SELECT offer_id FROM catalog_offer WHERE site_id = ?)').bind(store.siteId),
     db.prepare('DELETE FROM catalog_offer WHERE site_id = ?').bind(store.siteId),
@@ -67,8 +72,27 @@ export async function removeStore(db: D1Database, siteId: string): Promise<void>
 
 export type RefreshResult = { siteId: string; outcome: 'updated' | 'unchanged' | 'failed'; products?: number; error?: string };
 
-/** Reads one store's feed. A store that cannot be read keeps its last good products and records why. */
-export async function refreshStore(db: D1Database, store: ListedStore, fetcher: typeof fetch, now: number): Promise<RefreshResult> {
+/**
+ * Stores whose feed has not been read and found valid within FRESH_SECONDS leave the
+ * catalog. Run before every answer, so nothing older is ever shown; the store returns
+ * with its next good read.
+ */
+export async function expireStale(db: D1Database, now: number, meaning?: Meaning): Promise<string[]> {
+  const stale = await db.prepare('SELECT site_id FROM catalog_store WHERE validated_at IS NULL OR validated_at < ?')
+    .bind(now - FRESH_SECONDS).all<{ site_id: string }>();
+  const gone = (stale.results ?? []).map(row => row.site_id);
+  for (const siteId of gone) {
+    await removeStore(db, siteId);
+    if (meaning) await forgetStore(db, meaning, siteId).catch(() => undefined);
+  }
+  return gone;
+}
+
+/**
+ * Reads one store's feed. A store that cannot be read keeps its last good products, for
+ * at most FRESH_SECONDS since its last good read, and records why.
+ */
+export async function refreshStore(db: D1Database, store: ListedStore, fetcher: typeof fetch, now: number, timeoutMs = FEED_TIMEOUT_MS): Promise<RefreshResult> {
   const fail = async (error: string): Promise<RefreshResult> => {
     await db.prepare(`INSERT INTO catalog_store (site_id, site_origin, store_name, read_at, last_error) VALUES (?, ?, ?, ?, ?)
       ON CONFLICT(site_id) DO UPDATE SET read_at = excluded.read_at, last_error = excluded.last_error`)
@@ -79,7 +103,8 @@ export async function refreshStore(db: D1Database, store: ListedStore, fetcher: 
   try {
     const response = await fetcher(`${store.siteOrigin}${FEED_PATH}`, {
       headers: { accept: 'application/json', 'user-agent': 'DinkusKitCatalog/1.0 (+https://catalog.dinkuskit.com)' },
-      redirect: 'error', signal: AbortSignal.timeout(FEED_TIMEOUT_MS),
+      // A feed that moved is not followed: the answer is then not `ok` and the read fails. (Workers has no redirect: 'error'.)
+      redirect: 'manual', signal: AbortSignal.timeout(timeoutMs),
     });
     if (!response.ok) return fail(`feed_status_${response.status}`);
     text = await response.text();
@@ -91,7 +116,7 @@ export async function refreshStore(db: D1Database, store: ListedStore, fetcher: 
   const known = await db.prepare('SELECT feed_hash FROM catalog_store WHERE site_id = ? AND site_origin = ?')
     .bind(store.siteId, store.siteOrigin).first<{ feed_hash: string | null }>();
   if (known?.feed_hash === feedHash) {
-    await db.prepare('UPDATE catalog_store SET read_at = ?, last_error = NULL WHERE site_id = ?').bind(now, store.siteId).run();
+    await db.prepare('UPDATE catalog_store SET read_at = ?, validated_at = ?, last_error = NULL WHERE site_id = ?').bind(now, now, store.siteId).run();
     return { siteId: store.siteId, outcome: 'unchanged' };
   }
   let body: unknown;
@@ -117,5 +142,27 @@ export async function refreshCatalog(db: D1Database, listed: ListedStore[], fetc
     if (meaning && result.outcome !== 'failed') await indexStore(db, meaning, store.siteId, fetcher).catch(() => undefined);
     results.push(result);
   }
+  await expireStale(db, now, meaning);
   return results;
+}
+
+/**
+ * The check behind full product detail: each store selling the product is looked up
+ * again in the list of listed stores and its feed read again, unless it was read within
+ * LIVE_SECONDS. A store that is no longer listed leaves at once; one that cannot be read
+ * keeps its last good products until they expire.
+ */
+export async function recheckStores(db: D1Database, listed: ListedStore[], siteIds: string[], fetcher: typeof fetch, now: number): Promise<void> {
+  const wanted = [...new Set(siteIds)].slice(0, LIVE_STORES);
+  if (!wanted.length) return;
+  const held = await db.prepare(`SELECT site_id, validated_at FROM catalog_store WHERE site_id IN (${wanted.map(() => '?').join(',')})`)
+    .bind(...wanted).all<{ site_id: string; validated_at: number | null }>();
+  const readAt = new Map((held.results ?? []).map(row => [row.site_id, row.validated_at ?? 0]));
+  const stores = new Map(listed.map(store => [store.siteId, store]));
+  await Promise.all(wanted.map(async siteId => {
+    const store = stores.get(siteId);
+    if (!store) return removeStore(db, siteId);
+    if ((readAt.get(siteId) ?? 0) > now - LIVE_SECONDS) return;
+    await refreshStore(db, store, fetcher, now, LIVE_TIMEOUT_MS);
+  }));
 }

@@ -208,7 +208,7 @@ Authorization: Bearer <commerce:settings pass>
 ```
 
 which answers the same `dinkuskit.commerce.registry-checkout/v1` JSON that
-**Save checkout settings** shows (below), built the same way from the owner's
+**Save shipping** and **Save payments** show (below), built the same way from the owner's
 saved choices and Payments' status, `cache-control: no-store`. A change on
 DinkusKit.com reaches Commerce on its next read. Errors: 401 `invalid_pass`;
 409 `commerce_not_set_up` (no shipping or test-or-live choice saved yet),
@@ -285,8 +285,12 @@ The older Inventory registration contract remains a development path only.
 Commerce reads its checkout settings itself with `commerce:settings` (above):
 one JSON text in Commerce's `dinkuskit.commerce.registry-checkout/v1` shape,
 which refuses any missing, extra or malformed key. Under **Set up Commerce** the
-owner picks a shipping charge (free, or a flat amount in dollars) and Test or
-Live, then presses **Save checkout settings**. The page then:
+owner uses the store's Shipping tab for a charge (free, or a flat amount in
+dollars) and its Payments tab for Test or Live. **Save shipping** and **Save
+payments** update only their own half atomically; the omitted half stays as
+currently saved, not a hidden form copy. On the first save the omitted half
+defaults to free shipping or Test respectively. The old combined
+`checkout_settings` POST stays supported. The page then:
 
 1. saves the choices in `dinkuskit_commerce_settings` (one row per store). The
    shipping `revision` starts at 1 and goes up only when the charge changes,

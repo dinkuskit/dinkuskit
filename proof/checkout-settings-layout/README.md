@@ -1,0 +1,37 @@
+# Store settings tabs · PR #124
+
+The [recorded owner request](https://github.com/dinkuskit/dinkuskit/pull/124#issuecomment-6857438600)
+reworks the existing candidate, rather than opening another dashboard redesign.
+Each store now has server-rendered Plugins / Shipping / Payments links, separate
+native saves and flat-only dollar fields. Existing tokens, narrow wrapper,
+permissions, service contracts and legacy combined POST remain; independent
+SQL conflict updates preserve the other half even after stale reads.
+
+`tests/helpers/checkout-settings-fixture.mjs` retains the normal-consent fixture
+with explicit simulated store-proof and Payments-status transports. The retained
+browser test covers two stores, 1440/390px, light/dark, JavaScript disabled,
+keyboard order, 44px targets, default/selected/unknown tabs, conditional amounts,
+invalid values, durable GET read-back and both independent native save orders.
+Phone synthetic 200% root-font checks cover only the changed card, not browser
+font preferences or global reflow. Pure SQLite tests additionally send stale
+opposite-half values and recheck staff/cross-business refusal.
+
+Read-only hosted observation on November 13 still shows the old inline form at
+both widths with TEST / $5 / $75 unchanged. Local simulated service proof is not
+hosted deployment, a real processor operation or signed plugin acceptance. The
+prior four public images stay intact; refreshed tab captures and exact-source
+verification are recorded in the PR body when qualification completes.
+
+## Historical qualification · original f520af9 form-only candidate
+
+The following records the prior head only, not the tabbed revision's gates.
+
+Read-only Backroad Bum setup on hosted `/account/sites` confirmed the flat shipping input and following threshold label share a line at 1440px and 390px, matching existing issue [#123](https://github.com/dinkuskit/dinkuskit/issues/123). The field already has an accessible name; this candidate adds its visible associated label, stacks native choices/fields and lets the existing store grid shrink around long addresses. It preserves the narrow wrapper, field names, POSTs, mode defaults, authorization and persistence; the wider dashboard redesign remains outside this patch.
+
+On Node 24.22.2, final typecheck passes (119 files, no errors/warnings, five existing hints), the actual Cloudflare build passes, and `npm run test:checkout-settings-browser` passes. Four Chromium contexts cover desktop/phone, light/dark, two synthetic stores, no JavaScript, keyboard order and four native invalid-amount POSTs; phone checks also enlarge the root font to 200% and verify the changed form fits. That synthetic scaling is not a browser font-preference or whole-page reflow claim; unrelated header/list layout stays outside this repair. Optional `CHECKOUT_SETTINGS_ARTIFACT_DIR` captures stay ignored; no hosted settings are submitted.
+
+All `verify` stages now pass across serial runs, not one uninterrupted invocation. The first run passed audit/history, the official 7,126-byte guide Registry build/tests, setup, Wrangler types, typecheck, theme/docs/account/E2E contracts, actual build, docs routes/import/sync and agent routes. Inventory initially returned an unexpected 303 during concurrent browser verification; its serial retry passes 9/9 (cause unproven). Remaining merchant (24), shared-store (50), foundation (12), browser (1), Inventory overview (8), approvals (5), operator (8), smoke, development CMS, release reuse, helpers, Access gate, safe URLs and Workers builds pass. CMS operation, initialized 1.0.1→1.4 upgrade and Cloudflare candidate checks pass on their exact required Node 24.22.0; other gates use 24.22.2. No release, signed plugin replacement or shared-service deployment is claimed.
+
+The new scoped component styles add attributes to the saved-settings `<pre>` and `<code>` elements. The shared-store workflow now accepts these attributes while retaining every parsed JSON, authorization and persistence assertion; the full 50-test suite passes after that repair. A separate socket-close failure did not repeat; it is not attributed to a baseline defect. Final typecheck/audit pass after the test-only repair.
+
+Commands: `npm ci`; `npm rebuild --ignore-scripts=false better-sqlite3 esbuild workerd`; `npx playwright install chromium`; `NODE_OPTIONS=--max-old-space-size=1152 npm run verify` (then run its remaining named stages serially); `NODE_OPTIONS=--max-old-space-size=1152 npm run typecheck`; `NODE_OPTIONS=--max-old-space-size=1152 npm run build`; `npm run test:checkout-settings-browser`; `npm run audit:repo`. Put Node 24.22.0 first on PATH for the three pinned CMS/candidate checks. The first default-heap check exhausted its roughly600MB limit; the explicit heap check passes. CI runs the complete current-head sequence; no unrelated-timeout exemption or baseline-failure waiver was used.

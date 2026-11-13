@@ -87,7 +87,7 @@ try {
   const catalogDb = await mf.getD1Database('CATALOG_DB'), merchantDb = await mf.getD1Database('MERCHANT_DB');
   await migrate(catalogDb, join(root, 'catalog/migrations'));
   await migrate(merchantDb, join(root, 'migrations/merchant'));
-  for (const [name, origin] of [['alpha', ALPHA], ['beta', BETA], ['playground', PLAYGROUND]]) {
+  const connect = async (name, origin) => {
     await insert(merchantDb, 'user', { id: `user-${name}`, email: `${name}@example.test` });
     await insert(merchantDb, 'dinkuskit_account', { user_id: `user-${name}`, subject: `sub-${name}`, disabled: 0 });
     await insert(merchantDb, 'dinkuskit_organization', { organization_id: `org-${name}`, owner_user_id: `user-${name}`, authority_subject: `sub-${name}`, status: 'active', admission_status: 'admitted' });
@@ -95,7 +95,8 @@ try {
     await insert(merchantDb, 'dinkuskit_store_identity', { site_id: `site-${name}`, site_origin: origin, account_subject: `sub-${name}` });
     await insert(merchantDb, 'dinkuskit_plugin_key', { site_id: `site-${name}`, plugin: 'payments' });
     await insert(merchantDb, 'dinkuskit_service_grant', { site_id: `site-${name}`, service: 'ship', revoked: 0 });
-  }
+  };
+  for (const [name, origin] of [['alpha', ALPHA], ['beta', BETA], ['playground', PLAYGROUND]]) await connect(name, origin);
 
   const worker = await mf.getWorker();
   const timer = () => worker.scheduled({ cron: '*/5 * * * *' });
@@ -179,7 +180,26 @@ try {
   check('lookup_catalog by the product id', await lookup(productId), []);
   check('get_product by the product id', await detail(productId), 'not_found');
 
-  console.log('\n== 8. Limits count by address; a new agent profile does not open a new allowance ==');
+  console.log('\n== 8. Ten stores sell the product and the most expensive one is cut off ==');
+  feeds[ALPHA] = feed(ALPHA, 'Alpha Outfitters', [hat(ALPHA, 'Wool Trail Hat', 2500)]);
+  for (let number = 1; number <= 8; number += 1) {
+    const origin = `https://shop-${number}.example`;
+    feeds[origin] = feed(origin, `Shop ${number}`, [hat(origin, 'Wool Hat', 3000 + number)]);
+    await connect(`shop-${number}`, origin);
+  }
+  await timer();
+  const ten = ['Beta Goods 1999', 'Alpha Outfitters 2500', ...Array.from({ length: 8 }, (_, index) => `Shop ${index + 1} ${3001 + index}`)];
+  check('get_product lists all ten sellers', await detail(productId), ten);
+  await merchantDb.prepare("UPDATE dinkuskit_service_grant SET revoked = 1, revoked_by = 'operator' WHERE site_id = 'site-shop-8'").run();
+  check('the tenth seller, cut off since the last read, is left out of the very next answer', await detail(productId), ten.slice(0, 9));
+
+  console.log('\n== 9. The list of listed stores cannot be read ==');
+  await merchantDb.prepare('ALTER TABLE dinkuskit_plugin_key RENAME TO dinkuskit_plugin_key_away').run();
+  check('get_product gives no detail it could not check', await detail(productId), 'temporarily_unavailable');
+  await merchantDb.prepare('ALTER TABLE dinkuskit_plugin_key_away RENAME TO dinkuskit_plugin_key').run();
+  check('readable again, detail returns', await detail(productId), ten.slice(0, 9));
+
+  console.log('\n== 10. Limits count by address; a new agent profile does not open a new allowance ==');
   const asAgent = number => post({ jsonrpc: '2.0', id: 1, method: 'tools/call', params: { name: 'search_catalog', arguments: { meta: { 'ucp-agent': { profile: `https://agent.example/${number}` } }, catalog: { query: 'hat' } } } }, '198.51.100.7');
   const named = [];
   for (let number = 1; number <= 55; number += 1) named.push((await asAgent(number)).status);

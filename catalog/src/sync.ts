@@ -11,7 +11,7 @@ import { forgetStore, indexStore, type Meaning } from './meaning.ts';
  */
 export const REFRESH_SECONDS = 300, FRESH_SECONDS = 600;
 const FEED_TIMEOUT_MS = 10_000, FEED_MAX_BYTES = 8 * 1024 * 1024;
-/** Full product detail re-reads a store's feed unless it was read this recently; at most this many stores, each given this long. */
+/** Full product detail re-reads a store's feed unless it was read this recently; this many stores at a time, each given this long. */
 export const LIVE_SECONDS = 30;
 const LIVE_STORES = 8, LIVE_TIMEOUT_MS = 3000;
 
@@ -150,19 +150,24 @@ export async function refreshCatalog(db: D1Database, listed: ListedStore[], fetc
  * The check behind full product detail: each store selling the product is looked up
  * again in the list of listed stores and its feed read again, unless it was read within
  * LIVE_SECONDS. A store that is no longer listed leaves at once; one that cannot be read
- * keeps its last good products until they expire.
+ * keeps its last good products until they expire. The list itself must be current: the
+ * caller fails, and full detail is refused, when it cannot be read.
  */
 export async function recheckStores(db: D1Database, listed: ListedStore[], siteIds: string[], fetcher: typeof fetch, now: number): Promise<void> {
-  const wanted = [...new Set(siteIds)].slice(0, LIVE_STORES);
+  const wanted = [...new Set(siteIds)];
   if (!wanted.length) return;
-  const held = await db.prepare(`SELECT site_id, validated_at FROM catalog_store WHERE site_id IN (${wanted.map(() => '?').join(',')})`)
-    .bind(...wanted).all<{ site_id: string; validated_at: number | null }>();
-  const readAt = new Map((held.results ?? []).map(row => [row.site_id, row.validated_at ?? 0]));
   const stores = new Map(listed.map(store => [store.siteId, store]));
-  await Promise.all(wanted.map(async siteId => {
+  // Every selling store is checked against the list; none is skipped, however many sell the product.
+  const still: ListedStore[] = [];
+  for (const siteId of wanted) {
     const store = stores.get(siteId);
-    if (!store) return removeStore(db, siteId);
-    if ((readAt.get(siteId) ?? 0) > now - LIVE_SECONDS) return;
-    await refreshStore(db, store, fetcher, now, LIVE_TIMEOUT_MS);
-  }));
+    if (store) still.push(store); else await removeStore(db, siteId);
+  }
+  const held = await db.prepare('SELECT site_id, validated_at FROM catalog_store').all<{ site_id: string; validated_at: number | null }>();
+  const readAt = new Map((held.results ?? []).map(row => [row.site_id, row.validated_at ?? 0]));
+  const due = still.filter(store => (readAt.get(store.siteId) ?? 0) <= now - LIVE_SECONDS);
+  // Feeds are read a few at a time; that paces the reads and leaves no store out.
+  for (let start = 0; start < due.length; start += LIVE_STORES) {
+    await Promise.all(due.slice(start, start + LIVE_STORES).map(store => refreshStore(db, store, fetcher, now, LIVE_TIMEOUT_MS)));
+  }
 }

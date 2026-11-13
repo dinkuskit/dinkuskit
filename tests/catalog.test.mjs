@@ -252,6 +252,26 @@ test('full product detail is checked with the stores that sell it', async () => 
   clock = 1300;
   assert.equal((await call(db, 'get_product', { id: hat.id }, undefined, live)).ucp.status, 'error', 'a switched-off store answers nothing, even for an id an agent kept');
 
+  // The list of listed stores cannot be read: no detail is given, rather than detail nobody checked.
+  const blind = await catalogDb();
+  await refreshCatalog(blind, stores, fetcher({ [ALPHA]: alphaFeed(), [BETA]: betaFeed() }), 1000);
+  const refused = await call(blind, 'get_product', { id: hat.id }, undefined, async () => { throw new Error('merchant database down'); });
+  assert.equal(refused.ucp.status, 'error');
+  assert.equal(refused.product, undefined);
+  assert.equal(refused.messages[0].code, 'temporarily_unavailable');
+
+  // Every selling store is checked, however many there are: here ten, and the last one lost its listing.
+  const many = await catalogDb();
+  const crowd = Array.from({ length: 10 }, (_, index) => ({ siteId: `site-${index}`, siteOrigin: `https://shop${index}.example` }));
+  const crowdFeeds = Object.fromEntries(crowd.map((store, index) => [store.siteOrigin, feedFor(store.siteOrigin, `Shop ${index}`, [
+    { id: 'hat', title: 'Wool Hat', canonicalUrl: `${store.siteOrigin}/products/hat`, description: 'Hat.', price: usd(3000 + index), availability: { status: 'in_stock', sellable: true }, gtin: '4006381333931' },
+  ])]));
+  await refreshCatalog(many, crowd, fetcher(crowdFeeds), 1000);
+  const all = await call(many, 'get_product', { id: hat.id }, undefined, siteIds => recheckStores(many, crowd, siteIds, fetcher(crowdFeeds), clock));
+  assert.equal(all.product.variants.length, 10);
+  const nine = await call(many, 'get_product', { id: hat.id }, undefined, siteIds => recheckStores(many, crowd.slice(0, 9), siteIds, fetcher(crowdFeeds), clock));
+  assert.deepEqual(nine.product.variants.map(variant => variant.seller.name), crowd.slice(0, 9).map((_, index) => `Shop ${index}`), 'the tenth store is gone');
+
   // A store that cannot be reached during the check keeps what was last read.
   const quiet = await catalogDb();
   await refreshCatalog(quiet, stores, fetcher({ [ALPHA]: alphaFeed(), [BETA]: betaFeed() }), 1000);

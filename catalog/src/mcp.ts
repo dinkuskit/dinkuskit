@@ -171,8 +171,13 @@ async function productTool(db: D1Database, catalog: Json, live?: LiveCheck) {
   let product = await find();
   if (product && live) {
     // Full detail is checked with each store that sells the product before it is answered.
+    // A store's own feed failing is allowed for (its last good products stay until they expire); not knowing
+    // whether its sellers are still listed is not, so then no detail is given.
     const checked = await live([...new Set(product.variants.map(variant => variant.seller.id))]).then(() => true, () => false);
-    if (checked) product = await find();
+    if (!checked) {
+      return { ucp: envelope(LOOKUP_CAPABILITY, 'error'), messages: [message('error', 'temporarily_unavailable', 'Product detail cannot be checked with its stores right now. Try again shortly.')] };
+    }
+    product = await find();
   }
   if (!product) {
     return { ucp: envelope(LOOKUP_CAPABILITY, 'error'), messages: [message('error', 'not_found', id || 'catalog.id is required.')] };

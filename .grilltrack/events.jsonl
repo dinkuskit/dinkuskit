@@ -191,3 +191,30 @@
 {"action": "decision_deferred", "at": "2026-11-01T05:13:19+00:00", "data": {"decision_id": "merchant-tier-intent-014"}, "event_id": "c15fc6e9-cac4-485d-b6d7-a3fead51c10a"}
 {"action": "decision_deferred", "at": "2026-11-01T05:13:20+00:00", "data": {"decision_id": "self-host-second-operator-005"}, "event_id": "8d97c565-63c3-4f7c-8f12-d5d6e1696580"}
 {"action": "decision_deferred", "at": "2026-11-01T05:13:21+00:00", "data": {"decision_id": "self-host-sequencing-001"}, "event_id": "4644b828-f848-4323-bd33-abddf9a92c0b"}
+{"action": "focus_started", "at": "2026-11-13T14:31:18+00:00", "data": {"cadence": "frontier-batch", "domain": "DinkusKit cross-store agent catalog"}, "event_id": "098fdda2-39f6-480a-805e-23279226f2c0"}
+{"action": "decision_proposed", "at": "2026-11-13T14:31:18+00:00", "data": {"decision_id": "agent-catalog-goal-20261113"}, "event_id": "8209aa77-c991-41fe-be8b-56532b24be19"}
+{"action": "decision_proposed", "at": "2026-11-13T14:31:18+00:00", "data": {"decision_id": "agent-catalog-timing-20261113"}, "event_id": "6848462c-ac32-43bd-9576-b6e3540516b1"}
+{"action": "decision_proposed", "at": "2026-11-13T14:31:18+00:00", "data": {"decision_id": "agent-catalog-home-20261113"}, "event_id": "fdd2719a-0fab-4994-bf67-40e831ab1cdb"}
+{"action": "decision_proposed", "at": "2026-11-13T14:31:18+00:00", "data": {"decision_id": "agent-catalog-listing-20261113"}, "event_id": "b152cc86-2128-4a24-a51d-1ea277650450"}
+{"action": "decision_proposed", "at": "2026-11-13T14:31:18+00:00", "data": {"decision_id": "agent-catalog-data-20261113"}, "event_id": "fe6d463e-6e19-482c-9b88-15d7a23dc8a6"}
+{"action": "decision_proposed", "at": "2026-11-13T14:31:18+00:00", "data": {"decision_id": "agent-catalog-freshness-20261113"}, "event_id": "2ece3fd5-5e30-4968-ba44-972e371f06fc"}
+{"action": "decision_proposed", "at": "2026-11-13T14:31:18+00:00", "data": {"decision_id": "agent-catalog-grouping-20261113"}, "event_id": "7cf94d6e-a856-4786-9c37-52b28bd2d580"}
+{"action": "decision_proposed", "at": "2026-11-13T14:31:18+00:00", "data": {"decision_id": "agent-catalog-ranking-20261113"}, "event_id": "73bedf9b-2564-489b-8919-f725dada2e57"}
+{"action": "decision_proposed", "at": "2026-11-13T14:31:18+00:00", "data": {"decision_id": "agent-catalog-access-20261113"}, "event_id": "a2ffdcb0-870a-4242-9972-c30482d2db11"}
+{"action": "decision_proposed", "at": "2026-11-13T14:31:19+00:00", "data": {"decision_id": "agent-catalog-first-version-20261113"}, "event_id": "5eed1e07-1430-44a0-82e8-9ee2e817efd0"}
+{"action": "decision_proposed", "at": "2026-11-13T14:31:19+00:00", "data": {"decision_id": "agent-catalog-google-20261113"}, "event_id": "2ff24808-bd8c-4aa3-95e3-c60a7e4f9cad"}
+{"action": "decision_proposed", "at": "2026-11-13T14:31:19+00:00", "data": {"decision_id": "agent-catalog-applications-20261113"}, "event_id": "ba6c4ff6-cea5-4442-a1b3-074e36aa0f07"}
+{"action": "decision_proposed", "at": "2026-11-13T14:31:19+00:00", "data": {"decision_id": "agent-catalog-ratings-20261113"}, "event_id": "05329652-aebd-467d-aa38-09c81f9a478f"}
+{"action": "decision_locked", "at": "2026-11-13T14:31:19+00:00", "data": {"decision_id": "agent-catalog-goal-20261113"}, "event_id": "04ee9fb2-052f-4382-89f2-eeb8ca934a95"}
+{"action": "decision_locked", "at": "2026-11-13T14:31:19+00:00", "data": {"decision_id": "agent-catalog-timing-20261113"}, "event_id": "c4b7c6c1-9228-4173-9a8d-fb8e18c21601"}
+{"action": "decision_locked", "at": "2026-11-13T14:31:19+00:00", "data": {"decision_id": "agent-catalog-home-20261113"}, "event_id": "b737e8d1-c837-41ea-a03f-496420842082"}
+{"action": "decision_locked", "at": "2026-11-13T14:31:19+00:00", "data": {"decision_id": "agent-catalog-listing-20261113"}, "event_id": "17a77c3e-2428-43f5-8d51-8cf0bd7f16d9"}
+{"action": "decision_locked", "at": "2026-11-13T14:31:19+00:00", "data": {"decision_id": "agent-catalog-data-20261113"}, "event_id": "0a02c6f3-a4e9-4491-8938-6728bcb9a27e"}
+{"action": "decision_locked", "at": "2026-11-13T14:31:19+00:00", "data": {"decision_id": "agent-catalog-freshness-20261113"}, "event_id": "4f4aaf32-cbd1-42f0-a954-8f76b33c2533"}
+{"action": "decision_locked", "at": "2026-11-13T14:31:19+00:00", "data": {"decision_id": "agent-catalog-grouping-20261113"}, "event_id": "b36e60d3-4b22-4dc6-ac85-bab1865bfda6"}
+{"action": "decision_locked", "at": "2026-11-13T14:31:19+00:00", "data": {"decision_id": "agent-catalog-ranking-20261113"}, "event_id": "09835289-b6cd-41fc-82de-b3add5db0b02"}
+{"action": "decision_locked", "at": "2026-11-13T14:31:20+00:00", "data": {"decision_id": "agent-catalog-access-20261113"}, "event_id": "58ee49be-fc29-412d-8e63-272968802411"}
+{"action": "decision_locked", "at": "2026-11-13T14:31:20+00:00", "data": {"decision_id": "agent-catalog-first-version-20261113"}, "event_id": "5d46b9ec-a370-4d41-bfb4-c3974182ce6a"}
+{"action": "decision_locked", "at": "2026-11-13T14:31:20+00:00", "data": {"decision_id": "agent-catalog-google-20261113"}, "event_id": "5dfc1347-5496-47f5-a34c-65ea714bab01"}
+{"action": "decision_locked", "at": "2026-11-13T14:31:20+00:00", "data": {"decision_id": "agent-catalog-applications-20261113"}, "event_id": "ffb7e480-8542-44d1-bd8e-78b8fbe233c9"}
+{"action": "shared_understanding_confirmed", "at": "2026-11-13T14:31:20+00:00", "data": {"summary": "Ronald answered all twelve questions on 13 Nov 2026 (14:27 to 14:30 UTC). Twelve decisions locked. The ratings filter stays proposed until he answers it."}, "event_id": "7bc07895-198d-44d6-bc95-80f9911f9bf7"}

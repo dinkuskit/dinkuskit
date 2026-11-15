@@ -142,6 +142,30 @@ try {
   const photo = await tool('search_catalog', { query: 'wool hat', like: [{ image: { content_type: 'image/jpeg', data: 'AAAA' } }] });
   check('a photo with words, when looks cannot be matched, still matches the words only', { titles: photo.products.map(entry => entry.title), said: photo.messages.map(entry => entry.code) }, { titles: ['Northpeak Wool Hat'], said: ['similarity_search_unavailable'] });
 
+  console.log('\n== Exact variant lookup with an availability filter ==');
+  const unavailableTee = teeProduct.variants.find(variant => variant.title === 'Blue / M').id;
+  const availableTee = teeProduct.variants.find(variant => variant.title === 'Blue / S').id;
+  feeds[ALPHA].products[1].variants.members[1].availability = { status: 'out_of_stock', sellable: false };
+  await timer();
+  const summarizeLookup = answer => ({
+    products: answer.products.map(entry => entry.variants.map(variant => `${variant.title}:${variant.availability.available}`)),
+    unavailableInputReported: (answer.messages ?? []).some(entry => entry.code === 'not_found' && entry.content === unavailableTee),
+  });
+  check('unavailable exact id with available:true returns no product and reports its input',
+    summarizeLookup(await tool('lookup_catalog', { ids: [unavailableTee], filters: { available: true } })),
+    { products: [], unavailableInputReported: true });
+  check('mixed exact ids preserve the buyable variant and report only the unavailable input',
+    summarizeLookup(await tool('lookup_catalog', { ids: [unavailableTee, availableTee], filters: { available: true } })),
+    { products: [['Blue / S:true']], unavailableInputReported: true });
+  check('a family lookup does not silently satisfy an unavailable exact input',
+    summarizeLookup(await tool('lookup_catalog', { ids: [unavailableTee, teeProduct.id], filters: { available: true } })),
+    { products: [['Blue / S:true', 'Red / M:true']], unavailableInputReported: true });
+  check('default lookup still returns the known unavailable exact variant',
+    summarizeLookup(await tool('lookup_catalog', { ids: [unavailableTee] })),
+    { products: [['Blue / M:false']], unavailableInputReported: false });
+  feeds[ALPHA].products[1].variants.members[1].availability = { status: 'in_stock', sellable: true };
+  await timer();
+
   console.log('\n== 2. A price change shows in full detail at once, and in search by the next read ==');
   feeds[BETA].products[0].price = usd(1999);
   await catalogDb.prepare('UPDATE catalog_store SET validated_at = validated_at - 60').run();

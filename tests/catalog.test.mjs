@@ -164,6 +164,41 @@ test('lookup and get_product answer by product id, variant id and page address',
   assert.deepEqual(switched.product.variants.map(variant => variant.title), ['Blue / S', 'Blue / M']);
 });
 
+test('availability-filtered lookup accounts for each exact variant, not its buyable siblings', async () => {
+  const db = await catalogDb(); clock = 1000;
+  const beta = betaFeed();
+  beta.products[0].availability = { status: 'out_of_stock', sellable: false };
+  await refreshCatalog(db, stores, fetcher({ [ALPHA]: alphaFeed(), [BETA]: beta }), 1000);
+  const tee = (await call(db, 'lookup_catalog', { ids: [`${ALPHA}/products/tee`] })).products[0];
+  const unavailable = tee.variants.find(variant => variant.title === 'Blue / M');
+  const available = tee.variants.find(variant => variant.title === 'Blue / S');
+  const missing = [{ type: 'info', code: 'not_found', content: unavailable.id }];
+  const only = await call(db, 'lookup_catalog', { ids: [unavailable.id], filters: { available: true } });
+  assert.deepEqual(only.products, [], 'an exact unavailable variant must not return an empty product');
+  assert.deepEqual(only.messages, missing);
+
+  const mixed = await call(db, 'lookup_catalog', { ids: [unavailable.id, available.id], filters: { available: true } });
+  assert.deepEqual(mixed.products[0].variants.map(variant => variant.id), [available.id]);
+  assert.deepEqual(mixed.products[0].variants[0].inputs, [{ id: available.id, match: 'exact' }]);
+  assert.deepEqual(mixed.messages, missing, 'each unsatisfied input is accounted for independently');
+
+  const withFamily = await call(db, 'lookup_catalog', { ids: [unavailable.id, tee.id], filters: { available: true } });
+  assert.deepEqual(withFamily.products[0].variants.map(variant => variant.title), ['Blue / S', 'Red / M']);
+  assert.deepEqual(withFamily.messages, missing, 'a family result does not satisfy an unavailable exact input');
+  assert.ok(withFamily.products[0].variants.some(variant => variant.inputs?.some(input => input.id === tee.id && input.match === 'featured')));
+
+  for (const filters of [undefined, { available: false }]) {
+    const retained = await call(db, 'lookup_catalog', { ids: [unavailable.id], ...(filters ? { filters } : {}) });
+    assert.deepEqual(retained.products[0].variants.map(variant => [variant.id, variant.availability.available]), [[unavailable.id, false]]);
+    assert.equal(retained.messages, undefined, 'unfiltered lookup still reports known unavailable variants');
+  }
+  const hat = (await call(db, 'lookup_catalog', { ids: [`${BETA}/products/wool-hat`] })).products[0];
+  const betaHat = hat.variants.find(variant => variant.seller.id === 'site-beta');
+  const otherSeller = await call(db, 'lookup_catalog', { ids: [betaHat.id], filters: { available: true } });
+  assert.deepEqual(otherSeller.products, [], 'another seller of the same GTIN cannot satisfy the exact variant either');
+  assert.deepEqual(otherSeller.messages, [{ type: 'info', code: 'not_found', content: betaHat.id }]);
+});
+
 test('a store that changes, fails or leaves the list is kept right', async () => {
   const db = await catalogDb();
   const feeds = { [ALPHA]: alphaFeed(), [BETA]: betaFeed() };

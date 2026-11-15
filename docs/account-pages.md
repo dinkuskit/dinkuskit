@@ -53,7 +53,26 @@ connected, it says to install the DinkusKit Commerce plugin in the EmDash
 store, open Commerce Settings and press Connect, then do the same in Payments
 and Ship. Set up Commerce shows which plugins are connected and the checkout
 settings Commerce reads by itself; there is no store key to make or paste.
-That section is only for those connected stores.
+That section is only for those connected stores. Each store has plain-link
+**Plugins · Shipping · Payments** navigation below its origin and Store ID,
+using `?store=<siteId>&tab=shipping` (or `plugins` / `payments`). The current
+link has `aria-current="page"`; the row scrolls rather than wraps, with 44px
+targets and no JavaScript requirement. The default is Plugins until Commerce
+is connected, then Shipping. Unknown store/tab selections fall back to each
+store's default without selecting a different business's store.
+
+Plugins holds the connected-plugin list, Disconnect buttons and service
+controls. Shipping has **Free shipping on every order** or **Flat charge per
+order**; only Flat reveals labeled dollar-prefixed Flat charge and optional
+Free shipping over boxes, using CSS `:has`. Payments has bordered Test / Live
+choices with their consequences stated. Only the owner sees the settings
+forms. Each tab has its own native **Save shipping** / **Save payments** action;
+it stays on that tab for successful saves and amount errors. Saving Shipping
+cannot alter Payments mode, and saving Payments cannot alter any shipping
+field or its revision, even when another tab's earlier read is stale. The
+existing combined `checkout_settings` POST remains accepted for older clients;
+new forms send `shipping_settings` or `payments_settings`, not hidden values
+for the other half. No schema migration or hosted availability is implied.
 
 Revoke still turns one service off. It does not delete the store or add a
 remove button. When nothing is left on, the store leaves this page.

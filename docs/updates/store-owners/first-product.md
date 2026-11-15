@@ -38,7 +38,7 @@ For a physical product, enter **Weight (oz)** under **Shipping weight** and pres
 
 The product is a Draft, and not buyable, until its page is published. Press **Publish** on the page. The store's publish check then puts the product on sale, and the panel shows it **On sale**. Unpublishing or deleting the page takes it off the shop again.
 
-To retire a product, press **Archive** in the panel. **Restore** brings it back as a Draft.
+To retire a product, press **Move to Trash** on its page. That archives the product: it leaves the shop, its old address answers "not found", and past orders keep it. To sell it again, open **Content > Products**, choose the **Trash** tab, open **Actions** on the page and press **Restore**. The page comes back as a Draft, and publishing it puts the product back on sale.
 
 ## Check the storefront
 

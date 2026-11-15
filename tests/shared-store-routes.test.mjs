@@ -46,7 +46,7 @@ test('shared service routes require separate consent and display processor setup
     const siteId=payments.body.site_id;
     const post=async (jar,fields)=>request(runtime,jar,'/account/sites',{method:'POST',headers:{'content-type':'application/x-www-form-urlencoded'},body:await accountForm(runtime,jar,new URLSearchParams(fields).toString())});
     const trade=(key,scope,audience)=>request(runtime,new Map(),'/api/store-passes',{method:'POST',headers:{authorization:`Bearer ${key}`},body:JSON.stringify({site_id:siteId,scope,audience})});
-    const setup=await (await request(runtime,owner,'/account/sites')).text();
+    const setup=await (await request(runtime,owner,`/account/sites?store=${siteId}&tab=plugins`)).text();
     assert.match(setup,/Set up Commerce/); assert.match(setup,/Turn on Ship/); assert.match(setup,/press Connect in Commerce first/);
     assert.doesNotMatch(setup,/Create store key|Replace key|Store key:|[Pp]aste/,'no store key to make or paste');
     assert.equal((await post(owner,{action:'store_key',site_id:siteId})).status,303,'the old Create store key button does nothing');
@@ -65,7 +65,7 @@ test('shared service routes require separate consent and display processor setup
     assert.equal((await post(owner,{action:'service',site_id:siteId,service:'ship',on:'1'})).status,303);
     const shipPass=await trade(key,'ship:orders','dinkus-ship'); assert.equal(shipPass.status,200);
     assert.equal(JSON.parse(Buffer.from((await shipPass.json()).access_token.split('.')[1],'base64url').toString()).site_origin,origin);
-    assert.match(await (await request(runtime,owner,'/account/sites')).text(),/Turn off Ship/);
+    assert.match(await (await request(runtime,owner,`/account/sites?store=${siteId}&tab=plugins`)).text(),/Turn off Ship/);
     const reconnect=await start('commerce'); await approve(reconnect); const replaced=(await (await token(reconnect)).json()).store_key; assert.notEqual(replaced,key);
     assert.deepEqual(await (await trade(key,'payments:checkout','dinkus-payments')).json(),{error:'invalid_store_key'},'Connect again stops the old key');
     assert.equal((await trade(replaced,'payments:checkout','dinkus-payments')).status,200);
@@ -78,7 +78,13 @@ test('shared service routes require separate consent and display processor setup
     assert.match((await showSettings(owner,{shipping_amount:'five'})).html,/Enter the flat shipping charge in dollars/);
     assert.equal((await request(runtime,new Map(),'/__proof/payments-status',{method:'POST',body:JSON.stringify({site_id:siteId,body:{state:'ready',bindingRef:'bind_route_1',connectionEvidence:{provider:'stripe',accountRef:'acct_1RouteTest'}}})})).status,200);
     const shown=await showSettings(owner); assert.equal(shown.status,200); assert.match(shown.html,/Saved. Commerce reads these itself/);
-    const settings=JSON.parse(unescape(shown.html.match(/<pre><code>([\s\S]*?)<\/code><\/pre>/)[1]));
+    // Astro's scoped component styles add attributes to both tags.
+    const savedSettings = html => {
+      const match = html.match(/<pre\b[^>]*><code\b[^>]*>([\s\S]*?)<\/code><\/pre>/);
+      assert.ok(match, 'saved settings include their JSON code block');
+      return JSON.parse(unescape(match[1]));
+    };
+    const settings=savedSettings(shown.html);
     assert.equal(settings.schema,'dinkuskit.commerce.registry-checkout/v1'); assert.equal(settings.commerceOrigin,origin); assert.equal(settings.siteId,siteId);
     assert.deepEqual([settings.bindingRef,settings.providerId,settings.stripeAccountId,settings.mode],['bind_route_1','stripe','acct_1RouteTest','test']);
     assert.deepEqual(settings.shipping,{configurationId:`shipping-${siteId}`,revision:1,mode:'flat',amount:{currency:'USD',minor:'500'}});
@@ -91,7 +97,7 @@ test('shared service routes require separate consent and display processor setup
     const turnOffShip=await post(owner,{action:'service',site_id:siteId,service:'ship',on:'0'});
     assert.equal(turnOffShip.headers.get('location'),`/account/sites?changed=${siteId}`);
     assert.match(await (await request(runtime,owner,`/account/sites?changed=${siteId}`)).text(),/Commerce picks up the change within 5 minutes/);
-    const withoutShip=JSON.parse(unescape((await showSettings(owner)).html.match(/<pre><code>([\s\S]*?)<\/code><\/pre>/)[1]));
+    const withoutShip=savedSettings((await showSettings(owner)).html);
     assert.equal('ship' in withoutShip,false,'Ship is left out once it is off'); assert.equal(withoutShip.shipping.revision,1,'the charge did not change');
 
     // Sign in with DinkusKit.com for Ship's label page.
@@ -132,7 +138,7 @@ test('shared service routes require separate consent and display processor setup
     assert.deepEqual([machineClaims.aud,machineClaims.ship_recipient,machineClaims.ship_generation,machineClaims.ship_mode],['dinkus-ship-sandbox','ship-sandbox','test-generation-1','test']);
     assert.equal((await shipToken({code:oldBack.searchParams.get('code'),code_verifier:oldPending.verifier})).status,400,'legacy code cannot upgrade');
     assert.equal((await shipToken({grant_type:'refresh_token',refresh_token:legacyRefresh})).status,400,'legacy family cannot upgrade');
-    const isolatedSettings = JSON.parse(unescape((await showSettings(owner)).html.match(/<pre><code>([\s\S]*?)<\/code><\/pre>/)[1]));
+    const isolatedSettings = savedSettings((await showSettings(owner)).html);
     assert.deepEqual(isolatedSettings.ship,{origin:'https://ship.sm0ky.dev',audience:'dinkus-ship-sandbox',recipient:'ship-sandbox',generation:'test-generation-1',mode:'test'});
     assert.equal((await showSettings(owner,{payments_mode:'live'})).status,400);
     assert.equal((await sandboxPass('test-generation-1')).status,200,'refused live save did not change persisted TEST setting');
@@ -178,7 +184,7 @@ test('Connect to DinkusKit through the routes: Commerce first, a key per plugin,
     const early = await start('ship'); assert.deepEqual([early.status, early.body], [409, { error: 'connect_commerce_first' }]);
     const commerce = await connect('commerce'); assert.equal(commerce.issued.access_token, undefined); assert.match(commerce.issued.store_key, /^dk_store_/);
     const siteId = commerce.issued.site_id;
-    const sites = await (await request(runtime,owner,'/account/sites')).text();
+    const sites = await (await request(runtime,owner,`/account/sites?store=${siteId}&tab=plugins`)).text();
     assert.match(sites,/plugin-connect\.example\.test/,'a store with only Commerce connected is on Your stores');
     assert.match(sites,/Commerce plugin: connected/); assert.match(sites,/Disconnect Commerce/); assert.match(sites,/Payments plugin: not connected/);
     assert.doesNotMatch(sites,/No store is connected yet/);
@@ -215,7 +221,7 @@ test('Connect to DinkusKit through the routes: Commerce first, a key per plugin,
     assert.equal((await request(runtime,owner,'/account/sites',await form(owner,{action:'disconnect_plugin',site_id:siteId,plugin:'ship'}))).status,303);
     assert.deepEqual(await (await trade(ship.issued.store_key,'ship:admin','dinkus-ship')).json(),{error:'invalid_store_key'});
     assert.equal((await trade(commerce.issued.store_key,'ship:orders','dinkus-ship')).status,200);
-    assert.match(await (await request(runtime,owner,'/account/sites')).text(),/Ship plugin: not connected/);
+    assert.match(await (await request(runtime,owner,`/account/sites?store=${siteId}&tab=plugins`)).text(),/Ship plugin: not connected/);
   } finally { await stopRuntime(runtime); }
 });
 
@@ -237,7 +243,7 @@ test('Connect authority through the real Worker: a cancelled or replaced Connect
     const withdraw = c => request(runtime,new Map(),`/__proof/receipt?connection_id=${c.body.connection_id}`,{method:'DELETE'});
     const approve = async c => request(runtime,owner,c.path,await form(owner,{action:'approve'}));
     const exchange = async c => { const r = await request(runtime,new Map(),'/api/store-connections/token',{method:'POST',body:JSON.stringify({client_id:client,connection_id:c.body.connection_id,code_verifier:c.verifier})}); return { status:r.status, body:await r.json() }; };
-    const sites = async () => (await request(runtime,owner,'/account/sites')).text();
+    const sites = async (siteId) => (await request(runtime,owner,siteId ? `/account/sites?store=${siteId}&tab=plugins` : '/account/sites')).text();
 
     // Cancelled before the owner pressed Approve: Approve is refused, no store is made and no key is handed over.
     const cancelled = await start();
@@ -256,7 +262,7 @@ test('Connect authority through the real Worker: a cancelled or replaced Connect
     assert.deepEqual(await exchange(first),{status:400,body:{error:'authorization_pending',interval:5}},'the replaced Connect gets no key');
     const issued = await exchange(second); assert.equal(issued.status,200); assert.match(issued.body.store_key,/^dk_store_/);
     const siteId = issued.body.site_id;
-    const listed = await sites();
+    const listed = await sites(siteId);
     assert.match(listed,/plugin-cancel\.example\.test/); assert.equal(listed.match(/Commerce plugin: connected/g)?.length,1,'one store, one Commerce key');
     // The key is handed over once: a second exchange, or the replaced Connect's verifier, gets nothing.
     assert.deepEqual(await exchange(second),{status:400,body:{error:'already_redeemed'}});

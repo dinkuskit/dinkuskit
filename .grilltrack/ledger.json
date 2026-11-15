@@ -11474,13 +11474,28 @@
       "choice": "Not yet. No DinkusKit store has reviews, so there is nothing to filter on. Add the rating filter when stores can collect reviews.",
       "context_ref": "file:docs/plans/agent-catalog.md",
       "created_at": "2026-11-13T14:31:19+00:00",
-      "deferred_reason": null,
+      "deferred_reason": "Ronald 15 Nov 2026 00:12 UTC: tapped 'Yes, leave it out for now' and wrote 'defer product ratings; do the research now of how to implement them'. No DinkusKit store collects reviews yet, so the catalog has no rating filter until product ratings exist. Risk: agents that filter by rating cannot narrow DinkusKit results until then. Revisit when product ratings are built.",
       "delivery_ref": null,
       "dependencies": [
         "agent-catalog-first-version-20261113"
       ],
       "domain": "DinkusKit cross-store agent catalog",
-      "history": [],
+      "history": [
+        {
+          "at": "2026-11-15T00:12:34+00:00",
+          "choice": "Not yet. No DinkusKit store has reviews, so there is nothing to filter on. Add the rating filter when stores can collect reviews.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "Ronald 15 Nov 2026 00:12 UTC: tapped 'Yes, leave it out for now' and wrote 'defer product ratings; do the research now of how to implement them'. No DinkusKit store collects reviews yet, so the catalog has no rating filter until product ratings exist. Risk: agents that filter by rating cannot narrow DinkusKit results until then. Revisit when product ratings are built.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "deferred",
+          "verification_ref": null
+        }
+      ],
       "id": "agent-catalog-ratings-20261113",
       "implementation_ref": null,
       "question": "Does the catalog filter by star rating, as Shopify's does?",
@@ -11491,9 +11506,9 @@
       "review_ref": null,
       "review_result": null,
       "review_source_identity": null,
-      "status": "proposed",
+      "status": "deferred",
       "superseded_by": null,
-      "updated_at": "2026-11-13T14:31:19+00:00",
+      "updated_at": "2026-11-15T00:12:34+00:00",
       "verification_ref": null
     },
     {
@@ -11568,5 +11583,5 @@
   "status": "active",
   "title": "Composed integration",
   "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5",
-  "updated_at": "2026-11-13T15:34:59+00:00"
+  "updated_at": "2026-11-15T00:12:34+00:00"
 }

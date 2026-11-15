@@ -144,7 +144,7 @@ I read the ditto marks on 6, 7 and 8 as "copy Shopify". If you meant plain "agre
 
 **Where the owner's switch lives (15:33 UTC, `agent-catalog-toggle-home-20261113`).** One switch only, in the store admin under Commerce > Settings > Catalog, starting on. There is no switch on dinkuskit.com, so nothing has to be kept in sync. While it is off the store's catalog feed lists nothing, and the catalog drops the store on its next read. His words: "Having it in two places seems a little overcomplicated. It also leaves room for error."
 
-**Still open: star ratings.** Shopify's catalog does filter by rating. I recommend leaving it out for now because no DinkusKit store has reviews, so there is nothing to filter on. Recorded as proposed, not locked.
+**Star ratings: deferred (15 Nov 2026, `agent-catalog-ratings-20261113`).** Shopify's catalog does filter by rating. No DinkusKit store has reviews, so there is nothing to filter on yet. The catalog gets a rating filter once product ratings exist. How to build them is researched in [product-ratings.md](product-ratings.md).
 
 ## Build order
 

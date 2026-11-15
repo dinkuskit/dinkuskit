@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createServer } from 'node:http';
+import { spawn } from 'node:child_process';
 import { decodeJwt, decodeProtectedHeader, importJWK, jwtVerify } from 'jose';
 import { createHash, randomBytes } from 'node:crypto';
 import { startInventoryMemoryController, connectionReceipt } from './helpers/inventory-memory-runner.mjs';
@@ -372,6 +373,52 @@ test('occupied website port refusal leaves the foreign server running', async ()
     assert.equal(await response.text(), 'foreign');
   } finally {
     await new Promise((resolve) => foreign.close(resolve));
+  }
+});
+
+test('bound non-listening website port is refused before starting owned services', async (t) => {
+  // Python is already required by `npm run verify`. Unlike node:net, its socket
+  // does not enable SO_REUSEADDR, so this models an occupied, non-listening port.
+  const foreign = spawn('python3', ['-u', '-c', [
+    'import socket, sys',
+    'sock = socket.socket()',
+    'sock.bind(("127.0.0.1", 0))',
+    'print(sock.getsockname()[1], flush=True)',
+    'sys.stdin.read()',
+  ].join('\n')], { stdio: ['pipe', 'pipe', 'pipe'] });
+  const exited = new Promise(resolve => {
+    foreign.once('exit', resolve);
+    foreign.once('error', resolve);
+  });
+  t.after(async () => {
+    foreign.stdin.end();
+    await exited;
+  });
+  let stderr = '';
+  foreign.stderr.on('data', chunk => { stderr += chunk; });
+  const port = await bounded(new Promise((resolve, reject) => {
+    foreign.once('error', reject);
+    foreign.once('exit', () => reject(new Error(`bound_socket_fixture_exited: ${stderr}`)));
+    foreign.stdout.once('data', chunk => resolve(Number(chunk.toString().trim())));
+  }), 5000, 'bound_socket_fixture_not_ready');
+  assert.ok(Number.isInteger(port) && port > 0);
+  let fixtureStarts = 0;
+  const fixture = {
+    async start() { fixtureStarts += 1; },
+    async stop() {},
+    async register() {},
+  };
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    await assert.rejects(
+      () => startInventoryMemoryController({
+        websitePort: port,
+        storePort: port === 65535 ? port - 1 : port + 1,
+        fixture,
+      }),
+      /website_port_occupied/,
+    );
+    assert.equal(foreign.exitCode, null);
+    assert.equal(fixtureStarts, 0);
   }
 });
 

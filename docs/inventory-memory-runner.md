@@ -24,6 +24,14 @@ process and are supplied through Wrangler's in-memory test-only `vars`
 option. They are never written to config, environment files, logs, proof, or
 test output.
 
+Before initial launch and restart, the controller briefly binds and closes the
+requested website port. A refused TCP connection is not sufficient: another
+process may hold a bound, non-listening socket or a non-reusable outbound
+connection. Occupied ports are refused as `website_port_occupied` before the
+Worker starts; the controller never stops the foreign socket owner. This is a
+preflight check, not a port reservation: a new owner racing the later Worker
+bind remains possible.
+
 The child is a Wrangler local workerd runtime. A surviving controller retains
 its secret, unique signing `kid`, and D1 persistence across website worker
 restart. Mailbox URLs are held in a volatile process-memory map; merchant D1

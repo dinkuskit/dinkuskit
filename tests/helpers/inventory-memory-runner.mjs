@@ -1,7 +1,7 @@
 import { copyFile, mkdir, mkdtemp, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { randomBytes } from 'node:crypto';
-import { createConnection } from 'node:net';
+import { createConnection, createServer } from 'node:net';
 import { generateKeyPair, exportJWK } from 'jose';
 import { unstable_dev } from 'wrangler';
 
@@ -60,6 +60,28 @@ async function readRequestBody(input, signal, abortError) {
 
 function assertPort(port, label) {
   if (!Number.isInteger(port) || port < 1024 || port > 65535) throw safeError(`invalid_${label}_port`);
+}
+
+/**
+ * Distinct ports the operating system hands out (Node's listen(0), as Go's httptest does). Tests
+ * use these instead of fixed numbers so overlapping runs stop reaching for the same ones. The
+ * listeners close before this returns, so it is not a reservation: another process can still bind
+ * a port first, and the occupied-port check still guards launch. Pass both website and store ports.
+ * The fixed defaults above remain for the manual runner.
+ */
+export async function freePorts(count = 1) {
+  const servers = Array.from({ length: count }, () => createServer());
+  try {
+    return await Promise.all(servers.map(server => new Promise((resolve, reject) => {
+      server.once('error', reject);
+      server.listen(0, '127.0.0.1', () => resolve(server.address().port));
+    })));
+  } finally {
+    await Promise.all(servers.map(server => new Promise(resolve => {
+      if (server.listening) server.close(() => resolve());
+      else resolve();
+    })));
+  }
 }
 
 async function assertPortFree(port) {

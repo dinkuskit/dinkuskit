@@ -3,7 +3,7 @@ import test from 'node:test';
 import { createServer } from 'node:http';
 import { decodeJwt, decodeProtectedHeader, importJWK, jwtVerify } from 'jose';
 import { createHash, randomBytes } from 'node:crypto';
-import { startInventoryMemoryController, connectionReceipt } from './helpers/inventory-memory-runner.mjs';
+import { startInventoryMemoryController, connectionReceipt, freePorts } from './helpers/inventory-memory-runner.mjs';
 import { createInventoryReceiptFixture } from './helpers/inventory-unit-test-dispatcher.mjs';
 import { exchangeStoreConnectionToken } from '../src/account/connect.ts';
 import { parseCanonicalSiteOrigin } from '../src/account/proof-fetch.ts';
@@ -118,10 +118,11 @@ async function approve(controller, jar, connection) {
 }
 
 test('actual built website runner proves Better Auth consent, receipt, JWT/JWKS and child restart', async (t) => {
+  const [websitePort, storePort] = await freePorts(2);
   const controller = await startInventoryMemoryController({
-    websitePort: 47636,
-    storePort: 47635,
-    fixture: createInventoryReceiptFixture({ port: 47635 }),
+    websitePort,
+    storePort,
+    fixture: createInventoryReceiptFixture({ port: storePort }),
   });
   t.after(async () => {
     await controller.stop();
@@ -187,10 +188,11 @@ test('actual built website runner proves Better Auth consent, receipt, JWT/JWKS 
 });
 
 test('finite bridge rejects foreign authority, redirect, malformed, size and deadline responses', async (t) => {
+  const [websitePort, storePort] = await freePorts(2);
   const controller = await startInventoryMemoryController({
-    websitePort: 47634,
-    storePort: 47633,
-    fixture: createInventoryReceiptFixture({ port: 47633 }),
+    websitePort,
+    storePort,
+    fixture: createInventoryReceiptFixture({ port: storePort }),
   });
   t.after(async () => {
     await controller.stop();
@@ -214,6 +216,7 @@ test('finite bridge rejects foreign authority, redirect, malformed, size and dea
   });
   assert.equal(foreignResponse.status, 400);
 
+  const wrongStorePort = storePort === 65535 ? storePort - 1 : storePort + 1;
   const wrongPort = await fetch(new URL('/api/store-connections', controller.safeURLs.website), {
     method: 'POST',
     headers: { origin: controller.safeURLs.website, 'content-type': 'application/json' },
@@ -221,8 +224,8 @@ test('finite bridge rejects foreign authority, redirect, malformed, size and dea
       client_id: 'dinkus-inventory-emdash',
       service: 'inventory',
       protocol_version: 2,
-      site_origin: 'http://127.0.0.1:47632',
-      callback_uri: 'http://127.0.0.1:47632/_emdash/admin/plugins/dinkus-inventory/inventory',
+      site_origin: `http://127.0.0.1:${wrongStorePort}`,
+      callback_uri: `http://127.0.0.1:${wrongStorePort}/_emdash/admin/plugins/dinkus-inventory/inventory`,
       code_challenge: 'b'.repeat(43),
       code_challenge_method: 'S256',
     }),
@@ -245,8 +248,10 @@ test('finite bridge rejects foreign authority, redirect, malformed, size and dea
 });
 
 test('controller dispatch preserves canonical request bytes and rejects foreign requests', async (t) => {
+  const [websitePort, storePort] = await freePorts(2);
   const controller = await startInventoryMemoryController({
-    websitePort: 47637,
+    websitePort,
+    storePort,
   });
   t.after(async () => {
     await controller.stop();
@@ -287,8 +292,10 @@ test('controller dispatch preserves canonical request bytes and rejects foreign 
 });
 
 test('controller stop aborts an in-flight website dispatch', async (t) => {
+  const [websitePort, storePort] = await freePorts(2);
   const controller = await startInventoryMemoryController({
-    websitePort: 47641,
+    websitePort,
+    storePort,
   });
   t.after(async () => {
     await controller.stop().catch(() => {});
@@ -363,11 +370,13 @@ test('occupied website port refusal leaves the foreign server running', async ()
     response.writeHead(200);
     response.end('foreign');
   });
-  await new Promise((resolve) => foreign.listen(47638, '127.0.0.1', resolve));
+  await new Promise((resolve) => foreign.listen(0, '127.0.0.1', resolve));
+  const { port } = foreign.address();
+  const [storePort] = await freePorts();
   try {
-    await assert.rejects(() => startInventoryMemoryController({ websitePort: 47638 }), /website_port_occupied/);
+    await assert.rejects(() => startInventoryMemoryController({ websitePort: port, storePort }), /website_port_occupied/);
     assert.equal(foreign.listening, true);
-    const response = await fetch('http://127.0.0.1:47638/');
+    const response = await fetch(`http://127.0.0.1:${port}/`);
     assert.equal(response.status, 200);
     assert.equal(await response.text(), 'foreign');
   } finally {
@@ -384,8 +393,10 @@ test('stop during a real child restart waits and stops the newly owned child', a
   const launchRelease = new Promise(resolve => {
     releaseLaunch = resolve;
   });
+  const [websitePort, storePort] = await freePorts(2);
   const controller = await startInventoryMemoryController({
-    websitePort: 47639,
+    websitePort,
+    storePort,
     restartHooks: {
       beforeLaunch: async () => {
         launchPaused();
@@ -441,8 +452,10 @@ test('failed restart leaves a foreign server alive and dispatch unavailable', as
       bodyCancelled = true;
     },
   });
+  const [websitePort, storePort] = await freePorts(2);
   const controller = await startInventoryMemoryController({
-    websitePort: 47640,
+    websitePort,
+    storePort,
     restartHooks: {
       beforePortCheck: async () => {
         foreign = createServer((_request, response) => {
@@ -452,7 +465,7 @@ test('failed restart leaves a foreign server alive and dispatch unavailable', as
         });
         await new Promise((resolve, reject) => {
           foreign.once('error', reject);
-          foreign.listen(47640, '127.0.0.1', resolve);
+          foreign.listen(websitePort, '127.0.0.1', resolve);
         });
       },
     },
@@ -485,7 +498,7 @@ test('failed restart leaves a foreign server alive and dispatch unavailable', as
   assert.match(dispatchError.message, /controller_unavailable/);
   assert.equal(foreignRequests, 0);
   releaseBody();
-  const response = await fetch('http://127.0.0.1:47640/');
+  const response = await fetch(`http://127.0.0.1:${websitePort}/`);
   assert.equal(response.status, 200);
   assert.equal(await response.text(), 'foreign');
   assert.equal(foreignRequests, 1);

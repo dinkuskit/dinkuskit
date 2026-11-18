@@ -7,6 +7,10 @@ step4 contract. Default mode starts only the built website worker on
 separate `createInventoryReceiptFixture()` fixture is explicitly for unit
 tests and may own a non-default port.
 
+The tests never use those fixed numbers. Each one asks the operating system
+for unused ports with `freePorts()` and passes them in, so two runs, or a
+process left over from an earlier run, cannot hold a port a test needs.
+
 Run it with:
 
 ```sh

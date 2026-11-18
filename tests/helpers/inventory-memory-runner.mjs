@@ -1,7 +1,7 @@
 import { copyFile, mkdir, mkdtemp, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { randomBytes } from 'node:crypto';
-import { createConnection } from 'node:net';
+import { createConnection, createServer } from 'node:net';
 import { generateKeyPair, exportJWK } from 'jose';
 import { unstable_dev } from 'wrangler';
 
@@ -60,6 +60,26 @@ async function readRequestBody(input, signal, abortError) {
 
 function assertPort(port, label) {
   if (!Number.isInteger(port) || port < 1024 || port > 65535) throw safeError(`invalid_${label}_port`);
+}
+
+/**
+ * Ports the operating system hands out, one per caller, as test servers usually do (Node's
+ * listen(0), Go's httptest). Tests use these instead of fixed numbers, so two runs or a leftover
+ * process never fight over the same port. The fixed defaults above remain for the manual runner.
+ */
+export async function freePorts(count = 1) {
+  const servers = Array.from({ length: count }, () => createServer());
+  try {
+    return await Promise.all(servers.map(server => new Promise((resolve, reject) => {
+      server.once('error', reject);
+      server.listen(0, '127.0.0.1', () => resolve(server.address().port));
+    })));
+  } finally {
+    await Promise.all(servers.map(server => new Promise(resolve => {
+      if (server.listening) server.close(() => resolve());
+      else resolve();
+    })));
+  }
 }
 
 async function assertPortFree(port) {

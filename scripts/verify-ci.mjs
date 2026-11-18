@@ -3,9 +3,10 @@
 // chain across parallel jobs so a pull request waits for the slowest part, not the sum.
 //
 // The steps come from package.json's `verify` script, in its order, so `npm run verify`
-// stays the one list. Every step must belong to exactly one part; a new step that no
-// part claims fails every job until it is placed here, so a split run can never skip it.
-// The shared setup steps run in every part that needs a built site.
+// stays the one list. Merchant and accounts name their steps; every other step, including
+// one added to `verify` later, runs in the site part, so a split run can never skip it.
+// A part that names a step `verify` no longer runs, or a step named twice, fails every
+// job. The shared setup steps run in every part, since each needs a built site.
 //
 //   node scripts/verify-ci.mjs merchant | accounts | site
 //   node scripts/verify-ci.mjs --check     (the plan only, no steps run)

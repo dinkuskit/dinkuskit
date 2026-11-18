@@ -5,18 +5,52 @@ on:
   pull_request:
 permissions:
   contents: read
+
+# A new push to a PR cancels that PR's older run, which no one waits on any more.
+# Pushes to main each get their own group and are never cancelled.
+concurrency:
+  group: website-checks-${{ github.event.pull_request.number && format('pr-{0}', github.event.pull_request.number) || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
-  verify:
+  # `npm run verify` in three parallel parts. scripts/verify-ci.mjs takes each part's
+  # steps from package.json's verify script, in order, and fails if a step belongs to
+  # no part, so the three parts always run every step that `npm run verify` runs.
+  part:
+    name: verify (${{ matrix.part }})
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        part: [merchant, accounts, site]
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          # test:history-archive reads git history; only the site part runs it.
+          # The values are strings because the number 0 is false in an expression.
+          fetch-depth: ${{ matrix.part == 'site' && '0' || '1' }}
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - run: npx playwright install --with-deps chromium
-      - run: npm run verify
+      # Only test:checkout-settings-browser opens a browser, and it runs in the accounts part.
+      - if: matrix.part == 'accounts'
+        uses: ./.github/actions/setup-chromium
+      - run: node scripts/verify-ci.mjs ${{ matrix.part }}
+
+  # Keeps the single `verify` check name. It runs even when a part fails, so a failed
+  # part shows as a failed check instead of a skipped one.
+  verify:
+    needs: part
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Require every part of npm run verify
+        env:
+          PARTS: ${{ needs.part.result }}
+        run: |
+          echo "parts=${PARTS}"
+          test "$PARTS" = success

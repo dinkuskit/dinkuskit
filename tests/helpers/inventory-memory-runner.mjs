@@ -1,7 +1,7 @@
 import { copyFile, mkdir, mkdtemp, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { randomBytes } from 'node:crypto';
-import { createConnection } from 'node:net';
+import { createServer } from 'node:net';
 import { generateKeyPair, exportJWK } from 'jose';
 import { unstable_dev } from 'wrangler';
 
@@ -64,15 +64,15 @@ function assertPort(port, label) {
 
 async function assertPortFree(port) {
   await new Promise((resolve, reject) => {
-    const socket = createConnection({ host: '127.0.0.1', port });
-    socket.once('connect', () => {
-      socket.destroy();
-      reject(safeError('website_port_occupied'));
-    });
-    socket.once('error', error => {
-      socket.destroy();
-      if (error.code === 'ECONNREFUSED') resolve();
+    // A refused connection only proves there is no listener. Bound sockets and
+    // non-reusable outbound connections can still prevent workerd from binding.
+    const probe = createServer();
+    probe.once('error', error => {
+      if (error.code === 'EADDRINUSE') reject(safeError('website_port_occupied'));
       else reject(error);
+    });
+    probe.listen(port, '127.0.0.1', () => {
+      probe.close(error => error ? reject(error) : resolve());
     });
   });
 }

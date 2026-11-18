@@ -11620,10 +11620,38 @@
           "review_source_identity": null,
           "to": "locked",
           "verification_ref": null
+        },
+        {
+          "at": "2026-11-18T16:19:17+00:00",
+          "choice": "Copy Shopify: no. lookup_catalog defaults filters.available to true, the same as search_catalog, so only variants a shopper can buy now come back, and every id that resolves to nothing buyable is reported as not_found (info). An agent that wants sold-out variants sends filters.available false, or calls get_product, whose option values say available false / exists true.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-11-18T16:19:17+00:00",
+          "choice": "Copy Shopify: no. lookup_catalog defaults filters.available to true, the same as search_catalog, so only variants a shopper can buy now come back, and every id that resolves to nothing buyable is reported as not_found (info). An agent that wants sold-out variants sends filters.available false, or calls get_product, whose option values say available false / exists true.",
+          "from": "implemented",
+          "implementation_ref": "git:3100510",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": null
         }
       ],
       "id": "agent-catalog-lookup-in-stock-default-20261115",
-      "implementation_ref": null,
+      "implementation_ref": "git:3100510",
       "question": "When an agent looks up ids with lookup_catalog and sends no availability filter, does the answer include sold-out variants?",
       "rationale": "Owner picked this option on the decision card, 15 Nov 2026 16:14 UTC.",
       "repair_required": false,
@@ -11632,10 +11660,10 @@
       "review_ref": null,
       "review_result": null,
       "review_source_identity": null,
-      "status": "locked",
+      "status": "verified",
       "superseded_by": null,
-      "updated_at": "2026-11-15T16:15:58+00:00",
-      "verification_ref": null
+      "updated_at": "2026-11-18T16:19:17+00:00",
+      "verification_ref": "cmd:npm run test:catalog (14/14) && npm run proof:catalog (all PASS) at git:3100510"
     }
   ],
   "last_activation": {
@@ -11666,5 +11694,5 @@
   "status": "active",
   "title": "Composed integration",
   "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5",
-  "updated_at": "2026-11-15T16:15:58+00:00"
+  "updated_at": "2026-11-18T16:19:17+00:00"
 }

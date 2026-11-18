@@ -28,7 +28,8 @@ jobs:
       - uses: actions/checkout@v4
         with:
           # test:history-archive reads git history; only the site part runs it.
-          fetch-depth: ${{ matrix.part == 'site' && 0 || 1 }}
+          # The values are strings because the number 0 is false in an expression.
+          fetch-depth: ${{ matrix.part == 'site' && '0' || '1' }}
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc

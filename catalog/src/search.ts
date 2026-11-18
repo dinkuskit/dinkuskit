@@ -130,6 +130,8 @@ export async function lookupCatalog(db: D1Database, ids: string[], available: bo
     const inputs = wanted.get(upid) ?? [];
     if (!product) { notFound.push(...inputs.map(input => input.id)); continue; }
     const exact = new Set(inputs.filter(input => input.match === 'exact').map(input => input.id));
+    // A buyable sibling does not satisfy an exact variant filtered out above.
+    for (const id of exact) if (!product.variants.some(variant => variant.id === id)) notFound.push(id);
     const featured = inputs.filter(input => input.match === 'featured');
     const lead = product.variants.find(variant => variant.availability.available) ?? product.variants[0];
     product.variants = product.variants.map(variant => {
@@ -139,7 +141,7 @@ export async function lookupCatalog(db: D1Database, ids: string[], available: bo
       ];
       return own.length ? { ...variant, inputs: own } : variant;
     }).filter(variant => !exact.size || featured.length || variant.inputs);
-    products.push(product);
+    if (product.variants.length) products.push(product);
   }
   return { products, notFound };
 }

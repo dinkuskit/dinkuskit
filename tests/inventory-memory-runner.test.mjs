@@ -248,9 +248,10 @@ test('finite bridge rejects foreign authority, redirect, malformed, size and dea
 });
 
 test('controller dispatch preserves canonical request bytes and rejects foreign requests', async (t) => {
-  const [websitePort] = await freePorts();
+  const [websitePort, storePort] = await freePorts(2);
   const controller = await startInventoryMemoryController({
     websitePort,
+    storePort,
   });
   t.after(async () => {
     await controller.stop();
@@ -291,9 +292,10 @@ test('controller dispatch preserves canonical request bytes and rejects foreign 
 });
 
 test('controller stop aborts an in-flight website dispatch', async (t) => {
-  const [websitePort] = await freePorts();
+  const [websitePort, storePort] = await freePorts(2);
   const controller = await startInventoryMemoryController({
     websitePort,
+    storePort,
   });
   t.after(async () => {
     await controller.stop().catch(() => {});
@@ -370,8 +372,9 @@ test('occupied website port refusal leaves the foreign server running', async ()
   });
   await new Promise((resolve) => foreign.listen(0, '127.0.0.1', resolve));
   const { port } = foreign.address();
+  const [storePort] = await freePorts();
   try {
-    await assert.rejects(() => startInventoryMemoryController({ websitePort: port }), /website_port_occupied/);
+    await assert.rejects(() => startInventoryMemoryController({ websitePort: port, storePort }), /website_port_occupied/);
     assert.equal(foreign.listening, true);
     const response = await fetch(`http://127.0.0.1:${port}/`);
     assert.equal(response.status, 200);
@@ -390,9 +393,10 @@ test('stop during a real child restart waits and stops the newly owned child', a
   const launchRelease = new Promise(resolve => {
     releaseLaunch = resolve;
   });
-  const [websitePort] = await freePorts();
+  const [websitePort, storePort] = await freePorts(2);
   const controller = await startInventoryMemoryController({
     websitePort,
+    storePort,
     restartHooks: {
       beforeLaunch: async () => {
         launchPaused();
@@ -448,9 +452,10 @@ test('failed restart leaves a foreign server alive and dispatch unavailable', as
       bodyCancelled = true;
     },
   });
-  const [websitePort] = await freePorts();
+  const [websitePort, storePort] = await freePorts(2);
   const controller = await startInventoryMemoryController({
     websitePort,
+    storePort,
     restartHooks: {
       beforePortCheck: async () => {
         foreign = createServer((_request, response) => {

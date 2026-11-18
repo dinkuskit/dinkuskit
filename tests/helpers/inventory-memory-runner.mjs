@@ -63,9 +63,11 @@ function assertPort(port, label) {
 }
 
 /**
- * Ports the operating system hands out, one per caller, as test servers usually do (Node's
- * listen(0), Go's httptest). Tests use these instead of fixed numbers, so two runs or a leftover
- * process never fight over the same port. The fixed defaults above remain for the manual runner.
+ * Distinct ports the operating system hands out (Node's listen(0), as Go's httptest does). Tests
+ * use these instead of fixed numbers so overlapping runs stop reaching for the same ones. The
+ * listeners close before this returns, so it is not a reservation: another process can still bind
+ * a port first, and the occupied-port check still guards launch. Pass both website and store ports.
+ * The fixed defaults above remain for the manual runner.
  */
 export async function freePorts(count = 1) {
   const servers = Array.from({ length: count }, () => createServer());

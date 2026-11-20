@@ -21,182 +21,835 @@ const comingSoon = (service: string) => (COMING_SOON_SERVICES as readonly string
 const serviceNote = (binding: { revoked: boolean; revokedBy: string | null }) => !binding.revoked ? ''
   : binding.revokedBy === 'operator' ? ' (cut off by DinkusKit; contact DinkusKit to restore it)'
   : ' (revoked; press Connect in the store to connect again)';
+const storeConnectedCount = (store: SitesPageView['visibleStores'][number]) =>
+  (['commerce', 'payments', 'ship'] as const).filter(plugin => Boolean(store.plugins[plugin])).length;
+const storeServiceOnCount = (store: SitesPageView['visibleStores'][number]) =>
+  (['payments', 'coupons', 'ship'] as const).filter(service => store.services[service] === 'on').length;
+const serviceTone = (status: string, service: string) => status === 'on' ? 'on' : status === 'cut_off' ? 'danger' : comingSoon(service) ? 'soon' : 'off';
+const servicePill = (status: string, service: string) => status === 'on' ? 'On' : status === 'cut_off' ? 'Cut off' : comingSoon(service) ? 'Coming soon' : 'Off';
+const serviceSummary = (status: string, service: string) => status === 'cut_off'
+  ? 'Cut off by DinkusKit. Contact DinkusKit to have it restored.'
+  : status === 'on'
+    ? (service === 'payments' ? 'Active store grant for checkout payment intents.' : 'Active for this store.')
+    : service === 'payments'
+      ? 'Press Connect in the Payments plugin to turn it on.'
+      : comingSoon(service)
+        ? 'Commerce does not take coupon codes yet.'
+        : 'Off for this store.';
 ---
 <Site title={showingArchive ? 'Archived stores' : 'Your stores'} description={showingArchive ? 'Stores with no DinkusKit service still turned on.' : 'The EmDash stores connected to your business and the DinkusKit services they use.'}>
-  <div class="account-panel">
-    <p class="eyebrow">{businessName}</p>
-    <h1>{showingArchive ? 'Archived stores' : 'Your stores'}</h1>
+  <div class="account-panel stores-dashboard">
+    <div class="dashboard-topbar">
+      <div>
+        <p class="eyebrow">{businessName}</p>
+        <h1>{showingArchive ? 'Archived stores' : 'Your stores'}</h1>
+      </div>
+      <nav class="dashboard-subnav" aria-label="Store navigation">
+        {showArchiveLink ? <a href="/account/sites/archive">Archived stores</a> : null}
+        {showingArchive ? <a href="/account/sites">Back to your stores</a> : null}
+        <a href="/account">Back to account</a>
+      </nav>
+    </div>
+
     {showingArchive ? (
-      visibleBindings.length === 0 && visibleStores.length === 0 ? <p>No store is archived.</p> : visibleBindings.length === 0 ? null : (
-        <ul>
+      visibleBindings.length === 0 && visibleStores.length === 0 ? (
+        <div class="store-empty"><p>No store is archived.</p></div>
+      ) : visibleBindings.length === 0 ? null : (
+        <section class="bindings-card" aria-label="Archived service bindings">
+          <ul class="status-list">
+            {visibleBindings.map(binding => (
+              <li class="status-row" data-state={binding.revoked ? 'off' : 'on'} style="--row-accent: var(--inventory);">
+                <div class="status-row-main">
+                  <div class="status-row-title">
+                    <span>{binding.siteOrigin}</span>
+                    <span class="status-pill" data-tone={binding.revoked ? 'off' : 'on'}>{binding.service}</span>
+                  </div>
+                  <p class="status-meta">Service: {binding.service}{serviceNote(binding)}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )
+    ) : visibleBindings.length === 0 ? (
+      visibleStores.length === 0 ? (
+        <div class="store-empty">
+          <p>No store is connected yet. Install the DinkusKit Commerce plugin in your EmDash store, open Commerce Settings and press Connect. You'll come back here to approve it. Then do the same in Payments and Ship.</p>
+        </div>
+      ) : null
+    ) : (
+      <section class="bindings-card" aria-label="Active service bindings">
+        <ul class="status-list">
           {visibleBindings.map(binding => (
-            <li>
-              <p>{binding.siteOrigin}</p>
-              <p>Service: {binding.service}{serviceNote(binding)}</p>
+            <li class="status-row" data-state={binding.revoked ? 'off' : 'on'} style="--row-accent: var(--inventory);">
+              <div class="status-row-main">
+                <div class="status-row-title">
+                  <span>{binding.siteOrigin}</span>
+                  <span class="status-pill" data-tone={binding.revoked ? 'off' : 'on'}>{binding.service}</span>
+                </div>
+                <p class="status-meta">Service: {binding.service}{serviceNote(binding)}</p>
+              </div>
+              {binding.revoked || !isOwner ? null : (
+                <form method="post" action={formAction} class="status-row-action">
+                  <input type="hidden" name="action" value="revoke" />
+                  <input type="hidden" name="site_id" value={binding.siteId} />
+                  <input type="hidden" name="service" value={binding.service} />
+                  <input type="hidden" name="organization_id" value={organizationId} />
+                  <button type="submit" class="btn-quiet-danger">Revoke {binding.service}</button>
+                </form>
+              )}
             </li>
           ))}
         </ul>
-      )
-    ) : visibleBindings.length === 0 ? (visibleStores.length === 0 ? <p>No store is connected yet. Install the DinkusKit Commerce plugin in your EmDash store, open Commerce Settings and press Connect. You'll come back here to approve it. Then do the same in Payments and Ship.</p> : null) : (
-      <ul>
-        {visibleBindings.map(binding => (
-          <li>
-            <p>{binding.siteOrigin}</p>
-            <p>Service: {binding.service}{serviceNote(binding)}</p>
-            {binding.revoked || !isOwner ? null : (
-              <form method="post" action={formAction} class="account-form">
-                <input type="hidden" name="action" value="revoke" />
-                <input type="hidden" name="site_id" value={binding.siteId} />
-                <input type="hidden" name="service" value={binding.service} />
-                <input type="hidden" name="organization_id" value={organizationId} />
-                <button type="submit">Revoke {binding.service}</button>
-              </form>
-            )}
-          </li>
-        ))}
-      </ul>
-    )}
-    {showArchiveLink ? <p><a href="/account/sites/archive">Archived stores</a></p> : null}
-    {showingArchive ? <p><a href="/account/sites">Back to your stores</a></p> : null}
-    {visibleStores.length === 0 ? null : (
-      <section aria-labelledby="commerce-setup">
-        <h2 id="commerce-setup">Set up Commerce</h2>
-        <p>Each plugin connects itself: press Connect in Commerce first, then in Payments and Ship. Commerce reads the checkout settings you choose here by itself.</p>
-        {visibleStores.map(store => (
-          <div class="account-form store-setup" id={`store-${store.siteId}`}>
-            <h3>{store.siteOrigin}</h3>
-            <p>Store ID: <code>{store.siteId}</code></p>
-            <nav class="store-tabs" aria-label={`Settings for ${store.siteOrigin}`}>
-              {(['plugins', 'shipping', 'payments'] as const).map(tab => (
-                <a href={tabHref(store.siteId, tab)} aria-current={tabFor(store) === tab ? 'page' : undefined}>
-                  {{ plugins: 'Plugins', shipping: 'Shipping', payments: 'Payments' }[tab]}
-                </a>
-              ))}
-            </nav>
-            {tabFor(store) === 'plugins' ? <>
-            <ul aria-label="Connected plugins">
-              {(['commerce', 'payments', 'ship'] as const).map(plugin => (
-                <li>
-                  {PLUGIN_LABEL[plugin]} plugin: {store.plugins[plugin]
-                    ? `connected ${when(store.plugins[plugin]!.createdAt)}, ${store.plugins[plugin]!.lastUsedAt ? `last used ${when(store.plugins[plugin]!.lastUsedAt!)}` : 'not used yet'}`
-                    : plugin === 'commerce' ? 'not connected. Press Connect in the Commerce plugin in EmDash.'
-                    : `not connected. Press Connect in the ${PLUGIN_LABEL[plugin]} plugin in EmDash, after Commerce.`}
-                  {isOwner && store.plugins[plugin] ? (
-                    <form method="post" action={tabHref(store.siteId, 'plugins')}>
-                      <input type="hidden" name="action" value="disconnect_plugin" />
-                      <input type="hidden" name="site_id" value={store.siteId} />
-                      <input type="hidden" name="plugin" value={plugin} />
-                      <input type="hidden" name="organization_id" value={organizationId} />
-                      <button type="submit">Disconnect {PLUGIN_LABEL[plugin]}</button>
-                    </form>
-                  ) : null}
-                </li>
-              ))}
-            </ul>
-            <ul>
-              {(['payments', 'coupons', 'ship'] as const).map(service => (
-                <li>
-                  {SERVICE_LABEL[service]}: {store.services[service] === 'cut_off' ? 'Cut off by DinkusKit. Contact DinkusKit to have it restored.'
-                    : store.services[service] === 'on' ? 'On' : service === 'payments' ? 'Off. Press Connect in the Payments plugin to turn it on.'
-                    : comingSoon(service) ? 'Coming soon. Commerce does not take coupon codes yet.' : 'Off'}
-                  {isOwner && service === 'payments' && store.services.payments === 'on' ? (
-                    <form method="post" action={tabHref(store.siteId, 'plugins')}>
-                      <input type="hidden" name="action" value="revoke" />
-                      <input type="hidden" name="site_id" value={store.siteId} />
-                      <input type="hidden" name="service" value="payments" />
-                      <input type="hidden" name="organization_id" value={organizationId} />
-                      <button type="submit">Revoke payments</button>
-                    </form>
-                  ) : null}
-                  {isOwner && service !== 'payments' && store.services[service] !== 'cut_off' && (store.services[service] === 'on' || !comingSoon(service)) ? (
-                    <form method="post" action={tabHref(store.siteId, 'plugins')}>
-                      <input type="hidden" name="action" value="service" />
-                      <input type="hidden" name="site_id" value={store.siteId} />
-                      <input type="hidden" name="service" value={service} />
-                      <input type="hidden" name="on" value={store.services[service] === 'on' ? '0' : '1'} />
-                      <input type="hidden" name="organization_id" value={organizationId} />
-                      <button type="submit">{store.services[service] === 'on' ? `Turn off ${SERVICE_LABEL[service]}` : `Turn on ${SERVICE_LABEL[service]}`}</button>
-                    </form>
-                  ) : null}
-                </li>
-              ))}
-            </ul>
-            </> : null}
-            {isOwner && tabFor(store) === 'shipping' ? (
-              <form method="post" action={tabHref(store.siteId, 'shipping')} class="checkout-settings shipping-settings">
-                <input type="hidden" name="action" value="shipping_settings" />
-                <input type="hidden" name="site_id" value={store.siteId} />
-                <input type="hidden" name="organization_id" value={organizationId} />
-                <fieldset>
-                  <legend>Shipping charge</legend>
-                  <label class="checkout-choice"><input type="radio" name="shipping_mode" value="free" checked={saved.get(store.siteId)?.shippingMode !== 'flat'} /> Free shipping on every order</label>
-                  <label class="checkout-choice"><input type="radio" name="shipping_mode" value="flat" checked={saved.get(store.siteId)?.shippingMode === 'flat'} /> Flat charge per order</label>
-                  <div class="flat-amounts">
-                    <label class="checkout-field">Flat charge
-                      <span class="dollar-field"><span aria-hidden="true">$</span><input type="text" name="shipping_amount" inputmode="decimal" aria-label="Flat charge in dollars"
-                        value={saved.get(store.siteId)?.shippingMode === 'flat' ? (saved.get(store.siteId)!.shippingMinor / 100).toFixed(2) : ''} /></span>
-                    </label>
-                    <label class="checkout-field">Free shipping over (optional)
-                      <span class="dollar-field"><span aria-hidden="true">$</span><input type="text" name="shipping_free_over" inputmode="decimal" aria-label="Free shipping over in dollars (optional)"
-                        value={saved.get(store.siteId)?.shippingMode === 'flat' && saved.get(store.siteId)?.freeOverMinor ? ((saved.get(store.siteId)?.freeOverMinor ?? 0) / 100).toFixed(2) : ''} /></span>
-                    </label>
-                  </div>
-                </fieldset>
-                <button type="submit">Save shipping</button>
-              </form>
-            ) : null}
-            {isOwner && tabFor(store) === 'payments' ? (
-              <form method="post" action={tabHref(store.siteId, 'payments')} class="checkout-settings payment-settings">
-                <input type="hidden" name="action" value="payments_settings" />
-                <input type="hidden" name="site_id" value={store.siteId} />
-                <input type="hidden" name="organization_id" value={organizationId} />
-                <fieldset>
-                  <legend>Payments</legend>
-                  <label class="checkout-choice payment-choice"><input type="radio" name="payments_mode" value="test" checked={!saved.get(store.siteId)?.live} /> <span>Test<small>No real money moves</small></span></label>
-                  <label class="checkout-choice payment-choice"><input type="radio" name="payments_mode" value="live" checked={saved.get(store.siteId)?.live === true} /> <span>Live<small>Takes real money once Payments is live too</small></span></label>
-                </fieldset>
-                <button type="submit">Save payments</button>
-              </form>
-            ) : null}
-            {changedSite === store.siteId ? <p role="status">You changed which services are on. Commerce picks up the change within 5 minutes, or at once when you press Get checkout settings in Commerce.</p> : null}
-            {shown?.siteId === store.siteId && shown.error ? <p class="account-error" role="alert">{shown.error}</p> : null}
-            {shown?.siteId === store.siteId && shown.json ? (
-              <div role="status">
-                <p>Saved. Commerce reads these itself within 5 minutes, or at once when you press Get checkout settings in Commerce. This is what it gets:</p>
-                <pre><code>{shown.json}</code></pre>
-                {shown.note ? <p>{shown.note}</p> : null}
-              </div>
-            ) : null}
-          </div>
-        ))}
       </section>
     )}
-    <p><a href="/account">Back to account</a></p>
+
+    {visibleStores.length === 0 ? null : (
+      <section class="setup-section" aria-labelledby="commerce-setup">
+        <div class="setup-callout">
+          <div>
+            <h2 id="commerce-setup">Set up Commerce</h2>
+            <p>Each plugin connects itself: press Connect in Commerce first, then in Payments and Ship. Commerce reads the checkout settings you choose here by itself.</p>
+          </div>
+        </div>
+        {visibleStores.map(store => {
+          const currentTab = tabFor(store);
+          const storeSettings = saved.get(store.siteId);
+          const connectedCount = storeConnectedCount(store);
+          const onServicesCount = storeServiceOnCount(store);
+          return (
+            <article class="store-card store-setup" id={`store-${store.siteId}`}>
+              <header class="store-card-header" data-connected={connectedCount > 0 ? 'true' : 'false'}>
+                <div class="store-identity">
+                  <div class="store-origin-row">
+                    <span class="store-live-dot" data-connected={connectedCount > 0 ? 'true' : 'false'} aria-hidden="true"></span>
+                    <h3>{store.siteOrigin}</h3>
+                  </div>
+                  {store.plugins.commerce ? (
+                    <span class="mode-badge" data-mode={storeSettings?.live ? 'live' : 'test'}>
+                      {storeSettings?.live ? 'Live mode' : 'Test mode'}
+                    </span>
+                  ) : null}
+                </div>
+                <div class="store-id-chip">
+                  <span>Store ID:</span>
+                  <code>{store.siteId}</code>
+                </div>
+              </header>
+              <nav class="store-tabs" aria-label={`Settings for ${store.siteOrigin}`}>
+                {(['plugins', 'shipping', 'payments'] as const).map(tab => (
+                  <a href={tabHref(store.siteId, tab)} aria-current={currentTab === tab ? 'page' : undefined}>
+                    {{ plugins: 'Plugins', shipping: 'Shipping', payments: 'Payments' }[tab]}
+                  </a>
+                ))}
+              </nav>
+              <div class="store-card-body">
+                {currentTab === 'plugins' ? (
+                  <div class="store-panels-grid">
+                    <div class="store-panel">
+                      <div class="panel-heading-row">
+                        <h4>Connected plugins</h4>
+                        <span class="panel-count">{connectedCount} of 3 connected</span>
+                      </div>
+                      <ul class="status-list" aria-label="Connected plugins">
+                        {(['commerce', 'payments', 'ship'] as const).map(plugin => {
+                          const entry = store.plugins[plugin];
+                          return (
+                            <li class="status-row" data-state={entry ? 'on' : 'off'} style={`--row-accent: var(--${plugin});`}>
+                              <div class="status-row-main">
+                                <div class="status-row-title">
+                                  <span class="visually-hidden">{PLUGIN_LABEL[plugin]} plugin: {entry ? 'connected' : 'not connected'}.</span>
+                                  <span aria-hidden="true">{PLUGIN_LABEL[plugin]} plugin</span>
+                                  <span class="status-pill" data-tone={entry ? 'on' : 'off'} aria-hidden="true">
+                                    {entry ? 'Connected' : 'Not connected'}
+                                  </span>
+                                </div>
+                                <p class="status-meta">
+                                  {entry
+                                    ? `Connected ${when(entry.createdAt)} · ${entry.lastUsedAt ? `Last used ${when(entry.lastUsedAt)}` : 'Not used yet'}`
+                                    : plugin === 'commerce'
+                                      ? 'Press Connect in the Commerce plugin in EmDash.'
+                                      : `Press Connect in the ${PLUGIN_LABEL[plugin]} plugin in EmDash, after Commerce.`}
+                                </p>
+                              </div>
+                              {isOwner && entry ? (
+                                <form method="post" action={tabHref(store.siteId, 'plugins')} class="status-row-action">
+                                  <input type="hidden" name="action" value="disconnect_plugin" />
+                                  <input type="hidden" name="site_id" value={store.siteId} />
+                                  <input type="hidden" name="plugin" value={plugin} />
+                                  <input type="hidden" name="organization_id" value={organizationId} />
+                                  <button type="submit" class="btn-quiet-danger">Disconnect {PLUGIN_LABEL[plugin]}</button>
+                                </form>
+                              ) : null}
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </div>
+                    <div class="store-panel">
+                      <div class="panel-heading-row">
+                        <h4>Store services</h4>
+                        <span class="panel-count">{onServicesCount} on</span>
+                      </div>
+                      <ul class="status-list" aria-label="Store services">
+                        {(['payments', 'coupons', 'ship'] as const).map(service => {
+                          const status = store.services[service];
+                          const tone = serviceTone(status, service);
+                          const pill = servicePill(status, service);
+                          const accent = service === 'coupons' ? 'accent' : service;
+                          return (
+                            <li class="status-row" data-state={status === 'on' ? 'on' : 'off'} style={`--row-accent: var(--${accent});`}>
+                              <div class="status-row-main">
+                                <div class="status-row-title">
+                                  <span class="visually-hidden">{SERVICE_LABEL[service]}: {pill}.</span>
+                                  <span aria-hidden="true">{SERVICE_LABEL[service]}</span>
+                                  <span class="status-pill" data-tone={tone} aria-hidden="true">{pill}</span>
+                                </div>
+                                <p class="status-meta">{serviceSummary(status, service)}</p>
+                              </div>
+                              {isOwner && service === 'payments' && status === 'on' ? (
+                                <form method="post" action={tabHref(store.siteId, 'plugins')} class="status-row-action">
+                                  <input type="hidden" name="action" value="revoke" />
+                                  <input type="hidden" name="site_id" value={store.siteId} />
+                                  <input type="hidden" name="service" value="payments" />
+                                  <input type="hidden" name="organization_id" value={organizationId} />
+                                  <button type="submit" class="btn-quiet-danger">Revoke payments</button>
+                                </form>
+                              ) : null}
+                              {isOwner && service !== 'payments' && status !== 'cut_off' && (status === 'on' || !comingSoon(service)) ? (
+                                <form method="post" action={tabHref(store.siteId, 'plugins')} class="status-row-action">
+                                  <input type="hidden" name="action" value="service" />
+                                  <input type="hidden" name="site_id" value={store.siteId} />
+                                  <input type="hidden" name="service" value={service} />
+                                  <input type="hidden" name="on" value={status === 'on' ? '0' : '1'} />
+                                  <input type="hidden" name="organization_id" value={organizationId} />
+                                  <button type="submit" class={status === 'on' ? 'btn-quiet-danger' : 'btn-secondary'}>
+                                    {status === 'on' ? `Turn off ${SERVICE_LABEL[service]}` : `Turn on ${SERVICE_LABEL[service]}`}
+                                  </button>
+                                </form>
+                              ) : null}
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </div>
+                  </div>
+                ) : null}
+
+                {isOwner && currentTab === 'shipping' ? (
+                  <form method="post" action={tabHref(store.siteId, 'shipping')} class="checkout-settings shipping-settings">
+                    <input type="hidden" name="action" value="shipping_settings" />
+                    <input type="hidden" name="site_id" value={store.siteId} />
+                    <input type="hidden" name="organization_id" value={organizationId} />
+                    <fieldset class="dk-fieldset">
+                      <legend>Shipping charge</legend>
+                      <div class="choice-stack">
+                        <label class="checkout-choice choice-card">
+                          <input type="radio" name="shipping_mode" value="free" checked={storeSettings?.shippingMode !== 'flat'} />
+                          <span class="choice-title">Free shipping on every order</span>
+                        </label>
+                        <label class="checkout-choice choice-card">
+                          <input type="radio" name="shipping_mode" value="flat" checked={storeSettings?.shippingMode === 'flat'} />
+                          <span class="choice-title">Flat charge per order</span>
+                        </label>
+                      </div>
+                      <div class="flat-amounts">
+                        <label class="checkout-field">Flat charge
+                          <span class="dollar-field">
+                            <span aria-hidden="true">$</span>
+                            <input
+                              type="text"
+                              name="shipping_amount"
+                              inputmode="decimal"
+                              aria-label="Flat charge in dollars"
+                              value={storeSettings?.shippingMode === 'flat' ? (storeSettings.shippingMinor / 100).toFixed(2) : ''}
+                            />
+                          </span>
+                        </label>
+                        <label class="checkout-field">Free shipping over (optional)
+                          <span class="dollar-field">
+                            <span aria-hidden="true">$</span>
+                            <input
+                              type="text"
+                              name="shipping_free_over"
+                              inputmode="decimal"
+                              aria-label="Free shipping over in dollars (optional)"
+                              value={storeSettings?.shippingMode === 'flat' && storeSettings.freeOverMinor ? (storeSettings.freeOverMinor / 100).toFixed(2) : ''}
+                            />
+                          </span>
+                        </label>
+                        <p class="field-hint">Needs Commerce 0.7.0 or later; an older Commerce charges the flat amount.</p>
+                      </div>
+                    </fieldset>
+                    <div class="checkout-actions-bar">
+                      <button type="submit" class="btn-primary">Save shipping</button>
+                      <span class="field-hint">Commerce reads these settings within 5 minutes, or immediately via <strong>Get checkout settings</strong>.</span>
+                    </div>
+                  </form>
+                ) : null}
+
+                {isOwner && currentTab === 'payments' ? (
+                  <form method="post" action={tabHref(store.siteId, 'payments')} class="checkout-settings payment-settings">
+                    <input type="hidden" name="action" value="payments_settings" />
+                    <input type="hidden" name="site_id" value={store.siteId} />
+                    <input type="hidden" name="organization_id" value={organizationId} />
+                    <fieldset class="dk-fieldset">
+                      <legend>Payments</legend>
+                      <div class="choice-stack">
+                        <label class="checkout-choice payment-choice choice-card">
+                          <input type="radio" name="payments_mode" value="test" checked={!storeSettings?.live} />
+                          <span class="choice-copy">
+                            <span class="choice-title">Test</span>
+                            <small>No real money moves</small>
+                          </span>
+                        </label>
+                        <label class="checkout-choice payment-choice choice-card">
+                          <input type="radio" name="payments_mode" value="live" checked={storeSettings?.live === true} />
+                          <span class="choice-copy">
+                            <span class="choice-title">Live</span>
+                            <small>Takes real money once Payments is live too</small>
+                          </span>
+                        </label>
+                      </div>
+                    </fieldset>
+                    <div class="checkout-actions-bar">
+                      <button type="submit" class="btn-primary">Save payments</button>
+                      <span class="field-hint">Commerce reads these settings within 5 minutes, or immediately via <strong>Get checkout settings</strong>.</span>
+                    </div>
+                  </form>
+                ) : null}
+
+                {!isOwner && currentTab !== 'plugins' ? (
+                  <p class="store-readonly-note">Only the owner of this business can set up Commerce for this store.</p>
+                ) : null}
+
+                {changedSite === store.siteId ? (
+                  <p class="store-status-banner" role="status">You changed which services are on. Commerce picks up the change within 5 minutes, or at once when you press Get checkout settings in Commerce.</p>
+                ) : null}
+                {shown?.siteId === store.siteId && shown.error ? (
+                  <p class="store-error-banner account-error" role="alert">{shown.error}</p>
+                ) : null}
+                {shown?.siteId === store.siteId && shown.json ? (
+                  <div class="saved-toast" role="status">
+                    <p>Saved. Commerce reads these itself within 5 minutes, or at once when you press Get checkout settings in Commerce. This is what it gets:</p>
+                    <pre><code>{shown.json}</code></pre>
+                    {shown.note ? <p>{shown.note}</p> : null}
+                  </div>
+                ) : null}
+              </div>
+            </article>
+          );
+        })}
+      </section>
+    )}
   </div>
 </Site>
 <style>
-  .store-setup { grid-template-columns: minmax(0, 1fr); }
-  .store-setup h3, .store-setup code { overflow-wrap: anywhere; }
-  .store-tabs { display: flex; flex-wrap: nowrap; overflow-x: auto; border-bottom: 1px solid var(--line); }
-  .store-tabs a { display: flex; align-items: center; flex: none; min-height: 44px; padding: .5rem .75rem; color: var(--muted); text-decoration: none; border-bottom: 2px solid transparent; }
+  .dashboard-topbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--line);
+  }
+  .dashboard-topbar .eyebrow { margin: 0; }
+  .dashboard-topbar h1 { margin: .35rem 0 0; }
+  .dashboard-subnav {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-start;
+    gap: .65rem 1.25rem;
+    font-size: .92rem;
+  }
+  .dashboard-subnav a { font-weight: 500; text-decoration: none; }
+  .dashboard-subnav a:hover { text-decoration: underline; }
+
+  .store-empty, .bindings-card {
+    margin-top: 1.5rem;
+    padding: 1.2rem 1.4rem;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 4px solid var(--accent);
+  }
+  .store-empty p { margin: 0; color: var(--muted); max-width: 68ch; }
+  .bindings-card { border-left-color: var(--inventory); }
+
+  .setup-section { margin-top: 1.5rem; }
+  .setup-callout {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: .75rem 1.5rem;
+    padding: 1rem 1.25rem;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 4px solid var(--accent);
+  }
+  .setup-callout h2 { margin: 0; font-size: 1.05rem; font-weight: 700; }
+  .setup-callout p { margin: .2rem 0 0; font-size: .92rem; color: var(--muted); max-width: 72ch; }
+
+  .store-card {
+    margin-top: 1.5rem;
+    min-width: 0;
+    border: 1px solid var(--line);
+    background: var(--surface);
+  }
+  .store-card-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: .85rem 1.5rem;
+    padding: 1.15rem 1.4rem;
+    background: var(--surface-soft);
+    border-bottom: 1px solid var(--line);
+    border-left: 4px solid var(--line);
+  }
+  .store-card-header[data-connected="true"] { border-left-color: var(--focus); }
+  .store-identity {
+    min-width: 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .5rem .85rem;
+  }
+  .store-origin-row {
+    display: inline-flex;
+    align-items: center;
+    gap: .6rem;
+    min-width: 0;
+    max-width: 100%;
+  }
+  .store-live-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    flex: none;
+    background: var(--muted);
+  }
+  .store-live-dot[data-connected="true"] {
+    background: var(--focus);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--focus) 22%, transparent);
+  }
+  .store-identity h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 700;
+    letter-spacing: -.02em;
+    overflow-wrap: anywhere;
+  }
+  .mode-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: .18rem .55rem;
+    font: 700 .72rem/1.3 var(--font-label);
+    letter-spacing: .07em;
+    text-transform: uppercase;
+    border: 1px solid var(--accent-line);
+    background: var(--accent-wash);
+    color: var(--accent);
+  }
+  .mode-badge[data-mode="live"] {
+    border-color: color-mix(in srgb, var(--focus) 55%, var(--line));
+    background: color-mix(in srgb, var(--focus) 14%, var(--surface));
+    color: var(--button);
+  }
+  .store-id-chip {
+    min-width: 0;
+    max-width: 100%;
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .4rem;
+    padding: .3rem .65rem;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    font-size: .8rem;
+    color: var(--muted);
+  }
+  .store-id-chip code {
+    font-family: var(--font-label);
+    font-size: .76rem;
+    color: var(--ink);
+    user-select: all;
+    overflow-wrap: anywhere;
+  }
+
+  .store-tabs {
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    gap: .25rem;
+    overflow-x: auto;
+    min-width: 0;
+    padding-inline: 1.4rem;
+    background: var(--surface-soft);
+    border-bottom: 1px solid var(--line);
+  }
+  .store-tabs a {
+    display: flex;
+    align-items: center;
+    flex: none;
+    min-height: 44px;
+    padding: .5rem .85rem;
+    color: var(--muted);
+    text-decoration: none;
+    border-bottom: 2px solid transparent;
+    font-weight: 500;
+  }
   .store-tabs a:hover { color: var(--ink); }
-  .store-tabs a[aria-current="page"] { color: var(--ink); border-bottom-color: var(--accent); font-weight: 600; }
+  .store-tabs a[aria-current="page"] {
+    color: var(--ink);
+    border-bottom-color: var(--accent);
+    font-weight: 600;
+  }
   .store-tabs a:focus-visible { outline: 3px solid var(--focus); outline-offset: -3px; }
-  .flat-amounts { display: none; gap: .75rem; min-width: 0; }
+
+  .store-card-body { min-width: 0; }
+  .store-panels-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .store-panel {
+    min-width: 0;
+    padding: 1.3rem 1.4rem;
+  }
+  .store-panel + .store-panel { border-left: 1px solid var(--line); }
+  @media (max-width: 820px) {
+    .store-panels-grid { grid-template-columns: minmax(0, 1fr); }
+    .store-panel + .store-panel {
+      border-left: 0;
+      border-top: 1px solid var(--line);
+    }
+  }
+  .panel-heading-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: .75rem;
+    margin-bottom: .85rem;
+  }
+  .panel-heading-row h4 {
+    margin: 0;
+    font-family: var(--font-label);
+    font-size: .78rem;
+    font-weight: 700;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .panel-count {
+    font-size: .8rem;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .status-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: .65rem;
+  }
+  .status-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: .65rem 1rem;
+    min-width: 0;
+    padding: .8rem .95rem;
+    background: var(--surface-soft);
+    border: 1px solid var(--line-soft);
+    border-left: 3px solid var(--row-accent, var(--line));
+  }
+  .status-row[data-state="off"] { border-left-color: var(--line); }
+  .status-row-main { min-width: 0; flex: 1 1 11.5rem; }
+  .status-row-title {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .4rem .55rem;
+    font-weight: 600;
+    font-size: .95rem;
+    overflow-wrap: anywhere;
+  }
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    flex: none;
+    white-space: nowrap;
+    padding: .1rem .45rem;
+    font: 700 .68rem/1.35 var(--font-label);
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--muted);
+  }
+  .status-pill[data-tone="on"] {
+    border-color: color-mix(in srgb, var(--focus) 55%, var(--line));
+    background: color-mix(in srgb, var(--focus) 14%, var(--surface));
+    color: var(--button);
+  }
+  .status-pill[data-tone="soon"] {
+    border-color: var(--accent-line);
+    background: var(--accent-wash);
+    color: var(--accent);
+  }
+  .status-pill[data-tone="danger"] {
+    border-color: color-mix(in srgb, var(--error) 45%, var(--line));
+    background: color-mix(in srgb, var(--error) 12%, var(--surface));
+    color: var(--error);
+  }
+  .status-meta {
+    margin: .25rem 0 0;
+    font-size: .82rem;
+    color: var(--muted);
+    line-height: 1.45;
+    font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
+  }
+  .status-row-action { margin-left: auto; flex: none; max-width: 100%; }
+
+  .store-card .btn-primary,
+  .store-card .btn-secondary,
+  .store-card .btn-quiet-danger,
+  .bindings-card .btn-quiet-danger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    max-width: 100%;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color .15s ease, border-color .15s ease, color .15s ease;
+  }
+  .store-card .btn-primary {
+    min-height: 44px;
+    padding: .6rem 1.15rem;
+    border: 1px solid transparent;
+    background: var(--button);
+    color: var(--button-ink);
+    font-size: .95rem;
+  }
+  .store-card .btn-primary:hover { background: var(--button-hover); }
+
+  .store-card .btn-secondary {
+    min-height: 40px;
+    padding: .45rem .85rem;
+    border: 1px solid var(--button);
+    background: color-mix(in srgb, var(--focus) 12%, var(--surface));
+    color: var(--button);
+    font-size: .83rem;
+  }
+  .store-card .btn-secondary:hover {
+    background: var(--button);
+    color: var(--button-ink);
+  }
+
+  .store-card .btn-quiet-danger,
+  .bindings-card .btn-quiet-danger {
+    min-height: 40px;
+    padding: .45rem .8rem;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--muted);
+    font-size: .82rem;
+    font-weight: 500;
+  }
+  .store-card .btn-quiet-danger:hover,
+  .bindings-card .btn-quiet-danger:hover {
+    border-color: color-mix(in srgb, var(--error) 48%, var(--line));
+    background: color-mix(in srgb, var(--error) 10%, var(--surface));
+    color: var(--error);
+  }
+
+  .checkout-settings {
+    display: grid;
+    gap: 1.15rem;
+    min-width: 0;
+    padding: 1.4rem;
+  }
+  .dk-fieldset {
+    display: grid;
+    gap: .85rem;
+    min-width: 0;
+    margin: 0;
+    padding: 1.1rem 1.15rem 1.2rem;
+    border: 1px solid var(--line);
+    background: var(--surface-soft);
+  }
+  .dk-fieldset legend {
+    padding-inline: .45rem;
+    font-family: var(--font-label);
+    font-size: .78rem;
+    font-weight: 700;
+    letter-spacing: .09em;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+
+  .choice-stack {
+    display: grid;
+    gap: .6rem;
+    min-width: 0;
+  }
+  .checkout-choice.choice-card {
+    display: flex;
+    align-items: flex-start;
+    gap: .7rem;
+    min-width: 0;
+    min-height: 44px;
+    padding: .72rem .85rem;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    font-weight: 600;
+    cursor: pointer;
+    transition: border-color .15s ease, background-color .15s ease, box-shadow .15s ease;
+  }
+  .checkout-choice.choice-card:hover { border-color: var(--accent-line); }
+  .checkout-choice.choice-card:has(input:checked) {
+    border-color: var(--focus);
+    box-shadow: inset 3px 0 0 var(--focus);
+    background: color-mix(in srgb, var(--focus) 10%, var(--surface));
+  }
+  .checkout-choice.choice-card input[type="radio"] {
+    flex: none;
+    width: 1.05rem;
+    height: 1.05rem;
+    margin: .22rem 0 0;
+    accent-color: var(--button);
+    cursor: pointer;
+  }
+  .choice-copy { display: grid; gap: .12rem; min-width: 0; }
+  .choice-title { font-weight: 600; font-size: .95rem; overflow-wrap: anywhere; }
+  .payment-choice small { display: block; color: var(--muted); font-size: .84rem; font-weight: 400; line-height: 1.4; }
+
+  .flat-amounts {
+    display: none;
+    gap: .85rem;
+    min-width: 0;
+    margin-top: .25rem;
+    padding-top: .95rem;
+    border-top: 1px solid var(--line);
+  }
   .shipping-settings:has(input[value="flat"]:checked) .flat-amounts { display: grid; }
-  .dollar-field { display: flex; align-items: center; gap: .5rem; min-width: 0; }
-  .dollar-field > span { font-weight: 400; }
-  .payment-choice { border: 1px solid var(--line); padding: .75rem; }
-  .payment-choice:has(:checked) { border-color: var(--accent); }
-  .payment-choice small { display: block; color: var(--muted); font-size: .875rem; font-weight: 400; }
-  .checkout-settings { display: grid; gap: 1rem; min-width: 0; }
-  .checkout-settings fieldset { display: grid; gap: .75rem; min-width: 0; margin: 0; padding: 1rem; border: 1px solid var(--line); }
-  .checkout-settings legend { padding-inline: .25rem; font-weight: 600; }
-  .checkout-choice { display: flex; align-items: baseline; gap: .6rem; min-height: 44px; padding-block: .4rem; }
-  .checkout-choice input { flex: none; margin: 0; }
-  .checkout-field { display: grid; gap: .4rem; min-width: 0; }
-  .checkout-field input { width: 100%; min-width: 0; min-height: 44px; font: inherit; color: var(--ink); }
+  .checkout-field {
+    display: grid;
+    gap: .35rem;
+    min-width: 0;
+    font-size: .9rem;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .dollar-field {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    min-width: 0;
+    max-width: 15rem;
+    padding-left: .75rem;
+    border: 1px solid var(--line);
+    background: var(--surface);
+  }
+  .dollar-field:has(input:focus-visible) {
+    border-color: var(--focus);
+    outline: 3px solid var(--focus);
+    outline-offset: 2px;
+  }
+  .dollar-field > span {
+    flex: none;
+    font-family: var(--font-label);
+    font-weight: 700;
+    color: var(--muted);
+  }
+  .checkout-field input {
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+    padding: .55rem .75rem .55rem .15rem;
+    border: 0;
+    background: transparent;
+    color: var(--ink);
+    font: inherit;
+    font-variant-numeric: tabular-nums;
+  }
+  .checkout-field input:focus { outline: none; }
   .checkout-settings input:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
-  .checkout-settings p { margin: 0; color: var(--muted); }
-  .checkout-settings button { justify-self: start; max-width: 100%; min-height: 44px; }
+  .checkout-field input:focus-visible { outline: none; }
+
+  .field-hint {
+    margin: 0;
+    font-size: .82rem;
+    color: var(--muted);
+    line-height: 1.45;
+  }
+  .checkout-actions-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: .75rem 1.25rem;
+    padding-top: .9rem;
+    border-top: 1px solid var(--line-soft);
+  }
+
+  .store-readonly-note,
+  .store-status-banner,
+  .store-error-banner,
+  .saved-toast {
+    margin: 0 1.4rem 1.4rem;
+    padding: .95rem 1.15rem;
+    font-size: .9rem;
+  }
+  .store-readonly-note {
+    margin-top: 1.25rem;
+    color: var(--muted);
+    border: 1px solid var(--line);
+    background: var(--surface-soft);
+  }
+  .store-status-banner {
+    border: 1px solid var(--accent-line);
+    border-left: 4px solid var(--accent);
+    background: var(--accent-wash);
+  }
+  .store-error-banner {
+    border: 1px solid color-mix(in srgb, var(--error) 45%, var(--line));
+    border-left: 4px solid var(--error);
+    background: color-mix(in srgb, var(--error) 10%, var(--surface));
+  }
+  .saved-toast {
+    border: 1px solid color-mix(in srgb, var(--focus) 50%, var(--line));
+    border-left: 4px solid var(--focus);
+    background: color-mix(in srgb, var(--focus) 10%, var(--surface));
+  }
+  .saved-toast p { margin: 0 0 .55rem; font-weight: 500; }
+  .saved-toast p:last-child { margin-bottom: 0; }
+  .saved-toast pre {
+    margin: 0 0 .55rem;
+    padding: .65rem .8rem;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    font-family: var(--font-label);
+    font-size: .78rem;
+    overflow-x: auto;
+    max-width: 100%;
+  }
+  .saved-toast pre:last-child { margin-bottom: 0; }
+
+  @media (max-width: 600px) {
+    .store-card-header,
+    .store-tabs,
+    .store-panel,
+    .checkout-settings { padding-inline: 1rem; }
+    .store-readonly-note,
+    .store-status-banner,
+    .store-error-banner,
+    .saved-toast { margin-inline: 1rem; margin-bottom: 1rem; }
+  }
 </style>

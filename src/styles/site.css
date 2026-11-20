@@ -87,6 +87,7 @@ h1 { font-family: var(--font-display); font-weight: 700; font-size: clamp(2.5rem
 .skip-link { position: absolute; left: 1rem; top: -5rem; background: var(--surface); padding: .8rem; z-index: 10; }
 .skip-link:focus { top: .5rem; }
 .account-panel { padding: 3rem 0 2.5rem; max-width: 760px; }
+.account-panel.stores-dashboard { max-width: 1020px; padding: 2.25rem 0 3rem; }
 .account-form { display: grid; gap: .7rem; max-width: 24rem; margin: 1.4rem 0; }
 .account-form label { font-weight: 600; }
 .account-form select { min-width: 0; width: 100%; max-width: 100%; }

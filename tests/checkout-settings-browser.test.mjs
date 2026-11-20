@@ -32,6 +32,7 @@ test('store tabs and independent settings saves work without JavaScript', { time
         const ids = await page.locator('[id]').evaluateAll(es => es.map(e => e.id));
         assert.equal(new Set(ids).size, ids.length, 'multiple stores have no duplicate IDs');
         const checkLayout = async (enlarged = false) => {
+          if (!enlarged && width === 1440) assert.ok((await box(card)).width > 700, 'store card uses full dashboard width');
           for (const label of await card.locator('.checkout-choice').all()) assert.ok((await box(label)).height >= 44);
           const nav = card.locator('.store-tabs');
           for (const link of await nav.getByRole('link').all()) {
@@ -118,6 +119,16 @@ test('store tabs and independent settings saves work without JavaScript', { time
         assert.equal(saved.shipping.mode, 'free'); assert.equal('amount' in saved.shipping, false); assert.equal('freeOver' in saved.shipping, false);
         await open('Plugins');
         assert.equal(await card.getByRole('list', { name: 'Connected plugins' }).count(), 1);
+        assert.equal(await card.getByRole('list', { name: 'Store services' }).count(), 1);
+        assert.equal(await card.getByRole('list', { name: 'Connected plugins' }).evaluate(e => getComputedStyle(e).listStyleType), 'none');
+        assert.equal(await card.getByRole('list', { name: 'Store services' }).evaluate(e => getComputedStyle(e).listStyleType), 'none');
+        const pluginsPanel = await box(card.locator('.store-panel').nth(0));
+        const servicesPanel = await box(card.locator('.store-panel').nth(1));
+        if (width === 1440) {
+          assert.ok(Math.abs(pluginsPanel.y - servicesPanel.y) < 2 && servicesPanel.x >= pluginsPanel.x + pluginsPanel.width - 1, 'desktop plugins and services sit side-by-side');
+        } else {
+          assert.ok(servicesPanel.y >= pluginsPanel.y + pluginsPanel.height - 1, 'mobile plugins and services stack vertically');
+        }
         assert.equal(await card.getByRole('button', { name: 'Disconnect Commerce', exact: true }).count(), 1);
         assert.equal(await card.getByRole('button', { name: 'Turn on Ship', exact: true }).count(), 1);
         assert.equal(await card.locator('.checkout-settings').count(), 0);

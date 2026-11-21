@@ -4,10 +4,10 @@
   "current_focus": {
     "cadence": "sequential",
     "confirmed": false,
-    "domain": "DinkusKit plugin architecture (Dad's unified-plugin proposal)",
-    "started_at": "2026-11-21T19:06:51+00:00",
+    "domain": "DinkusKit plugin architecture",
+    "started_at": "2026-11-21T19:12:06+00:00",
     "status": "grilling",
-    "summary": "Ronald and Dad (Tom Saari) reviewed Dad's proposal for one unified DinkusKit plugin with the store logic hosted on dinkuskit.com, against EmDash's Registry and sandbox docs, in thread 'Weigh Dad's Commerce restructuring plan', 20-21 Nov 2026."
+    "summary": "Whether DinkusKit should become one unified plugin with store logic hosted on dinkuskit.com, or stay separate Registry plugins with store data in the store, checked against EmDash's Registry and sandbox documentation."
   },
   "decisions": [
     {
@@ -11596,17 +11596,17 @@
     {
       "baseline_ref": null,
       "candidate_refs": [],
-      "choice": "Keep separate sandboxed Registry plugins, one per job (today Commerce, Payments, Ship, plus Accounts and Reviews; Inventory and Coupons return only after a live store takes orders confidently), so a merchant installs and approves permissions only for what they use. Products, carts, checkout, orders, coupons, stock and customer details live in the store's own EmDash database and keep working when dinkuskit.com is down; dinkuskit.com holds no store's customer data. Hosted DinkusKit servers only bridge external services that need DinkusKit's platform accounts: Stripe Connect payments and USPS postage labels. Store behaviour changes only through a Registry release the owner approves; hosted changes are limited to that external-service plumbing. The merchant's EmDash host pays for catalog, cart, stock and order work. Merchant UX goals 'connect to DinkusKit once' and 'one dashboard inside EmDash' are pursued separately on top of this, building on the 22 Oct Connect locks (store-connect-per-plugin-key-080 to rollout-084).",
+      "choice": "Keep separate sandboxed Registry plugins, one per job (today Commerce, Payments, Ship, plus Accounts and Reviews; Inventory and Coupons return only after a live store takes orders confidently), so a merchant installs and approves permissions only for what they use. Products, carts, checkout, orders, coupons, stock and customer details live in the store's own EmDash database and keep working when dinkuskit.com is down; dinkuskit.com holds no store's customer data. Hosted DinkusKit servers only bridge external services that need DinkusKit's platform accounts: Stripe Connect payments and USPS postage labels. Store behaviour changes only through a Registry release the owner approves; hosted changes are limited to that external-service plumbing. The merchant's EmDash host pays for catalog, cart, stock and order work. Merchant UX goals 'connect to DinkusKit once' and 'one dashboard inside EmDash' are pursued separately on top of this, building on store-connect-per-plugin-key-080 through store-connect-rollout-084.",
       "context_ref": "file:docs/CHARTER.md",
-      "created_at": "2026-11-21T19:06:51+00:00",
+      "created_at": "2026-11-21T19:12:06+00:00",
       "deferred_reason": null,
       "delivery_ref": null,
       "dependencies": [],
-      "domain": "DinkusKit plugin architecture (Dad's unified-plugin proposal)",
+      "domain": "DinkusKit plugin architecture",
       "history": [
         {
-          "at": "2026-11-21T19:06:51+00:00",
-          "choice": "Keep separate sandboxed Registry plugins, one per job (today Commerce, Payments, Ship, plus Accounts and Reviews; Inventory and Coupons return only after a live store takes orders confidently), so a merchant installs and approves permissions only for what they use. Products, carts, checkout, orders, coupons, stock and customer details live in the store's own EmDash database and keep working when dinkuskit.com is down; dinkuskit.com holds no store's customer data. Hosted DinkusKit servers only bridge external services that need DinkusKit's platform accounts: Stripe Connect payments and USPS postage labels. Store behaviour changes only through a Registry release the owner approves; hosted changes are limited to that external-service plumbing. The merchant's EmDash host pays for catalog, cart, stock and order work. Merchant UX goals 'connect to DinkusKit once' and 'one dashboard inside EmDash' are pursued separately on top of this, building on the 22 Oct Connect locks (store-connect-per-plugin-key-080 to rollout-084).",
+          "at": "2026-11-21T19:12:06+00:00",
+          "choice": "Keep separate sandboxed Registry plugins, one per job (today Commerce, Payments, Ship, plus Accounts and Reviews; Inventory and Coupons return only after a live store takes orders confidently), so a merchant installs and approves permissions only for what they use. Products, carts, checkout, orders, coupons, stock and customer details live in the store's own EmDash database and keep working when dinkuskit.com is down; dinkuskit.com holds no store's customer data. Hosted DinkusKit servers only bridge external services that need DinkusKit's platform accounts: Stripe Connect payments and USPS postage labels. Store behaviour changes only through a Registry release the owner approves; hosted changes are limited to that external-service plumbing. The merchant's EmDash host pays for catalog, cart, stock and order work. Merchant UX goals 'connect to DinkusKit once' and 'one dashboard inside EmDash' are pursued separately on top of this, building on store-connect-per-plugin-key-080 through store-connect-rollout-084.",
           "from": "proposed",
           "implementation_ref": null,
           "note": "user accepted the scoped decision",
@@ -11622,7 +11622,7 @@
       "id": "dinkuskit-plugin-architecture-20261121",
       "implementation_ref": null,
       "question": "Should DinkusKit become one unified plugin with the store logic hosted on dinkuskit.com, or stay separate Registry plugins with store data kept in the store?",
-      "rationale": "EmDash docs (docs.emdashcms.com, read 21 Nov 2026): 'Prefer a sandboxed plugin... If your plugin can do its job in the sandbox, it should'; the install consent lists every capability and host and updates re-ask on new ones; 'Declare only what the plugin actually needs'; bundles are checked and capped at 128 KB per file. A unified plugin would declare every feature's permissions up front, still face one 128 KB cap (Commerce alone is 130,439 bytes) unless its logic moved to dinkuskit.com, and code on dinkuskit.com would bypass the Registry's checks and consent. WooCommerce keeps orders, carts and checkout in the site database and hosts only add-ons such as payments. Dad's answers (via Ronald, 21 Nov 18:59 UTC): separate plugins and local data are 'the right architecture'; no customer PII on dinkuskit.com; only Stripe and USPS label calls depend on our servers; core logic changes through the Registry; his concern is merchant UX (connect once, one dashboard). Ronald said 'lock it' 21 Nov 19:06 UTC.",
+      "rationale": "EmDash documentation (docs.emdashcms.com, read 2026-11-21): 'Prefer a sandboxed plugin... If your plugin can do its job in the sandbox, it should'; the install consent lists every capability and host, and updates ask again for new ones; 'Declare only what the plugin actually needs'; bundles are checked and capped at 128 KB per file. A unified plugin would declare every feature's permissions up front, would still face one 128 KB cap (Commerce alone is 130,439 bytes) unless its logic moved to dinkuskit.com, and code on dinkuskit.com would bypass the Registry's checks and consent. WooCommerce keeps orders, carts and checkout in the site database and hosts only add-ons such as payments. The owner approved this decision on 2026-11-21.",
       "repair_required": false,
       "review_classifications": [],
       "review_history": [],
@@ -11631,7 +11631,7 @@
       "review_source_identity": null,
       "status": "locked",
       "superseded_by": null,
-      "updated_at": "2026-11-21T19:06:51+00:00",
+      "updated_at": "2026-11-21T19:12:06+00:00",
       "verification_ref": null
     }
   ],
@@ -11663,5 +11663,5 @@
   "status": "active",
   "title": "Composed integration",
   "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5",
-  "updated_at": "2026-11-21T19:06:51+00:00"
+  "updated_at": "2026-11-21T19:12:06+00:00"
 }

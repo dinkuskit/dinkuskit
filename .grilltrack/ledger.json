@@ -12424,9 +12424,52 @@
     {
       "baseline_ref": null,
       "candidate_refs": [],
+      "choice": "Remove the merchant and operator Inventory overview screens (/account/inventory and /account/operator/inventory), their read seam, test fixtures, tests and doc. They were built for a hosted Inventory service that was never deployed, production never supplied their signer or reader, and Inventory is parked until after v1. Keep the shared Connect flow, the Inventory Connect entry, the memory runner that tests that flow, and every database table. When Inventory returns after v1, its owner view is designed fresh for the shared dashboard.",
+      "context_ref": null,
+      "created_at": "2026-11-22T18:15:19+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [
+        "website-inventory-overview-024"
+      ],
+      "domain": "plugin communication",
+      "history": [
+        {
+          "at": "2026-11-22T18:15:19+00:00",
+          "choice": "Remove the merchant and operator Inventory overview screens (/account/inventory and /account/operator/inventory), their read seam, test fixtures, tests and doc. They were built for a hosted Inventory service that was never deployed, production never supplied their signer or reader, and Inventory is parked until after v1. Keep the shared Connect flow, the Inventory Connect entry, the memory runner that tests that flow, and every database table. When Inventory returns after v1, its owner view is designed fresh for the shared dashboard.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        }
+      ],
+      "id": "website-inventory-overview-removal-20261122",
+      "implementation_ref": null,
+      "question": "Should DinkusKit.com keep the Inventory overview screens that were never switched on?",
+      "rationale": "The owner approved on 2026-11-22. The screens only ever showed 'unavailable' and the connection design has changed since they were written; git history keeps them.",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [],
+      "review_ref": null,
+      "review_result": null,
+      "review_source_identity": null,
+      "status": "locked",
+      "superseded_by": null,
+      "updated_at": "2026-11-22T18:15:19+00:00",
+      "verification_ref": null
+    },
+    {
+      "baseline_ref": null,
+      "candidate_refs": [],
       "choice": "No. DinkusKit.com remembers the Disconnect, so that plugin's page shows Connect again and only the owner's Approve on DinkusKit.com brings it back; that Approve forgets the Disconnect. An owner's Revoke of a plugin's service works the same way. Uninstalling a plugin (connect-uninstall-cancels-key-134) is not a Disconnect: installing it again shows Finish setup.",
       "context_ref": "file:docs/shared-store-connections.md",
-      "created_at": "2026-11-22T18:15:16+00:00",
+      "created_at": "2026-11-22T18:43:15+00:00",
       "deferred_reason": null,
       "delivery_ref": null,
       "dependencies": [
@@ -12435,7 +12478,7 @@
       "domain": "plugin communication",
       "history": [
         {
-          "at": "2026-11-22T18:15:16+00:00",
+          "at": "2026-11-22T18:43:15+00:00",
           "choice": "No. DinkusKit.com remembers the Disconnect, so that plugin's page shows Connect again and only the owner's Approve on DinkusKit.com brings it back; that Approve forgets the Disconnect. An owner's Revoke of a plugin's service works the same way. Uninstalling a plugin (connect-uninstall-cancels-key-134) is not a Disconnect: installing it again shows Finish setup.",
           "from": "proposed",
           "implementation_ref": null,
@@ -12461,7 +12504,7 @@
       "review_source_identity": null,
       "status": "locked",
       "superseded_by": null,
-      "updated_at": "2026-11-22T18:15:16+00:00",
+      "updated_at": "2026-11-22T18:43:15+00:00",
       "verification_ref": null
     }
   ],
@@ -12493,5 +12536,5 @@
   "status": "active",
   "title": "Composed integration",
   "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5",
-  "updated_at": "2026-11-22T18:15:16+00:00"
+  "updated_at": "2026-11-22T18:43:15+00:00"
 }

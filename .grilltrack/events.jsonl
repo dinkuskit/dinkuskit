@@ -277,5 +277,7 @@
 {"action": "shared_understanding_confirmed", "at": "2026-11-22T16:53:50+00:00", "data": {"summary": "The owner reviewed the rule in five pieces and approved each, then the whole, on 22 Nov 2026."}, "event_id": "9b0f00c7-a493-4cdc-8827-b4fbf5184979"}
 {"action": "decision_reopened", "at": "2026-11-22T17:53:50+00:00", "data": {"affected": [], "decision_id": "plugin-communication-rule-20261122", "reason": "Scheduled sales no longer use the courier: EmDash's own content hooks fire when its scheduler publishes a page, so Commerce sells the page itself (dinkuskit/commerce scheduled-sale-in-commerce-20261122)."}, "event_id": "a548c495-f0f8-4882-a658-d481512e4bfa"}
 {"action": "decision_locked", "at": "2026-11-22T17:54:03+00:00", "data": {"decision_id": "plugin-communication-rule-20261122"}, "event_id": "be2ae7a1-696a-4d30-a71f-4f80c90ff9d9"}
-{"action": "decision_proposed", "at": "2026-11-22T18:15:16+00:00", "data": {"decision_id": "connect-finish-setup-disconnect-137"}, "event_id": "8c37edf4-3b68-420c-832f-7382cbb5f677"}
-{"action": "decision_locked", "at": "2026-11-22T18:15:16+00:00", "data": {"decision_id": "connect-finish-setup-disconnect-137"}, "event_id": "5fcff78b-7b1f-49c2-afa5-d77b9be00232"}
+{"action": "decision_proposed", "at": "2026-11-22T18:15:19+00:00", "data": {"decision_id": "website-inventory-overview-removal-20261122"}, "event_id": "997193a1-56f8-40f5-9623-9cb587b19054"}
+{"action": "decision_locked", "at": "2026-11-22T18:15:19+00:00", "data": {"decision_id": "website-inventory-overview-removal-20261122"}, "event_id": "21bfae89-7752-4ecd-aefe-df9f17e11200"}
+{"action": "decision_proposed", "at": "2026-11-22T18:43:15+00:00", "data": {"decision_id": "connect-finish-setup-disconnect-137"}, "event_id": "3be28ac7-42a1-45ff-801a-609fd045beb6"}
+{"action": "decision_locked", "at": "2026-11-22T18:43:15+00:00", "data": {"decision_id": "connect-finish-setup-disconnect-137"}, "event_id": "62bd9ea1-25f2-4f5d-83fe-ee265805bd72"}

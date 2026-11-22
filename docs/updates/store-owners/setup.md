@@ -24,13 +24,15 @@ Record your EmDash version. In Plugins, install **Commerce** 0.6.0 (`dinkus-comm
 
 Keep the installations' identities: public routes and callbacks depend on them, and stable and beta installations are distinct. Connect accepts only Registry installs.
 
-The sidebar then shows a **Dinkus Commerce** folder with **Orders** and **Commerce settings**, and Payments adds a **Payments status** page.
+The sidebar then shows a **Store** folder with **Orders** and **Commerce settings**, and Payments adds its page there. Stores made from the DinkusKit template keep **Products** and **Product categories** in the same folder. Plugin versions released before the Store folder show their own **Dinkus Commerce** and **Dinkus Payments** folders instead, and Payments' page is called **Payments status**.
 
 ## Connect Commerce first
 
-1. Open **Dinkus Commerce > Commerce settings**. Under **Connect Commerce**, press **Connect**.
+1. Open **Store > Commerce settings**. Under **Connect Commerce**, press **Connect**.
 2. The page shows **Approve at DinkusKit.com** with a link. The business owner opens it, signs in at DinkusKit.com and presses **Approve**. Anyone helping can send the owner the same link.
 3. Back in Commerce settings, the page says it is connected to DinkusKit.com and names the Store ID.
+
+The Approve link lasts 10 minutes. If it runs out, DinkusKit.com says so: go back to the store admin and press **Connect** again. A new business waits for DinkusKit's approval before any store can connect, and the Approve page says that too.
 
 Nothing is pasted. Commerce's Connect makes the store at DinkusKit.com and gives Commerce its own store key, which it keeps in its encrypted settings.
 

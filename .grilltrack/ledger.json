@@ -12703,6 +12703,49 @@
       "superseded_by": null,
       "updated_at": "2026-11-22T23:31:12+00:00",
       "verification_ref": null
+    },
+    {
+      "baseline_ref": null,
+      "candidate_refs": [],
+      "choice": "The Store emails page (store-emails-plugin-20261122) has an 'Email styling' section used on every email it sends: a logo picked from the store's Media, one button colour (a hex value, with a swatch), and a footer line (default 'Questions? Reply to this email.'), with Save and 'Email me a sample order', which sends a sample order confirmation to the signed-in owner. There is no template editor or drag-and-drop builder. Emails are simple HTML with styles written inline, plus a plain-text copy, and no tracking pixels.",
+      "context_ref": "https://woocommerce.com/document/configuring-woocommerce-settings/emails/",
+      "created_at": "2026-11-22T23:34:35+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [
+        "store-emails-plugin-20261122"
+      ],
+      "domain": "store email",
+      "history": [
+        {
+          "at": "2026-11-22T23:34:35+00:00",
+          "choice": "The Store emails page (store-emails-plugin-20261122) has an 'Email styling' section used on every email it sends: a logo picked from the store's Media, one button colour (a hex value, with a swatch), and a footer line (default 'Questions? Reply to this email.'), with Save and 'Email me a sample order', which sends a sample order confirmation to the signed-in owner. There is no template editor or drag-and-drop builder. Emails are simple HTML with styles written inline, plus a plain-text copy, and no tracking pixels.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        }
+      ],
+      "id": "store-email-styling-20261122",
+      "implementation_ref": null,
+      "question": "How does an owner make store emails look like their store?",
+      "rationale": "WooCommerce's email settings offer a logo, logo width, header alignment, font, footer text, a colour palette and a preview. Shopify lets merchants style its notification templates with their logo and brand colours. EmDash 1.5 gives plugins only the site name, URL and locale, not the site logo, so the plugin keeps its own logo choice through Block Kit's media picker. A logo, one colour and a footer cover what most stores change, while a full template editor adds a large surface for little gain in a first version. The owner approved the page mockup on 2026-11-22.",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [],
+      "review_ref": null,
+      "review_result": null,
+      "review_source_identity": null,
+      "status": "locked",
+      "superseded_by": null,
+      "updated_at": "2026-11-22T23:34:35+00:00",
+      "verification_ref": null
     }
   ],
   "last_activation": {
@@ -12733,5 +12776,5 @@
   "status": "active",
   "title": "Composed integration",
   "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5",
-  "updated_at": "2026-11-22T23:31:12+00:00"
+  "updated_at": "2026-11-22T23:34:35+00:00"
 }

@@ -292,3 +292,5 @@
 {"action": "decision_locked", "at": "2026-11-22T23:31:05+00:00", "data": {"decision_id": "store-email-sender-20261122"}, "event_id": "79008fbc-ff42-4ee7-bcf9-b555dceb47eb"}
 {"action": "decision_reopened", "at": "2026-11-22T23:31:12+00:00", "data": {"affected": [], "decision_id": "store-emails-plugin-20261122", "reason": "Re-locked after store-email-sender-20261122 was revised to match it."}, "event_id": "908def99-c246-4db1-b986-24e395ed036d"}
 {"action": "decision_locked", "at": "2026-11-22T23:31:12+00:00", "data": {"decision_id": "store-emails-plugin-20261122"}, "event_id": "de8ecfd6-357f-427f-900c-22899fa4a054"}
+{"action": "decision_proposed", "at": "2026-11-22T23:34:35+00:00", "data": {"decision_id": "store-email-styling-20261122"}, "event_id": "721c22d0-caa4-4899-9d32-43233073e9b7"}
+{"action": "decision_locked", "at": "2026-11-22T23:34:35+00:00", "data": {"decision_id": "store-email-styling-20261122"}, "event_id": "8068dd25-8761-491b-8494-ec13d811f62d"}

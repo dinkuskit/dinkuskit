@@ -1,4 +1,4 @@
-# DinkusKit Catalog (not deployed)
+# DinkusKit Catalog
 
 One catalog across every listed DinkusKit store, for shoppers' AI agents. Decisions: `agent-catalog-*-20261113` in the ledger; plan: `docs/plans/agent-catalog.md`.
 
@@ -18,4 +18,9 @@ The owner's on/off switch lives in the store admin only (Commerce > Settings > C
 
 Not built yet: matching the same product with no GTIN or MPN, and a checkout link per offer (waits for the store's `/buy` links).
 
-Run the tests with `npm run test:catalog`. `npm run proof:catalog` runs the Worker as built for Cloudflare inside the Workers runtime on this machine, with both databases and the rate limits, and walks through stores entering and leaving the catalog; the stores themselves, Workers AI and Vectorize are not part of that run. `wrangler.jsonc` holds placeholder ids only; deploying, creating the database and the two Vectorize indexes (768 dimensions, cosine), seeding categories and adding the `catalog.dinkuskit.com` address need the owner's go.
+Run the tests with `npm run test:catalog`. `npm run proof:catalog` runs the Worker as built for Cloudflare inside the Workers runtime on this machine, with both databases and the rate limits, and walks through stores entering and leaving the catalog; the stores themselves, Workers AI and Vectorize are not part of that run. 
+## Live
+
+The catalog has been live at `https://catalog.dinkuskit.com` since 22 Nov 2026 (owner's go that day). `wrangler.jsonc` here holds placeholder ids only, so a deploy uses a copy of it with the real database ids, the `catalog.dinkuskit.com` custom domain and `CATALOG_EXCLUDED_ORIGINS` filled in. The database schema is applied with `wrangler d1 migrations apply dinkuskit-catalog --remote`; the two Vectorize indexes are 768 dimensions, cosine; `scripts/seed-categories.mjs` fills the category index. Each deploy, and any change to which stores are excluded, needs the owner's go.
+
+A store appears once it is listed (see "Who is listed") and its feed can be read from the public internet. A store behind a login wall, or on a template without the feed, is listed but shows no products.

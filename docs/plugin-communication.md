@@ -1,6 +1,6 @@
 # How DinkusKit plugins exchange information
 
-Status: rule locked on 22 Nov 2026 (decision `plugin-communication-rule-20261122`). The courier described here is not built yet.
+Status: rule locked on 22 Nov 2026 (decision `plugin-communication-rule-20261122`). The courier is being built in [dinkuskit/courier](https://github.com/dinkuskit/courier).
 
 EmDash runs each Registry plugin in its own sandbox, and one plugin cannot call another. This page is the one rule for how information moves anyway. Use it before designing any feature where one plugin needs something another plugin holds.
 
@@ -22,9 +22,11 @@ EmDash runs each Registry plugin in its own sandbox, and one plugin cannot call 
 | Lane | Use it when | Examples |
 | --- | --- | --- |
 | Inline, during the request | A shopper is waiting, or a minute late costs money | A saved address at checkout. Later: stock and coupon checks. |
-| Courier, about once a minute | The news may arrive a little late | An order shipped, for Reviews. A scheduled product page published, for Commerce. |
+| Courier, about once a minute | The news may arrive a little late | An order shipped, for Reviews. |
 
 Every item of news carries an id. A receiving plugin ignores an id it has already seen, so a repeated or retried delivery changes nothing.
+
+News EmDash already tells a plugin through its own hooks needs no courier. A scheduled product page published is one: Commerce hears EmDash publish the page and puts its product on sale itself (decision `scheduled-sale-in-commerce-20261122` in dinkuskit/commerce).
 
 ## 4. The courier
 

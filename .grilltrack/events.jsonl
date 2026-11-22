@@ -263,4 +263,8 @@
 {"action": "decision_superseded", "at": "2026-11-22T13:38:21+00:00", "data": {"affected": [], "decision_id": "store-connect-checkout-settings-083", "replacement_id": "store-settings-in-emdash-130"}, "event_id": "9ce2695a-27c2-49a8-b64b-4004c5b54988"}
 {"action": "decision_proposed", "at": "2026-11-22T14:20:20+00:00", "data": {"decision_id": "catalog-hosted-service-20261122"}, "event_id": "4cacbcb4-6f4a-4e7d-9002-50bbdb821f60"}
 {"action": "decision_locked", "at": "2026-11-22T14:20:20+00:00", "data": {"decision_id": "catalog-hosted-service-20261122"}, "event_id": "7033e67c-8954-44fd-8dd1-474185d76e78"}
-{"action": "decision_proposed", "at": "2026-11-22T15:13:37+00:00", "data": {"decision_id": "connect-finish-setup-disconnect-137"}, "event_id": "a196bd65-4039-49b9-94ec-9f297f0dc8bf"}
+{"action": "focus_started", "at": "2026-11-22T15:39:25+00:00", "data": {"cadence": "sequential", "domain": "plugin communication"}, "event_id": "dd365cfa-ef7a-4220-863f-0e4734514b4e"}
+{"action": "shared_understanding_confirmed", "at": "2026-11-22T15:39:25+00:00", "data": {"summary": "The owner reviewed the rule in five pieces and approved each, then the whole, on 22 Nov 2026."}, "event_id": "13899e97-f5b4-43a2-949e-b86b6299c318"}
+{"action": "decision_proposed", "at": "2026-11-22T15:39:26+00:00", "data": {"decision_id": "plugin-communication-rule-20261122"}, "event_id": "4ba6c9ec-e09b-4bf9-83d6-d16940c5f735"}
+{"action": "decision_locked", "at": "2026-11-22T15:39:26+00:00", "data": {"decision_id": "plugin-communication-rule-20261122"}, "event_id": "5df4254d-ce32-44c4-b1ca-a9e7a4437e24"}
+{"action": "decision_proposed", "at": "2026-11-22T16:53:56+00:00", "data": {"decision_id": "connect-finish-setup-disconnect-137"}, "event_id": "ff18e2d3-5a4b-495c-a653-2b6d45659794"}

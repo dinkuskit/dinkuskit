@@ -2,12 +2,13 @@
   "closeout": null,
   "created_at": "2026-10-11T23:54:00+00:00",
   "current_focus": {
-    "cadence": "frontier-batch",
-    "confirmed": false,
-    "domain": "Connect to DinkusKit once and one dashboard inside EmDash",
-    "started_at": "2026-11-22T13:38:11+00:00",
-    "status": "grilling",
-    "summary": "Merchant setup and day-to-day store work: keep separate Registry plugins with store data in the store (dinkuskit-plugin-architecture-20261121), and remove the repeated approvals and the trips between /_emdash/admin, dinkuskit.com and ship.dinkuskit.com."
+    "cadence": "sequential",
+    "confirmed": true,
+    "confirmed_at": "2026-11-22T15:39:25+00:00",
+    "domain": "plugin communication",
+    "started_at": "2026-11-22T15:39:25+00:00",
+    "status": "confirmed",
+    "summary": "The owner reviewed the rule in five pieces and approved each, then the whole, on 22 Nov 2026."
   },
   "decisions": [
     {
@@ -12277,6 +12278,50 @@
       "superseded_by": null,
       "updated_at": "2026-11-22T14:20:20+00:00",
       "verification_ref": null
+    },
+    {
+      "baseline_ref": null,
+      "candidate_refs": [],
+      "choice": "1. Hosted services: a hosted DinkusKit service may hold store operations or buyer details only where an outside account requires it (Payments, Ship); it may read what a store already publishes (the catalog); it is never used just to connect two plugins. 2. In one store: two plugins talk through the store, and buyer details stay in the store. DinkusKit provides the carrying part, the courier, as its own small package; the store template includes it and any other EmDash site adds it with two lines. The Guide tells owners to start with the template and has one page for sites going their own way. A plugin that depends on a handoff says so plainly in its admin page when the courier is missing. 3. Two lanes: a question a shopper is waiting on, or where a minute late costs money, is asked inline during the request (a saved address at checkout; later stock and coupons). News that may arrive a little late goes by the courier about once a minute (an order shipped, for Reviews; a scheduled product page published, for Commerce, as the second user). Every item of news carries an id and a receiving plugin ignores an id it has already seen. 4. The courier holds no shop logic: each plugin offers a private outbox route and a private inbox route, and the courier carries between whichever plugins are installed. It is one repeat-safe function that runs on the store's timer on Cloudflare and on page visits on a Node host. Only the store can call the routes. The courier stores no buyer details; each plugin keeps its own place. Before it is relied on, the build proves that the courier finds installed plugins' routes without a per-plugin store change and that it delivers safely with nobody signed in. 5. EmDash: DinkusKit keeps asking upstream for plugin events. The courier is a stopgap built to be replaced; it retires only after EmDash releases plugin events, the plugins have moved to them, and the journeys pass on the beta store without it.",
+      "context_ref": null,
+      "created_at": "2026-11-22T15:39:26+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [
+        "dinkuskit-plugin-architecture-20261121",
+        "catalog-hosted-service-20261122"
+      ],
+      "domain": "plugin communication",
+      "history": [
+        {
+          "at": "2026-11-22T15:39:26+00:00",
+          "choice": "1. Hosted services: a hosted DinkusKit service may hold store operations or buyer details only where an outside account requires it (Payments, Ship); it may read what a store already publishes (the catalog); it is never used just to connect two plugins. 2. In one store: two plugins talk through the store, and buyer details stay in the store. DinkusKit provides the carrying part, the courier, as its own small package; the store template includes it and any other EmDash site adds it with two lines. The Guide tells owners to start with the template and has one page for sites going their own way. A plugin that depends on a handoff says so plainly in its admin page when the courier is missing. 3. Two lanes: a question a shopper is waiting on, or where a minute late costs money, is asked inline during the request (a saved address at checkout; later stock and coupons). News that may arrive a little late goes by the courier about once a minute (an order shipped, for Reviews; a scheduled product page published, for Commerce, as the second user). Every item of news carries an id and a receiving plugin ignores an id it has already seen. 4. The courier holds no shop logic: each plugin offers a private outbox route and a private inbox route, and the courier carries between whichever plugins are installed. It is one repeat-safe function that runs on the store's timer on Cloudflare and on page visits on a Node host. Only the store can call the routes. The courier stores no buyer details; each plugin keeps its own place. Before it is relied on, the build proves that the courier finds installed plugins' routes without a per-plugin store change and that it delivers safely with nobody signed in. 5. EmDash: DinkusKit keeps asking upstream for plugin events. The courier is a stopgap built to be replaced; it retires only after EmDash releases plugin events, the plugins have moved to them, and the journeys pass on the beta store without it.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        }
+      ],
+      "id": "plugin-communication-rule-20261122",
+      "implementation_ref": null,
+      "question": "How do DinkusKit plugins and hosted services exchange information?",
+      "rationale": "Plugins were exchanging information three different ways with no written rule, and each new plugin reopened the question. EmDash sandboxed plugins cannot call each other. Shopify pushes an orders/fulfilled webhook to apps and tells them to also run reconciliation jobs (shopify.dev/docs/apps/build/webhooks/best-practices); WooCommerce fires woocommerce_order_status_completed in-process; WP-Cron runs on page load at most once every 60 seconds (WP_CRON_LOCK_TIMEOUT). The store-run courier is the closest equivalent available inside EmDash today and keeps buyer details in the store. Read 22 Nov 2026.",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [],
+      "review_ref": null,
+      "review_result": null,
+      "review_source_identity": null,
+      "status": "locked",
+      "superseded_by": null,
+      "updated_at": "2026-11-22T15:39:26+00:00",
+      "verification_ref": null
     }
   ],
   "last_activation": {
@@ -12307,5 +12352,5 @@
   "status": "active",
   "title": "Composed integration",
   "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5",
-  "updated_at": "2026-11-22T14:20:20+00:00"
+  "updated_at": "2026-11-22T15:39:26+00:00"
 }

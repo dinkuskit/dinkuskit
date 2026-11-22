@@ -3,8 +3,6 @@ import type { MerchantEmailDelivery } from './email.ts';
 import type { ProofFetchFn } from './proof-fetch.ts';
 
 export type MerchantTransports = {
-  /** Controlled source-proof runtime only. No production factory or binding reads it. */
-  inventoryOverview?: import('./inventory-overview.ts').InventoryRuntime;
   /** Controlled local proof override only. Production uses the persisted D1 provider. */
   emailDelivery?: MerchantEmailDelivery;
   /** Isolated local admission notification sink; production uses the EMAIL binding. */

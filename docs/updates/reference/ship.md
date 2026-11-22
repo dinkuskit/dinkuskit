@@ -1,6 +1,6 @@
 ---
 article: reference/ship
-base: sha256:18e7d315ceab1c15f7a44ef9afb8fb399c8329fd3c08d9fff780dba44a0eda3b
+base: sha256:88533ae34a6a79f54939f893857f0c74e16111ad090cfbe0825020406bb183a1
 title: "Ship"
 summary: "Understand the Ship plugin, the hosted shipping service, and sandbox labels."
 audience: "Store owners and developers"
@@ -27,7 +27,7 @@ The plugin keeps no label data. Every click reads from, or buys through, the hos
 
 ## Set up the plugin
 
-Install **DinkusKit Ship** from the plugin Registry. Connect [Commerce](/docs/reference/commerce) first, because Commerce's Connect makes the store at DinkusKit.com. Then an Administrator opens **Dinkus Ship > Shipments** in the store admin and presses **Connect**, and the business owner presses **Approve** at DinkusKit.com. Nothing is pasted: DinkusKit.com gives Ship its own store key, which the plugin keeps, with the Store ID, in its encrypted DinkusKit connection setting. Connect needs the store on its https web address with Ship installed from the Registry.
+Install **DinkusKit Ship** from the plugin Registry. Connect [Commerce](/docs/reference/commerce) first, because Commerce's Connect makes the store at DinkusKit.com. Then an Administrator opens **Dinkus Ship \> Shipments** in the store admin and presses **Connect**, and the business owner presses **Approve** at DinkusKit.com. Nothing is pasted: DinkusKit.com gives Ship its own store key, which the plugin keeps, with the Store ID, in its encrypted DinkusKit connection setting. Connect needs the store on its https web address with Ship installed from the Registry.
 
 The plugin never sends the store key to Ship or to a store page. It trades the key at DinkusKit.com for a pass that lasts five minutes and reuses that pass for clicks in the next minute. A Disconnect at DinkusKit.com, which also turns Ship off, stops the Shipments page within a minute. If DinkusKit.com no longer knows the key, the page shows **Connect again**.
 
@@ -35,7 +35,7 @@ A store upgraded from `0.2.1` does not use its old pasted key. The Shipments pag
 
 ## Buy a label
 
-1. Open **Dinkus Ship > Shipments** in the store admin and pick a paid order.
+1. Open **Dinkus Ship \> Shipments** in the store admin and pick a paid order.
 2. Check the box, the weight (items plus box) and the service: USPS Ground Advantage by default, Priority Mail or Priority Mail Express. Then review the USPS prices.
 3. Press **Buy label**. Nothing is bought without this press.
 4. Press **Print label**. The PDF opens in a new tab through a link that works for five minutes and only for that label.

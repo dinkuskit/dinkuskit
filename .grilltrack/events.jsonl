@@ -281,3 +281,5 @@
 {"action": "decision_locked", "at": "2026-11-22T18:15:19+00:00", "data": {"decision_id": "website-inventory-overview-removal-20261122"}, "event_id": "21bfae89-7752-4ecd-aefe-df9f17e11200"}
 {"action": "decision_proposed", "at": "2026-11-22T18:43:15+00:00", "data": {"decision_id": "connect-finish-setup-disconnect-137"}, "event_id": "3be28ac7-42a1-45ff-801a-609fd045beb6"}
 {"action": "decision_locked", "at": "2026-11-22T18:43:15+00:00", "data": {"decision_id": "connect-finish-setup-disconnect-137"}, "event_id": "62bd9ea1-25f2-4f5d-83fe-ee265805bd72"}
+{"action": "decision_proposed", "at": "2026-11-22T19:37:18+00:00", "data": {"decision_id": "ship-pitney-connect-in-admin-138"}, "event_id": "cfc48e69-2601-47fb-9fa2-d482360fc60d"}
+{"action": "decision_locked", "at": "2026-11-22T19:37:18+00:00", "data": {"decision_id": "ship-pitney-connect-in-admin-138"}, "event_id": "f2a6c462-8e7f-4e9f-a1ed-5216aa07d63d"}

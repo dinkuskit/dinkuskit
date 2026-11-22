@@ -119,7 +119,10 @@ from something else (a grant without a key), Finish setup asks for the owner's A
 says Finish setup only for a store this business already connected; a wrong
 verifier and a missing store receipt are refused; Finish setup works once; Payments
 gets its pass and key, Ship gets its key and Ship turns on; the store:connection
-pass reads the business and plugins; a plugin cancels only its own key; after the
+pass reads the business and plugins; a plugin cancels only its own key, and a cancel
+for another store, or with a pass instead of a key, leaves the key working; a
+store:connection pass issued before its key was cancelled or disconnected reads
+nothing after (this fails before the change that names the plugin in the pass); after the
 owner's Disconnect, Finish setup answers `owner_approval_required` until the owner
 approves again. `npm run test:shared-store`, `test:merchant`, `test:foundation`,
 `test:agent-routes`, `test:organization-approvals`, `test:operator-admin`,

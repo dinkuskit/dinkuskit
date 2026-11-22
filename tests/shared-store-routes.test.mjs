@@ -468,7 +468,14 @@ test('Finish setup through the routes: approve once, Ship on, connected-to read,
     // connect-uninstall-cancels-key-134: a plugin's key cancels only itself.
     const cancel = (key, site = siteId) => request(runtime,new Map(),'/api/store-keys/cancel',{method:'POST',headers:{authorization:`Bearer ${key}`},body:JSON.stringify({site_id:site})});
     assert.deepEqual(await (await cancel(ship.store_key,'another-store')).json(),{error:'site_mismatch'});
+    assert.equal((await trade(ship.store_key,'ship:admin','dinkus-ship')).status,200,'a refused cancel leaves the key working');
+    assert.deepEqual(await (await cancel(await connectionPass(ship.store_key))).json(),{error:'invalid_store_key'},'a pass is not a key');
+    const shipPassBefore = await connectionPass(ship.store_key), paymentsPassBefore = await connectionPass(paid.store_key);
     assert.deepEqual(await (await cancel(ship.store_key)).json(),{cancelled:true});
+    assert.deepEqual(await (await request(runtime,new Map(),'/api/store-connection',{headers:{authorization:`Bearer ${shipPassBefore}`}})).json(),{error:'invalid_pass'},
+      'a connected-to pass issued before the cancel reads nothing after it');
+    const afterCancel = await (await request(runtime,new Map(),'/api/store-connection',{headers:{authorization:`Bearer ${paymentsPassBefore}`}})).json();
+    assert.deepEqual(afterCancel.plugins,['commerce','payments'],'another plugin\'s pass still reads, without the cancelled plugin');
     assert.deepEqual(await (await trade(ship.store_key,'ship:admin','dinkus-ship')).json(),{error:'invalid_store_key'});
     assert.deepEqual(await (await cancel(ship.store_key)).json(),{error:'invalid_store_key'});
     assert.equal((await trade(commerce.store_key,'ship:orders','dinkus-ship')).status,200,'Ship stays on and the other keys keep working');
@@ -478,7 +485,10 @@ test('Finish setup through the routes: approve once, Ship on, connected-to read,
     await notices();
 
     // connect-finish-setup-disconnect-137: after Disconnect, only the owner's Approve brings the plugin back.
+    const reinstalledPass = await connectionPass(reinstalled.store_key);
     assert.equal((await request(runtime,owner,'/account/sites',await form({action:'disconnect_plugin',site_id:siteId,plugin:'ship'}))).status,303);
+    assert.equal((await request(runtime,new Map(),'/api/store-connection',{headers:{authorization:`Bearer ${reinstalledPass}`}})).status,401,
+      'a connected-to pass issued before the Disconnect reads nothing after it');
     assert.deepEqual(await (await trade(commerce.store_key,'ship:orders','dinkus-ship')).json(),{error:'service_not_enabled'},'Disconnect turns Ship off');
     assert.equal(await finishShown('ship'),false,'a disconnected plugin shows Connect');
     const refused = await start('ship');

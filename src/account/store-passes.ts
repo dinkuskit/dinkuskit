@@ -105,18 +105,21 @@ export async function cancelPluginKey(input: { db: D1Database; authorization: st
 /**
  * GET /api/store-connection with a store:connection pass (connect-shows-siblings-133): the
  * business the store is connected to and its connected DinkusKit plugins, so each plugin's
- * page can say so without the owner leaving EmDash.
+ * page can say so without the owner leaving EmDash. The pass names the plugin whose key
+ * traded for it, and reads nothing once that key is cancelled or disconnected.
  */
 export async function serveStoreConnection(input: { db: D1Database; authorization: string | null }): Promise<Response> {
   const token = input.authorization?.match(/^Bearer ([^\s]+)$/i)?.[1];
   if (!token) return json(401, { error: 'invalid_pass' });
-  let siteId: string, subject: string;
+  let siteId: string, subject: string, plugin: KeyedPlugin;
   try {
     const { payload } = await jwtVerify(token, createLocalJWKSet(await listPublicJwks(input.db) as Parameters<typeof createLocalJWKSet>[0]), {
       issuer: ACCOUNT_ISSUER, audience: STORE_CONNECTION_PASS.audience, algorithms: ['ES256'], requiredClaims: ['exp', 'iat', 'sub'],
     });
     if (typeof payload.scope !== 'string' || !payload.scope.split(' ').includes(STORE_CONNECTION_PASS.scope) || typeof payload.site_id !== 'string') throw new Error('scope');
+    if (typeof payload.plugin !== 'string' || !KEYED_PLUGINS.includes(payload.plugin as KeyedPlugin)) throw new Error('plugin');
     siteId = payload.site_id;
+    plugin = payload.plugin as KeyedPlugin;
     subject = payload.sub!;
   } catch {
     return json(401, { error: 'invalid_pass' });
@@ -128,6 +131,8 @@ export async function serveStoreConnection(input: { db: D1Database; authorizatio
   if (Number(store.active) !== 1) return json(403, { error: 'store_suspended' });
   const keys = await input.db.prepare('SELECT plugin FROM dinkuskit_plugin_key WHERE site_id = ?').bind(siteId).all<{ plugin: KeyedPlugin }>();
   const connected = new Set((keys.results ?? []).map(row => row.plugin));
+  // A pass from a key since cancelled (uninstall) or disconnected (the owner) reads nothing, even before it expires.
+  if (!connected.has(plugin)) return json(401, { error: 'invalid_pass' });
   return json(200, { business: store.name, site_origin: store.site_origin, plugins: KEYED_PLUGINS.filter(plugin => connected.has(plugin)) });
 }
 
@@ -245,7 +250,9 @@ export async function issueStorePass(input: {
     subject: store.account_subject, siteId: used.site_id, audience: service?.audience ?? ownPass!.audience,
     scope: service?.scope ?? ownPass!.scope, privateJwkJson: input.privateJwkJson,
     // The store's web address as Connect checked it, so Payments can send shoppers back to the store.
-    claims: { site_origin: store.site_origin, ...(isolated ? shipClaims(recipient) : {}) }, backdateSeconds: 2,
+    claims: { site_origin: store.site_origin, ...(isolated ? shipClaims(recipient) : {}),
+      // The connected-to read stops the moment this plugin's key is cancelled or disconnected.
+      ...(ownPass === STORE_CONNECTION_PASS ? { plugin: used.plugin } : {}) }, backdateSeconds: 2,
   });
   if (!signed.ok) return json(503, { error: 'signing_unavailable' });
   await persistPublicJwk(input.db, signed.kid, signed.publicJwk);

@@ -1,6 +1,6 @@
 ---
 article: store-owners/setup
-base: sha256:cbe41670d428e7db9a7a7fd892aa2f9a4f2c8d4778a07e025ecae328eaef6b27
+base: sha256:ef736f5b6391ad53666e64f4281154f03622ff3195d41ab520806401abf4976d
 title: "Set up a store on your EmDash site"
 summary: "Prepare your existing site, connect the right store, and identify what must work before adding a product."
 audience: "Store owners"
@@ -16,7 +16,7 @@ An existing EmDash site with Commerce and Payments installed and connected to Di
 
 Read [requirements and version scope](/docs/start-here). Use a test site you can restore, served on its https address, where you are an Administrator and can install plugins and change the theme. The business owner who should own this store needs a DinkusKit.com account. Start from a supported EmDash installation; this guide does not replace it with a new template site.
 
-If your theme has no product pages, cart and checkout, a developer must add the [site integration](/docs/developers/integrate). Products are managed on the site's **Content > Products** pages, so the site needs a `products` collection whose pages carry a Commerce product field (`commerce_item_id`), and a publish check that puts a product on sale when its page is published. Template Store has both. Installing Commerce alone does not supply them.
+If your theme has no product pages, cart and checkout, a developer must add the [site integration](/docs/developers/integrate). Products are managed on the site's **Content \> Products** pages, so the site needs a `products` collection whose pages carry a Commerce product field (`commerce_item_id`), and a publish check that puts a product on sale when its page is published. Template Store has both. Installing Commerce alone does not supply them.
 
 ## Install the plugins
 
@@ -28,7 +28,7 @@ The sidebar then shows a **Store** folder with **Orders** and **Commerce setting
 
 ## Connect Commerce first
 
-1. Open **Store > Commerce settings** (**Dinkus Commerce > Commerce settings** on Commerce versions released before the Store folder, such as 0.6.0). Under **Connect Commerce**, press **Connect**.
+1. Open **Store \> Commerce settings** (**Dinkus Commerce \> Commerce settings** on Commerce versions released before the Store folder, such as 0.6.0). Under **Connect Commerce**, press **Connect**.
 2. The page shows **Approve at DinkusKit.com** with a link. The business owner opens it, signs in at DinkusKit.com and presses **Approve**. Anyone helping can send the owner the same link.
 3. Back in Commerce settings, the page says it is connected to DinkusKit.com and names the Store ID.
 

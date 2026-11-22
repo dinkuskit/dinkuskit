@@ -165,9 +165,9 @@ async function main() {
     wrangler: pkgVersion('wrangler'),
     astro: pkgVersion('astro'),
   };
-  assert.equal(versions.emdash, '1.4.0');
-  assert.equal(versions['@emdash-cms/auth'], '1.4.0');
-  assert.equal(versions['@emdash-cms/cloudflare'], '1.4.0');
+  assert.equal(versions.emdash, '1.5.0');
+  assert.equal(versions['@emdash-cms/auth'], '1.5.0');
+  assert.equal(versions['@emdash-cms/cloudflare'], '1.5.0');
   assert.equal(versions['@astrojs/cloudflare'], '14.3.3');
   assert.equal(versions.wrangler, '4.144.0');
 
@@ -454,7 +454,7 @@ async function main() {
     assert.equal(baseline.preserved.grants[0].site_id, 'upgrade-site');
     assert.deepEqual(baseline.artifacts, []);
     await writeFile(join(work, 'UPGRADE-BASELINE.json'), `${JSON.stringify({ source: LEGACY_SOURCE, versions: '1.0.1', ...baseline }, null, 2)}\n`);
-    record('Actual 1.0.1 runtime created content/media references, settings, plugin records and completed seed; 090/091 are pending');
+    record('Actual 1.0.1 runtime created content/media references, settings, plugin records and completed seed; 090-097 are pending');
   }
 
   await stopOwned(worker1);
@@ -483,15 +483,18 @@ async function main() {
   record('Anonymous public read after restart still shows the authenticated D1-backed edit');
   if (upgrade) {
     const after = await (await request('/__upgrade/state')).json();
-    assert.deepEqual(after.migrations.filter(name => !baseline.migrations.includes(name)), ['090_redirect_enable_loop_guard', '091_redirect_artifacts']);
+    assert.deepEqual(after.migrations.filter(name => !baseline.migrations.includes(name)), [
+      '090_redirect_enable_loop_guard', '091_redirect_artifacts', '092_plugin_kv_options', '093_menu_item_orphans',
+      '094_media_usage_file_url_reindex', '095_plugin_storage_unique_scope', '096_revision_kind_and_editors', '097_room_storage',
+    ]);
     assert.ok(baseline.migrations.every(name => after.migrations.includes(name)));
     assert.deepEqual(after.preserved, baseline.preserved, 'CMS and merchant state must be preserved byte-for-byte');
     assert.deepEqual(after.artifacts, ['_emdash_redirect_artifacts', '_emdash_redirect_generation_artifacts', '_emdash_redirect_state']);
     const authenticatedAfter = await jsonOf(await request('/_emdash/api/content/pages/home'));
     assert.equal(authenticatedAfter.status, 200, 'original CMS session survives the actual version upgrade');
     assert.match(JSON.stringify(contentFieldData(unwrapContentEnvelope(authenticatedAfter.json, 'upgraded home').item)), /emdash-media:cms-upgrade-media/);
-    await writeFile(join(work, 'UPGRADE-AFTER.json'), `${JSON.stringify({ versions: '1.4.0', ...after }, null, 2)}\n`);
-    record('Actual 1.0.1 -> 1.4 upgrade applied only 090/091, preserving CMS state, media reference, original session and merchant authority rows without reseeding');
+    await writeFile(join(work, 'UPGRADE-AFTER.json'), `${JSON.stringify({ versions: '1.5.0', ...after }, null, 2)}\n`);
+    record('Actual 1.0.1 -> 1.5 upgrade applied only 090-097, preserving CMS state, media reference, original session and merchant authority rows without reseeding');
   }
 
   const spoofedAfter = await spoofedMutation();
@@ -521,7 +524,7 @@ async function main() {
   await stopOwned(worker2);
   await writeSanitizedLog('wrangler-2.log', worker2.output());
   if (upgrade) {
-    const worker3 = startWorker('worker-3-emdash-1.4.0');
+    const worker3 = startWorker('worker-3-emdash-1.5.0');
     await waitReady(origin, worker3);
     rememberOwnedTree(worker3);
     const restarted = await (await request('/__upgrade/state')).json();
@@ -534,7 +537,7 @@ async function main() {
     assert.equal((await request('/_emdash/api/content/pages/home')).status, 200);
     await stopOwned(worker3);
     await writeSanitizedLog('wrangler-3.log', worker3.output());
-    record('Upgraded 1.4 runtime restarted again with unchanged CMS/merchant state and migration ledger');
+    record('Upgraded 1.5 runtime restarted again with unchanged CMS/merchant state and migration ledger');
   }
   const persistAfter = persistFingerprint();
   assert.ok(d1PersistPaths(persistAfter.files.map((path) => join(persist, path))).length > 0, 'D1 persist files missing after worker-2 stop');

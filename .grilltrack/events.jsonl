@@ -263,3 +263,10 @@
 {"action": "decision_superseded", "at": "2026-11-22T13:38:21+00:00", "data": {"affected": [], "decision_id": "store-connect-checkout-settings-083", "replacement_id": "store-settings-in-emdash-130"}, "event_id": "9ce2695a-27c2-49a8-b64b-4004c5b54988"}
 {"action": "decision_proposed", "at": "2026-11-22T14:20:20+00:00", "data": {"decision_id": "catalog-hosted-service-20261122"}, "event_id": "4cacbcb4-6f4a-4e7d-9002-50bbdb821f60"}
 {"action": "decision_locked", "at": "2026-11-22T14:20:20+00:00", "data": {"decision_id": "catalog-hosted-service-20261122"}, "event_id": "7033e67c-8954-44fd-8dd1-474185d76e78"}
+{"action": "focus_started", "at": "2026-11-22T16:49:29+00:00", "data": {"cadence": "sequential", "domain": "Website EmDash 1.5 source upgrade"}, "event_id": "aec2b40f-b517-4a60-bf5b-551c600582c9"}
+{"action": "shared_understanding_confirmed", "at": "2026-11-22T16:49:29+00:00", "data": {"summary": "The owner approved the EmDash 1.5 upgrade plan on 22 Nov 2026: plugins first, then this website, then the template store; the website deploy stays a separate operator step."}, "event_id": "7885b3db-ebe8-4942-841d-8ec467896e70"}
+{"action": "decision_proposed", "at": "2026-11-22T16:49:29+00:00", "data": {"decision_id": "website-emdash15-20261122"}, "event_id": "8f33aa78-7337-4efd-a76c-f2d199863794"}
+{"action": "decision_locked", "at": "2026-11-22T16:49:29+00:00", "data": {"decision_id": "website-emdash15-20261122"}, "event_id": "5486b578-c247-45c6-8cc0-144383a711d1"}
+{"action": "decision_implemented", "at": "2026-11-22T16:49:29+00:00", "data": {"decision_id": "website-emdash15-20261122"}, "event_id": "5a24e9b8-b888-4311-92ce-03ad1043d044"}
+{"action": "decision_verified", "at": "2026-11-22T16:49:29+00:00", "data": {"decision_id": "website-emdash15-20261122"}, "event_id": "18ee964e-8a61-40eb-9825-57268b07e707"}
+{"action": "focus_started", "at": "2026-11-22T16:49:29+00:00", "data": {"cadence": "frontier-batch", "domain": "Connect to DinkusKit once and one dashboard inside EmDash"}, "event_id": "31181800-d2ba-4c17-942d-dc7dd6ae08bf"}

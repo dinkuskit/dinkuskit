@@ -16,7 +16,6 @@ test('store tabs and independent settings saves work without JavaScript', { time
       t.diagnostic(`Checking ${width}px ${theme}`);
       // Reset only this synthetic fixture. Never submit settings to the hosted account.
       await settingsPost(runtime, owner, first, { action: 'checkout_settings', shipping_mode: 'free', payments_mode: 'test' });
-      await settingsPost(runtime, owner, first, { action: 'service', service: 'ship', on: '0' });
       const context = await browser.newContext({ viewport: { width, height: 900 }, javaScriptEnabled: false, colorScheme: theme });
       context.setDefaultTimeout(10_000);
       context.setDefaultNavigationTimeout(30_000);
@@ -119,12 +118,11 @@ test('store tabs and independent settings saves work without JavaScript', { time
         await open('Plugins');
         assert.equal(await card.getByRole('list', { name: 'Connected plugins' }).count(), 1);
         assert.equal(await card.getByRole('button', { name: 'Disconnect Commerce', exact: true }).count(), 1);
-        assert.equal(await card.getByRole('button', { name: 'Turn on Ship', exact: true }).count(), 1);
+        // store-connect-ship-on-at-setup-126: Ship has no switch; it turns on when the Ship plugin connects.
+        assert.equal(await card.getByRole('button', { name: 'Turn on Ship', exact: true }).count(), 0);
+        assert.match(await card.innerText(), /Ship: Off\. Press Connect or Finish setup in the Ship plugin in EmDash to turn it on\./);
         assert.equal(await card.locator('.checkout-settings').count(), 0);
         await capture('plugins');
-        await save('Turn on Ship');
-        assert.equal(await current(card).innerText(), 'Plugins', 'service change returns to Plugins');
-        assert.equal(await card.getByRole('button', { name: 'Turn off Ship', exact: true }).count(), 1);
         // Unknown links fall back per store; they neither reveal another store nor write settings.
         await page.goto(`${runtime.origin}/account/sites?store=unknown&tab=shipping`);
         assert.equal(await current(card).innerText(), 'Shipping'); assert.equal(await current(other).innerText(), 'Plugins');

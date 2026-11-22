@@ -116,7 +116,7 @@ test('Payments and Ship wait for Commerce, then each plugin and beta gets its ow
     assert.match(payments.issued.body.store_key, /^dk_store_/, 'and its own store key for its status page');
     const ship = await connect(f, 'ship-beta');
     assert.deepEqual(Object.keys(ship.issued.body).sort(), ['site_id', 'store_key']);
-    assert.equal(count(f, "dinkuskit_service_grant WHERE service = 'ship'"), 0, 'connecting the Ship plugin does not turn Ship on');
+    assert.equal(count(f, "dinkuskit_service_grant WHERE service = 'ship' AND revoked = 0"), 1, 'connecting the Ship plugin turns Ship on (store-connect-ship-on-at-setup-126)');
     const keys = [payments, commerce, ship].map(c => c.issued.body.store_key);
     assert.equal(new Set(keys).size, 3);
     assert.equal(count(f, 'dinkuskit_plugin_key WHERE site_id = ?', commerce.body.site_id), 3);

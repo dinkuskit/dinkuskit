@@ -1,5 +1,5 @@
 import { shipRecipient } from './ship-recipient.ts';
-import { MerchantUnavailableError, seeOther, unavailableResponse, COMING_SOON_SERVICES, OWNER_ENABLED_SERVICES, type KeyedPlugin, type OwnerEnabledService } from './config.ts';
+import { MerchantUnavailableError, seeOther, unavailableResponse, COMING_SOON_SERVICES, SWITCHED_SERVICES, type KeyedPlugin, type OwnerEnabledService } from './config.ts';
 import { getMerchantEnv } from './bindings.ts';
 import { listActiveBindings, listServiceGrants, revokeServiceGrant, type SiteBinding } from './store.ts';
 import { rejectCrossOriginMutation } from './origin.ts';
@@ -98,7 +98,7 @@ export async function loadSitesPage(input: {
     }
     const ownerService = form.get('service') as OwnerEnabledService;
     const turnOn = form.get('on') === '1';
-    if (form.get('action') === 'service' && siteId && OWNER_ENABLED_SERVICES.includes(ownerService) && !(turnOn && COMING_SOON_SERVICES.includes(ownerService))) {
+    if (form.get('action') === 'service' && siteId && SWITCHED_SERVICES.includes(ownerService) && !(turnOn && COMING_SOON_SERVICES.includes(ownerService))) {
       await setOwnerService(env.MERCHANT_DB, { ...owner, service: ownerService, on: turnOn });
       // Commerce picks up the change itself within 5 minutes, or at once on Get checkout settings.
       if (await loadCommerceSettings(env.MERCHANT_DB, siteId)) return seeOther(await returnHome(siteId, true));
@@ -145,7 +145,10 @@ export async function loadSitesPage(input: {
       }
     }
     if (form.get('action') === 'disconnect_plugin' && siteId) {
-      await disconnectPlugin(env.MERCHANT_DB, { ...owner, plugin: String(form.get('plugin') ?? '') as KeyedPlugin });
+      const plugin = String(form.get('plugin') ?? '') as KeyedPlugin;
+      await disconnectPlugin(env.MERCHANT_DB, { ...owner, plugin });
+      // Disconnecting Ship turns Ship off, which changes Commerce's settings like a switch did.
+      if (plugin === 'ship' && await loadCommerceSettings(env.MERCHANT_DB, siteId)) return seeOther(await returnHome(siteId, true));
     }
     if (!shown) return seeOther(await returnHome(siteId));
   }

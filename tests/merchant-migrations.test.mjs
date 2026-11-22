@@ -25,6 +25,7 @@ const expectedLedger = [
   { version: 13, name: '0013_ship_recipient.sql' },
   { version: 14, name: '0014_plugin_keys.sql' },
   { version: 15, name: '0015_free_shipping_over.sql' },
+  { version: 16, name: '0016_plugin_disconnect.sql' },
 ];
 
 function wranglerD1(persistTo, args) {
@@ -431,7 +432,7 @@ test('merchant D1 migrations: a runtime checks the schema once and the next star
     runtime = await startMerchantTestRuntime({ persistTo });
     assert.equal((await jwks(runtime)).status, 200);
     assert.deepEqual(ledgerRows(persistTo), expectedLedger);
-    const removed = wranglerD1(persistTo, ['execute', '--yes', '--command', 'DELETE FROM dinkuskit_schema_migrations WHERE version = 15']);
+    const removed = wranglerD1(persistTo, ['execute', '--yes', '--command', 'DELETE FROM dinkuskit_schema_migrations WHERE version = 16']);
     assert.equal(removed.status, 0, removed.stderr || removed.stdout);
     assert.equal((await jwks(runtime)).status, 200);
     assert.deepEqual(ledgerRows(persistTo), expectedLedger.slice(0, -1), 'later requests in the same runtime skip the schema check');

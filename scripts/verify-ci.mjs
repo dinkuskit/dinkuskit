@@ -26,7 +26,6 @@ const PARTS = {
     'test:shared-store',
     'test:foundation',
     'test:checkout-settings-browser',
-    'test:inventory-overview',
     'test:organization-approvals',
     'test:operator-admin',
     'test:dev-cms',

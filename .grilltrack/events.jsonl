@@ -267,3 +267,5 @@
 {"action": "shared_understanding_confirmed", "at": "2026-11-22T15:39:25+00:00", "data": {"summary": "The owner reviewed the rule in five pieces and approved each, then the whole, on 22 Nov 2026."}, "event_id": "13899e97-f5b4-43a2-949e-b86b6299c318"}
 {"action": "decision_proposed", "at": "2026-11-22T15:39:26+00:00", "data": {"decision_id": "plugin-communication-rule-20261122"}, "event_id": "4ba6c9ec-e09b-4bf9-83d6-d16940c5f735"}
 {"action": "decision_locked", "at": "2026-11-22T15:39:26+00:00", "data": {"decision_id": "plugin-communication-rule-20261122"}, "event_id": "5df4254d-ce32-44c4-b1ca-a9e7a4437e24"}
+{"action": "decision_proposed", "at": "2026-11-22T17:27:47+00:00", "data": {"decision_id": "website-inventory-overview-removal-20261122"}, "event_id": "c84dc7b9-c477-4ad6-acf7-0d7a6af3adbe"}
+{"action": "decision_locked", "at": "2026-11-22T17:27:47+00:00", "data": {"decision_id": "website-inventory-overview-removal-20261122"}, "event_id": "5b54b236-0a64-43b6-8dbf-4340dead0438"}

@@ -49,9 +49,38 @@ Payments got the same email naming Dinkus Payments.
   even for a connection still waiting". Both fail on the previous head (`704c2c7`)
   and pass now.
 - `tests/shared-store-routes.test.mjs`, against the built Worker: Payments' receipt is
-  slowed by 1.5 s, the owner presses Disconnect Payments 300 ms into Finish setup, and
+  slowed by 5 s, the owner presses Disconnect Payments 300 ms into Finish setup, and
   Finish setup answers 409 with no store key; the old key stays invalid and the page
   says "Payments plugin: not connected" with no Finish setup offered.
+
+## Worker trace with stored rows (head after `ad88252`)
+
+`worker-trace.mjs` drives the built Worker and prints each request and reply, with
+keys, passes, PKCE values and secrets redacted. After each step it prints the rows
+read from the Worker's local D1 file. Its output is `worker-trace.md`:
+
+1. **Allowed Finish setup.** Finish setup answers 200 with Payments' own key, and
+   the key trades for a checkout pass. D1 then holds one Commerce key, one Payments
+   key and the Payments grant.
+2. **Disconnect during Finish setup.** The receipt read is slowed to 5 s. The
+   owner presses Disconnect Payments 300 ms in, and the Finish setup sent before it
+   answers 409 with no key. The old key then gets `invalid_store_key`. D1 holds no
+   Payments key, the connection is denied, and the Disconnect is recorded.
+3. **Stale key cancel.** The owner approves a new Payments Connect that has not
+   been picked up yet. An uninstall cancel then presents the key the Disconnect
+   removed and gets 401. The approved Connect stays approved, and its token
+   exchange still hands over a key. A cancel with that current key answers 200 and
+   leaves only Commerce's key.
+
+`tests/plugin-connect.test.mjs` also has "an uninstall whose key the owner
+disconnected meanwhile cancels nothing, and cannot deny the Connect approved
+since". It pauses the cancel after its key read, so a Disconnect and a new Approve
+happen in between. It fails on `ad88252` and passes now: the denial and the key
+delete run in one batch, and both only while that exact key is still current.
+
+The plugin side runs the plugins' real entry points against this Worker. See
+`proof/finish-setup-20261122/authority-chain-trace.md` in dinkuskit/payments#122
+(37 checks) and dinkuskit/ship#101 (34 checks).
 
 ## Data compatibility (migration 0016)
 

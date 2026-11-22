@@ -6,7 +6,7 @@ import { createHash, randomBytes } from 'node:crypto';
 import { stripTypeScriptTypes } from 'node:module';
 import { startStoreConnection, consentStoreConnection, exchangeStoreConnectionToken, finishStoreSetup } from '../src/account/connect.ts';
 import { createLocalTestKeys } from '../src/account/jwt.ts';
-import { disconnectPlugin, hashKey, issueStorePass, listStoreSetup, newStoreKey, setOwnerService } from '../src/account/store-passes.ts';
+import { cancelPluginKey, disconnectPlugin, hashKey, issueStorePass, listStoreSetup, newStoreKey, setOwnerService } from '../src/account/store-passes.ts';
 import { saveCommerceSettings, serveCommerceSettings } from '../src/account/commerce-settings.ts';
 import { REGISTERED_STORE_SERVICES } from '../src/account/config.ts';
 
@@ -228,6 +228,34 @@ test('Disconnect cancels an approved first-time or reconnect Connect even before
     assert.equal(await disconnectPlugin(f.db, { subject: 'org-a', siteId, organizationId: 'a', actorUserId: 'alice', plugin: 'ship' }), true);
     assert.deepEqual(await exchange(f, firstShip), { status: 400, body: { error: 'access_denied' } });
     assert.equal(count(f, "dinkuskit_plugin_key WHERE site_id = ? AND plugin = 'ship'", siteId), 0);
+  } finally { f.close(); }
+});
+
+test('an uninstall whose key the owner disconnected meanwhile cancels nothing, and cannot deny the Connect approved since', async () => {
+  const f = await fixture(); try {
+    const commerce = await connect(f, 'commerce');
+    const payments = await connect(f, 'payments');
+    const siteId = commerce.body.site_id;
+    let fresh;
+    // The uninstall has read its key; before it writes, the owner disconnects Payments and approves a new Connect.
+    const paused = { ...f.db, prepare(sql) {
+      const q = f.db.prepare(sql);
+      if (!sql.startsWith('SELECT site_id, plugin FROM dinkuskit_plugin_key')) return q;
+      return { bind(...args) { q.bind(...args); return { async first() {
+        const row = await q.first();
+        assert.equal(await disconnectPlugin(f.db, { subject: 'org-a', siteId, organizationId: 'a', actorUserId: 'alice', plugin: 'payments' }), true);
+        fresh = await start(f, 'payments'); assert.equal((await consent(f, fresh)).ok, true);
+        return row;
+      } }; } };
+    }, batch: queries => f.db.batch(queries) };
+    const cancelled = await cancelPluginKey({ db: paused, authorization: `Bearer ${payments.issued.body.store_key}`, body: { site_id: siteId } });
+    assert.deepEqual([cancelled.status, await cancelled.json()], [401, { error: 'invalid_store_key' }], 'the key was no longer current');
+    const issued = await exchange(f, fresh);
+    assert.equal(issued.status, 200, 'the Connect the owner approved still picks up its key');
+    assert.match(issued.body.store_key, /^dk_store_/);
+    const plain = await cancelPluginKey({ db: f.db, authorization: `Bearer ${issued.body.store_key}`, body: { site_id: siteId } });
+    assert.deepEqual([plain.status, await plain.json()], [200, { cancelled: true }], 'a current key still cancels itself');
+    assert.equal(count(f, "dinkuskit_plugin_key WHERE site_id = ? AND plugin = 'commerce'", siteId), 1, 'Commerce keeps its key');
   } finally { f.close(); }
 });
 

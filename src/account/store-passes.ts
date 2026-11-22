@@ -90,11 +90,15 @@ export async function cancelPluginKey(input: { db: D1Database; authorization: st
     .first<{ site_id: string; plugin: KeyedPlugin }>();
   if (!row) return json(401, { error: 'invalid_store_key' });
   if (row.site_id !== fields.site_id) return json(403, { error: 'site_mismatch' });
-  await input.db.batch([
-    input.db.prepare('DELETE FROM dinkuskit_plugin_key WHERE key_hash = ?').bind(hash),
-    input.db.prepare(`UPDATE dinkuskit_store_connection SET status = 'denied' WHERE site_id = ? AND service = ? AND status = 'approved'`)
-      .bind(row.site_id, row.plugin),
-  ]);
+  // One transaction, and only while this exact key is still current: a key the owner already
+  // disconnected (or replaced) cancels nothing, so it cannot deny a Connect approved since.
+  const [, deleted] = await input.db.batch([
+    input.db.prepare(`UPDATE dinkuskit_store_connection SET status = 'denied' WHERE site_id = ? AND service = ? AND status = 'approved'
+      AND EXISTS (SELECT 1 FROM dinkuskit_plugin_key WHERE key_hash = ? AND site_id = ? AND plugin = ?)`)
+      .bind(row.site_id, row.plugin, hash, row.site_id, row.plugin),
+    input.db.prepare('DELETE FROM dinkuskit_plugin_key WHERE key_hash = ? AND site_id = ? AND plugin = ?').bind(hash, row.site_id, row.plugin),
+  ]) as { meta?: { changes?: number } }[];
+  if ((deleted?.meta?.changes ?? 0) === 0) return json(401, { error: 'invalid_store_key' });
   return json(200, { cancelled: true });
 }
 

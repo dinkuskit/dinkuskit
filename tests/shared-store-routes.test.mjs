@@ -497,10 +497,12 @@ test('Finish setup through the routes: approve once, Ship on, connected-to read,
     assert.deepEqual(await (await trade(commerce.store_key,'ship:orders','dinkus-ship')).json(),{error:'service_not_enabled'},'Disconnect with no key still turns Ship off');
     assert.doesNotMatch(await (await request(runtime,owner,`/account/sites?store=${siteId}&tab=plugins`)).text(),/Disconnect Ship/);
     // The owner's Disconnect wins over a Finish setup already waiting on the store receipt: no key is issued.
-    const inFlight = await start('payments',{delay:1500});
-    const racing = finish(inFlight);
+    // The receipt read is slowed far past the Disconnect, so the Disconnect always lands while Finish setup waits.
+    const inFlight = await start('payments',{delay:5000});
+    let settled = false; const racing = finish(inFlight).finally(() => { settled = true; });
     await new Promise(resolve => setTimeout(resolve,300));
     assert.equal((await request(runtime,owner,'/account/sites',await form({action:'disconnect_plugin',site_id:siteId,plugin:'payments'}))).status,303);
+    assert.equal(settled,false,'the Disconnect landed while Finish setup was still reading the receipt');
     const lost = await racing;
     assert.equal(lost.status,409,'Finish setup is refused after the Disconnect');
     assert.equal((await lost.json()).store_key,undefined);

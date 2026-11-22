@@ -10,15 +10,19 @@ service, Access, or deployment involved.
 2. `2-home-on-emdash-1-5-0.png`: the public home page on the same 1.5.0
    runtime.
 
-Upgrade evidence comes from `npm run test:emdash-upgrade`, which starts the
-pinned 1.0.1 baseline, seeds CMS and merchant state, then restarts the same
-D1/R2 data on this build:
+Upgrade evidence comes from `npm run test:emdash-upgrade`, which now runs the
+upgrade from two baselines. Each starts the pinned baseline source, writes CMS
+and merchant state, then starts this build on the same D1/R2 data and restarts
+it once more:
 
-- PASS Actual 1.0.1 -> 1.5 upgrade applied only 090-097, preserving CMS
-  state, media reference, original session and merchant authority rows
-  without reseeding.
-- PASS Upgraded 1.5 runtime restarted again with unchanged CMS/merchant state
-  and migration ledger.
+- From 1.4.0 (the last `main` before this PR, what the live site runs), see
+  `upgrade-from-1-4-0.md`: PASS Actual 1.4.0 -> 1.5 upgrade applied only
+  092-097, preserving CMS state, media reference, original session and
+  merchant authority rows without reseeding.
+- From 1.0.1, as before: PASS Actual 1.0.1 -> 1.5 upgrade applied only
+  090-097, with the same preservation.
+- Both: PASS Upgraded 1.5 runtime restarted again with unchanged
+  CMS/merchant state and migration ledger.
 
 The other `npm run verify` steps also passed locally, except
 `test:history-archive` and `test:cms-operation-helpers`, which fail in cloud

@@ -1,6 +1,6 @@
 # One catalog for every DinkusKit store: scope
 
-Written 13 Nov 2026 for Ronald. Decisions are locked (see Decisions). Nothing has been deployed.
+Written 13 Nov 2026 for Ronald. Decisions are locked (see Decisions). The catalog went live at `catalog.dinkuskit.com` on 22 Nov 2026.
 
 Checked against: Shopify's agent docs (read 13 Nov 2026), UCP spec 2026-08-25, Commerce main `12a15e6`, template-store main `31a6520`, dinkuskit main `c429d72`, Cloudflare Vectorize pricing (page dated 30 Oct 2026). The gap list from the cart thread is in the project notes and I checked it against the docs. It holds up.
 

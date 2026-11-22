@@ -1,6 +1,7 @@
 {
-  // The cross-store catalog. Not deployed: account, database ids and the custom domain
-  // are filled in at deploy time, on the owner's go. See catalog/README.md.
+  // The cross-store catalog, live at catalog.dinkuskit.com. The ids here are placeholders:
+  // the account, database ids and custom domain are filled in at deploy time, on the
+  // owner's go. See catalog/README.md.
   "$schema": "../node_modules/wrangler/config-schema.json",
   "name": "dinkuskit-catalog",
   "main": "./src/worker.ts",

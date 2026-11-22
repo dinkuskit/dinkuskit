@@ -80,7 +80,7 @@ const serviceNote = (binding: { revoked: boolean; revokedBy: string | null }) =>
                   {PLUGIN_LABEL[plugin]} plugin: {store.plugins[plugin]
                     ? `connected ${when(store.plugins[plugin]!.createdAt)}, ${store.plugins[plugin]!.lastUsedAt ? `last used ${when(store.plugins[plugin]!.lastUsedAt!)}` : 'not used yet'}`
                     : plugin === 'commerce' ? 'not connected. Press Connect in the Commerce plugin in EmDash.'
-                    : `not connected. Press Connect in the ${PLUGIN_LABEL[plugin]} plugin in EmDash, after Commerce.`}
+                    : `not connected. Press Connect or Finish setup in the ${PLUGIN_LABEL[plugin]} plugin in EmDash, after Commerce.`}
                   {isOwner && store.plugins[plugin] ? (
                     <form method="post" action={tabHref(store.siteId, 'plugins')}>
                       <input type="hidden" name="action" value="disconnect_plugin" />
@@ -98,7 +98,18 @@ const serviceNote = (binding: { revoked: boolean; revokedBy: string | null }) =>
                 <li>
                   {SERVICE_LABEL[service]}: {store.services[service] === 'cut_off' ? 'Cut off by DinkusKit. Contact DinkusKit to have it restored.'
                     : store.services[service] === 'on' ? 'On' : service === 'payments' ? 'Off. Press Connect in the Payments plugin to turn it on.'
+                    : service === 'ship' ? 'Off. Press Connect or Finish setup in the Ship plugin in EmDash to turn it on.'
                     : comingSoon(service) ? 'Coming soon. Commerce does not take coupon codes yet.' : 'Off'}
+                  {isOwner && service === 'ship' && store.services.ship === 'on' && !store.plugins.ship ? (
+                    // Ship on with no Ship plugin key (uninstalled, or turned on before 126): Disconnect still turns it off.
+                    <form method="post" action={tabHref(store.siteId, 'plugins')}>
+                      <input type="hidden" name="action" value="disconnect_plugin" />
+                      <input type="hidden" name="site_id" value={store.siteId} />
+                      <input type="hidden" name="plugin" value="ship" />
+                      <input type="hidden" name="organization_id" value={organizationId} />
+                      <button type="submit">Disconnect Ship</button>
+                    </form>
+                  ) : null}
                   {isOwner && service === 'payments' && store.services.payments === 'on' ? (
                     <form method="post" action={tabHref(store.siteId, 'plugins')}>
                       <input type="hidden" name="action" value="revoke" />
@@ -108,7 +119,7 @@ const serviceNote = (binding: { revoked: boolean; revokedBy: string | null }) =>
                       <button type="submit">Revoke payments</button>
                     </form>
                   ) : null}
-                  {isOwner && service !== 'payments' && store.services[service] !== 'cut_off' && (store.services[service] === 'on' || !comingSoon(service)) ? (
+                  {isOwner && service === 'coupons' && store.services[service] !== 'cut_off' && (store.services[service] === 'on' || !comingSoon(service)) ? (
                     <form method="post" action={tabHref(store.siteId, 'plugins')}>
                       <input type="hidden" name="action" value="service" />
                       <input type="hidden" name="site_id" value={store.siteId} />

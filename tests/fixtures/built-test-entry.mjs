@@ -1,7 +1,6 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
 import production from './entry.mjs';
 import { fetchStoreProofReceipt } from './proof-fetch.mjs';
-import { inventoryOverviewRuntime } from './inventory-overview-transport.mjs';
 
 const ALS = Symbol.for('dinkuskit.merchant.transports.als');
 
@@ -60,8 +59,15 @@ async function testTransports(env) {
   const mail = env.MERCHANT_MAIL_CAPTURE;
   const proof = env.MERCHANT_PROOF_SIMULATION;
   return {
-    inventoryOverview: inventoryOverviewRuntime(env),
     emailDelivery: mail ? emailDeliveryFromCapture(mail) : undefined,
+    // Finish setup's email to the owner, kept whole so a test can read its words.
+    noticeEmail: mail ? { async send(message) {
+      const key = `notice:${String(message.to).toLowerCase()}`;
+      const list = JSON.parse(await mail.get(key) ?? '[]');
+      list.push({ subject: message.subject, text: message.text });
+      await mail.put(key, JSON.stringify(list));
+      return { messageId: 'test-notice' };
+    } } : undefined,
     proofFetch: proof ? simulationFetch(proof, env.MERCHANT_DB) : undefined,
     paymentsStatusFetch: proof ? paymentsStatusFetch(proof) : undefined,
   };
@@ -128,26 +134,19 @@ async function proofRoutes(request, env, ctx) {
     return new Response(null, { status: 303, headers });
   }
 
+  if (request.method === 'POST' && url.pathname === '/__proof/notice/take') {
+    const body = await request.json();
+    const key = `notice:${String(body.email ?? '').toLowerCase()}`;
+    const list = JSON.parse(await env.MERCHANT_MAIL_CAPTURE.get(key) ?? '[]');
+    await env.MERCHANT_MAIL_CAPTURE.delete(key);
+    return json(200, list);
+  }
+
   if (request.method === 'POST' && url.pathname === '/__proof/mail/take') {
     const body = await request.json();
     const captured = await takeCapturedMail(env, body.email);
     if (!captured) return json(404, { error: 'not_found' });
     return json(200, { intent: captured.intent, hasToken: Boolean(tokenFromCaptured(captured)) });
-  }
-
-  if (url.pathname === '/__proof/inventory-overview') {
-    if (request.method === 'GET') return json(200, JSON.parse(await env.MERCHANT_INVENTORY_OVERVIEW.get('observed') ?? '{}'));
-    const fixture = await request.json();
-    await env.MERCHANT_INVENTORY_OVERVIEW.put('fixture', JSON.stringify(fixture));
-    if (fixture.seed_bindings) {
-      const org = await env.MERCHANT_DB.prepare('SELECT authority_subject FROM dinkuskit_organization WHERE organization_id = ?').bind(fixture.organizationId).first();
-      if (!org) return json(400, { error: 'synthetic_org_missing' });
-      for (const [siteId, origin, revoked] of [['site-north', 'https://north.example.test', 0], ['site-south', 'https://south.example.test', 1]]) {
-        await env.MERCHANT_DB.prepare(`INSERT OR REPLACE INTO dinkuskit_store_identity (site_id,site_origin,account_subject,created_at) VALUES (?, ?, ?, 1)`).bind(siteId, origin, org.authority_subject).run();
-        await env.MERCHANT_DB.prepare(`INSERT OR REPLACE INTO dinkuskit_service_grant (site_id,service,revoked,granted_at) VALUES (?, 'inventory', ?, 1)`).bind(siteId, revoked).run();
-      }
-    }
-    return json(200, { syntheticOnly: true });
   }
 
   if (url.pathname === '/__proof/foundation') {

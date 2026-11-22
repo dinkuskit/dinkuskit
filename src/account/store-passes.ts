@@ -1,10 +1,11 @@
+import { createLocalJWKSet, jwtVerify } from 'jose';
 import {
-  COMMERCE_SETTINGS_PASS, KEYED_PLUGINS, OWNER_ENABLED_SERVICES, PLUGIN_KEY_SCOPES, STORE_KEY_PREFIX, STORE_PASS_LIMIT_PER_MINUTE,
+  ACCOUNT_ISSUER, DINKUSKIT_PASSES, KEYED_PLUGINS, STORE_CONNECTION_PASS, OWNER_ENABLED_SERVICES, PLUGIN_KEY_SCOPES, STORE_KEY_PREFIX, STORE_PASS_LIMIT_PER_MINUTE,
   STORE_PASS_SERVICES, type KeyedPlugin, type OwnerEnabledService, type StorePassService,
 } from './config.ts';
 import { shipRecipient, shipClaims, shipTestMode, SHIP_SANDBOX_AUDIENCE, type ShipSandboxRegistration } from './ship-recipient.ts';
 import { signServicePass } from './jwt.ts';
-import { persistPublicJwk, revokeServiceGrant } from './store.ts';
+import { listPublicJwks, persistPublicJwk, revokeServiceGrant } from './store.ts';
 
 /**
  * Store keys and the passes plugins trade them for. Each plugin gets its own key at
@@ -25,6 +26,8 @@ export async function hashKey(key: string): Promise<string> {
   const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(key)));
   return [...digest].map(byte => byte.toString(16).padStart(2, '0')).join('');
 }
+/** Names one stored key inside a pass without putting the stored hash itself in the pass. */
+const keyRef = (keyHash: string) => hashKey(`store-connection:${keyHash}`);
 
 /** The store's owner, signed in to the business that owns the store, with a usable login. */
 const OWNER_OF_STORE = `EXISTS (SELECT 1 FROM dinkuskit_store_identity i WHERE i.site_id = ? AND i.account_subject = ?)
@@ -49,17 +52,93 @@ export function newStoreKey(): string {
 /**
  * Disconnect on Your Stores: the plugin's key stops working at once, and an approved
  * Connect for that plugin not yet picked up dies with it, so it cannot hand over a new key.
+ * DinkusKit.com remembers the disconnect, so that plugin's Finish setup cannot bring it back
+ * without the owner's Approve (connect-finish-setup-disconnect-137). Disconnecting Ship
+ * also turns Ship off (store-connect-ship-on-at-setup-126).
  */
 export async function disconnectPlugin(db: D1Database, input: OwnerInput & { plugin: KeyedPlugin }): Promise<boolean> {
   if (!KEYED_PLUGINS.includes(input.plugin)) return false;
   const [deletedKey, deniedConnections] = await db.batch([
     db.prepare(`DELETE FROM dinkuskit_plugin_key WHERE site_id = ? AND plugin = ? AND ${OWNER_OF_STORE}`)
       .bind(input.siteId, input.plugin, ...ownerArgs(input)),
+    // A Connect or Finish setup still in progress dies too, so nothing started before the Disconnect can bring the plugin back.
     db.prepare(`UPDATE dinkuskit_store_connection SET status = 'denied'
-      WHERE site_id = ? AND service = ? AND status = 'approved' AND ${OWNER_OF_STORE}`)
+      WHERE site_id = ? AND service = ? AND status IN ('pending', 'approved') AND ${OWNER_OF_STORE}`)
       .bind(input.siteId, input.plugin, ...ownerArgs(input)),
+    db.prepare(`INSERT INTO dinkuskit_plugin_disconnect (site_id, plugin, disconnected_at) SELECT ?, ?, ? WHERE ${OWNER_OF_STORE}
+      ON CONFLICT(site_id, plugin) DO UPDATE SET disconnected_at = excluded.disconnected_at`)
+      .bind(input.siteId, input.plugin, now(), ...ownerArgs(input)),
   ]) as { meta?: { changes?: number } }[];
-  return (deletedKey?.meta?.changes ?? 0) > 0 || (deniedConnections?.meta?.changes ?? 0) > 0;
+  // Disconnect is how Ship turns off (store-connect-ship-on-at-setup-126), with or without a key left to delete.
+  const shipOff = input.plugin === 'ship' && await revokeServiceGrant(db, input.subject, input.siteId, 'ship', input.actorUserId, input.organizationId);
+  return (deletedKey?.meta?.changes ?? 0) > 0 || (deniedConnections?.meta?.changes ?? 0) > 0 || shipOff;
+}
+
+/**
+ * POST /api/store-keys/cancel, from a plugin's uninstall (connect-uninstall-cancels-key-134):
+ * the plugin's own key, as Bearer, cancels only itself. The store, the other plugins' keys
+ * and any service grant stay, and nothing is remembered, so installing the plugin again
+ * finishes setup as before. An approved Connect for that plugin not yet picked up dies too.
+ */
+export async function cancelPluginKey(input: { db: D1Database; authorization: string | null; body: unknown }): Promise<Response> {
+  const key = input.authorization?.match(/^Bearer ([^\s]+)$/i)?.[1];
+  if (!key || !KEY_PATTERN.test(key)) return json(401, { error: 'invalid_store_key' });
+  const fields = input.body as Record<string, unknown> | null;
+  if (!fields || typeof fields !== 'object' || Array.isArray(fields) || Object.keys(fields).join(',') !== 'site_id' || typeof fields.site_id !== 'string') {
+    return json(400, { error: 'invalid_request' });
+  }
+  const hash = await hashKey(key);
+  const row = await input.db.prepare('SELECT site_id, plugin FROM dinkuskit_plugin_key WHERE key_hash = ?').bind(hash)
+    .first<{ site_id: string; plugin: KeyedPlugin }>();
+  if (!row) return json(401, { error: 'invalid_store_key' });
+  if (row.site_id !== fields.site_id) return json(403, { error: 'site_mismatch' });
+  // One transaction, and only while this exact key is still current: a key the owner already
+  // disconnected (or replaced) cancels nothing, so it cannot deny a Connect approved since.
+  const [, deleted] = await input.db.batch([
+    input.db.prepare(`UPDATE dinkuskit_store_connection SET status = 'denied' WHERE site_id = ? AND service = ? AND status = 'approved'
+      AND EXISTS (SELECT 1 FROM dinkuskit_plugin_key WHERE key_hash = ? AND site_id = ? AND plugin = ?)`)
+      .bind(row.site_id, row.plugin, hash, row.site_id, row.plugin),
+    input.db.prepare('DELETE FROM dinkuskit_plugin_key WHERE key_hash = ? AND site_id = ? AND plugin = ?').bind(hash, row.site_id, row.plugin),
+  ]) as { meta?: { changes?: number } }[];
+  if ((deleted?.meta?.changes ?? 0) === 0) return json(401, { error: 'invalid_store_key' });
+  return json(200, { cancelled: true });
+}
+
+/**
+ * GET /api/store-connection with a store:connection pass (connect-shows-siblings-133): the
+ * business the store is connected to and its connected DinkusKit plugins, so each plugin's
+ * page can say so without the owner leaving EmDash. The pass names the key that traded for
+ * it, and reads nothing once that key is cancelled, disconnected or replaced.
+ */
+export async function serveStoreConnection(input: { db: D1Database; authorization: string | null }): Promise<Response> {
+  const token = input.authorization?.match(/^Bearer ([^\s]+)$/i)?.[1];
+  if (!token) return json(401, { error: 'invalid_pass' });
+  let siteId: string, subject: string, plugin: KeyedPlugin, ref: string;
+  try {
+    const { payload } = await jwtVerify(token, createLocalJWKSet(await listPublicJwks(input.db) as Parameters<typeof createLocalJWKSet>[0]), {
+      issuer: ACCOUNT_ISSUER, audience: STORE_CONNECTION_PASS.audience, algorithms: ['ES256'], requiredClaims: ['exp', 'iat', 'sub'],
+    });
+    if (typeof payload.scope !== 'string' || !payload.scope.split(' ').includes(STORE_CONNECTION_PASS.scope) || typeof payload.site_id !== 'string') throw new Error('scope');
+    if (typeof payload.plugin !== 'string' || !KEYED_PLUGINS.includes(payload.plugin as KeyedPlugin) || typeof payload.key_ref !== 'string') throw new Error('plugin');
+    siteId = payload.site_id;
+    plugin = payload.plugin as KeyedPlugin;
+    ref = payload.key_ref;
+    subject = payload.sub!;
+  } catch {
+    return json(401, { error: 'invalid_pass' });
+  }
+  const store = await input.db.prepare(`SELECT i.site_origin, o.name, ${STORE_ACTIVE} AS active FROM dinkuskit_store_identity i
+    JOIN dinkuskit_organization o ON o.authority_subject = i.account_subject
+    WHERE i.site_id = ? AND i.account_subject = ?`).bind(siteId, subject).first<{ site_origin: string; name: string; active: number }>();
+  if (!store) return json(401, { error: 'invalid_pass' });
+  if (Number(store.active) !== 1) return json(403, { error: 'store_suspended' });
+  const keys = await input.db.prepare('SELECT plugin, key_hash FROM dinkuskit_plugin_key WHERE site_id = ?').bind(siteId).all<{ plugin: KeyedPlugin; key_hash: string }>();
+  const connected = new Set((keys.results ?? []).map(row => row.plugin));
+  // Only while the key that traded for this pass is still that plugin's key: a pass from a key since
+  // cancelled (uninstall), disconnected (the owner) or replaced (a reinstall or a new Approve) reads nothing.
+  const issuer = (keys.results ?? []).find(row => row.plugin === plugin);
+  if (!issuer || await keyRef(issuer.key_hash) !== ref) return json(401, { error: 'invalid_pass' });
+  return json(200, { business: store.name, site_origin: store.site_origin, plugins: KEYED_PLUGINS.filter(plugin => connected.has(plugin)) });
 }
 
 /**
@@ -140,7 +219,9 @@ export async function issueStorePass(input: {
   const expectedKeys = isolated ? 'audience,generation,scope,site_id' : 'audience,scope,site_id';
   if (Object.keys(fields).sort().join(',') !== expectedKeys) return json(400, { error: 'invalid_request' });
   if (isolated && (!recipient || fields.generation !== recipient.generation || fields.scope !== 'ship:orders')) return json(403, { error: 'ship_recipient_mismatch' });
-  const settingsPass = !isolated && fields.scope === COMMERCE_SETTINGS_PASS.scope && fields.audience === COMMERCE_SETTINGS_PASS.audience;
+  // A pass for DinkusKit.com itself (checkout settings, the connected-to read) needs no service grant.
+  const ownPass = isolated ? undefined : DINKUSKIT_PASSES.find(pass => pass.scope === fields.scope && pass.audience === fields.audience);
+  const settingsPass = Boolean(ownPass);
   const service = isolated ? { service: 'ship', scope: 'ship:orders', audience: SHIP_SANDBOX_AUDIENCE } as const
     : settingsPass ? null : STORE_PASS_SERVICES.find(s => s.scope === fields.scope && s.audience === fields.audience);
   if (service?.service === 'ship' && recipient && !isolated) return json(403, { error: 'ship_recipient_mismatch' });
@@ -171,10 +252,12 @@ export async function issueStorePass(input: {
 
   if (isolated && !await shipTestMode(input.db, used.site_id, recipient)) return json(403, { error: 'ship_test_required' });
   const signed = await signServicePass({
-    subject: store.account_subject, siteId: used.site_id, audience: service?.audience ?? COMMERCE_SETTINGS_PASS.audience,
-    scope: service?.scope ?? COMMERCE_SETTINGS_PASS.scope, privateJwkJson: input.privateJwkJson,
+    subject: store.account_subject, siteId: used.site_id, audience: service?.audience ?? ownPass!.audience,
+    scope: service?.scope ?? ownPass!.scope, privateJwkJson: input.privateJwkJson,
     // The store's web address as Connect checked it, so Payments can send shoppers back to the store.
-    claims: { site_origin: store.site_origin, ...(isolated ? shipClaims(recipient) : {}) }, backdateSeconds: 2,
+    claims: { site_origin: store.site_origin, ...(isolated ? shipClaims(recipient) : {}),
+      // The connected-to read stops the moment this exact key is cancelled, disconnected or replaced.
+      ...(ownPass === STORE_CONNECTION_PASS ? { plugin: used.plugin, key_ref: await keyRef(hash) } : {}) }, backdateSeconds: 2,
   });
   if (!signed.ok) return json(503, { error: 'signing_unavailable' });
   await persistPublicJwk(input.db, signed.kid, signed.publicJwk);

@@ -158,3 +158,19 @@ test('a store with nothing left on leaves Your stores for the archive', async ()
     await stopRuntime(runtime);
   }
 });
+
+test('the retired Inventory overview pages are gone for a signed-in owner', async () => {
+  const runtime = await startMerchantTestRuntime();
+  try {
+    const owner = await signup(runtime, 'retired-inventory@example.com');
+    const orgId = (await (await request(runtime, owner.jar, '/api/account/organizations')).json()).organizations[0].organizationId;
+    assert.equal((await request(runtime, owner.jar, '/account')).status, 200, 'the owner is signed in with a business');
+    for (const path of ['/account/inventory', `/account/operator/inventory?organization_id=${encodeURIComponent(orgId)}`]) {
+      const response = await request(runtime, owner.jar, path, { redirect: 'manual' });
+      assert.equal(response.status, 404, `${path} no longer exists`);
+      assert.doesNotMatch(visibleText(await response.text()), /Pool and site counts|Inventory overview/i);
+    }
+  } finally {
+    await stopRuntime(runtime);
+  }
+});

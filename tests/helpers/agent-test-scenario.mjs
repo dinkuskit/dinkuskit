@@ -74,9 +74,29 @@ export async function runAgentTestScenario(runtime) {
   assert.equal(approval.status, 303); assert.equal(approval.headers.get('location'), callback);
   assert.equal((await exchange()).status, 200, 'simulated store proof accepted after real consent');
   assert.equal((await exchange()).status, 400, 'store exchange cannot replay');
-  assert.equal((await request(owner, '/account/sites', form({
-    action: 'service', organization_id: org, site_id: connection.site_id, service: 'ship', on: '1',
-  }))).status, 303);
+  // Ship turns on when the Ship plugin connects (store-connect-ship-on-at-setup-126), after Commerce.
+  const connectPlugin = async (service, installedId, page) => {
+    const flow = pkce(); const client = `dinkus-${service}-emdash`;
+    const back = `${AGENT_STORE_ORIGIN}/_emdash/admin/plugins/${installedId}/${page}`;
+    const started = await request(new Map(), '/api/store-connections', post({
+      protocol_version: 2, client_id: client, service, site_origin: AGENT_STORE_ORIGIN, callback_uri: back,
+      code_challenge: flow.challenge, code_challenge_method: 'S256',
+    }));
+    assert.equal(started.status, 200, `${service} starts`);
+    const pending = await started.json();
+    assert.equal(pending.site_id, connection.site_id, `${service} joins the same store`);
+    assert.equal((await request(new Map(), '/__agent/receipt', post({
+      version: 2, connection_id: pending.connection_id, challenge: pending.challenge, client_id: client, service,
+      site_id: pending.site_id, site_origin: AGENT_STORE_ORIGIN, callback_uri: back, code_challenge: flow.challenge, expires_at: pending.expires_at,
+    }))).status, 200);
+    const approved = await request(owner, `/account/connect?connection_id=${pending.connection_id}`, form({ action: 'approve', organization_id: org }));
+    assert.equal(approved.status, 303, `${service} approved`);
+    assert.equal((await request(new Map(), '/api/store-connections/token', post({
+      client_id: client, connection_id: pending.connection_id, code_verifier: flow.verifier,
+    }))).status, 200, `${service} gets its key`);
+  };
+  await connectPlugin('commerce', 'r_gshdrqaldna3r7sn', 'settings');
+  await connectPlugin('ship', 'r_ehdlg5cxkb3ffqvr', 'shipping');
   const ship = async jar => {
     const proof = pkce();
     const response = await request(jar, `/account/ship-sign-in?${new URLSearchParams({

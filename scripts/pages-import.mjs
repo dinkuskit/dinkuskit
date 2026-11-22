@@ -1,15 +1,24 @@
 // One-time load of a new seed page into an existing EmDash site.
 //
-//   node --experimental-strip-types scripts/pages-import.mjs --url <site origin> [--page <slug>]... [--footer] [--publish]
+//   node --experimental-strip-types scripts/pages-import.mjs --url <site origin> [--page <slug>]... [--footer] [--publish] [--sync-pages]
+//   node --experimental-strip-types scripts/pages-import.mjs --url <site origin> --pull [--check]
 //
 // Setup applies seed/seed.json only to a new database, so a page added to the
 // seed later (such as /start) reaches a running site through this script, once,
 // after the deploy that carries its code. It adds the seed's block types the
 // site lacks (and optional fields the seed added to ones it has), lets the
-// pages layout field use them, and adds each named page as a draft. It never
-// overwrites: anything that already exists is kept as it is.
-// With --publish it also publishes the pages it added in this run, and never
-// one that was already there; without it an editor presses Publish in the admin.
+// pages layout field use them, and adds each named page as a draft. By default
+// it never overwrites: anything that already exists is kept as it is.
+// With --sync-pages it updates an existing named page from seed/seed.json using
+// EmDash's _rev concurrency token, refusing if unpublished edits are waiting in
+// the admin so editor drafts are never overwritten.
+// With --pull it reads the live published pages, footer menus and settings from
+// the EmDash API and updates seed/seed.json (or exits 1 under --check if the
+// live CMS has drifted from seed/seed.json), keeping seed/seed.json ready for
+// restoration.
+// With --publish it also publishes the pages it added or synced in this run,
+// and never one that was left untouched; without it an editor presses Publish
+// in the admin.
 // With --footer it adds the seed's footer menus the site lacks. A menu the site
 // already has keeps every current link and the order an editor chose among
 // them. Seed links whose URL is not already in it are inserted at the seed's
@@ -28,8 +37,8 @@
 // and content:write) or CF_ACCESS_TOKEN (a Cloudflare Access token from
 // `cloudflared access token`). Settings stay on the Access session: the
 // production gate does not admit an API token to /_emdash/api/settings.
-import { readFileSync } from 'node:fs';
-import { parseArgs } from 'node:util';
+import { readFileSync, writeFileSync } from 'node:fs';
+import { isDeepStrictEqual, parseArgs } from 'node:util';
 import { pathToFileURL } from 'node:url';
 
 const SEED = new URL('../seed/seed.json', import.meta.url);
@@ -46,12 +55,16 @@ const BRAND_MEDIA = [
 
 const ok = status => status === 200 || status === 201;
 
-async function push(origin, { slugs, footer, publish }) {
+function makeClient(origin) {
   const base = new URL(origin);
   if (base.protocol !== 'https:' && !['127.0.0.1', 'localhost'].includes(base.hostname)) throw new Error('Use an https site origin');
   const authHeaders = { 'x-emdash-request': '1' };
   if (process.env.EMDASH_TOKEN) authHeaders.authorization = `Bearer ${process.env.EMDASH_TOKEN}`;
   if (process.env.CF_ACCESS_TOKEN) authHeaders['cf-access-token'] = process.env.CF_ACCESS_TOKEN;
+  if (process.env.CF_ACCESS_CLIENT_ID) {
+    authHeaders['cf-access-client-id'] = process.env.CF_ACCESS_CLIENT_ID;
+    authHeaders['cf-access-client-secret'] = process.env.CF_ACCESS_CLIENT_SECRET ?? '';
+  }
   const headers = { 'content-type': 'application/json', ...authHeaders };
   const api = async (method, path, body) => {
     const response = await fetch(new URL(`/_emdash/api${path}`, base), {
@@ -60,6 +73,11 @@ async function push(origin, { slugs, footer, publish }) {
     const payload = await response.json().catch(() => null);
     return { status: response.status, data: payload?.data ?? payload };
   };
+  return { base, authHeaders, api };
+}
+
+async function push(origin, { slugs, footer, publish, syncPages = false }) {
+  const { base, authHeaders, api } = makeClient(origin);
   const seed = JSON.parse(readFileSync(SEED, 'utf8'));
   if (footer) await pushFooter(api, seed);
   if (!slugs.length) return;
@@ -137,7 +155,34 @@ async function push(origin, { slugs, footer, publish }) {
 
   for (const page of pages) {
     const found = await api('GET', `/content/${COLLECTION}/${page.slug}`);
-    if (found.status === 200) { console.log(`Kept existing page ${page.slug}`); continue; }
+    if (found.status === 200) {
+      if (!syncPages) { console.log(`Kept existing page ${page.slug}`); continue; }
+      const entry = found.data;
+      const item = entry?.item;
+      const published = item?.status === 'published';
+      const liveData = published ? (item.draftRevisionId ? item.liveData : item.data) : null;
+      const pendingData = item && (item.draftRevisionId || !published) ? item.data : null;
+      if (liveData && isDeepStrictEqual(liveData, page.data) && !item.draftRevisionId) {
+        console.log(`Kept existing page ${page.slug}`);
+        continue;
+      }
+      const ours = pendingData !== null && isDeepStrictEqual(pendingData, page.data);
+      if (item && (item.draftRevisionId || !published) && !ours) {
+        throw new Error(`Page ${page.slug} has unpublished edits waiting in the admin; publish or discard them there, or run pages:pull first`);
+      }
+      let rev = entry?._rev;
+      if (!ours) {
+        const updated = await api('PUT', `/content/${COLLECTION}/${item.id}`, { data: page.data, _rev: rev });
+        if (!ok(updated.status)) throw new Error(`Updating page ${page.slug} failed: HTTP ${updated.status} ${JSON.stringify(updated.data)}`);
+        rev = updated.data?._rev ?? rev;
+        console.log(`Updated page ${page.slug}`);
+      }
+      if (!publish) continue;
+      const publishedRes = await api('POST', `/content/${COLLECTION}/${item.id}/publish`, rev ? { _rev: rev } : undefined);
+      if (!ok(publishedRes.status)) throw new Error(`Publishing page ${page.slug} failed: HTTP ${publishedRes.status} ${JSON.stringify(publishedRes.data)}`);
+      console.log(`Published page ${page.slug}`);
+      continue;
+    }
     const created = await api('POST', `/content/${COLLECTION}`, { slug: page.slug, status: 'draft', data: page.data });
     if (!ok(created.status)) throw new Error(`Adding page ${page.slug} failed: HTTP ${created.status} ${JSON.stringify(created.data)}`);
     console.log(`Added draft page ${page.slug}`);
@@ -315,12 +360,116 @@ export async function fillEmptySiteText(api, seed) {
   }
 }
 
+// Pull live published pages, footer menus, and settings from the EmDash API
+// back into seed/seed.json so admin edits stay mirrored in the repository.
+export async function pullLiveSeed(origin, { seedUrl = SEED, check = false, api: customApi } = {}) {
+  const api = customApi ?? makeClient(origin).api;
+  const beforeText = readFileSync(seedUrl, 'utf8');
+  const seed = JSON.parse(beforeText);
+  const changed = [];
+
+  for (const page of seed.content[COLLECTION] ?? []) {
+    const found = await api('GET', `/content/${COLLECTION}/${page.slug}`);
+    if (found.status === 404) {
+      throw new Error(`Seeded page ${page.slug} is missing in CMS (HTTP 404); remove it from seed/seed.json or restore it before pulling`);
+    }
+    if (found.status !== 200) throw new Error(`Reading page ${page.slug} failed: HTTP ${found.status}`);
+    const item = found.data?.item;
+    if (!item || item.status !== 'published') {
+      throw new Error(`Seeded page ${page.slug} is not published in CMS (status: ${item?.status ?? 'missing'}); publish it or update seed/seed.json manually`);
+    }
+    const liveData = item.draftRevisionId ? item.liveData : item.data;
+    if (!liveData) {
+      throw new Error(`Seeded page ${page.slug} has no live published data in CMS`);
+    }
+    if (!isDeepStrictEqual(page.data, liveData)) {
+      page.data = liveData;
+      changed.push(`page:${page.slug}`);
+    }
+  }
+
+  for (const menu of (seed.menus ?? []).filter(item => item.name.startsWith('footer-'))) {
+    const current = await api('GET', `/menus/${menu.name}`);
+    if (current.status === 404) {
+      throw new Error(`Seeded menu ${menu.name} is missing in CMS (HTTP 404); restore it or remove it from seed/seed.json before pulling`);
+    }
+    if (current.status !== 200) throw new Error(`Reading menu ${menu.name} failed: HTTP ${current.status}`);
+    const liveLabel = typeof current.data?.label === 'string' && current.data.label.trim() ? current.data.label.trim() : menu.label;
+    const liveItems = [...(current.data?.items ?? [])]
+      .sort((a, b) => a.sortOrder - b.sortOrder)
+      .map(item => {
+        const itemType = item.type ?? 'custom';
+        if (itemType !== 'custom' || typeof item.customUrl !== 'string' || !item.customUrl.trim()) {
+          throw new Error(`Unsupported footer menu item "${item.label ?? ''}" in ${menu.name} (type: ${itemType}); footer menus require custom URL items`);
+        }
+        const entry = { type: 'custom', label: item.label, url: item.customUrl };
+        if (item.cssClasses) entry.cssClasses = item.cssClasses;
+        if (item.target) entry.target = item.target;
+        return entry;
+      });
+    if (menu.label !== liveLabel || !isDeepStrictEqual(menu.items, liveItems)) {
+      menu.label = liveLabel;
+      menu.items = liveItems;
+      changed.push(`menu:${menu.name}`);
+    }
+  }
+
+  if (seed.settings) {
+    const settings = await api('GET', '/settings');
+    if (settings.status !== 200) {
+      throw new Error(`Reading site settings failed: HTTP ${settings.status}`);
+    }
+    for (const key of ['title', 'tagline']) {
+      const raw = settings.data?.[key];
+      if (typeof raw === 'string') {
+        const val = raw.trim();
+        if (seed.settings[key] !== val) {
+          seed.settings[key] = val;
+          changed.push(`setting:${key}`);
+        }
+      }
+    }
+  }
+
+  const afterText = `${JSON.stringify(seed, null, 2)}\n`;
+  if (!changed.length || afterText === beforeText) {
+    console.log('Seed is in sync with live CMS');
+    return { inSync: true, changed: [] };
+  }
+  if (check) {
+    console.error(`Seed drift detected (${changed.join(', ')}); run npm run pages:pull -- --url ${origin}`);
+    process.exitCode = 1;
+    return { inSync: false, changed };
+  }
+  writeFileSync(seedUrl, afterText);
+  console.log(`Updated seed/seed.json from live CMS (${changed.join(', ')})`);
+  return { inSync: true, changed };
+}
+
 const invokedDirectly = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
 if (invokedDirectly) {
-  const { values } = parseArgs({ options: { url: { type: 'string' }, page: { type: 'string', multiple: true }, footer: { type: 'boolean' }, publish: { type: 'boolean' } } });
-  if (values.url && (values.page?.length || values.footer)) await push(values.url, { slugs: values.page ?? [], footer: values.footer === true, publish: values.publish === true });
-  else {
-    console.error('Usage: pages-import.mjs --url <site origin> [--page <slug>]... [--footer] [--publish]');
+  const { values } = parseArgs({
+    options: {
+      url: { type: 'string' },
+      page: { type: 'string', multiple: true },
+      footer: { type: 'boolean' },
+      publish: { type: 'boolean' },
+      'sync-pages': { type: 'boolean' },
+      pull: { type: 'boolean' },
+      check: { type: 'boolean' },
+    },
+  });
+  if (values.url && values.pull) {
+    await pullLiveSeed(values.url, { check: values.check === true });
+  } else if (values.url && (values.page?.length || values.footer)) {
+    await push(values.url, {
+      slugs: values.page ?? [],
+      footer: values.footer === true,
+      publish: values.publish === true,
+      syncPages: values['sync-pages'] === true,
+    });
+  } else {
+    console.error('Usage: pages-import.mjs --url <site origin> [--page <slug>]... [--footer] [--publish] [--sync-pages] | --pull [--check]');
     process.exit(2);
   }
 }

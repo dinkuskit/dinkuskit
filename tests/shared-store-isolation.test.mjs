@@ -502,6 +502,28 @@ test('checkout settings: the exact JSON Commerce takes, with Coupons and Ship on
   } finally { f.close(); }
 });
 
+test('checkout settings: each tab atomically updates only its own half, including stale reads', async () => {
+  const f = await fixture(); try {
+    const { siteId, owner } = await storeWithKey(f);
+    const initial = { shippingMode: 'flat', shippingMinor: 500, freeOverMinor: 7500, live: true };
+    const save = (section, choices, actor = owner) => saveCommerceSettings(f.db, { ...actor, section, choices });
+    assert.deepEqual(await save('shipping', initial), { ...initial, shippingRevision: 1 });
+    // Deliberately stale opposite-half values stand in for concurrent tabs.
+    assert.deepEqual(await save('shipping', { ...initial, shippingMinor: 650, live: false }), { ...initial, shippingMinor: 650, shippingRevision: 2 });
+    assert.deepEqual(await save('payments', { shippingMode: 'free', shippingMinor: 0, live: false }), { ...initial, shippingMinor: 650, live: false, shippingRevision: 2 });
+    const before = await loadCommerceSettings(f.db, siteId);
+    for (const section of ['shipping', 'payments']) {
+      assert.equal(await save(section, initial, { ...owner, actorUserId: 'staff' }), null);
+      assert.equal(await save(section, initial, { ...owner, subject: 'org-b', organizationId: 'b', actorUserId: 'bob' }), null);
+      assert.deepEqual(await loadCommerceSettings(f.db, siteId), before);
+    }
+    assert.deepEqual(await save('shipping', { shippingMode: 'free', shippingMinor: 0, live: true }), { shippingMode: 'free', shippingMinor: 0, freeOverMinor: null, shippingRevision: 3, live: false });
+    // Either tab can be the first save; no schema migration or hidden other-half field is needed.
+    f.sqlite.prepare('DELETE FROM dinkuskit_commerce_settings WHERE site_id = ?').run(siteId);
+    assert.deepEqual(await save('payments', { shippingMode: 'free', shippingMinor: 0, live: false }), { shippingMode: 'free', shippingMinor: 0, freeOverMinor: null, shippingRevision: 1, live: false });
+  } finally { f.close(); }
+});
+
 test('checkout settings: only the owner saves them, and Payments problems are named', async () => {
   const f = await fixture(); try {
     const { siteId, owner } = await storeWithKey(f);

@@ -1,18 +1,18 @@
 ---
 article: reference/ship
-base: sha256:63407c9a7572ee03e920d9eb553a913e11e0a816aa73492e1ba380bb3d7660e0
+base: sha256:18e7d315ceab1c15f7a44ef9afb8fb399c8329fd3c08d9fff780dba44a0eda3b
 title: "Ship"
 summary: "Understand the Ship plugin, the hosted shipping service, and sandbox labels."
 audience: "Store owners and developers"
 product: "Ship"
-version_scope: "Ship 0.3.0"
+version_scope: "Ship 0.3.1"
 ---
 
 Ship buys USPS shipping labels for Commerce orders. [Commerce](/docs/reference/commerce) owns checkout shipping charges and order records; Ship handles labels and reports tracking back. Ship does not own product stock or payment confirmation.
 
 Shipping is outside the required first-test-order outcome. Start with [requirements](/docs/start-here) and [store setup](/docs/store-owners/setup); a test label cannot establish that checkout was paid or that Commerce saved the order.
 
-This reference describes the Ship plugin `0.3.0`, released on the EmDash Registry as `dinkus-ship` on 23 October 2026 (tag `v0.3.0`), and the hosted Ship service at ship.dinkuskit.com.
+This reference describes the Ship plugin `0.3.1`, released on the EmDash Registry as `dinkus-ship` on 31 October 2026 (tag `v0.3.1`), and the hosted Ship service at ship.dinkuskit.com.
 
 ## The plugin and the hosted service
 
@@ -20,22 +20,22 @@ Ship has two parts that work together:
 
 | Part | What it does |
 | --- | --- |
-| Ship plugin (`dinkus-ship`) | Adds a **Shipping** page to the store admin for Editors and Administrators. It lists the paid orders Commerce sent to Ship, shows USPS prices, and has **Buy label**, **Print label** and **Cancel label**. |
+| Ship plugin (`dinkus-ship`) | Adds a **Shipments** page, under **Dinkus Ship**, to the store admin for Editors and Administrators. It lists the paid orders Commerce sent to Ship, newest first and 50 at a time with **Load more**, shows USPS prices, and has **Buy label**, **Print label** and **Cancel label**. |
 | Hosted Ship service | Takes Commerce's orders, buys, keeps and cancels labels, sends the shopper the shipped email, and serves the owner's own pages at ship.dinkuskit.com (sign in with DinkusKit.com): settings, the owner's Pitney Bowes postage account, and label history. |
 
 The plugin keeps no label data. Every click reads from, or buys through, the hosted service, so the two always agree. Ship's own pages are the full path, and the fallback when the plugin is not installed.
 
 ## Set up the plugin
 
-Install **Ship** from the plugin Registry. Connect [Commerce](/docs/reference/commerce) first, because Commerce's Connect makes the store at DinkusKit.com. Then an Administrator opens **Shipping** in the store admin and presses **Connect Ship**, and the business owner presses **Approve** at DinkusKit.com. Nothing is pasted: DinkusKit.com gives Ship its own store key, which the plugin keeps, with the Store ID, in its encrypted DinkusKit connection setting. Connect needs the store on its https web address with Ship installed from the Registry.
+Install **DinkusKit Ship** from the plugin Registry. Connect [Commerce](/docs/reference/commerce) first, because Commerce's Connect makes the store at DinkusKit.com. Then an Administrator opens **Dinkus Ship > Shipments** in the store admin and presses **Connect**, and the business owner presses **Approve** at DinkusKit.com. Nothing is pasted: DinkusKit.com gives Ship its own store key, which the plugin keeps, with the Store ID, in its encrypted DinkusKit connection setting. Connect needs the store on its https web address with Ship installed from the Registry.
 
-The plugin never sends the store key to Ship or to a store page. It trades the key at DinkusKit.com for a pass that lasts five minutes and reuses that pass for clicks in the next minute. A Disconnect at DinkusKit.com, or Ship switched off there, stops the Shipping page within a minute. If DinkusKit.com no longer knows the key, the page shows **Connect again**.
+The plugin never sends the store key to Ship or to a store page. It trades the key at DinkusKit.com for a pass that lasts five minutes and reuses that pass for clicks in the next minute. A Disconnect at DinkusKit.com, or Ship switched off there, stops the Shipments page within a minute. If DinkusKit.com no longer knows the key, the page shows **Connect again**.
 
-A store upgraded from `0.2.1` does not use its old pasted key. The Shipping page asks for Connect once, and Connect removes the old Store ID and store key settings.
+A store upgraded from `0.2.1` does not use its old pasted key. The Shipments page asks for Connect once, and Connect removes the old Store ID and store key settings.
 
 ## Buy a label
 
-1. Open **Shipping** in the store admin and pick a paid order.
+1. Open **Dinkus Ship > Shipments** in the store admin and pick a paid order.
 2. Check the box, the weight (items plus box) and the service: USPS Ground Advantage by default, Priority Mail or Priority Mail Express. Then review the USPS prices.
 3. Press **Buy label**. Nothing is bought without this press.
 4. Press **Print label**. The PDF opens in a new tab through a link that works for five minutes and only for that label.
@@ -67,13 +67,13 @@ Commerce calls three routes on the hosted service with a DinkusKit store pass sc
 | `GET /v1/labels` | Read label events awaiting acknowledgement. |
 | `POST /v1/labels/ack` | Acknowledge a delivered label event. |
 
-The plugin's Shipping page calls routes under `/v1/admin/` with a pass scoped `ship:admin`. The store always comes from the signed pass, never from anything in the request. Ship accepts the current or a newer order version and never overwrites it with an older one. It keeps the US delivery address, line quantities and email; billing details and payment credentials stay out of Ship. None of these is a public, unauthenticated API.
+The plugin's Shipments page calls routes under `/v1/admin/` with a pass scoped `ship:admin`. The store always comes from the signed pass, never from anything in the request. Ship accepts the current or a newer order version and never overwrites it with an older one. It keeps the US delivery address, line quantities and email; billing details and payment credentials stay out of Ship. None of these is a public, unauthenticated API.
 
 ## Sources and review scope
 
-Reviewed on 2026-10-25 from the `v0.3.0` release, without signing in, buying labels or buying postage:
+This article lives in the Ship repository, is reviewed with the code it describes without signing in, buying labels or buying postage, and was published from the `v0.3.1` tag:
 
-- [Release notes](https://github.com/dinkuskit/ship/releases/tag/v0.3.0) and [changelog](https://github.com/dinkuskit/ship/blob/dab45d0df69a5f39158b603ff2b8236c6af6fe54/CHANGELOG.md)
-- [Repository overview](https://github.com/dinkuskit/ship/blob/dab45d0df69a5f39158b603ff2b8236c6af6fe54/README.md) and [plugin manifest](https://github.com/dinkuskit/ship/blob/dab45d0df69a5f39158b603ff2b8236c6af6fe54/emdash-plugin.jsonc)
-- [What the Ship plugin calls](https://github.com/dinkuskit/ship/blob/dab45d0df69a5f39158b603ff2b8236c6af6fe54/docs/contracts/ship-plugin-v1.md)
-- [Hosted service contract](https://github.com/dinkuskit/ship/blob/dab45d0df69a5f39158b603ff2b8236c6af6fe54/service/README.md)
+- [Release notes](https://github.com/dinkuskit/ship/releases/tag/v0.3.1) and [changelog](https://github.com/dinkuskit/ship/blob/v0.3.1/CHANGELOG.md)
+- [Repository overview](https://github.com/dinkuskit/ship/blob/v0.3.1/README.md) and [plugin manifest](https://github.com/dinkuskit/ship/blob/v0.3.1/emdash-plugin.jsonc)
+- [What the Ship plugin calls](https://github.com/dinkuskit/ship/blob/v0.3.1/docs/contracts/ship-plugin-v1.md)
+- [Hosted service contract](https://github.com/dinkuskit/ship/blob/v0.3.1/service/README.md)

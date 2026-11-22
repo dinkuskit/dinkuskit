@@ -17,11 +17,25 @@ export interface DocArticle {
   body: PortableTextBlock[];
 }
 
+export interface DocsPlatformLink {
+  title: string;
+  url: string;
+  summary: string;
+}
+
+export interface DocsMcpDescriptor {
+  endpoint: string;
+  protocols: ReadonlyArray<string>;
+  tools: ReadonlyArray<{ name: string; summary: string }>;
+}
+
 /** What a site supplies: its public origin, its name, and URL folders for sections. */
 export interface DocsSite {
   origin: string;
   name: string;
   description: string;
+  platformLinks?: ReadonlyArray<DocsPlatformLink>;
+  mcp?: DocsMcpDescriptor;
   /** Section name to URL folder; a section without one puts its articles directly under /docs/. */
   sectionPaths: Record<string, string>;
 }
@@ -67,8 +81,29 @@ export function articleMarkdown(site: DocsSite, article: DocArticle) {
 /** The llms.txt index of published articles, or null when there are none. */
 export function llmsText(site: DocsSite, articles: DocArticle[]) {
   if (!articles.length) return null;
+  const sections: string[] = [`# ${site.name}\n\n> ${site.description}`];
+  if (site.platformLinks?.length) {
+    const platform = site.platformLinks.map(item => `- [${item.title}](${item.url}): ${item.summary}`);
+    sections.push(`## Platform & Quick Links\n\n${platform.join('\n')}`);
+  }
+  if (site.mcp) {
+    const protocols = site.mcp.protocols.map(protocol => `\`${protocol}\``).join(' and ');
+    const tools = site.mcp.tools.map(tool => `- \`${tool.name}\`: ${tool.summary}`);
+    sections.push(
+      `## Docs MCP Server\n\nConnect any MCP-capable AI assistant to \`${site.mcp.endpoint}\` (\`POST\`, stateless Streamable HTTP, protocols ${protocols}, no auth token required):\n\n${tools.join('\n')}`,
+    );
+  }
   const links = articles.map(article => `- [${article.title}](${site.origin}${markdownPath(article.id)}): ${article.summary}`);
-  return `# ${site.name}\n\n> ${site.description}\n\n## Documentation\n\n${links.join('\n')}\n`;
+  sections.push(`## Documentation\n\n${links.join('\n')}`);
+  return `${sections.join('\n\n')}\n`;
+}
+
+/** The llms-full.txt single-file Markdown corpus of published articles, or null when there are none. */
+export function llmsFullText(site: DocsSite, articles: DocArticle[]) {
+  if (!articles.length) return null;
+  const index = llmsText(site, articles)?.trimEnd() ?? `# ${site.name}\n\n> ${site.description}`;
+  const bodies = articles.map(article => articleMarkdown(site, article).trimEnd());
+  return `${index}\n\n---\n\n${bodies.join('\n\n---\n\n')}\n`;
 }
 
 export interface DocsEntry {

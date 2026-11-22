@@ -173,3 +173,97 @@
 {"action": "decision_verified", "at": "2026-10-30T13:25:47+00:00", "data": {"decision_id": "website-emdash14-20261030"}, "event_id": "764b3633-2474-41be-9256-1da3785fb7f0"}
 {"action": "decision_proposed", "at": "2026-10-30T14:37:04+00:00", "data": {"decision_id": "release-branch-recut-20261030"}, "event_id": "84c75013-5520-4f65-a090-8198913954c2"}
 {"action": "decision_locked", "at": "2026-10-30T14:37:04+00:00", "data": {"decision_id": "release-branch-recut-20261030"}, "event_id": "648ba70b-bfc2-4879-80b7-96bd96084eca"}
+{"action": "decision_superseded", "at": "2026-11-01T05:13:14+00:00", "data": {"affected": [], "decision_id": "website-public-launch-008", "replacement_id": "website-production-store-connect-032"}, "event_id": "90072222-a2b9-4fcc-9c59-5ebd409c6bfb"}
+{"action": "decision_superseded", "at": "2026-11-01T05:13:14+00:00", "data": {"affected": [], "decision_id": "website-store-services-opt-in-043", "replacement_id": "store-connect-per-plugin-key-080"}, "event_id": "e148046d-417c-494f-bc28-ec65d502981e"}
+{"action": "decision_superseded", "at": "2026-11-01T05:13:14+00:00", "data": {"affected": [], "decision_id": "website-template-demo-011", "replacement_id": "website-start-pages-20261027"}, "event_id": "774b3bf3-00ce-4413-b393-143acef056a9"}
+{"action": "decision_superseded", "at": "2026-11-01T05:13:14+00:00", "data": {"affected": [], "decision_id": "website-visual-007", "replacement_id": "website-theme-switch-20261023"}, "event_id": "e3f50285-0f1d-400a-950e-31aa92c1f2e5"}
+{"action": "decision_superseded", "at": "2026-11-01T05:13:15+00:00", "data": {"affected": ["website-docs-review-074", "website-docs-collection-075", "website-docs-sync-077", "website-docs-from-plugin-releases-086"], "decision_id": "website-docs-drafts-073", "replacement_id": "website-docs-collection-075"}, "event_id": "6039eebc-541b-4d2f-bb83-a669f32ec363"}
+{"action": "decision_superseded", "at": "2026-11-01T05:13:15+00:00", "data": {"affected": ["website-emdash14-20261030"], "decision_id": "website-emdash12-025", "replacement_id": "website-emdash14-20261030"}, "event_id": "fbdc7d1d-f4af-4617-aaf7-9d7672e006ca"}
+{"action": "decision_superseded", "at": "2026-11-01T05:13:15+00:00", "data": {"affected": [], "decision_id": "website-inventory-overview-024", "replacement_id": "website-operator-admin-emdash-access-035"}, "event_id": "1d49ae92-c29b-4814-97ba-1663e4abd1ff"}
+{"action": "decision_superseded", "at": "2026-11-01T05:13:15+00:00", "data": {"affected": [], "decision_id": "website-operation-009", "replacement_id": "website-design-20261023"}, "event_id": "f82426cb-16af-4c7a-a521-8709ea34ea41"}
+{"action": "decision_superseded", "at": "2026-11-01T05:13:16+00:00", "data": {"affected": [], "decision_id": "website-operator-services-view-038", "replacement_id": "store-connect-per-plugin-key-080"}, "event_id": "8f840505-4cb9-4791-923a-fe424b711a54"}
+{"action": "decision_superseded", "at": "2026-11-01T05:13:16+00:00", "data": {"affected": [], "decision_id": "website-availability-010", "replacement_id": "store-connect-rollout-084"}, "event_id": "d5868f36-e49b-4560-b47d-6b4e72730743"}
+{"action": "decision_superseded", "at": "2026-11-01T05:13:16+00:00", "data": {"affected": [], "decision_id": "merchant-auth-007", "replacement_id": "merchant-better-auth-008"}, "event_id": "7c57d3cb-9f23-49dc-a66c-84147fc47c95"}
+{"action": "decision_deferred", "at": "2026-11-01T05:13:17+00:00", "data": {"decision_id": "website-future-004"}, "event_id": "5486cef7-33d1-484a-b331-024dbcc4a24d"}
+{"action": "decision_deferred", "at": "2026-11-01T05:13:18+00:00", "data": {"decision_id": "website-coupons-coming-soon-046"}, "event_id": "e46913f6-c4fa-40a8-a7b5-e22d186aad93"}
+{"action": "decision_deferred", "at": "2026-11-01T05:13:18+00:00", "data": {"decision_id": "merchant-communication-018-repair"}, "event_id": "d9a3f3e1-4694-44a9-936c-97941f0af13b"}
+{"action": "decision_deferred", "at": "2026-11-01T05:13:19+00:00", "data": {"decision_id": "merchant-phone-transport-option-023"}, "event_id": "605ecbe8-32d4-4931-bbe9-8d902ac3ffc2"}
+{"action": "decision_deferred", "at": "2026-11-01T05:13:19+00:00", "data": {"decision_id": "merchant-tier-intent-014"}, "event_id": "c15fc6e9-cac4-485d-b6d7-a3fead51c10a"}
+{"action": "decision_deferred", "at": "2026-11-01T05:13:20+00:00", "data": {"decision_id": "self-host-second-operator-005"}, "event_id": "8d97c565-63c3-4f7c-8f12-d5d6e1696580"}
+{"action": "decision_deferred", "at": "2026-11-01T05:13:21+00:00", "data": {"decision_id": "self-host-sequencing-001"}, "event_id": "4644b828-f848-4323-bd33-abddf9a92c0b"}
+{"action": "focus_started", "at": "2026-11-13T14:31:18+00:00", "data": {"cadence": "frontier-batch", "domain": "DinkusKit cross-store agent catalog"}, "event_id": "098fdda2-39f6-480a-805e-23279226f2c0"}
+{"action": "decision_proposed", "at": "2026-11-13T14:31:18+00:00", "data": {"decision_id": "agent-catalog-goal-20261113"}, "event_id": "8209aa77-c991-41fe-be8b-56532b24be19"}
+{"action": "decision_proposed", "at": "2026-11-13T14:31:18+00:00", "data": {"decision_id": "agent-catalog-timing-20261113"}, "event_id": "6848462c-ac32-43bd-9576-b6e3540516b1"}
+{"action": "decision_proposed", "at": "2026-11-13T14:31:18+00:00", "data": {"decision_id": "agent-catalog-home-20261113"}, "event_id": "fdd2719a-0fab-4994-bf67-40e831ab1cdb"}
+{"action": "decision_proposed", "at": "2026-11-13T14:31:18+00:00", "data": {"decision_id": "agent-catalog-listing-20261113"}, "event_id": "b152cc86-2128-4a24-a51d-1ea277650450"}
+{"action": "decision_proposed", "at": "2026-11-13T14:31:18+00:00", "data": {"decision_id": "agent-catalog-data-20261113"}, "event_id": "fe6d463e-6e19-482c-9b88-15d7a23dc8a6"}
+{"action": "decision_proposed", "at": "2026-11-13T14:31:18+00:00", "data": {"decision_id": "agent-catalog-freshness-20261113"}, "event_id": "2ece3fd5-5e30-4968-ba44-972e371f06fc"}
+{"action": "decision_proposed", "at": "2026-11-13T14:31:18+00:00", "data": {"decision_id": "agent-catalog-grouping-20261113"}, "event_id": "7cf94d6e-a856-4786-9c37-52b28bd2d580"}
+{"action": "decision_proposed", "at": "2026-11-13T14:31:18+00:00", "data": {"decision_id": "agent-catalog-ranking-20261113"}, "event_id": "73bedf9b-2564-489b-8919-f725dada2e57"}
+{"action": "decision_proposed", "at": "2026-11-13T14:31:18+00:00", "data": {"decision_id": "agent-catalog-access-20261113"}, "event_id": "a2ffdcb0-870a-4242-9972-c30482d2db11"}
+{"action": "decision_proposed", "at": "2026-11-13T14:31:19+00:00", "data": {"decision_id": "agent-catalog-first-version-20261113"}, "event_id": "5eed1e07-1430-44a0-82e8-9ee2e817efd0"}
+{"action": "decision_proposed", "at": "2026-11-13T14:31:19+00:00", "data": {"decision_id": "agent-catalog-google-20261113"}, "event_id": "2ff24808-bd8c-4aa3-95e3-c60a7e4f9cad"}
+{"action": "decision_proposed", "at": "2026-11-13T14:31:19+00:00", "data": {"decision_id": "agent-catalog-applications-20261113"}, "event_id": "ba6c4ff6-cea5-4442-a1b3-074e36aa0f07"}
+{"action": "decision_proposed", "at": "2026-11-13T14:31:19+00:00", "data": {"decision_id": "agent-catalog-ratings-20261113"}, "event_id": "05329652-aebd-467d-aa38-09c81f9a478f"}
+{"action": "decision_locked", "at": "2026-11-13T14:31:19+00:00", "data": {"decision_id": "agent-catalog-goal-20261113"}, "event_id": "04ee9fb2-052f-4382-89f2-eeb8ca934a95"}
+{"action": "decision_locked", "at": "2026-11-13T14:31:19+00:00", "data": {"decision_id": "agent-catalog-timing-20261113"}, "event_id": "c4b7c6c1-9228-4173-9a8d-fb8e18c21601"}
+{"action": "decision_locked", "at": "2026-11-13T14:31:19+00:00", "data": {"decision_id": "agent-catalog-home-20261113"}, "event_id": "b737e8d1-c837-41ea-a03f-496420842082"}
+{"action": "decision_locked", "at": "2026-11-13T14:31:19+00:00", "data": {"decision_id": "agent-catalog-listing-20261113"}, "event_id": "17a77c3e-2428-43f5-8d51-8cf0bd7f16d9"}
+{"action": "decision_locked", "at": "2026-11-13T14:31:19+00:00", "data": {"decision_id": "agent-catalog-data-20261113"}, "event_id": "0a02c6f3-a4e9-4491-8938-6728bcb9a27e"}
+{"action": "decision_locked", "at": "2026-11-13T14:31:19+00:00", "data": {"decision_id": "agent-catalog-freshness-20261113"}, "event_id": "4f4aaf32-cbd1-42f0-a954-8f76b33c2533"}
+{"action": "decision_locked", "at": "2026-11-13T14:31:19+00:00", "data": {"decision_id": "agent-catalog-grouping-20261113"}, "event_id": "b36e60d3-4b22-4dc6-ac85-bab1865bfda6"}
+{"action": "decision_locked", "at": "2026-11-13T14:31:19+00:00", "data": {"decision_id": "agent-catalog-ranking-20261113"}, "event_id": "09835289-b6cd-41fc-82de-b3add5db0b02"}
+{"action": "decision_locked", "at": "2026-11-13T14:31:20+00:00", "data": {"decision_id": "agent-catalog-access-20261113"}, "event_id": "58ee49be-fc29-412d-8e63-272968802411"}
+{"action": "decision_locked", "at": "2026-11-13T14:31:20+00:00", "data": {"decision_id": "agent-catalog-first-version-20261113"}, "event_id": "5d46b9ec-a370-4d41-bfb4-c3974182ce6a"}
+{"action": "decision_locked", "at": "2026-11-13T14:31:20+00:00", "data": {"decision_id": "agent-catalog-google-20261113"}, "event_id": "5dfc1347-5496-47f5-a34c-65ea714bab01"}
+{"action": "decision_locked", "at": "2026-11-13T14:31:20+00:00", "data": {"decision_id": "agent-catalog-applications-20261113"}, "event_id": "ffb7e480-8542-44d1-bd8e-78b8fbe233c9"}
+{"action": "shared_understanding_confirmed", "at": "2026-11-13T14:31:20+00:00", "data": {"summary": "Ronald answered all twelve questions on 13 Nov 2026 (14:27 to 14:30 UTC). Twelve decisions locked. The ratings filter stays proposed until he answers it."}, "event_id": "7bc07895-198d-44d6-bc95-80f9911f9bf7"}
+{"action": "decision_proposed", "at": "2026-11-13T15:34:59+00:00", "data": {"decision_id": "agent-catalog-toggle-home-20261113"}, "event_id": "def4b682-9f0e-4b4c-87b7-4003c52bbb7e"}
+{"action": "decision_locked", "at": "2026-11-13T15:34:59+00:00", "data": {"decision_id": "agent-catalog-toggle-home-20261113"}, "event_id": "5cc9060c-39a9-48ba-a395-197206847a01"}
+{"action": "decision_proposed", "at": "2026-11-13T17:46:42+00:00", "data": {"decision_id": "website-store-settings-tabs-124"}, "event_id": "9ef0e825-ed8b-41b4-a375-2ee538232f52"}
+{"action": "decision_locked", "at": "2026-11-13T17:46:43+00:00", "data": {"decision_id": "website-store-settings-tabs-124"}, "event_id": "f49ec009-1d8f-4ad8-8669-030cbd21d9ce"}
+{"action": "focus_started", "at": "2026-11-13T17:59:37+00:00", "data": {"cadence": "sequential", "domain": "Account store settings (#124)"}, "event_id": "aec25b1b-272b-46ac-99ed-7f59e08504cd"}
+{"action": "shared_understanding_confirmed", "at": "2026-11-13T18:09:16+00:00", "data": {"summary": "Recorded owner direction, not a new user answer: https://github.com/dinkuskit/dinkuskit/pull/124#issuecomment-6857438600 requests reworking this existing PR into native Plugins/Shipping/Payments links and independent saves, retaining and adapting browser fixtures and 1440/390 proof; broader #123 and deployment remain separate."}, "event_id": "647d70c7-7ce8-4168-a7d9-e88c0ad04350"}
+{"action": "decision_implemented", "at": "2026-11-13T18:09:16+00:00", "data": {"decision_id": "website-store-settings-tabs-124"}, "event_id": "d2a1947d-5d5a-44c5-883a-dd66b5f978e8"}
+{"action": "focus_started", "at": "2026-11-15T16:15:57+00:00", "data": {"cadence": "sequential", "domain": "DinkusKit cross-store agent catalog"}, "event_id": "194c8a86-56c9-471b-8f64-b14bcf2184fc"}
+{"action": "shared_understanding_confirmed", "at": "2026-11-15T16:15:58+00:00", "data": {"summary": "Ronald 15 Nov 2026 16:12 UTC asked to deal with the lookup default now; shared understanding: Shopify's lookup_catalog defaults filters.available to true (only sale-ready items), ours includes sold-out variants unless available:true; search_catalog already defaults to true."}, "event_id": "6ab4f6a1-b01a-45dc-9a91-d1b473f8f6d2"}
+{"action": "decision_proposed", "at": "2026-11-15T16:15:58+00:00", "data": {"decision_id": "agent-catalog-lookup-in-stock-default-20261115"}, "event_id": "aeafcbea-e00b-4236-adf6-c7700efe05df"}
+{"action": "decision_locked", "at": "2026-11-15T16:15:58+00:00", "data": {"decision_id": "agent-catalog-lookup-in-stock-default-20261115"}, "event_id": "4156b370-5084-4af6-ac6f-d28834dc8cb7"}
+{"action": "decision_implemented", "at": "2026-11-18T16:19:17+00:00", "data": {"decision_id": "agent-catalog-lookup-in-stock-default-20261115"}, "event_id": "6cab9193-930d-4845-8d45-7c40e126acc8"}
+{"action": "decision_verified", "at": "2026-11-18T16:19:17+00:00", "data": {"decision_id": "agent-catalog-lookup-in-stock-default-20261115"}, "event_id": "03168003-0d47-445d-8a16-0a5771a501a4"}
+{"action": "focus_started", "at": "2026-11-22T13:25:08+00:00", "data": {"cadence": "sequential", "domain": "DinkusKit plugin architecture"}, "event_id": "4f93fa47-3108-468b-b056-f1e44617450b"}
+{"action": "decision_proposed", "at": "2026-11-22T13:25:08+00:00", "data": {"decision_id": "dinkuskit-plugin-architecture-20261121"}, "event_id": "abcfc155-522e-4506-bd8a-887bc73a20ab"}
+{"action": "decision_locked", "at": "2026-11-22T13:25:08+00:00", "data": {"decision_id": "dinkuskit-plugin-architecture-20261121"}, "event_id": "824359fb-47b0-4df7-91a6-7f79d73bf269"}
+{"action": "focus_started", "at": "2026-11-22T13:38:11+00:00", "data": {"cadence": "frontier-batch", "domain": "Connect to DinkusKit once and one dashboard inside EmDash"}, "event_id": "472c9988-b48b-4806-9f99-33f41d6f09ca"}
+{"action": "decision_proposed", "at": "2026-11-22T13:38:11+00:00", "data": {"decision_id": "store-connect-approve-once-125"}, "event_id": "38f51e13-c697-4138-83f9-8804a5240550"}
+{"action": "decision_locked", "at": "2026-11-22T13:38:11+00:00", "data": {"decision_id": "store-connect-approve-once-125"}, "event_id": "158664ff-7559-4fb5-bffb-587793142869"}
+{"action": "decision_proposed", "at": "2026-11-22T13:38:11+00:00", "data": {"decision_id": "store-connect-ship-on-at-setup-126"}, "event_id": "9a652633-4327-4826-b179-e18028364440"}
+{"action": "decision_locked", "at": "2026-11-22T13:38:11+00:00", "data": {"decision_id": "store-connect-ship-on-at-setup-126"}, "event_id": "fe121ce5-2d07-4e33-a636-75403d9a8231"}
+{"action": "decision_proposed", "at": "2026-11-22T13:38:11+00:00", "data": {"decision_id": "store-connect-plain-messages-127"}, "event_id": "7be6f619-3b01-4667-987d-30ffe3298233"}
+{"action": "decision_locked", "at": "2026-11-22T13:38:11+00:00", "data": {"decision_id": "store-connect-plain-messages-127"}, "event_id": "7a50357b-26df-46ad-89a8-ba0776648e87"}
+{"action": "decision_proposed", "at": "2026-11-22T13:38:11+00:00", "data": {"decision_id": "admin-one-store-folder-128"}, "event_id": "48353486-a9cc-4e2d-8025-e92b8b4637d9"}
+{"action": "decision_locked", "at": "2026-11-22T13:38:12+00:00", "data": {"decision_id": "admin-one-store-folder-128"}, "event_id": "531c1c45-0d1a-4419-93a0-64663946e12e"}
+{"action": "decision_proposed", "at": "2026-11-22T13:38:12+00:00", "data": {"decision_id": "ship-settings-in-admin-129"}, "event_id": "e7b17f70-a0b2-4a3c-a1c2-3d5577252ffc"}
+{"action": "decision_locked", "at": "2026-11-22T13:38:12+00:00", "data": {"decision_id": "ship-settings-in-admin-129"}, "event_id": "30f491d4-15a8-46c9-8056-2004c8425fa3"}
+{"action": "decision_proposed", "at": "2026-11-22T13:38:12+00:00", "data": {"decision_id": "store-settings-in-emdash-130"}, "event_id": "ed92ef4c-6229-4aaa-8737-3b33df4809c5"}
+{"action": "decision_locked", "at": "2026-11-22T13:38:12+00:00", "data": {"decision_id": "store-settings-in-emdash-130"}, "event_id": "f9340542-eaa8-4f71-874e-8efb67eb35ff"}
+{"action": "decision_proposed", "at": "2026-11-22T13:38:12+00:00", "data": {"decision_id": "admin-dashboard-cards-131"}, "event_id": "5109fac4-de4f-47f4-9cf8-f06a555c9785"}
+{"action": "decision_locked", "at": "2026-11-22T13:38:12+00:00", "data": {"decision_id": "admin-dashboard-cards-131"}, "event_id": "ec553980-1cd7-4f72-93ef-922f0d544ed7"}
+{"action": "decision_proposed", "at": "2026-11-22T13:38:12+00:00", "data": {"decision_id": "connect-payments-straight-to-stripe-132"}, "event_id": "48a41c09-ffdc-4ee5-8f2d-39f5c08ad3fe"}
+{"action": "decision_locked", "at": "2026-11-22T13:38:12+00:00", "data": {"decision_id": "connect-payments-straight-to-stripe-132"}, "event_id": "4aa4c832-3394-4b75-8fcb-7b25ea72bdd4"}
+{"action": "decision_proposed", "at": "2026-11-22T13:38:13+00:00", "data": {"decision_id": "connect-shows-siblings-133"}, "event_id": "1a9fe67e-e561-4ac5-9984-e68bc07c6342"}
+{"action": "decision_locked", "at": "2026-11-22T13:38:13+00:00", "data": {"decision_id": "connect-shows-siblings-133"}, "event_id": "283e998f-7e5c-42c9-a133-cf94fae086b5"}
+{"action": "decision_proposed", "at": "2026-11-22T13:38:13+00:00", "data": {"decision_id": "connect-uninstall-cancels-key-134"}, "event_id": "c597564c-8536-47df-911a-ba0822f8df9a"}
+{"action": "decision_locked", "at": "2026-11-22T13:38:13+00:00", "data": {"decision_id": "connect-uninstall-cancels-key-134"}, "event_id": "c46597e8-c70f-4613-a32c-2aa67d62b6d9"}
+{"action": "decision_proposed", "at": "2026-11-22T13:38:13+00:00", "data": {"decision_id": "store-connect-order-135"}, "event_id": "98e743d5-9b0c-47db-950b-73eff0195b80"}
+{"action": "decision_locked", "at": "2026-11-22T13:38:13+00:00", "data": {"decision_id": "store-connect-order-135"}, "event_id": "f43f91f7-b034-4c09-8ecf-ab7b120a0938"}
+{"action": "decision_proposed", "at": "2026-11-22T13:38:21+00:00", "data": {"decision_id": "connect-copy-protection-136"}, "event_id": "ec899f12-cd4a-4af7-9a47-34476f5e8a1d"}
+{"action": "decision_deferred", "at": "2026-11-22T13:38:21+00:00", "data": {"decision_id": "connect-copy-protection-136"}, "event_id": "41346a89-4bfd-4c22-8dad-931a75fdfc1f"}
+{"action": "decision_superseded", "at": "2026-11-22T13:38:21+00:00", "data": {"affected": [], "decision_id": "store-connect-flow-081", "replacement_id": "store-connect-approve-once-125"}, "event_id": "37584d3a-2dc5-4f40-9a4f-33a506f9fa2d"}
+{"action": "decision_superseded", "at": "2026-11-22T13:38:21+00:00", "data": {"affected": [], "decision_id": "store-connect-checkout-settings-083", "replacement_id": "store-settings-in-emdash-130"}, "event_id": "9ce2695a-27c2-49a8-b64b-4004c5b54988"}
+{"action": "decision_proposed", "at": "2026-11-22T14:20:20+00:00", "data": {"decision_id": "catalog-hosted-service-20261122"}, "event_id": "4cacbcb4-6f4a-4e7d-9002-50bbdb821f60"}
+{"action": "decision_locked", "at": "2026-11-22T14:20:20+00:00", "data": {"decision_id": "catalog-hosted-service-20261122"}, "event_id": "7033e67c-8954-44fd-8dd1-474185d76e78"}
+{"action": "focus_started", "at": "2026-11-22T15:39:25+00:00", "data": {"cadence": "sequential", "domain": "plugin communication"}, "event_id": "dd365cfa-ef7a-4220-863f-0e4734514b4e"}
+{"action": "shared_understanding_confirmed", "at": "2026-11-22T15:39:25+00:00", "data": {"summary": "The owner reviewed the rule in five pieces and approved each, then the whole, on 22 Nov 2026."}, "event_id": "13899e97-f5b4-43a2-949e-b86b6299c318"}
+{"action": "decision_proposed", "at": "2026-11-22T15:39:26+00:00", "data": {"decision_id": "plugin-communication-rule-20261122"}, "event_id": "4ba6c9ec-e09b-4bf9-83d6-d16940c5f735"}
+{"action": "decision_locked", "at": "2026-11-22T15:39:26+00:00", "data": {"decision_id": "plugin-communication-rule-20261122"}, "event_id": "5df4254d-ce32-44c4-b1ca-a9e7a4437e24"}

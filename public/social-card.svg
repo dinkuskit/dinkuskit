@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="DinkusKit — Open-source commerce plugins for EmDash CMS on Astro and Cloudflare Workers">
+  <defs>
+    <pattern id="bayer" width="12" height="12" patternUnits="userSpaceOnUse">
+      <path d="M0 0h3v3H0zM6 0h3v3H6zM3 3h3v3H3zM9 3h3v3H9zM0 6h3v3H0zM6 6h3v3H6zM3 9h3v3H3zM9 9h3v3H9z" fill="#233532" fill-opacity="0.55" />
+    </pattern>
+  </defs>
+  <rect width="1200" height="630" fill="#111817" />
+  <rect x="40" y="40" width="1120" height="550" fill="#172220" stroke="#233532" stroke-width="2" />
+  <rect x="40" y="40" width="1120" height="24" fill="url(#bayer)" />
+  <rect x="40" y="566" width="1120" height="24" fill="url(#bayer)" />
+
+  <!-- Brand Header -->
+  <g transform="translate(88, 106)">
+    <polygon points="22,0 44,12 44,37 22,50 0,37 0,12" fill="#2a1f3a" stroke="#c084fc" stroke-width="2.5" />
+    <polyline points="0,12 22,25 44,12" fill="none" stroke="#c084fc" stroke-width="2.5" />
+    <line x1="22" y1="25" x2="22" y2="50" stroke="#10b981" stroke-width="2.5" />
+    <text x="62" y="34" fill="#ecfdf5" font-family="'Space Grotesk', system-ui, -apple-system, sans-serif" font-size="30" font-weight="700" letter-spacing="-0.6">DinkusKit</text>
+    <text x="230" y="32" fill="#c084fc" font-family="'Space Mono', ui-monospace, monospace" font-size="16" font-weight="700" letter-spacing="1.4">OPEN-SOURCE EMDASH COMMERCE</text>
+  </g>
+
+  <!-- Headline -->
+  <text x="88" y="242" fill="#ecfdf5" font-family="'Space Grotesk', system-ui, -apple-system, sans-serif" font-size="54" font-weight="700" letter-spacing="-1.2">
+    Run your store yourself,
+  </text>
+  <text x="88" y="308" fill="#ecfdf5" font-family="'Space Grotesk', system-ui, -apple-system, sans-serif" font-size="54" font-weight="700" letter-spacing="-1.2">
+    or with the agent you choose.
+  </text>
+
+  <!-- Subheadline -->
+  <text x="88" y="370" fill="#9db3ac" font-family="'Inter', system-ui, -apple-system, sans-serif" font-size="24" font-weight="400">
+    Modular ecommerce plugins for EmDash CMS on Astro and Cloudflare Workers.
+  </text>
+
+  <!-- Plugin Pills -->
+  <g transform="translate(88, 424)" font-family="'Space Mono', ui-monospace, monospace" font-size="18" font-weight="700">
+    <rect x="0" y="0" width="310" height="72" fill="#141d1b" stroke="#10b981" stroke-width="2" />
+    <circle cx="28" cy="36" r="7" fill="#10b981" />
+    <text x="48" y="32" fill="#ecfdf5">Commerce</text>
+    <text x="48" y="54" fill="#9db3ac" font-family="'Inter', system-ui, sans-serif" font-size="14" font-weight="500">Catalog, cart, orders &amp; MCP</text>
+
+    <rect x="334" y="0" width="310" height="72" fill="#141d1b" stroke="#38bdf8" stroke-width="2" />
+    <circle cx="362" cy="36" r="7" fill="#38bdf8" />
+    <text x="382" y="32" fill="#ecfdf5">Payments</text>
+    <text x="382" y="54" fill="#9db3ac" font-family="'Inter', system-ui, sans-serif" font-size="14" font-weight="500">Hosted Stripe checkout</text>
+
+    <rect x="668" y="0" width="310" height="72" fill="#141d1b" stroke="#f97316" stroke-width="2" />
+    <circle cx="696" cy="36" r="7" fill="#f97316" />
+    <text x="716" y="32" fill="#ecfdf5">Ship</text>
+    <text x="716" y="54" fill="#9db3ac" font-family="'Inter', system-ui, sans-serif" font-size="14" font-weight="500">USPS rates &amp; shipping labels</text>
+  </g>
+
+  <text x="88" y="544" fill="#a7f3d0" font-family="'Space Mono', ui-monospace, monospace" font-size="16" font-weight="700" letter-spacing="0.8">
+    dinkuskit.com · MIT Licensed · Built with EmDash
+  </text>
+</svg>

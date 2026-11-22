@@ -64,7 +64,8 @@ async function publicCorpus(server) {
   const search = await page(server, '/docs/search.json');
   assert.equal(search.status, 200);
   const llms = await page(server, '/llms.txt');
-  return { search: JSON.parse(search.body).map(item => item.id), llms };
+  const llmsFull = await page(server, '/llms-full.txt');
+  return { search: JSON.parse(search.body).map(item => item.id), llms, llmsFull };
 }
 
 function runImport(base, token) {
@@ -86,6 +87,16 @@ async function checkDraftPage(server, id, draft) {
   assert.equal(response.body.includes('Draft for review.'), draft, `${id}: draft notice`);
   assert.equal(response.headers.get('x-robots-tag'), draft ? 'noindex, nofollow' : null, `${id}: robots header`);
   assert.equal(response.headers.get('cache-control'), draft ? 'no-store' : null, `${id}: cache header`);
+  assert.equal(
+    response.headers.get('link'),
+    draft ? null : `<https://dinkuskit.com/docs/markdown/${id}.md>; rel="alternate"; type="text/markdown"`,
+    `${id}: alternate Markdown Link header`,
+  );
+  assert.equal(
+    response.body.includes(`<link rel="alternate" type="text/markdown" href="https://dinkuskit.com/docs/markdown/${id}.md"`),
+    !draft,
+    `${id}: alternate Markdown <link> tag`,
+  );
   assert.ok(response.body.includes(`https://dinkuskit.com/docs/${id}`), `${id}: canonical URL`);
   assert.match(response.body, /aria-current="page"/);
   assert.match(response.body, /class="docs-page-actions"/);
@@ -121,6 +132,7 @@ try {
   let corpus = await publicCorpus(development);
   assert.deepEqual(corpus.search, [], 'drafts never enter the public search index');
   assert.equal(corpus.llms.status, 404, 'llms.txt waits for a published article');
+  assert.equal(corpus.llmsFull.status, 404, 'llms-full.txt waits for a published article');
   await assertDocsMcp(development, false);
   console.log('PASS development: the seed loads 13 drafts, previewed with noindex/no-store and kept out of search, llms.txt and the docs MCP');
 
@@ -192,8 +204,14 @@ try {
   const corpus = await publicCorpus(production);
   assert.deepEqual(corpus.search, [PUBLISHED]);
   assert.equal(corpus.llms.status, 200);
-  assert.equal((corpus.llms.body.match(/^- \[/gm) ?? []).length, 1);
+  assert.equal((corpus.llms.body.match(/https:\/\/dinkuskit\.com\/docs\/markdown\//g) ?? []).length, 1);
   assert.ok(corpus.llms.body.includes(`(https://dinkuskit.com/docs/markdown/${PUBLISHED}.md)`));
+  assert.ok(corpus.llms.body.includes('## Platform & Quick Links'));
+  assert.ok(corpus.llms.body.includes('## Docs MCP Server'));
+  assert.ok(corpus.llms.body.includes('https://dinkuskit.com/docs/mcp'));
+  assert.equal(corpus.llmsFull.status, 200);
+  assert.ok(corpus.llmsFull.body.includes('# Complete and verify a test order'));
+  assert.ok(!corpus.llmsFull.body.includes('Choose your path and check requirements'), 'draft article excluded from llms-full.txt');
   await assertDocsMcp(production, true);
   assert.equal((await page(production, '/docs')).headers.get('location'), `/docs/${PUBLISHED}`);
   assert.equal((await page(production, '/docs/internal-plan')).status, 404);

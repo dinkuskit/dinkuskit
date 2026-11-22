@@ -3,7 +3,7 @@ import Site from '../../layouts/Site.astro';
 import { MerchantUnavailableError, seeOther, unavailableResponse } from '../../account/config.ts';
 import { getMerchantEnv } from '../../account/bindings.ts';
 import { createMerchantRuntime } from '../../account/auth.ts';
-import { claimPendingConnection } from '../../account/store.ts';
+import { claimPendingConnection, loadStoreConnection } from '../../account/store.ts';
 import { connectionPreview, consentStoreConnection } from '../../account/connect.ts';
 import { rejectCrossOriginMutation } from '../../account/origin.ts';
 import { authorizeOrganization } from '../../account/organizations.ts';
@@ -48,15 +48,40 @@ if (Astro.request.method === 'POST') {
 organizationId ||= merchant.organizationId;
 if (organizationId !== merchant.organizationId) return seeOther('/account/sites');
 const membership = await authorizeOrganization(env.MERCHANT_DB, merchant.userId, organizationId);
-if (!membership || membership.role !== 'owner' || membership.status !== 'active' || membership.admissionStatus === 'pending_operator') return new Response(null, { status: 403 });
-const connection = await claimPendingConnection(env.MERCHANT_DB, connectionId, merchant.subject);
-if (!connection) return seeOther('/account/sites');
+// Plain words instead of an empty page when the owner can't approve yet (store-connect-plain-messages-127).
+let notice: { status: number; title: string; body: string } | null = null;
+let connection: Awaited<ReturnType<typeof claimPendingConnection>> = null;
+if (membership?.role === 'owner' && membership.status === 'pending_operator' && membership.admissionStatus === 'pending_operator') {
+  notice = { status: 403, title: 'Your business is waiting for approval', body: "DinkusKit is reviewing your business. We'll let you know when it's approved. Then go back to your store and press Connect again." };
+} else if (!membership || membership.role !== 'owner' || membership.status !== 'active') {
+  return new Response(null, { status: 403 });
+} else {
+  connection = await claimPendingConnection(env.MERCHANT_DB, connectionId, merchant.subject);
+  // A link this owner opened, or could have, whose 10 minutes ran out (CONNECTION_MAX_LIFETIME_MS). A claimed
+  // link still loads after it runs out, so the time is checked here, before an Approve that can only fail.
+  const stale = connection ?? await loadStoreConnection(env.MERCHANT_DB, connectionId);
+  const ranOut = stale !== null && stale.status === 'pending' && stale.expiresAt <= Date.now()
+    && (stale.accountSubject === null || stale.accountSubject === merchant.subject);
+  if (ranOut) {
+    const name = stale.service.charAt(0).toUpperCase() + stale.service.slice(1);
+    notice = { status: 410, title: 'This link ran out', body: `Links to approve a store last 10 minutes. Go back to your store's admin, open ${name} and press Connect again.` };
+    connection = null;
+  } else if (!connection) return seeOther('/account/sites');
+}
+if (notice) Astro.response.status = notice.status;
 if (organizationId !== merchant.organizationId) return seeOther('/account/sites');
-if (!await authorizeOrganization(env.MERCHANT_DB, merchant.userId, organizationId)) return seeOther('/account/sites');
-const preview = connectionPreview(connection);
+if (connection && !await authorizeOrganization(env.MERCHANT_DB, merchant.userId, organizationId)) return seeOther('/account/sites');
+const preview = connection ? connectionPreview(connection) : null;
 const error = Astro.url.searchParams.get('error');
 ---
 <Site title="Connect a site" description="Approve or deny a service connection.">
+  {notice || !preview ? (
+  <div class="account-panel">
+    <h1>{notice?.title}</h1>
+    <p class="lead" role="status">{notice?.body}</p>
+    <p><a href="/account">Go to your account</a></p>
+  </div>
+  ) : (
   <div class="account-panel">
     <p class="eyebrow">Explicit consent</p>
     <h1>Connect this store?</h1>
@@ -84,4 +109,5 @@ const error = Astro.url.searchParams.get('error');
     </form>
     <p><a href="/account/sites">Back to connected sites</a></p>
   </div>
+  )}
 </Site>

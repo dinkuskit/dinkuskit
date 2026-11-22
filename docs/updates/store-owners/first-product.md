@@ -1,6 +1,6 @@
 ---
 article: store-owners/first-product
-base: sha256:481a08673a917a6cc7a0bf151b1b960e2826895b02ae992c77e9d94259cad16e
+base: sha256:41c3019e1bbdff8936fc2e9191e505b198702206ccaa65c023430f8e251c783a
 title: "Add your first product"
 summary: "Create a simple product, save its price and availability, and check what a customer sees."
 audience: "Store owners"
@@ -10,7 +10,7 @@ version_scope: "Commerce 0.6.0; EmDash 1.2.0; unmanaged product workflow"
 
 ## What you will finish
 
-One simple, unmanaged product with a saved price and availability, on a published product page that customers can see. These controls match the Commerce 0.6.0 Registry bundle, where **Content > Products** is the one place to manage a product.
+One simple, unmanaged product with a saved price and availability, on a published product page that customers can see. These controls match the Commerce 0.6.0 Registry bundle, where **Content \> Products** is the one place to manage a product.
 
 ## Before you start
 
@@ -20,7 +20,7 @@ For the first product, keep stock unmanaged. Inventory is not required for this 
 
 ## Make the product page
 
-1. Open **Content > Products** and create a page titled **Sample postcard**. Press **Save** so it exists as a Draft.
+1. Open **Content \> Products** and create a page titled **Sample postcard**. Press **Save** so it exists as a Draft.
 2. In the **Dinkus Commerce** panel beside the editor, the page says "Not a product yet. Add price and stock to sell it." Type the SKU in **SKU (optional)**, or leave it blank to have one made from the title, and press **Add price and stock**.
 3. Commerce makes a Draft product named from the page title and links it to the page. EmDash asks you to apply the link; press **Save** on the page to keep it.
 
@@ -38,7 +38,7 @@ For a physical product, enter **Weight (oz)** under **Shipping weight** and pres
 
 The product is a Draft, and not buyable, until its page is published. Press **Publish** on the page. The store's publish check then puts the product on sale, and the panel shows it **On sale**. Unpublishing or deleting the page takes it off the shop again.
 
-To retire a product, press **Archive** in the panel. **Restore** brings it back as a Draft.
+To retire a product, press **Move to Trash** on its page. That archives the product: it leaves the shop, its old address answers "not found", and past orders keep it. To sell it again, open **Content \> Products**, choose the **Trash** tab, open **Actions** on the page and press **Restore**. The page comes back as a Draft, and publishing it puts the product back on sale.
 
 ## Check the storefront
 

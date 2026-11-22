@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFileSync } from 'node:fs';
 import { marked } from 'marked';
-import { articleId, articleMarkdown, docsSections, llmsText, searchRecord, selectArticles } from '../src/docs/catalog.ts';
+import { articleId, articleMarkdown, docsSections, llmsFullText, llmsText, searchRecord, selectArticles } from '../src/docs/catalog.ts';
 import { markdownToPortableText, portableTextToMarkdown, headingAnchors } from '../src/docs/portable-text.ts';
 import { searchDocs } from '../src/docs/search.ts';
 import { compareParagraph, randomParagraph } from './docs-markdown-fuzz.mjs';
@@ -48,6 +48,11 @@ test('Markdown, search and llms.txt come from the same published list', () => {
   assert.equal(searchRecord(site, article).url, '/docs/reference/commerce');
   assert.ok(llmsText(site, [article]).includes('- [Catalog integration](https://docs.example/docs/markdown/reference/commerce.md): Read public products.'));
   assert.equal(llmsText(site, []), null);
+  assert.equal(llmsFullText(site, []), null);
+  const full = llmsFullText(site, [article]);
+  assert.ok(full.includes('- [Catalog integration](https://docs.example/docs/markdown/reference/commerce.md): Read public products.'));
+  assert.ok(full.includes('Canonical URL: https://docs.example/docs/reference/commerce'));
+  assert.ok(full.includes(body));
 });
 
 test('Portable Text keeps marks, links, tables, code and heading anchors', () => {
@@ -168,6 +173,8 @@ test('keyword search uses full text, prefers titles, and bounds results', () => 
 
 test('the seed defines the docs collection and holds the thirteen articles as drafts', async () => {
   const { docsSite } = await import('../src/docs/site.ts');
+  assert.match(docsSite.description, /Authorize\.Net planned/);
+  assert.match(docsSite.description, /with stock ledger \(DinkusKit Inventory\) planned after v1/);
   const collection = seed.collections.find(item => item.slug === 'docs');
   assert.deepEqual(collection.supports, ['drafts', 'revisions']);
   assert.deepEqual(collection.fields.map(field => [field.slug, field.type]), [

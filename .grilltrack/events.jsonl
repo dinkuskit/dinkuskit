@@ -267,5 +267,13 @@
 {"action": "shared_understanding_confirmed", "at": "2026-11-22T15:39:25+00:00", "data": {"summary": "The owner reviewed the rule in five pieces and approved each, then the whole, on 22 Nov 2026."}, "event_id": "13899e97-f5b4-43a2-949e-b86b6299c318"}
 {"action": "decision_proposed", "at": "2026-11-22T15:39:26+00:00", "data": {"decision_id": "plugin-communication-rule-20261122"}, "event_id": "4ba6c9ec-e09b-4bf9-83d6-d16940c5f735"}
 {"action": "decision_locked", "at": "2026-11-22T15:39:26+00:00", "data": {"decision_id": "plugin-communication-rule-20261122"}, "event_id": "5df4254d-ce32-44c4-b1ca-a9e7a4437e24"}
-{"action": "decision_proposed", "at": "2026-11-22T16:53:56+00:00", "data": {"decision_id": "connect-finish-setup-disconnect-137"}, "event_id": "ff18e2d3-5a4b-495c-a653-2b6d45659794"}
-{"action": "decision_locked", "at": "2026-11-22T17:02:13+00:00", "data": {"decision_id": "connect-finish-setup-disconnect-137"}, "event_id": "0c2a7d64-a569-4d7f-969d-2ce2347b253a"}
+{"action": "focus_started", "at": "2026-11-22T16:53:50+00:00", "data": {"cadence": "sequential", "domain": "Website EmDash 1.5 source upgrade"}, "event_id": "d3a1d1ba-453f-4c3a-a0e7-3611be544a88"}
+{"action": "shared_understanding_confirmed", "at": "2026-11-22T16:53:50+00:00", "data": {"summary": "The owner approved the EmDash 1.5 upgrade plan on 22 Nov 2026: plugins first, then this website, then the template store; the website deploy stays a separate operator step."}, "event_id": "f2f592a7-4954-4e98-a9b4-a4135de8e427"}
+{"action": "decision_proposed", "at": "2026-11-22T16:53:50+00:00", "data": {"decision_id": "website-emdash15-20261122"}, "event_id": "4459068c-75a0-4f14-9f0d-cbfe4fac8758"}
+{"action": "decision_locked", "at": "2026-11-22T16:53:50+00:00", "data": {"decision_id": "website-emdash15-20261122"}, "event_id": "854b7ea6-5645-4f6c-83ec-8d396e5562b1"}
+{"action": "decision_implemented", "at": "2026-11-22T16:53:50+00:00", "data": {"decision_id": "website-emdash15-20261122"}, "event_id": "3018fcc5-cdf5-45df-accc-658906afad00"}
+{"action": "decision_verified", "at": "2026-11-22T16:53:50+00:00", "data": {"decision_id": "website-emdash15-20261122"}, "event_id": "c79aa32b-2d66-4516-a442-0b732eafb17a"}
+{"action": "focus_started", "at": "2026-11-22T16:53:50+00:00", "data": {"cadence": "sequential", "domain": "plugin communication"}, "event_id": "906e07a1-c0de-474d-b631-0895322679ff"}
+{"action": "shared_understanding_confirmed", "at": "2026-11-22T16:53:50+00:00", "data": {"summary": "The owner reviewed the rule in five pieces and approved each, then the whole, on 22 Nov 2026."}, "event_id": "9b0f00c7-a493-4cdc-8827-b4fbf5184979"}
+{"action": "decision_proposed", "at": "2026-11-22T17:51:59+00:00", "data": {"decision_id": "connect-finish-setup-disconnect-137"}, "event_id": "6a64096e-3cd8-490c-8bd7-7ee802b1a5b4"}
+{"action": "decision_locked", "at": "2026-11-22T17:51:59+00:00", "data": {"decision_id": "connect-finish-setup-disconnect-137"}, "event_id": "ff1450c3-4919-4d5e-a2cb-d8f22ad259bc"}

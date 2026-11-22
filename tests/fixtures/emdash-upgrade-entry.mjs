@@ -34,7 +34,7 @@ async function prepare(env) {
     env.DB.prepare('INSERT INTO options (name, value) VALUES (?, ?)')
       .bind('cms-upgrade-setting', JSON.stringify({ media_id: 'cms-upgrade-media', value: 'preserved-setting' })),
     env.DB.prepare('INSERT INTO _plugin_state (plugin_id, version, status, data) VALUES (?, ?, ?, ?)')
-      .bind('dinkuskit-upgrade-fixture', '1.0.1-fixture', 'active', JSON.stringify({ media_id: 'cms-upgrade-media', value: 'preserved-plugin-state' })),
+      .bind('dinkuskit-upgrade-fixture', `${env.UPGRADE_BASELINE}-fixture`, 'active', JSON.stringify({ media_id: 'cms-upgrade-media', value: 'preserved-plugin-state' })),
   ]);
   await env.MERCHANT_DB.batch([
     env.MERCHANT_DB.prepare('INSERT INTO "user" (id, name, email, emailVerified, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?)')
@@ -58,7 +58,7 @@ export default {
   ...production,
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
-    if (request.method === 'POST' && url.pathname === '/__upgrade/prepare' && env.UPGRADE_BASELINE === '1.0.1') {
+    if (request.method === 'POST' && url.pathname === '/__upgrade/prepare' && (env.UPGRADE_BASELINE === '1.0.1' || env.UPGRADE_BASELINE === '1.4.0')) {
       await prepare(env);
       return response(await state(env));
     }

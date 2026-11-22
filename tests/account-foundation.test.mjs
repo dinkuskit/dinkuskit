@@ -252,7 +252,12 @@ test('pending Owner cannot claim Connect and a removed Owner cannot approve afte
     const connection = await start.json();
     const path = '/account/connect?connection_id=' + connection.connection_id;
     await form(runtime, jar, '/api/account/organizations', { name: 'Pending organization' });
-    assert.equal((await request(runtime, jar, path)).status, 403);
+    const waiting = await request(runtime, jar, path);
+    assert.equal(waiting.status, 403);
+    const waitingHtml = await waiting.text();
+    assert.match(waitingHtml, /Your business is waiting for approval/, 'a waiting business gets plain words, not an empty page');
+    assert.match(waitingHtml, /press Connect again/);
+    assert.doesNotMatch(waitingHtml, /Approve inventory/);
     await select(runtime, jar, org);
     assert.equal((await request(runtime, jar, path)).status, 200);
     const missing = await form(runtime, jar, path, { action: 'approve' });
@@ -266,5 +271,42 @@ test('pending Owner cannot claim Connect and a removed Owner cannot approve afte
     assert.match(approved.headers.get('location'), /error=/);
     const grant = await (await request(runtime, new Map(), '/__proof/grant?site_id=' + connection.site_id)).json();
     assert.equal(grant.present, false);
+  } finally { await stopRuntime(runtime); }
+});
+
+test('an Approve link that ran out says so and how to start again', async () => {
+  const runtime = await startMerchantTestRuntime();
+  try {
+    const jar = new Map();
+    await signup(runtime, 'expired-link-owner@example.com', jar);
+    const siteOrigin = 'https://expired-link.stores.example';
+    const start = await request(runtime, new Map(), '/api/store-connections', {
+      method: 'POST', body: JSON.stringify({ client_id: 'dinkus-inventory-emdash', service: 'inventory', protocol_version: 2,
+        site_origin: siteOrigin, callback_uri: siteOrigin + '/_emdash/admin/plugins/dinkus-inventory/inventory',
+        code_challenge: 'b'.repeat(43), code_challenge_method: 'S256' }),
+    });
+    assert.equal(start.status, 200);
+    const connection = await start.json();
+    const path = '/account/connect?connection_id=' + connection.connection_id;
+    assert.equal((await request(runtime, jar, path)).status, 200);
+    await request(runtime, new Map(), '/__proof/expire-connection', { method: 'POST', body: JSON.stringify({ connection_id: connection.connection_id }) });
+    const expired = await request(runtime, jar, path);
+    assert.equal(expired.status, 410);
+    const html = await expired.text();
+    assert.match(html, /This link ran out/);
+    assert.match(html, /last 10 minutes/);
+    assert.match(html, /open Inventory and press Connect again/);
+    assert.doesNotMatch(html, /Approve inventory/);
+    // An Approve pressed on a page left open past the 10 minutes comes back to the same plain page.
+    const late = await form(runtime, jar, path, { action: 'approve', organization_id: (await organizations(runtime, jar)).selectedOrganizationId });
+    assert.equal(late.status, 303);
+    const back = await request(runtime, jar, late.headers.get('location'));
+    assert.equal(back.status, 410);
+    assert.match(await back.text(), /This link ran out/);
+    const stranger = new Map();
+    await signup(runtime, 'expired-link-stranger@example.com', stranger);
+    const other = await request(runtime, stranger, path);
+    assert.equal(other.status, 303, 'another account still goes to its own stores');
+    assert.equal(other.headers.get('location'), '/account/sites');
   } finally { await stopRuntime(runtime); }
 });

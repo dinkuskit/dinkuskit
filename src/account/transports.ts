@@ -7,6 +7,8 @@ export type MerchantTransports = {
   emailDelivery?: MerchantEmailDelivery;
   /** Isolated local admission notification sink; production uses the EMAIL binding. */
   admissionEmail?: import('./config.ts').MerchantEmailBinding;
+  /** Isolated local sink for the email that names a plugin which joined with Finish setup. */
+  noticeEmail?: import('./config.ts').MerchantEmailBinding;
   proofFetch?: ProofFetchFn;
   /** Controlled local stand-in for Payments' GET /v1/status; production calls Payments. */
   paymentsStatusFetch?: import('./commerce-settings.ts').PaymentsStatusFetch;

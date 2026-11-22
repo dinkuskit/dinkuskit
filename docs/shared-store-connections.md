@@ -183,8 +183,9 @@ at once.
   `{"store_key", "site_id"}`.
 - **Ship** starts only once the store's Commerce has its key, and otherwise
   answers 409 `connect_commerce_first`; approval rechecks it. Its answer is also
-  `{"store_key", "site_id"}`, and it turns nothing on: the owner's Ship switch
-  still decides.
+  `{"store_key", "site_id"}`, and connecting Ship turns Ship on for the store
+  (store-connect-ship-on-at-setup-126). Your stores has no Ship switch: Disconnect
+  turns Ship off, and an operator cut-off still refuses it until Restore.
 - **Payments** keeps its grant and 5-minute `payments:admin` pass, and its answer
   adds `store_key` for its status page. Like Ship, it starts only once the store's
   Commerce has its key (409 `connect_commerce_first`), and approval rechecks it.
@@ -197,6 +198,76 @@ Each plugin's key trades only for that plugin's passes, and anything else is 403
 | Commerce | `payments:checkout`, `ship:orders` (and the Ship sandbox audience), `commerce:settings` |
 | Payments | `payments:checkout` |
 | Ship | `ship:admin` |
+
+### Finish setup: approve once per store
+
+GrillTrack store-connect-approve-once-125, store-connect-ship-on-at-setup-126,
+connect-shows-siblings-133, connect-uninstall-cancels-key-134 and
+connect-finish-setup-disconnect-137. The owner approves the store's first plugin
+as above. After that, the store's other DinkusKit plugins join with their own key
+and no second Approve:
+
+```
+POST /api/store-connections/lookup
+{"protocol_version": 2, "client_id", "service", "site_origin", "callback_uri"}
+```
+
+answers `{"finish_setup": true}` when the plugin's page shows **Finish setup**
+instead of **Connect**, and names nothing about the business. It is true only when
+DinkusKit.com knows the store, at least one of its plugins has a key, its business
+is active and approved, Commerce is connected (for Payments and Ship), the owner has
+not pressed Disconnect for this plugin or Revoke for its service, and no operator
+cut the service off. The same address checks as the start request apply.
+
+Finish setup starts a connection exactly as Connect does, writes the same receipt
+at its proof route, and then sends
+
+```
+POST /api/store-connections/finish
+{"client_id", "connection_id", "code_verifier"}
+```
+
+DinkusKit.com checks the verifier, reads the receipt from the registered proof
+route and compares every field, as Approve does, then approves for the business
+that owns the store and answers exactly as `/api/store-connections/token`: the
+plugin's own `store_key` and `site_id`, and for Payments its grant and 5-minute
+pass. The owner gets an email naming the plugin and the store, with a link to Your
+stores to Disconnect it. Errors: `409 owner_approval_required` (show the Approve
+link instead), `409 connect_commerce_first`, `409 grant_revoked`, `400 not_pending`,
+`400 expired_token`, `400 invalid_grant`, and the store-check failures as `403`.
+
+Disconnect under Your stores is remembered in `dinkuskit_plugin_disconnect`
+(migration 0016): that plugin then shows Connect, and only the owner's Approve
+brings it back, which forgets the Disconnect. Disconnecting Ship turns Ship off.
+Disconnects made before migration 0016 were not recorded. The migration therefore
+records one for each plugin that now has no key but has an approved or denied Connect,
+or a grant, unless a newer Approve is still waiting to be picked up.
+
+Each plugin reads what its store is connected to with a `store:connection` pass,
+audience `dinkuskit`, which every plugin key may trade for:
+
+```
+GET /api/store-connection
+Authorization: Bearer <store:connection pass>
+```
+
+answers `{"business", "site_origin", "plugins"}`, `plugins` listing the connected
+plugins among `commerce`, `payments` and `ship`. The pass names the exact key that
+traded for it. Once that key is cancelled, disconnected or replaced (a reinstall or a
+new Approve gives the plugin a new key), the pass answers 401 even before it expires. Errors: 401 `invalid_pass`, 403 `store_suspended`.
+
+On uninstall a plugin cancels its own key:
+
+```
+POST /api/store-keys/cancel
+Authorization: Bearer <the plugin's own store key>
+{"site_id": "<store ID>"}
+```
+
+answers `{"cancelled": true}`. Other plugins' keys, the store and its service
+grants stay, and nothing is remembered, so installing the plugin again shows
+Finish setup. Errors: 401 `invalid_store_key`, 400 `invalid_request`, 403
+`site_mismatch`. If the call fails, Disconnect under Your stores still works.
 
 ### Checkout settings read by Commerce
 
@@ -252,7 +323,7 @@ Authorization: Bearer <store key>
 The allowed pairs are `payments:checkout` with `dinkus-payments`,
 `coupons:checkout` with `dinkus-coupons`, and `ship:orders` and `ship:admin` with
 `dinkus-ship`, each only for the plugin keys in the table above. `ship:admin` is
-for the Ship plugin in the store admin, which trades its own key; it is on and off with the store's Ship switch, like
+for the Ship plugin in the store admin, which trades its own key; it is on while Ship is connected, like
 `ship:orders`, and Ship answers its admin routes only for that scope.
 The answer is `{"access_token", "token_type": "Bearer", "expires_in": 300}`: an
 ES256 pass from the same issuer and keys as Connect passes, with `sub` the

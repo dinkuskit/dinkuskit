@@ -97,9 +97,12 @@ export function createAgentTestEntry(testWorker, now = Date.now) {
           return delegate('/__proof/expire-verification', '{}', 'application/json');
         }
         if (url.pathname === '/__agent/receipt') {
-          if (input.site_origin !== AGENT_STORE_ORIGIN || input.service !== 'inventory'
-            || input.client_id !== 'dinkus-inventory-emdash'
-            || input.callback_uri !== `${AGENT_STORE_ORIGIN}/_emdash/admin/plugins/dinkus-inventory/inventory`
+          // The synthetic store's plugins: Inventory, then Commerce and Ship, which turns Ship on.
+          const pages = { inventory: 'dinkus-inventory/inventory', commerce: 'r_gshdrqaldna3r7sn/settings', ship: 'r_ehdlg5cxkb3ffqvr/shipping' };
+          const page = typeof input.service === 'string' && Object.hasOwn(pages, input.service) ? pages[input.service] : null;
+          if (input.site_origin !== AGENT_STORE_ORIGIN || !page
+            || input.client_id !== `dinkus-${input.service}-emdash`
+            || input.callback_uri !== `${AGENT_STORE_ORIGIN}/_emdash/admin/plugins/${page}`
             || Object.keys(input).some(key => !['version', 'connection_id', 'challenge', 'client_id', 'service', 'site_id', 'site_origin', 'callback_uri', 'code_challenge', 'expires_at'].includes(key))) return json(403, { error: 'synthetic_store_required' });
           return delegate('/__proof/receipt', body, 'application/json');
         }

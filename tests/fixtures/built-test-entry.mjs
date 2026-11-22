@@ -60,6 +60,14 @@ async function testTransports(env) {
   const proof = env.MERCHANT_PROOF_SIMULATION;
   return {
     emailDelivery: mail ? emailDeliveryFromCapture(mail) : undefined,
+    // Finish setup's email to the owner, kept whole so a test can read its words.
+    noticeEmail: mail ? { async send(message) {
+      const key = `notice:${String(message.to).toLowerCase()}`;
+      const list = JSON.parse(await mail.get(key) ?? '[]');
+      list.push({ subject: message.subject, text: message.text });
+      await mail.put(key, JSON.stringify(list));
+      return { messageId: 'test-notice' };
+    } } : undefined,
     proofFetch: proof ? simulationFetch(proof, env.MERCHANT_DB) : undefined,
     paymentsStatusFetch: proof ? paymentsStatusFetch(proof) : undefined,
   };
@@ -124,6 +132,14 @@ async function proofRoutes(request, env, ctx) {
     headers.set('cache-control', 'private, no-store');
     for (const cookie of verified.headers.getSetCookie?.() ?? []) headers.append('set-cookie', cookie);
     return new Response(null, { status: 303, headers });
+  }
+
+  if (request.method === 'POST' && url.pathname === '/__proof/notice/take') {
+    const body = await request.json();
+    const key = `notice:${String(body.email ?? '').toLowerCase()}`;
+    const list = JSON.parse(await env.MERCHANT_MAIL_CAPTURE.get(key) ?? '[]');
+    await env.MERCHANT_MAIL_CAPTURE.delete(key);
+    return json(200, list);
   }
 
   if (request.method === 'POST' && url.pathname === '/__proof/mail/take') {

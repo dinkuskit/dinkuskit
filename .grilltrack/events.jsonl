@@ -279,3 +279,5 @@
 {"action": "decision_locked", "at": "2026-11-22T17:54:03+00:00", "data": {"decision_id": "plugin-communication-rule-20261122"}, "event_id": "be2ae7a1-696a-4d30-a71f-4f80c90ff9d9"}
 {"action": "decision_proposed", "at": "2026-11-22T18:15:19+00:00", "data": {"decision_id": "website-inventory-overview-removal-20261122"}, "event_id": "997193a1-56f8-40f5-9623-9cb587b19054"}
 {"action": "decision_locked", "at": "2026-11-22T18:15:19+00:00", "data": {"decision_id": "website-inventory-overview-removal-20261122"}, "event_id": "21bfae89-7752-4ecd-aefe-df9f17e11200"}
+{"action": "decision_proposed", "at": "2026-11-22T18:43:15+00:00", "data": {"decision_id": "connect-finish-setup-disconnect-137"}, "event_id": "3be28ac7-42a1-45ff-801a-609fd045beb6"}
+{"action": "decision_locked", "at": "2026-11-22T18:43:15+00:00", "data": {"decision_id": "connect-finish-setup-disconnect-137"}, "event_id": "62bd9ea1-25f2-4f5d-83fe-ee265805bd72"}

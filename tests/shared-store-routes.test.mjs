@@ -12,7 +12,7 @@ test('shared service routes require separate consent and display processor setup
     async function start(service) {
       const verifier = randomBytes(32).toString('base64url'); const challenge = createHash('sha256').update(verifier).digest('base64url');
       const client = `dinkus-${service}-emdash`;
-      const callback = `${origin}/_emdash/admin/plugins/${{ payments:'r_3brsc2on3bu673rn/status', commerce:'r_gshdrqaldna3r7sn/settings' }[service] ?? 'dinkus-inventory/inventory'}`;
+      const callback = `${origin}/_emdash/admin/plugins/${{ payments:'r_3brsc2on3bu673rn/status', commerce:'r_gshdrqaldna3r7sn/settings', ship:'r_ehdlg5cxkb3ffqvr/shipping' }[service] ?? 'dinkus-inventory/inventory'}`;
       const response = await request(runtime,new Map(),'/api/store-connections',{method:'POST',body:JSON.stringify({protocol_version:2,client_id:client,service,site_origin:origin,callback_uri:callback,code_challenge:challenge,code_challenge_method:'S256'})});
       assert.equal(response.status,200); const body=await response.json();
       assert.equal(body.protocol_version,2);
@@ -47,7 +47,9 @@ test('shared service routes require separate consent and display processor setup
     const post=async (jar,fields)=>request(runtime,jar,'/account/sites',{method:'POST',headers:{'content-type':'application/x-www-form-urlencoded'},body:await accountForm(runtime,jar,new URLSearchParams(fields).toString())});
     const trade=(key,scope,audience)=>request(runtime,new Map(),'/api/store-passes',{method:'POST',headers:{authorization:`Bearer ${key}`},body:JSON.stringify({site_id:siteId,scope,audience})});
     const setup=await (await request(runtime,owner,`/account/sites?store=${siteId}&tab=plugins`)).text();
-    assert.match(setup,/Set up Commerce/); assert.match(setup,/Turn on Ship/); assert.match(setup,/press Connect in Commerce first/);
+    assert.match(setup,/Set up Commerce/); assert.match(setup,/press Connect in Commerce first/);
+    assert.doesNotMatch(setup,/Turn on Ship/,'Ship has no switch: it turns on when it connects (store-connect-ship-on-at-setup-126)');
+    assert.match(setup,/Ship: Off. Press Connect or Finish setup in the Ship plugin in EmDash to turn it on./);
     assert.doesNotMatch(setup,/Create store key|Replace key|Store key:|[Pp]aste/,'no store key to make or paste');
     assert.equal((await post(owner,{action:'store_key',site_id:siteId})).status,303,'the old Create store key button does nothing');
     assert.match(setup,/Coupons: Coming soon/); assert.doesNotMatch(setup,/Turn on Coupons/,'Commerce takes no coupon codes in v1');
@@ -63,9 +65,12 @@ test('shared service routes require separate consent and display processor setup
     assert.equal((await post(owner,{action:'service',site_id:siteId,service:'coupons',on:'1'})).status,303);
     assert.deepEqual(await (await trade(key,'coupons:checkout','dinkus-coupons')).json(),{error:'scope_not_allowed'},'Commerce\'s key gets no coupon passes while Coupons is coming soon');
     assert.equal((await post(owner,{action:'service',site_id:siteId,service:'ship',on:'1'})).status,303);
+    assert.deepEqual(await (await trade(key,'ship:orders','dinkus-ship')).json(),{error:'service_not_enabled'},'the old Turn on Ship form does nothing');
+    const shipConnect=await start('ship'); await approve(shipConnect); assert.equal((await token(shipConnect)).status,200,'connecting Ship turns it on');
     const shipPass=await trade(key,'ship:orders','dinkus-ship'); assert.equal(shipPass.status,200);
     assert.equal(JSON.parse(Buffer.from((await shipPass.json()).access_token.split('.')[1],'base64url').toString()).site_origin,origin);
-    assert.match(await (await request(runtime,owner,`/account/sites?store=${siteId}&tab=plugins`)).text(),/Turn off Ship/);
+    const shipOn=await (await request(runtime,owner,`/account/sites?store=${siteId}&tab=plugins`)).text();
+    assert.match(shipOn,/Ship: On/); assert.match(shipOn,/Disconnect Ship/); assert.doesNotMatch(shipOn,/Turn off Ship/);
     const reconnect=await start('commerce'); await approve(reconnect); const replaced=(await (await token(reconnect)).json()).store_key; assert.notEqual(replaced,key);
     assert.deepEqual(await (await trade(key,'payments:checkout','dinkus-payments')).json(),{error:'invalid_store_key'},'Connect again stops the old key');
     assert.equal((await trade(replaced,'payments:checkout','dinkus-payments')).status,200);
@@ -94,7 +99,7 @@ test('shared service routes require separate consent and display processor setup
     assert.deepEqual([statusClaims.aud,statusClaims.scope,statusClaims.site_id],['dinkus-payments','payments:admin',siteId]);
     const outside=await showSettings(outsider,{shipping_amount:'9.00'}); assert.doesNotMatch(outside.html,/bind_route_1/,'another business sees no settings for this store');
     assert.match(await (await request(runtime,owner,'/account/sites')).text(),/value="5\.00"/,'the saved charge is kept, not the outsider\'s');
-    const turnOffShip=await post(owner,{action:'service',site_id:siteId,service:'ship',on:'0'});
+    const turnOffShip=await post(owner,{action:'disconnect_plugin',site_id:siteId,plugin:'ship'});
     assert.equal(turnOffShip.headers.get('location'),`/account/sites?changed=${siteId}`);
     assert.match(await (await request(runtime,owner,`/account/sites?changed=${siteId}`)).text(),/Commerce picks up the change within 5 minutes/);
     const withoutShip=savedSettings((await showSettings(owner)).html);
@@ -110,7 +115,7 @@ test('shared service routes require separate consent and display processor setup
     const signedOut=await request(runtime,new Map(),shipPath(first.challenge));
     assert.equal(signedOut.headers.get('location'),`/account/sign-in?callbackURL=${encodeURIComponent(shipPath(first.challenge))}`,'sign-in first, then back to the same request');
     assert.equal((await shipBack(owner,shipPath(first.challenge))).searchParams.get('error'),'ship_not_enabled','Ship is off');
-    assert.equal((await post(owner,{action:'service',site_id:siteId,service:'ship',on:'1'})).status,303);
+    const shipAgain=await start('ship'); await approve(shipAgain); assert.equal((await token(shipAgain)).status,200,'the owner\'s Approve connects Ship again and turns it on');
     const back=await shipBack(owner,shipPath(first.challenge));
     const signed=await shipToken({code:back.searchParams.get('code'),code_verifier:first.verifier}); assert.equal(signed.status,200);
     const signedBody=await signed.json();
@@ -194,7 +199,6 @@ test('Connect to DinkusKit through the routes: Commerce first, a key per plugin,
     const trade = (key,scope,audience)=>request(runtime,new Map(),'/api/store-passes',{method:'POST',headers:{authorization:`Bearer ${key}`},body:JSON.stringify({site_id:siteId,scope,audience})});
     assert.equal((await trade(payments.issued.store_key,'payments:checkout','dinkus-payments')).status,200);
     assert.deepEqual(await (await trade(payments.issued.store_key,'commerce:settings','dinkuskit')).json(),{error:'scope_not_allowed'});
-    assert.equal((await request(runtime,owner,'/account/sites',await form(owner,{action:'service',site_id:siteId,service:'ship',on:'1'}))).status,303);
     const ship = await connect('ship'); assert.equal((await trade(ship.issued.store_key,'ship:admin','dinkus-ship')).status,200);
     // Commerce reads its settings itself.
     assert.equal((await request(runtime,owner,'/account/sites',await form(owner,{action:'checkout_settings',site_id:siteId,shipping_mode:'flat',shipping_amount:'4.00',payments_mode:'test'}))).status,200);
@@ -220,7 +224,8 @@ test('Connect to DinkusKit through the routes: Commerce first, a key per plugin,
     // Disconnect stops only that plugin's key.
     assert.equal((await request(runtime,owner,'/account/sites',await form(owner,{action:'disconnect_plugin',site_id:siteId,plugin:'ship'}))).status,303);
     assert.deepEqual(await (await trade(ship.issued.store_key,'ship:admin','dinkus-ship')).json(),{error:'invalid_store_key'});
-    assert.equal((await trade(commerce.issued.store_key,'ship:orders','dinkus-ship')).status,200);
+    assert.deepEqual(await (await trade(commerce.issued.store_key,'ship:orders','dinkus-ship')).json(),{error:'service_not_enabled'},'Disconnecting Ship turns Ship off');
+    assert.equal((await trade(payments.issued.store_key,'payments:checkout','dinkus-payments')).status,200,'the other plugins keep their keys');
     assert.match(await (await request(runtime,owner,`/account/sites?store=${siteId}&tab=plugins`)).text(),/Ship plugin: not connected/);
   } finally { await stopRuntime(runtime); }
 });
@@ -392,5 +397,146 @@ test('Payments key authority through the real Worker: its own passes only, this 
     assert.deepEqual(await trade(again.store_key,siteId,'payments:checkout','dinkus-payments'),{status:401,body:{error:'invalid_store_key'}});
     assert.equal((await trade(commerce.store_key,siteId,'payments:checkout','dinkus-payments')).status,200);
     assert.equal((await trade(southPayments.store_key,southSite,'payments:checkout','dinkus-payments')).status,200,'the other store is untouched');
+  } finally { await stopRuntime(runtime); }
+});
+
+test('Finish setup through the routes: approve once, Ship on, connected-to read, Disconnect needs Approve, uninstall cancels only its key', async () => {
+  const runtime = await startMerchantTestRuntime(); const owner = new Map();
+  try {
+    await signup(runtime,'finish-owner@example.test',owner);
+    const origin = 'https://finish-setup.example.test';
+    const paths = { commerce:['dinkus-commerce-emdash','r_gshdrqaldna3r7sn/settings'], payments:['dinkus-payments-emdash','r_3brsc2on3bu673rn/status'], ship:['dinkus-ship-emdash','r_ehdlg5cxkb3ffqvr/shipping'] };
+    const callbackFor = service => `${origin}/_emdash/admin/plugins/${paths[service][1]}`;
+    const form = async fields=>({method:'POST',headers:{'content-type':'application/x-www-form-urlencoded'},body:await accountForm(runtime,owner,new URLSearchParams(fields).toString())});
+    const lookup = async (service, siteOrigin = origin) => request(runtime,new Map(),'/api/store-connections/lookup',{method:'POST',body:JSON.stringify({protocol_version:2,client_id:paths[service][0],service,site_origin:siteOrigin,callback_uri:siteOrigin === origin ? callbackFor(service) : `${siteOrigin}/_emdash/admin/plugins/${paths[service][1]}`})});
+    const finishShown = async (service, siteOrigin) => (await (await lookup(service, siteOrigin)).json()).finish_setup;
+    async function start(service, { receipt = true, delay = 0 } = {}) {
+      const verifier = randomBytes(32).toString('base64url'); const challenge = createHash('sha256').update(verifier).digest('base64url');
+      const client = paths[service][0], callback = callbackFor(service);
+      const response = await request(runtime,new Map(),'/api/store-connections',{method:'POST',body:JSON.stringify({protocol_version:2,client_id:client,service,site_origin:origin,callback_uri:callback,code_challenge:challenge,code_challenge_method:'S256'})});
+      assert.equal(response.status,200,`${service} starts`); const body = await response.json();
+      if (receipt) await request(runtime,new Map(),'/__proof/receipt',{method:'POST',body:JSON.stringify({version:2,connection_id:body.connection_id,challenge:body.challenge,client_id:client,service,site_id:body.site_id,site_origin:origin,callback_uri:callback,code_challenge:challenge,expires_at:body.expires_at,...(delay ? {delay_ms:delay} : {})})});
+      return { body, client, verifier, callback, path:`/account/connect?connection_id=${body.connection_id}` };
+    }
+    const finish = (c, verifier = c.verifier) => request(runtime,new Map(),'/api/store-connections/finish',{method:'POST',body:JSON.stringify({client_id:c.client,connection_id:c.body.connection_id,code_verifier:verifier})});
+    const token = c => request(runtime,new Map(),'/api/store-connections/token',{method:'POST',body:JSON.stringify({client_id:c.client,connection_id:c.body.connection_id,code_verifier:c.verifier})});
+    const approve = async c => { assert.equal((await request(runtime,owner,c.path,await form({action:'approve'}))).headers.get('location'),c.callback); const t = await token(c); assert.equal(t.status,200); return t.json(); };
+    const notices = async () => (await request(runtime,new Map(),'/__proof/notice/take',{method:'POST',body:JSON.stringify({email:'finish-owner@example.test'})})).json();
+
+    assert.equal(await finishShown('commerce'),false,'a store DinkusKit.com does not know shows Connect');
+    assert.equal(await finishShown('payments'),false);
+    const commerce = await approve(await start('commerce'));
+    const siteId = commerce.site_id;
+    const trade = (key,scope,audience)=>request(runtime,new Map(),'/api/store-passes',{method:'POST',headers:{authorization:`Bearer ${key}`},body:JSON.stringify({site_id:siteId,scope,audience})});
+
+    // store-connect-approve-once-125: one Approve, then the store's other plugins finish setup themselves.
+    assert.equal(await finishShown('payments'),true); assert.equal(await finishShown('ship'),true);
+    assert.equal(await finishShown('payments','https://another-store.example.test'),false,'another store still connects with Approve');
+    assert.deepEqual(await (await lookup('payments','http://bad')).json(),{error:'site_origin_must_be_https'},'the lookup checks the address like Connect does');
+    const payments = await start('payments');
+    assert.deepEqual(await (await finish(payments,randomBytes(32).toString('base64url'))).json(),{error:'invalid_grant'},'only the plugin that started it can finish it');
+    const unproven = await start('payments',{receipt:false});
+    assert.equal((await finish(unproven)).status,403,'the same store check as Approve: no receipt, no key');
+    const joined = await finish(payments); assert.equal(joined.status,200);
+    const paid = await joined.json();
+    assert.equal(paid.site_id,siteId); assert.match(paid.store_key,/^dk_store_/); assert.equal(paid.token_type,'Bearer','Payments gets its 5-minute pass, as after Approve');
+    assert.equal((await trade(paid.store_key,'payments:checkout','dinkus-payments')).status,200,'its Payments grant is on');
+    assert.deepEqual(await (await finish(payments)).json(),{error:'not_pending'},'Finish setup works once');
+    const mail = await notices();
+    assert.equal(mail.length,1); assert.equal(mail[0].subject,'Dinkus Payments joined your store on DinkusKit');
+    assert.match(mail[0].text,/finish-setup\.example\.test/); assert.match(mail[0].text,/press Disconnect for Dinkus Payments/); assert.match(mail[0].text,/\/account\/sites/);
+
+    // store-connect-ship-on-at-setup-126: Finish setup in Ship also turns Ship on.
+    assert.deepEqual(await (await trade(commerce.store_key,'ship:orders','dinkus-ship')).json(),{error:'service_not_enabled'});
+    const ship = await (await finish(await start('ship'))).json(); assert.match(ship.store_key,/^dk_store_/); assert.equal(ship.access_token,undefined);
+    assert.equal((await trade(ship.store_key,'ship:admin','dinkus-ship')).status,200);
+    assert.equal((await trade(commerce.store_key,'ship:orders','dinkus-ship')).status,200,'Commerce sends orders to Ship once Ship connected');
+    assert.match(await (await request(runtime,owner,`/account/sites?store=${siteId}&tab=plugins`)).text(),/Ship: On/);
+    assert.equal((await notices())[0].subject,'Dinkus Ship joined your store on DinkusKit');
+
+    // connect-shows-siblings-133: each plugin reads which business and plugins share the store.
+    const connectionPass = async key => (await (await trade(key,'store:connection','dinkuskit')).json()).access_token;
+    const read = await request(runtime,new Map(),'/api/store-connection',{headers:{authorization:`Bearer ${await connectionPass(ship.store_key)}`}});
+    assert.equal(read.status,200); const connected = await read.json();
+    assert.deepEqual([connected.site_origin,connected.plugins],[origin,['commerce','payments','ship']]); assert.equal(typeof connected.business,'string');
+    assert.equal((await request(runtime,new Map(),'/api/store-connection',{headers:{authorization:`Bearer ${await connectionPass(paid.store_key)}`}})).status,200);
+    assert.equal((await request(runtime,new Map(),'/api/store-connection',{headers:{authorization:`Bearer ${await connectionPass(commerce.store_key)}`}})).status,200);
+    assert.equal((await request(runtime,new Map(),'/api/store-connection')).status,401);
+    const settingsPass = (await (await trade(commerce.store_key,'commerce:settings','dinkuskit')).json()).access_token;
+    assert.equal((await request(runtime,new Map(),'/api/store-connection',{headers:{authorization:`Bearer ${settingsPass}`}})).status,401,'a settings pass is not a connected-to pass');
+
+    // connect-uninstall-cancels-key-134: a plugin's key cancels only itself.
+    const cancel = (key, site = siteId) => request(runtime,new Map(),'/api/store-keys/cancel',{method:'POST',headers:{authorization:`Bearer ${key}`},body:JSON.stringify({site_id:site})});
+    assert.deepEqual(await (await cancel(ship.store_key,'another-store')).json(),{error:'site_mismatch'});
+    assert.equal((await trade(ship.store_key,'ship:admin','dinkus-ship')).status,200,'a refused cancel leaves the key working');
+    assert.deepEqual(await (await cancel(await connectionPass(ship.store_key))).json(),{error:'invalid_store_key'},'a pass is not a key');
+    const shipPassBefore = await connectionPass(ship.store_key), paymentsPassBefore = await connectionPass(paid.store_key);
+    assert.deepEqual(await (await cancel(ship.store_key)).json(),{cancelled:true});
+    assert.deepEqual(await (await request(runtime,new Map(),'/api/store-connection',{headers:{authorization:`Bearer ${shipPassBefore}`}})).json(),{error:'invalid_pass'},
+      'a connected-to pass issued before the cancel reads nothing after it');
+    const afterCancel = await (await request(runtime,new Map(),'/api/store-connection',{headers:{authorization:`Bearer ${paymentsPassBefore}`}})).json();
+    assert.deepEqual(afterCancel.plugins,['commerce','payments'],'another plugin\'s pass still reads, without the cancelled plugin');
+    assert.deepEqual(await (await trade(ship.store_key,'ship:admin','dinkus-ship')).json(),{error:'invalid_store_key'});
+    assert.deepEqual(await (await cancel(ship.store_key)).json(),{error:'invalid_store_key'});
+    assert.equal((await trade(commerce.store_key,'ship:orders','dinkus-ship')).status,200,'Ship stays on and the other keys keep working');
+    assert.equal((await trade(paid.store_key,'payments:checkout','dinkus-payments')).status,200);
+    assert.equal(await finishShown('ship'),true,'installing Ship again finishes setup as before');
+    const reinstalled = await (await finish(await start('ship'))).json(); assert.match(reinstalled.store_key,/^dk_store_/);
+    assert.equal((await request(runtime,new Map(),'/api/store-connection',{headers:{authorization:`Bearer ${shipPassBefore}`}})).status,401,
+      'a pass from the cancelled key stays dead once a reinstall gives Ship a new key');
+    await notices();
+
+    // connect-finish-setup-disconnect-137: after Disconnect, only the owner's Approve brings the plugin back.
+    const reinstalledPass = await connectionPass(reinstalled.store_key);
+    assert.equal((await request(runtime,owner,'/account/sites',await form({action:'disconnect_plugin',site_id:siteId,plugin:'ship'}))).status,303);
+    assert.equal((await request(runtime,new Map(),'/api/store-connection',{headers:{authorization:`Bearer ${reinstalledPass}`}})).status,401,
+      'a connected-to pass issued before the Disconnect reads nothing after it');
+    assert.deepEqual(await (await trade(commerce.store_key,'ship:orders','dinkus-ship')).json(),{error:'service_not_enabled'},'Disconnect turns Ship off');
+    assert.equal(await finishShown('ship'),false,'a disconnected plugin shows Connect');
+    const refused = await start('ship');
+    assert.deepEqual([(await finish(refused)).status],[409]);
+    assert.deepEqual(await (await finish(await start('ship'))).json(),{error:'owner_approval_required'});
+    const approvedAgain = await approve(refused);
+    assert.equal((await trade(approvedAgain.store_key,'ship:admin','dinkus-ship')).status,200,'the owner\'s Approve connects Ship and turns it on');
+    assert.equal((await request(runtime,new Map(),'/api/store-connection',{headers:{authorization:`Bearer ${reinstalledPass}`}})).status,401,
+      'a pass from the disconnected key stays dead once the owner\'s Approve gives Ship a new key');
+    assert.equal((await request(runtime,new Map(),'/api/store-connection',{headers:{authorization:`Bearer ${await connectionPass(approvedAgain.store_key)}`}})).status,200);
+    assert.equal(await finishShown('ship'),true,'and forgets the Disconnect');
+    assert.deepEqual(await notices(),[],'no email when the owner approved it themselves');
+    // Ship on with no Ship plugin key (uninstalled): Your stores still offers Disconnect Ship, and it turns Ship off.
+    assert.deepEqual(await (await cancel(approvedAgain.store_key)).json(),{cancelled:true});
+    const keyless = await (await request(runtime,owner,`/account/sites?store=${siteId}&tab=plugins`)).text();
+    assert.match(keyless,/Ship plugin: not connected/); assert.match(keyless,/Ship: On/);
+    assert.match(keyless,/name="plugin" value="ship"[\s\S]*?Disconnect Ship/,'a Disconnect Ship button while Ship is on');
+    assert.equal((await request(runtime,owner,'/account/sites',await form({action:'disconnect_plugin',site_id:siteId,plugin:'ship'}))).status,303);
+    assert.deepEqual(await (await trade(commerce.store_key,'ship:orders','dinkus-ship')).json(),{error:'service_not_enabled'},'Disconnect with no key still turns Ship off');
+    assert.doesNotMatch(await (await request(runtime,owner,`/account/sites?store=${siteId}&tab=plugins`)).text(),/Disconnect Ship/);
+    // The owner's Disconnect wins over a Finish setup already waiting on the store receipt: no key is issued.
+    // Connect again with the owner's Approve replaces Commerce's key in place: a pass from the old key reads nothing.
+    const commerceOldPass = await connectionPass(commerce.store_key);
+    const commerceAgain = await approve(await start('commerce'));
+    assert.deepEqual(await (await trade(commerce.store_key,'commerce:settings','dinkuskit')).json(),{error:'invalid_store_key'});
+    assert.equal((await request(runtime,new Map(),'/api/store-connection',{headers:{authorization:`Bearer ${commerceOldPass}`}})).status,401,
+      'a pass from a replaced key reads nothing');
+    assert.equal((await request(runtime,new Map(),'/api/store-connection',{headers:{authorization:`Bearer ${await connectionPass(commerceAgain.store_key)}`}})).status,200);
+    // The receipt read is slowed far past the Disconnect, so the Disconnect always lands while Finish setup waits.
+    const inFlight = await start('payments',{delay:5000});
+    let settled = false; const racing = finish(inFlight).finally(() => { settled = true; });
+    await new Promise(resolve => setTimeout(resolve,300));
+    assert.equal((await request(runtime,owner,'/account/sites',await form({action:'disconnect_plugin',site_id:siteId,plugin:'payments'}))).status,303);
+    assert.equal(settled,false,'the Disconnect landed while Finish setup was still reading the receipt');
+    const lost = await racing;
+    assert.equal(lost.status,409,'Finish setup is refused after the Disconnect');
+    assert.equal((await lost.json()).store_key,undefined);
+    assert.deepEqual(await (await trade(paid.store_key,'payments:checkout','dinkus-payments')).json(),{error:'invalid_store_key'},'the old key is gone');
+    assert.match(await (await request(runtime,owner,`/account/sites?store=${siteId}&tab=plugins`)).text(),/Payments plugin: not connected/,'and no new one was made');
+    assert.equal(await finishShown('payments'),false);
+    // An owner's Revoke of Payments needs their Approve too.
+    assert.equal((await request(runtime,owner,'/account/sites',await form({action:'revoke',site_id:siteId,service:'payments'}))).status,303);
+    assert.equal(await finishShown('payments'),false);
+    assert.deepEqual(await (await finish(await start('payments'))).json(),{error:'owner_approval_required'});
+    // With no plugin connected at all, the store needs the owner's Approve again.
+    for (const plugin of ['commerce','payments','ship']) await request(runtime,owner,'/account/sites',await form({action:'disconnect_plugin',site_id:siteId,plugin}));
+    assert.equal(await finishShown('commerce'),false);
   } finally { await stopRuntime(runtime); }
 });

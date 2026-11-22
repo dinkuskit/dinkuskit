@@ -65,11 +65,13 @@ export type RegisteredStoreService = {
    * that does not register needs Commerce connected first (store-connect-flow-081).
    */
   registersStore: boolean;
+  /** Whether connecting also turns the service on for the store: Ship (store-connect-ship-on-at-setup-126). */
+  turnsOn: boolean;
 };
 const keyOnly = (clientId: string, service: 'commerce' | 'ship', page: string) => (installedPluginId: string): RegisteredStoreService => ({
   clientId, service, callbackPath: `/_emdash/admin/plugins/${installedPluginId}/${page}`,
   proofPath: `/_emdash/api/plugins/${installedPluginId}/store-proof`, audience: 'dinkuskit', scope: 'store:key', plugin: service,
-  grants: false, registersStore: service === 'commerce',
+  grants: false, registersStore: service === 'commerce', turnsOn: service === 'ship',
 });
 /**
  * One entry per installation a client may connect from. Payments has two, stable and
@@ -79,9 +81,9 @@ const keyOnly = (clientId: string, service: 'commerce' | 'ship', page: string) =
  */
 // Payments, like Ship, needs Commerce connected first (store-connect-flow-081).
 export const REGISTERED_STORE_SERVICES: readonly RegisteredStoreService[] = [
-  { clientId: INVENTORY_CLIENT_ID, service: INVENTORY_SERVICE, callbackPath: INVENTORY_CALLBACK_PATH, proofPath: INVENTORY_PROOF_PATH, audience: 'inventory', scope: INVENTORY_SCOPE, plugin: null, grants: true, registersStore: true },
-  { clientId: PAYMENTS_CLIENT_ID, service: PAYMENTS_SERVICE, callbackPath: PAYMENTS_CALLBACK_PATH, proofPath: PAYMENTS_PROOF_PATH, audience: 'dinkus-payments', scope: PAYMENTS_SCOPE, plugin: 'payments', grants: true, registersStore: false },
-  { clientId: PAYMENTS_CLIENT_ID, service: PAYMENTS_SERVICE, callbackPath: PAYMENTS_BETA_CALLBACK_PATH, proofPath: PAYMENTS_BETA_PROOF_PATH, audience: 'dinkus-payments', scope: PAYMENTS_SCOPE, plugin: 'payments', grants: true, registersStore: false },
+  { clientId: INVENTORY_CLIENT_ID, service: INVENTORY_SERVICE, callbackPath: INVENTORY_CALLBACK_PATH, proofPath: INVENTORY_PROOF_PATH, audience: 'inventory', scope: INVENTORY_SCOPE, plugin: null, grants: true, registersStore: true, turnsOn: false },
+  { clientId: PAYMENTS_CLIENT_ID, service: PAYMENTS_SERVICE, callbackPath: PAYMENTS_CALLBACK_PATH, proofPath: PAYMENTS_PROOF_PATH, audience: 'dinkus-payments', scope: PAYMENTS_SCOPE, plugin: 'payments', grants: true, registersStore: false, turnsOn: false },
+  { clientId: PAYMENTS_CLIENT_ID, service: PAYMENTS_SERVICE, callbackPath: PAYMENTS_BETA_CALLBACK_PATH, proofPath: PAYMENTS_BETA_PROOF_PATH, audience: 'dinkus-payments', scope: PAYMENTS_SCOPE, plugin: 'payments', grants: true, registersStore: false, turnsOn: false },
   ...COMMERCE_REGISTRY_IDS.map(keyOnly(COMMERCE_CLIENT_ID, COMMERCE_SERVICE, 'settings')),
   ...SHIP_REGISTRY_IDS.map(keyOnly(SHIP_CLIENT_ID, SHIP_SERVICE, 'shipping')),
 ];
@@ -114,13 +116,27 @@ export const STORE_PASS_SERVICES: readonly { service: StorePassService; scope: s
  */
 export const COMMERCE_SETTINGS_PASS = { scope: 'commerce:settings', audience: 'dinkuskit' } as const;
 export const COMMERCE_SETTINGS_PATH = '/api/commerce-settings';
+/**
+ * Every plugin reads which business its store is connected to, and which other DinkusKit
+ * plugins share it, with this pass (connect-shows-siblings-133). Like the settings pass,
+ * it needs no grant: it only names what is connected.
+ */
+export const STORE_CONNECTION_PASS = { scope: 'store:connection', audience: 'dinkuskit' } as const;
+export const STORE_CONNECTION_PATH = '/api/store-connection';
+/** Passes for DinkusKit.com itself rather than for a hosted service. */
+export const DINKUSKIT_PASSES: readonly { scope: string; audience: string }[] = [COMMERCE_SETTINGS_PASS, STORE_CONNECTION_PASS];
 /** Which passes each plugin's own key may be traded for (store-connect-per-plugin-key-080). */
 export const PLUGIN_KEY_SCOPES: Readonly<Record<KeyedPlugin, readonly string[]>> = {
-  commerce: ['payments:checkout', 'ship:orders', COMMERCE_SETTINGS_PASS.scope],
-  payments: ['payments:checkout'],
-  ship: ['ship:admin'],
+  commerce: ['payments:checkout', 'ship:orders', COMMERCE_SETTINGS_PASS.scope, STORE_CONNECTION_PASS.scope],
+  payments: ['payments:checkout', STORE_CONNECTION_PASS.scope],
+  ship: ['ship:admin', STORE_CONNECTION_PASS.scope],
 };
 export const OWNER_ENABLED_SERVICES = ['coupons', 'ship'] as const;
+/**
+ * The services with an on/off switch on Your stores. Ship has none: it turns on when the
+ * Ship plugin connects and off with Disconnect (store-connect-ship-on-at-setup-126).
+ */
+export const SWITCHED_SERVICES: readonly OwnerEnabledService[] = ['coupons'];
 export type OwnerEnabledService = (typeof OWNER_ENABLED_SERVICES)[number];
 /**
  * Services an owner cannot turn on yet. Commerce's v1 Registry build refuses every coupon
@@ -151,7 +167,7 @@ export const TOKEN_TTL_SECONDS = 300;
 export const TOKEN_TTL_MAX_SECONDS = 600;
 export const PROOF_FETCH_TIMEOUT_MS = 3_000;
 export const PROOF_FETCH_MAX_BYTES = 8_192;
-export const CURRENT_MERCHANT_SCHEMA_VERSION = 15;
+export const CURRENT_MERCHANT_SCHEMA_VERSION = 16;
 
 export const PUBLIC_ACCOUNT_PATHS = [
   '/account/signup',

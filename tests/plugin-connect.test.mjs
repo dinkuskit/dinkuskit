@@ -4,9 +4,9 @@ import Database from 'better-sqlite3';
 import { readFile, readdir } from 'node:fs/promises';
 import { createHash, randomBytes } from 'node:crypto';
 import { stripTypeScriptTypes } from 'node:module';
-import { startStoreConnection, consentStoreConnection, exchangeStoreConnectionToken } from '../src/account/connect.ts';
+import { startStoreConnection, consentStoreConnection, exchangeStoreConnectionToken, finishStoreSetup } from '../src/account/connect.ts';
 import { createLocalTestKeys } from '../src/account/jwt.ts';
-import { disconnectPlugin, hashKey, issueStorePass, listStoreSetup, newStoreKey, setOwnerService } from '../src/account/store-passes.ts';
+import { cancelPluginKey, disconnectPlugin, hashKey, issueStorePass, listStoreSetup, newStoreKey, setOwnerService } from '../src/account/store-passes.ts';
 import { saveCommerceSettings, serveCommerceSettings } from '../src/account/commerce-settings.ts';
 import { REGISTERED_STORE_SERVICES } from '../src/account/config.ts';
 
@@ -116,7 +116,7 @@ test('Payments and Ship wait for Commerce, then each plugin and beta gets its ow
     assert.match(payments.issued.body.store_key, /^dk_store_/, 'and its own store key for its status page');
     const ship = await connect(f, 'ship-beta');
     assert.deepEqual(Object.keys(ship.issued.body).sort(), ['site_id', 'store_key']);
-    assert.equal(count(f, "dinkuskit_service_grant WHERE service = 'ship'"), 0, 'connecting the Ship plugin does not turn Ship on');
+    assert.equal(count(f, "dinkuskit_service_grant WHERE service = 'ship' AND revoked = 0"), 1, 'connecting the Ship plugin turns Ship on (store-connect-ship-on-at-setup-126)');
     const keys = [payments, commerce, ship].map(c => c.issued.body.store_key);
     assert.equal(new Set(keys).size, 3);
     assert.equal(count(f, 'dinkuskit_plugin_key WHERE site_id = ?', commerce.body.site_id), 3);
@@ -231,6 +231,34 @@ test('Disconnect cancels an approved first-time or reconnect Connect even before
   } finally { f.close(); }
 });
 
+test('an uninstall whose key the owner disconnected meanwhile cancels nothing, and cannot deny the Connect approved since', async () => {
+  const f = await fixture(); try {
+    const commerce = await connect(f, 'commerce');
+    const payments = await connect(f, 'payments');
+    const siteId = commerce.body.site_id;
+    let fresh;
+    // The uninstall has read its key; before it writes, the owner disconnects Payments and approves a new Connect.
+    const paused = { ...f.db, prepare(sql) {
+      const q = f.db.prepare(sql);
+      if (!sql.startsWith('SELECT site_id, plugin FROM dinkuskit_plugin_key')) return q;
+      return { bind(...args) { q.bind(...args); return { async first() {
+        const row = await q.first();
+        assert.equal(await disconnectPlugin(f.db, { subject: 'org-a', siteId, organizationId: 'a', actorUserId: 'alice', plugin: 'payments' }), true);
+        fresh = await start(f, 'payments'); assert.equal((await consent(f, fresh)).ok, true);
+        return row;
+      } }; } };
+    }, batch: queries => f.db.batch(queries) };
+    const cancelled = await cancelPluginKey({ db: paused, authorization: `Bearer ${payments.issued.body.store_key}`, body: { site_id: siteId } });
+    assert.deepEqual([cancelled.status, await cancelled.json()], [401, { error: 'invalid_store_key' }], 'the key was no longer current');
+    const issued = await exchange(f, fresh);
+    assert.equal(issued.status, 200, 'the Connect the owner approved still picks up its key');
+    assert.match(issued.body.store_key, /^dk_store_/);
+    const plain = await cancelPluginKey({ db: f.db, authorization: `Bearer ${issued.body.store_key}`, body: { site_id: siteId } });
+    assert.deepEqual([plain.status, await plain.json()], [200, { cancelled: true }], 'a current key still cancels itself');
+    assert.equal(count(f, "dinkuskit_plugin_key WHERE site_id = ? AND plugin = 'commerce'", siteId), 1, 'Commerce keeps its key');
+  } finally { f.close(); }
+});
+
 test('another business cannot connect a plugin to a store it does not own', async () => {
   const f = await fixture(); try {
     await connect(f, 'commerce');
@@ -290,5 +318,58 @@ test('Commerce reads its checkout settings with its own pass, and nothing else c
     assert.equal((await read(settingsPass)).status, 200);
     f.sqlite.prepare("UPDATE dinkuskit_service_grant SET revoked = 1, revoked_by = 'owner' WHERE service = 'payments'").run();
     assert.deepEqual((await read(settingsPass)).body, { error: 'payments_not_connected' });
+  } finally { f.close(); }
+});
+
+
+// connect-finish-setup-disconnect-137: the owner's Disconnect or Revoke wins over a Finish setup
+// already past its checks, because the approval write itself checks it.
+async function finishWhile(f, c, during) {
+  const response = await finishStoreSetup({ db: f.db, jwtPrivateJwk: JSON.stringify(f.keys.privateJwk), baseUrl: 'https://dinkuskit.com',
+    proofFetch: async () => { await during(); return { ok: true, transport: 'simulation', receipt: c.receipt }; },
+    body: { client_id: c.request.client_id, connection_id: c.body.connection_id, code_verifier: c.verifier } });
+  return { status: response.status, body: await response.json() };
+}
+
+test('a Disconnect pressed while Finish setup reads the store receipt stops it before any key or grant', async () => {
+  const f = await fixture(); try {
+    const commerce = await connect(f, 'commerce');
+    const siteId = commerce.body.site_id;
+    const owner = { ...f.merchant('alice'), actorUserId: 'alice', siteId };
+    const payments = await connect(f, 'payments');
+    for (const plugin of ['payments', 'ship']) {
+      if (plugin === 'ship') await connect(f, 'ship');
+      const c = await start(f, plugin);
+      const raced = await finishWhile(f, c, () => disconnectPlugin(f.db, { ...owner, plugin }));
+      assert.equal(raced.status, 409, `${plugin}: refused`);
+      assert.equal(raced.body.store_key, undefined);
+      assert.equal(count(f, 'dinkuskit_plugin_key WHERE site_id = ? AND plugin = ?', siteId, plugin), 0, `${plugin}: no key is issued`);
+      assert.equal(count(f, "dinkuskit_store_connection WHERE connection_id = ? AND status = 'denied'", c.body.connection_id), 1, `${plugin}: the in-flight connection died with the Disconnect`);
+    }
+    assert.equal(count(f, "dinkuskit_service_grant WHERE site_id = ? AND service = 'ship' AND revoked = 0", siteId), 0, 'Ship stays off');
+    assert.ok(payments.issued.body.store_key);
+  } finally { f.close(); }
+});
+
+test('the approval write itself refuses Finish setup once the owner disconnected or revoked, even for a connection still waiting', async () => {
+  const f = await fixture(); try {
+    const commerce = await connect(f, 'commerce');
+    const siteId = commerce.body.site_id;
+    // The owner's word lands between the checks and the approval, without touching the waiting connection.
+    const cases = [
+      ['payments', () => f.sqlite.prepare('INSERT INTO dinkuskit_plugin_disconnect (site_id, plugin, disconnected_at) VALUES (?, ?, 1)').run(siteId, 'payments')],
+      ['ship', () => f.sqlite.prepare("INSERT INTO dinkuskit_service_grant (site_id, service, revoked, granted_at, revoked_at, revoked_by) VALUES (?, 'ship', 1, 1, 2, 'owner')").run(siteId)],
+    ];
+    for (const [plugin, during] of cases) {
+      const c = await start(f, plugin);
+      const raced = await finishWhile(f, c, async () => during());
+      assert.deepEqual([raced.status, raced.body], [409, { error: 'owner_approval_required' }], `${plugin}: only the owner's Approve now`);
+      assert.equal(count(f, 'dinkuskit_plugin_key WHERE site_id = ? AND plugin = ?', siteId, plugin), 0);
+      assert.equal(count(f, "dinkuskit_store_connection WHERE connection_id = ? AND status = 'pending'", c.body.connection_id), 1, 'the owner can still approve it');
+      assert.equal(count(f, "dinkuskit_service_grant WHERE site_id = ? AND service = ? AND revoked = 0", siteId, plugin), 0);
+      // The owner's own Approve brings it back.
+      assert.equal((await consent(f, c)).ok, true);
+      assert.equal((await exchange(f, c)).status, 200);
+    }
   } finally { f.close(); }
 });

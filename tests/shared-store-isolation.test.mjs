@@ -361,6 +361,8 @@ test('store passes: a 5-minute pass for each service that is on, nothing for the
     assert.ok(payload.iat <= Math.floor(Date.now() / 1000) - 2, 'iat is dated back so no verifier sees it in the future');
     assert.deepEqual(payments.body.expires_in, 300);
     assert.deepEqual(await pass('coupons:checkout', 'dinkus-coupons'), { status: 403, body: { error: 'scope_not_allowed' } }, 'no plugin key trades for Coupons before v1 ships it');
+    // Connecting Ship turned Ship on (store-connect-ship-on-at-setup-126); with it off, neither key gets a Ship pass.
+    assert.equal(await setOwnerService(f.db, { ...owner, service: 'ship', on: false }), 'off');
     assert.deepEqual(await pass('ship:orders', 'dinkus-ship'), { status: 403, body: { error: 'service_not_enabled' } });
     assert.deepEqual(await pass('ship:admin', 'dinkus-ship', { key: shipKey }), { status: 403, body: { error: 'service_not_enabled' } }, 'the Ship plugin needs Ship turned on too');
     assert.equal(await setOwnerService(f.db, { ...owner, service: 'ship', on: true }), 'on');

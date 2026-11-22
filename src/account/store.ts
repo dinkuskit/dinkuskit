@@ -154,13 +154,27 @@ export async function commerceConnected(db: D1Database, siteId: string): Promise
 /**
  * The owner's approval of a pending connection. `grant` creates the service's grant
  * (Inventory, Payments); without it the connection only hands the plugin its key.
- * `registersStore` lets it register a store DinkusKit.com does not know yet.
+ * `registersStore` lets it register a store DinkusKit.com does not know yet. `turnsOn`
+ * turns the service on as it connects (Ship). Without `ownerPresent` it is Finish setup:
+ * the store must already be registered, and the owner's open business does not matter.
  */
 export async function approveConnectionAndBind(db: D1Database, input: {
   connectionId: string; subject: string; organizationId: string; actorUserId: string; siteId: string; siteOrigin: string; service: string;
-  grant?: boolean; registersStore?: boolean;
+  grant?: boolean; registersStore?: boolean; turnsOn?: boolean; ownerPresent?: boolean;
 }): Promise<{ ok: true } | { ok: false; reason: string }> {
   const grant = input.grant ?? true, registersStore = input.registersStore ?? true;
+  // Finish setup (store-connect-approve-once-125) approves for the owner, who is not on the
+  // page, so it cannot need the business to be the one they have open. It never registers a store.
+  const ownerPresent = input.ownerPresent ?? true;
+  const selected = ownerPresent ? 'JOIN dinkuskit_user_selection s ON s.user_id = m.user_id AND s.organization_id = m.organization_id' : '';
+  // Ship turns on when it connects (store-connect-ship-on-at-setup-126): the same grant row its switch used.
+  const writesGrant = grant || Boolean(input.turnsOn);
+  // Finish setup approves without the owner, so the owner's latest word must win inside the same
+  // write: a Disconnect (tombstone) or any revoked grant for this plugin refuses it
+  // (connect-finish-setup-disconnect-137). Only the owner's own Approve can bring it back.
+  const ownerWordStands = ownerPresent ? '' : `
+          AND NOT EXISTS (SELECT 1 FROM dinkuskit_plugin_disconnect WHERE site_id = ? AND plugin = ?)
+          AND NOT EXISTS (SELECT 1 FROM dinkuskit_service_grant WHERE site_id = ? AND service = ? AND revoked = 1)`;
   const now = nowSeconds();
   const connection = await loadStoreConnection(db, input.connectionId);
   if (!connection || connection.protocolVersion !== 2 || connection.siteId !== input.siteId || connection.siteOrigin !== input.siteOrigin || connection.service !== input.service) {
@@ -170,6 +184,7 @@ export async function approveConnectionAndBind(db: D1Database, input: {
     .bind(input.siteId, input.siteOrigin).first<{ site_id: string; site_origin: string; account_subject: string }>();
   if (identity && (identity.site_id !== input.siteId || identity.site_origin !== input.siteOrigin)) return { ok: false, reason: 'origin_id_conflict' };
   if (identity && identity.account_subject !== input.subject) return { ok: false, reason: 'ownership_conflict' };
+  if (!ownerPresent && !identity) return { ok: false, reason: 'owner_approval_required' };
   if (!registersStore && (!identity || !await commerceConnected(db, input.siteId))) return { ok: false, reason: 'connect_commerce_first' };
   const existingGrant = await loadActiveBinding(db, input.siteId, input.service);
   // An owner's own disconnect, or a lifted operator cut-off, can be granted again by this
@@ -178,10 +193,10 @@ export async function approveConnectionAndBind(db: D1Database, input: {
   const expiresAt = Date.now();
   try {
     const statements = [
-      ...(registersStore ? [db.prepare(`INSERT OR IGNORE INTO dinkuskit_store_identity (site_id, site_origin, account_subject, created_at)
+      ...(registersStore && ownerPresent ? [db.prepare(`INSERT OR IGNORE INTO dinkuskit_store_identity (site_id, site_origin, account_subject, created_at)
         SELECT ?, ?, ?, ? WHERE EXISTS (
           SELECT 1 FROM dinkuskit_organization o JOIN dinkuskit_membership m ON m.organization_id = o.organization_id
-          JOIN dinkuskit_account a ON a.user_id = m.user_id JOIN dinkuskit_user_selection s ON s.user_id = m.user_id AND s.organization_id = m.organization_id
+          JOIN dinkuskit_account a ON a.user_id = m.user_id ${selected}
           WHERE o.organization_id = ? AND o.authority_subject = ? AND o.owner_user_id = ? AND m.user_id = o.owner_user_id
             AND m.role = 'owner' AND m.status = 'active' AND o.status = 'active' AND o.admission_status <> 'pending_operator' AND a.disabled = 0
         ) AND EXISTS (
@@ -198,18 +213,23 @@ export async function approveConnectionAndBind(db: D1Database, input: {
           AND EXISTS (SELECT 1 FROM dinkuskit_store_identity WHERE site_id = ? AND site_origin = ? AND account_subject = ?)
           AND NOT EXISTS (SELECT 1 FROM dinkuskit_service_grant WHERE site_id = ? AND service = ? AND revoked = 1 AND revoked_by = 'operator')
           AND EXISTS (SELECT 1 FROM dinkuskit_organization o JOIN dinkuskit_membership m ON m.organization_id = o.organization_id
-            JOIN dinkuskit_account a ON a.user_id = m.user_id JOIN dinkuskit_user_selection s ON s.user_id = m.user_id AND s.organization_id = m.organization_id
+            JOIN dinkuskit_account a ON a.user_id = m.user_id ${selected}
             WHERE o.organization_id = ? AND o.authority_subject = ? AND o.owner_user_id = ? AND m.user_id = o.owner_user_id
-              AND m.role = 'owner' AND m.status = 'active' AND o.status = 'active' AND o.admission_status <> 'pending_operator' AND a.disabled = 0)`)
+              AND m.role = 'owner' AND m.status = 'active' AND o.status = 'active' AND o.admission_status <> 'pending_operator' AND a.disabled = 0)${ownerWordStands}`)
         .bind(input.subject, input.organizationId, now, input.connectionId, expiresAt, input.subject, input.siteId, input.siteOrigin, input.service,
-          input.siteId, input.siteOrigin, input.subject, input.siteId, input.service, input.organizationId, input.subject, input.actorUserId),
-      ...(grant ? [db.prepare(`INSERT INTO dinkuskit_service_grant (site_id, service, revoked, granted_at, revoked_at)
+          input.siteId, input.siteOrigin, input.subject, input.siteId, input.service, input.organizationId, input.subject, input.actorUserId,
+          ...(ownerPresent ? [] : [input.siteId, input.service, input.siteId, input.service])),
+      ...(writesGrant ? [db.prepare(`INSERT INTO dinkuskit_service_grant (site_id, service, revoked, granted_at, revoked_at)
         SELECT ?, ?, 0, ?, NULL WHERE EXISTS (
           SELECT 1 FROM dinkuskit_store_connection WHERE connection_id = ? AND status = 'approved' AND protocol_version = 2
             AND account_subject = ? AND organization_id = ? AND site_id = ? AND site_origin = ? AND service = ?
         ) ON CONFLICT(site_id, service) DO UPDATE SET revoked = 0, granted_at = excluded.granted_at, revoked_at = NULL, revoked_by = NULL
           WHERE dinkuskit_service_grant.revoked = 0 OR dinkuskit_service_grant.revoked_by IS NOT 'operator'`)
         .bind(input.siteId, input.service, now, input.connectionId, input.subject, input.organizationId, input.siteId, input.siteOrigin, input.service)] : []),
+      // The owner's own Approve brings back a plugin they disconnected (connect-finish-setup-disconnect-137).
+      ...(ownerPresent ? [db.prepare(`DELETE FROM dinkuskit_plugin_disconnect WHERE site_id = ? AND plugin = ? AND EXISTS (
+          SELECT 1 FROM dinkuskit_store_connection WHERE connection_id = ? AND status = 'approved' AND account_subject = ? AND site_id = ? AND service = ?)`)
+        .bind(input.siteId, input.service, input.connectionId, input.subject, input.siteId, input.service)] : []),
     ];
     await db.batch(statements);
   } catch {

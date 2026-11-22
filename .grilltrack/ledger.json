@@ -4,10 +4,10 @@
   "current_focus": {
     "cadence": "sequential",
     "confirmed": false,
-    "domain": "plugin communication",
-    "started_at": "2026-11-22T17:53:50+00:00",
+    "domain": "store email",
+    "started_at": "2026-11-22T23:31:12+00:00",
     "status": "grilling",
-    "summary": "Reopen plugin-communication-rule-20261122: Scheduled sales no longer use the courier: EmDash's own content hooks fire when its scheduler publishes a page, so Commerce sells the page itself (dinkuskit/commerce scheduled-sale-in-commerce-20261122)."
+    "summary": "Reopen store-emails-plugin-20261122: Re-locked after store-email-sender-20261122 was revised to match it."
   },
   "decisions": [
     {
@@ -12549,10 +12549,207 @@
       "superseded_by": null,
       "updated_at": "2026-11-22T19:37:18+00:00",
       "verification_ref": null
+    },
+    {
+      "baseline_ref": null,
+      "candidate_refs": [],
+      "choice": "Cloudflare by default, with a one-screen switch to SMTP. 1. The store template turns on EmDash's Cloudflare sender (cloudflareEmail from @emdash-cms/cloudflare, send_email binding EMAIL) for stores hosted on Cloudflare. It sends from the store's own address on a domain onboarded for Cloudflare Email Sending, whose Onboard step adds the DNS records. Stores on other hosts start on SMTP. 2. The template also sets EMDASH_ENCRYPTION_KEY so EmDash's built-in SMTP sender can be saved. The owner switches between cloudflare-email and SMTP in EmDash's own Settings > Email, unchanged, and the saved SMTP login is kept when switching back. 3. Cloudflare's terms allow transactional email only, so the abandoned-cart email, which is marketing, never goes through it. Its setting ('Off / Shoppers who ticked the box / All customers', starting Off) lives on the Store emails page (store-emails-plugin-20261122) and shows this note under it: 'Cart emails are marketing, so they need an SMTP sender. Cloudflare's sender doesn't allow marketing email, so cart emails won't go out while it is picked in Settings > Email.' followed by a 'How to switch to SMTP' link to a Guide page. 4. Guard: while the Cloudflare sender is picked, the template drops any email carrying the cart email's stop link (a /cart/c/ link with stop=1) before delivery, whichever plugin sends it. Order confirmations, shipping confirmations, review emails and sign-in links keep going. 5. EmDash is asked upstream for a transactional or marketing label on each email; the guard moves to that label once it ships. Which SMTP company the Guide page uses is a separate decision.",
+      "context_ref": "https://www.ftc.gov/business-guidance/resources/CAN-SPAM-act-compliance-guide-business",
+      "created_at": "2026-11-22T22:57:02+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [],
+      "domain": "store email",
+      "history": [
+        {
+          "at": "2026-11-22T23:06:03+00:00",
+          "choice": "Cloudflare by default, with a one-screen switch to SMTP. 1. The store template turns on EmDash's Cloudflare sender (cloudflareEmail from @emdash-cms/cloudflare, send_email binding EMAIL) for stores hosted on Cloudflare. It sends from the store's own address on a domain onboarded for Cloudflare Email Sending, whose Onboard step adds the DNS records. Stores on other hosts start on SMTP. 2. The template also sets EMDASH_ENCRYPTION_KEY so EmDash's built-in SMTP sender can be saved. The owner switches between cloudflare-email and SMTP in EmDash's own Settings > Email, unchanged, and the saved SMTP login is kept when switching back. 3. Cloudflare's terms allow transactional email only, so the abandoned-cart email, which is marketing, never goes through it. Commerce's 'Abandoned cart email' setting starts Off (it was 'Shoppers who ticked the box' in commerce-abandoned-cart-email-20261122; the three choices stay) and shows this note under it: 'Cart emails are marketing, so they need an SMTP sender. Cloudflare's sender doesn't allow marketing email, so cart emails won't go out while it is picked in Settings > Email.' followed by a 'How to switch to SMTP' link to a Guide page. 4. Guard: while the Cloudflare sender is picked, the template drops the abandoned-cart email before delivery. Receipts, shipped emails, review emails and sign-in links keep going. 5. EmDash is asked upstream for a transactional or marketing label on each email; the guard moves to that label once it ships. Which SMTP company the Guide page uses is a separate decision.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-11-22T23:31:02+00:00",
+          "choice": "Cloudflare by default, with a one-screen switch to SMTP. 1. The store template turns on EmDash's Cloudflare sender (cloudflareEmail from @emdash-cms/cloudflare, send_email binding EMAIL) for stores hosted on Cloudflare. It sends from the store's own address on a domain onboarded for Cloudflare Email Sending, whose Onboard step adds the DNS records. Stores on other hosts start on SMTP. 2. The template also sets EMDASH_ENCRYPTION_KEY so EmDash's built-in SMTP sender can be saved. The owner switches between cloudflare-email and SMTP in EmDash's own Settings > Email, unchanged, and the saved SMTP login is kept when switching back. 3. Cloudflare's terms allow transactional email only, so the abandoned-cart email, which is marketing, never goes through it. Commerce's 'Abandoned cart email' setting starts Off (it was 'Shoppers who ticked the box' in commerce-abandoned-cart-email-20261122; the three choices stay) and shows this note under it: 'Cart emails are marketing, so they need an SMTP sender. Cloudflare's sender doesn't allow marketing email, so cart emails won't go out while it is picked in Settings > Email.' followed by a 'How to switch to SMTP' link to a Guide page. 4. Guard: while the Cloudflare sender is picked, the template drops the abandoned-cart email before delivery. Receipts, shipped emails, review emails and sign-in links keep going. 5. EmDash is asked upstream for a transactional or marketing label on each email; the guard moves to that label once it ships. Which SMTP company the Guide page uses is a separate decision.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "The cart email setting and note move from Commerce to the new Store emails plugin (store-emails-plugin-20261122), so the guard can no longer tell the cart email by the plugin that sends it.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "reopened",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-11-22T23:31:05+00:00",
+          "choice": "Cloudflare by default, with a one-screen switch to SMTP. 1. The store template turns on EmDash's Cloudflare sender (cloudflareEmail from @emdash-cms/cloudflare, send_email binding EMAIL) for stores hosted on Cloudflare. It sends from the store's own address on a domain onboarded for Cloudflare Email Sending, whose Onboard step adds the DNS records. Stores on other hosts start on SMTP. 2. The template also sets EMDASH_ENCRYPTION_KEY so EmDash's built-in SMTP sender can be saved. The owner switches between cloudflare-email and SMTP in EmDash's own Settings > Email, unchanged, and the saved SMTP login is kept when switching back. 3. Cloudflare's terms allow transactional email only, so the abandoned-cart email, which is marketing, never goes through it. Commerce's 'Abandoned cart email' setting starts Off (it was 'Shoppers who ticked the box' in commerce-abandoned-cart-email-20261122; the three choices stay) and shows this note under it: 'Cart emails are marketing, so they need an SMTP sender. Cloudflare's sender doesn't allow marketing email, so cart emails won't go out while it is picked in Settings > Email.' followed by a 'How to switch to SMTP' link to a Guide page. 4. Guard: while the Cloudflare sender is picked, the template drops the abandoned-cart email before delivery. Receipts, shipped emails, review emails and sign-in links keep going. 5. EmDash is asked upstream for a transactional or marketing label on each email; the guard moves to that label once it ships. Which SMTP company the Guide page uses is a separate decision.",
+          "from": "reopened",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        }
+      ],
+      "id": "store-email-sender-20261122",
+      "implementation_ref": null,
+      "question": "Which email sender does a new store use, and how does an owner switch?",
+      "rationale": "Read 2026-11-22 from primary sources. Cloudflare's developer platform terms (updated 2026-09-28) allow the Email Service only for 'Transactional Emails' sent 'in response to a specific customer interaction to facilitate an agreed-upon transaction or update such customer', and its FAQ answers 'Can I use Email Service for marketing emails?' with 'No.' Under the FTC's CAN-SPAM guide an unpaid cart is not an agreed transaction, and Commerce already sends that email only to shoppers who ticked 'Email me with news and offers'. Cloudflare sending needs Workers Paid: 3,000 emails a month included, then 0.35 USD per 1,000; it has been in public beta since 2026-04-16 and starts new accounts on an unpublished daily quota. Its setup is closest to Shopify's (add the sender's DNS records), while one SMTP company for everything matches WooCommerce's advice and costs a second account. EmDash 1.5 delivers every email through one selected provider and already lets the owner pick between providers in Settings > Email. The owner approved the screen mockups on 2026-11-22.",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [],
+      "review_ref": null,
+      "review_result": null,
+      "review_source_identity": null,
+      "status": "locked",
+      "superseded_by": null,
+      "updated_at": "2026-11-22T23:31:05+00:00",
+      "verification_ref": null
+    },
+    {
+      "baseline_ref": null,
+      "candidate_refs": [],
+      "choice": "A new Registry plugin, Store emails, sends every email a shopper gets about an order or a cart, from the store's own sender (store-email-sender-20261122). 1. Order confirmation: sent once per paid order, about a minute after payment, with the order number, items, subtotal, shipping, total, ship-to address and a 'View your order' button to /track-order. On by default. TEST orders go to the owner's own address. 2. Shipping confirmation: sent when an order is marked Completed, with the carrier and tracking number when the owner gave them. It goes out whether the order was completed through Ship or by hand. Ship's hosted shipped email (from orders@dinkuskit.com) turns off. 3. Abandoned cart email: Commerce still decides a cart was left (10 hours after the email was given, unpaid, cart not empty, address not on the stop list), keeps the tick box, the stop list and the cart link, and no longer sends email itself. The 'Off / Shoppers who ticked the box / All customers' choice, starting Off, and the Cloudflare note from store-email-sender-20261122 move from Commerce's settings to the Store emails page. 4. Commerce passes the news through the store's courier (dinkuskit/courier) on its existing outbox door, with three topics: order.paid (new), order.shipped (now also carrying the order number, carrier and tracking) and cart.left (new, with the cart link, stop link and the tick). Commerce drops its email:send permission. 5. The Store emails page lists both customer emails with On/Off, the cart email choice, the sender in use with when Commerce's news last arrived, and recent emails with their result. 6. Review request and reminder emails stay in Reviews, the way Shopify review apps send their own. 7. Every email has a plain-text copy and no tracking pixels.",
+      "context_ref": "https://help.shopify.com/en/manual/fulfillment/setup/notifications/customer-notifications",
+      "created_at": "2026-11-22T23:30:54+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [
+        "store-email-sender-20261122"
+      ],
+      "domain": "store email",
+      "history": [
+        {
+          "at": "2026-11-22T23:31:02+00:00",
+          "choice": "A new Registry plugin, Store emails, sends every email a shopper gets about an order or a cart, from the store's own sender (store-email-sender-20261122). 1. Order confirmation: sent once per paid order, about a minute after payment, with the order number, items, subtotal, shipping, total, ship-to address and a 'View your order' button to /track-order. On by default. TEST orders go to the owner's own address. 2. Shipping confirmation: sent when an order is marked Completed, with the carrier and tracking number when the owner gave them. It goes out whether the order was completed through Ship or by hand. Ship's hosted shipped email (from orders@dinkuskit.com) turns off. 3. Abandoned cart email: Commerce still decides a cart was left (10 hours after the email was given, unpaid, cart not empty, address not on the stop list), keeps the tick box, the stop list and the cart link, and no longer sends email itself. The 'Off / Shoppers who ticked the box / All customers' choice, starting Off, and the Cloudflare note from store-email-sender-20261122 move from Commerce's settings to the Store emails page. 4. Commerce passes the news through the store's courier (dinkuskit/courier) on its existing outbox door, with three topics: order.paid (new), order.shipped (now also carrying the order number, carrier and tracking) and cart.left (new, with the cart link, stop link and the tick). Commerce drops its email:send permission. 5. The Store emails page lists both customer emails with On/Off, the cart email choice, the sender in use with when Commerce's news last arrived, and recent emails with their result. 6. Review request and reminder emails stay in Reviews, the way Shopify review apps send their own. 7. Every email has a plain-text copy and no tracking pixels.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-11-22T23:31:02+00:00",
+          "choice": "A new Registry plugin, Store emails, sends every email a shopper gets about an order or a cart, from the store's own sender (store-email-sender-20261122). 1. Order confirmation: sent once per paid order, about a minute after payment, with the order number, items, subtotal, shipping, total, ship-to address and a 'View your order' button to /track-order. On by default. TEST orders go to the owner's own address. 2. Shipping confirmation: sent when an order is marked Completed, with the carrier and tracking number when the owner gave them. It goes out whether the order was completed through Ship or by hand. Ship's hosted shipped email (from orders@dinkuskit.com) turns off. 3. Abandoned cart email: Commerce still decides a cart was left (10 hours after the email was given, unpaid, cart not empty, address not on the stop list), keeps the tick box, the stop list and the cart link, and no longer sends email itself. The 'Off / Shoppers who ticked the box / All customers' choice, starting Off, and the Cloudflare note from store-email-sender-20261122 move from Commerce's settings to the Store emails page. 4. Commerce passes the news through the store's courier (dinkuskit/courier) on its existing outbox door, with three topics: order.paid (new), order.shipped (now also carrying the order number, carrier and tracking) and cart.left (new, with the cart link, stop link and the tick). Commerce drops its email:send permission. 5. The Store emails page lists both customer emails with On/Off, the cart email choice, the sender in use with when Commerce's news last arrived, and recent emails with their result. 6. Review request and reminder emails stay in Reviews, the way Shopify review apps send their own. 7. Every email has a plain-text copy and no tracking pixels.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "dependency store-email-sender-20261122 changed: The cart email setting and note move from Commerce to the new Store emails plugin (store-emails-plugin-20261122), so the guard can no longer tell the cart email by the plugin that sends it.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "needs_reverification",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-11-22T23:31:12+00:00",
+          "choice": "A new Registry plugin, Store emails, sends every email a shopper gets about an order or a cart, from the store's own sender (store-email-sender-20261122). 1. Order confirmation: sent once per paid order, about a minute after payment, with the order number, items, subtotal, shipping, total, ship-to address and a 'View your order' button to /track-order. On by default. TEST orders go to the owner's own address. 2. Shipping confirmation: sent when an order is marked Completed, with the carrier and tracking number when the owner gave them. It goes out whether the order was completed through Ship or by hand. Ship's hosted shipped email (from orders@dinkuskit.com) turns off. 3. Abandoned cart email: Commerce still decides a cart was left (10 hours after the email was given, unpaid, cart not empty, address not on the stop list), keeps the tick box, the stop list and the cart link, and no longer sends email itself. The 'Off / Shoppers who ticked the box / All customers' choice, starting Off, and the Cloudflare note from store-email-sender-20261122 move from Commerce's settings to the Store emails page. 4. Commerce passes the news through the store's courier (dinkuskit/courier) on its existing outbox door, with three topics: order.paid (new), order.shipped (now also carrying the order number, carrier and tracking) and cart.left (new, with the cart link, stop link and the tick). Commerce drops its email:send permission. 5. The Store emails page lists both customer emails with On/Off, the cart email choice, the sender in use with when Commerce's news last arrived, and recent emails with their result. 6. Review request and reminder emails stay in Reviews, the way Shopify review apps send their own. 7. Every email has a plain-text copy and no tracking pixels.",
+          "from": "needs_reverification",
+          "implementation_ref": null,
+          "note": "Re-locked after store-email-sender-20261122 was revised to match it.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "reopened",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-11-22T23:31:12+00:00",
+          "choice": "A new Registry plugin, Store emails, sends every email a shopper gets about an order or a cart, from the store's own sender (store-email-sender-20261122). 1. Order confirmation: sent once per paid order, about a minute after payment, with the order number, items, subtotal, shipping, total, ship-to address and a 'View your order' button to /track-order. On by default. TEST orders go to the owner's own address. 2. Shipping confirmation: sent when an order is marked Completed, with the carrier and tracking number when the owner gave them. It goes out whether the order was completed through Ship or by hand. Ship's hosted shipped email (from orders@dinkuskit.com) turns off. 3. Abandoned cart email: Commerce still decides a cart was left (10 hours after the email was given, unpaid, cart not empty, address not on the stop list), keeps the tick box, the stop list and the cart link, and no longer sends email itself. The 'Off / Shoppers who ticked the box / All customers' choice, starting Off, and the Cloudflare note from store-email-sender-20261122 move from Commerce's settings to the Store emails page. 4. Commerce passes the news through the store's courier (dinkuskit/courier) on its existing outbox door, with three topics: order.paid (new), order.shipped (now also carrying the order number, carrier and tracking) and cart.left (new, with the cart link, stop link and the tick). Commerce drops its email:send permission. 5. The Store emails page lists both customer emails with On/Off, the cart email choice, the sender in use with when Commerce's news last arrived, and recent emails with their result. 6. Review request and reminder emails stay in Reviews, the way Shopify review apps send their own. 7. Every email has a plain-text copy and no tracking pixels.",
+          "from": "reopened",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        }
+      ],
+      "id": "store-emails-plugin-20261122",
+      "implementation_ref": null,
+      "question": "Which part of the store sends the order, shipping and cart emails?",
+      "rationale": "No order confirmation exists today: a shopper gets a receipt only if the store's Stripe account has receipts turned on, and none through Authorize.net. Shopify sends the order confirmation automatically and does not let merchants turn it off; its shipping confirmation carries the tracking number. Commerce's Registry bundle is near its 131,072-byte cap (130,141 bytes at 4b1af19), and an order confirmation inside Commerce measured +637 bytes. A prototype of the three courier topics with the cart email and its setting removed measured 130,273 bytes (+132), and Commerce no longer needs to send email. The courier already carries order.shipped for Reviews about once a minute, which is fast enough for these emails. Moving the shipped email off DinkusKit's hosted service means it comes from the store's own address. The owner approved the page and email mockups on 2026-11-22.",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [],
+      "review_ref": null,
+      "review_result": null,
+      "review_source_identity": null,
+      "status": "locked",
+      "superseded_by": null,
+      "updated_at": "2026-11-22T23:31:12+00:00",
+      "verification_ref": null
+    },
+    {
+      "baseline_ref": null,
+      "candidate_refs": [],
+      "choice": "The Store emails page (store-emails-plugin-20261122) has an 'Email styling' section used on every email it sends: a logo picked from the store's Media, one button colour (a hex value, with a swatch), and a footer line (default 'Questions? Reply to this email.'), with Save and 'Email me a sample order', which sends a sample order confirmation to the signed-in owner. There is no template editor or drag-and-drop builder. Emails are simple HTML with styles written inline, plus a plain-text copy, and no tracking pixels.",
+      "context_ref": "https://woocommerce.com/document/configuring-woocommerce-settings/emails/",
+      "created_at": "2026-11-22T23:34:35+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [
+        "store-emails-plugin-20261122"
+      ],
+      "domain": "store email",
+      "history": [
+        {
+          "at": "2026-11-22T23:34:35+00:00",
+          "choice": "The Store emails page (store-emails-plugin-20261122) has an 'Email styling' section used on every email it sends: a logo picked from the store's Media, one button colour (a hex value, with a swatch), and a footer line (default 'Questions? Reply to this email.'), with Save and 'Email me a sample order', which sends a sample order confirmation to the signed-in owner. There is no template editor or drag-and-drop builder. Emails are simple HTML with styles written inline, plus a plain-text copy, and no tracking pixels.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        }
+      ],
+      "id": "store-email-styling-20261122",
+      "implementation_ref": null,
+      "question": "How does an owner make store emails look like their store?",
+      "rationale": "WooCommerce's email settings offer a logo, logo width, header alignment, font, footer text, a colour palette and a preview. Shopify lets merchants style its notification templates with their logo and brand colours. EmDash 1.5 gives plugins only the site name, URL and locale, not the site logo, so the plugin keeps its own logo choice through Block Kit's media picker. A logo, one colour and a footer cover what most stores change, while a full template editor adds a large surface for little gain in a first version. The owner approved the page mockup on 2026-11-22.",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [],
+      "review_ref": null,
+      "review_result": null,
+      "review_source_identity": null,
+      "status": "locked",
+      "superseded_by": null,
+      "updated_at": "2026-11-22T23:34:35+00:00",
+      "verification_ref": null
     }
   ],
   "last_activation": {
-    "at": "2026-11-22T17:53:50+00:00",
+    "at": "2026-11-22T23:31:12+00:00",
     "mechanism": "implicit"
   },
   "last_pause": {
@@ -12579,5 +12776,5 @@
   "status": "active",
   "title": "Composed integration",
   "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5",
-  "updated_at": "2026-11-22T19:37:18+00:00"
+  "updated_at": "2026-11-22T23:34:35+00:00"
 }

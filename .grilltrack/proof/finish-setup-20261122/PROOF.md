@@ -121,8 +121,10 @@ verifier and a missing store receipt are refused; Finish setup works once; Payme
 gets its pass and key, Ship gets its key and Ship turns on; the store:connection
 pass reads the business and plugins; a plugin cancels only its own key, and a cancel
 for another store, or with a pass instead of a key, leaves the key working; a
-store:connection pass issued before its key was cancelled or disconnected reads
-nothing after (this fails before the change that names the plugin in the pass); after the
+store:connection pass issued before its key was cancelled, disconnected or replaced
+reads nothing after, including once a reinstall, the owner's Approve or Connect again
+gives the plugin a new key (this fails on `c2bcae2`, and the replacement cases fail on
+`905359b`); after the
 owner's Disconnect, Finish setup answers `owner_approval_required` until the owner
 approves again. `npm run test:shared-store`, `test:merchant`, `test:foundation`,
 `test:agent-routes`, `test:organization-approvals`, `test:operator-admin`,

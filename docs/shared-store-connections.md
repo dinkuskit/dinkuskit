@@ -252,9 +252,9 @@ Authorization: Bearer <store:connection pass>
 ```
 
 answers `{"business", "site_origin", "plugins"}`, `plugins` listing the connected
-plugins among `commerce`, `payments` and `ship`. The pass names the plugin whose key
-traded for it. Once that key is cancelled or disconnected, the pass answers 401 even
-before it expires. Errors: 401 `invalid_pass`, 403 `store_suspended`.
+plugins among `commerce`, `payments` and `ship`. The pass names the exact key that
+traded for it. Once that key is cancelled, disconnected or replaced (a reinstall or a
+new Approve gives the plugin a new key), the pass answers 401 even before it expires. Errors: 401 `invalid_pass`, 403 `store_suspended`.
 
 On uninstall a plugin cancels its own key:
 

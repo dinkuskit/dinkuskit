@@ -482,6 +482,8 @@ test('Finish setup through the routes: approve once, Ship on, connected-to read,
     assert.equal((await trade(paid.store_key,'payments:checkout','dinkus-payments')).status,200);
     assert.equal(await finishShown('ship'),true,'installing Ship again finishes setup as before');
     const reinstalled = await (await finish(await start('ship'))).json(); assert.match(reinstalled.store_key,/^dk_store_/);
+    assert.equal((await request(runtime,new Map(),'/api/store-connection',{headers:{authorization:`Bearer ${shipPassBefore}`}})).status,401,
+      'a pass from the cancelled key stays dead once a reinstall gives Ship a new key');
     await notices();
 
     // connect-finish-setup-disconnect-137: after Disconnect, only the owner's Approve brings the plugin back.
@@ -496,6 +498,9 @@ test('Finish setup through the routes: approve once, Ship on, connected-to read,
     assert.deepEqual(await (await finish(await start('ship'))).json(),{error:'owner_approval_required'});
     const approvedAgain = await approve(refused);
     assert.equal((await trade(approvedAgain.store_key,'ship:admin','dinkus-ship')).status,200,'the owner\'s Approve connects Ship and turns it on');
+    assert.equal((await request(runtime,new Map(),'/api/store-connection',{headers:{authorization:`Bearer ${reinstalledPass}`}})).status,401,
+      'a pass from the disconnected key stays dead once the owner\'s Approve gives Ship a new key');
+    assert.equal((await request(runtime,new Map(),'/api/store-connection',{headers:{authorization:`Bearer ${await connectionPass(approvedAgain.store_key)}`}})).status,200);
     assert.equal(await finishShown('ship'),true,'and forgets the Disconnect');
     assert.deepEqual(await notices(),[],'no email when the owner approved it themselves');
     // Ship on with no Ship plugin key (uninstalled): Your stores still offers Disconnect Ship, and it turns Ship off.
@@ -507,6 +512,13 @@ test('Finish setup through the routes: approve once, Ship on, connected-to read,
     assert.deepEqual(await (await trade(commerce.store_key,'ship:orders','dinkus-ship')).json(),{error:'service_not_enabled'},'Disconnect with no key still turns Ship off');
     assert.doesNotMatch(await (await request(runtime,owner,`/account/sites?store=${siteId}&tab=plugins`)).text(),/Disconnect Ship/);
     // The owner's Disconnect wins over a Finish setup already waiting on the store receipt: no key is issued.
+    // Connect again with the owner's Approve replaces Commerce's key in place: a pass from the old key reads nothing.
+    const commerceOldPass = await connectionPass(commerce.store_key);
+    const commerceAgain = await approve(await start('commerce'));
+    assert.deepEqual(await (await trade(commerce.store_key,'commerce:settings','dinkuskit')).json(),{error:'invalid_store_key'});
+    assert.equal((await request(runtime,new Map(),'/api/store-connection',{headers:{authorization:`Bearer ${commerceOldPass}`}})).status,401,
+      'a pass from a replaced key reads nothing');
+    assert.equal((await request(runtime,new Map(),'/api/store-connection',{headers:{authorization:`Bearer ${await connectionPass(commerceAgain.store_key)}`}})).status,200);
     // The receipt read is slowed far past the Disconnect, so the Disconnect always lands while Finish setup waits.
     const inFlight = await start('payments',{delay:5000});
     let settled = false; const racing = finish(inFlight).finally(() => { settled = true; });

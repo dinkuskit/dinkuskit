@@ -1,8 +1,8 @@
 # Finish setup, Ship on when it connects (step (b) of store-connect-order-135)
 
 Decisions: `store-connect-approve-once-125`, `store-connect-ship-on-at-setup-126`,
-`connect-shows-siblings-133`, `connect-uninstall-cancels-key-134`, and the proposed
-`connect-finish-setup-disconnect-137` (awaiting the owner's approval).
+`connect-shows-siblings-133`, `connect-uninstall-cancels-key-134`, and
+`connect-finish-setup-disconnect-137` (locked on the owner's approval, 2026-11-22).
 
 ## Pictures (22 Nov 2026)
 

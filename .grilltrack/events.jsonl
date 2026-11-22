@@ -268,3 +268,4 @@
 {"action": "decision_proposed", "at": "2026-11-22T15:39:26+00:00", "data": {"decision_id": "plugin-communication-rule-20261122"}, "event_id": "4ba6c9ec-e09b-4bf9-83d6-d16940c5f735"}
 {"action": "decision_locked", "at": "2026-11-22T15:39:26+00:00", "data": {"decision_id": "plugin-communication-rule-20261122"}, "event_id": "5df4254d-ce32-44c4-b1ca-a9e7a4437e24"}
 {"action": "decision_proposed", "at": "2026-11-22T16:53:56+00:00", "data": {"decision_id": "connect-finish-setup-disconnect-137"}, "event_id": "ff18e2d3-5a4b-495c-a653-2b6d45659794"}
+{"action": "decision_locked", "at": "2026-11-22T17:02:13+00:00", "data": {"decision_id": "connect-finish-setup-disconnect-137"}, "event_id": "0c2a7d64-a569-4d7f-969d-2ce2347b253a"}

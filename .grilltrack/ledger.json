@@ -12335,20 +12335,35 @@
         "store-connect-approve-once-125"
       ],
       "domain": "plugin communication",
-      "history": [],
+      "history": [
+        {
+          "at": "2026-11-22T17:02:13+00:00",
+          "choice": "No. DinkusKit.com remembers the Disconnect, so that plugin's page shows Connect again and only the owner's Approve on DinkusKit.com brings it back; that Approve forgets the Disconnect. An owner's Revoke of a plugin's service works the same way. Uninstalling a plugin (connect-uninstall-cancels-key-134) is not a Disconnect: installing it again shows Finish setup.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        }
+      ],
       "id": "connect-finish-setup-disconnect-137",
       "implementation_ref": null,
       "question": "After the owner presses Disconnect for a plugin under Your stores, can that plugin's Finish setup reconnect it without the owner?",
-      "rationale": "Recommended to the owner on 2026-11-22, awaiting the owner's approval. Goal: fewer setup steps without letting any store Admin undo the owner's Disconnect with one press.",
+      "rationale": "The owner approved on 2026-11-22. Goal: fewer setup steps without letting any store Admin undo the owner's Disconnect with one press.",
       "repair_required": false,
       "review_classifications": [],
       "review_history": [],
       "review_ref": null,
       "review_result": null,
       "review_source_identity": null,
-      "status": "proposed",
+      "status": "locked",
       "superseded_by": null,
-      "updated_at": "2026-11-22T16:53:56+00:00",
+      "updated_at": "2026-11-22T17:02:13+00:00",
       "verification_ref": null
     }
   ],
@@ -12380,5 +12395,5 @@
   "status": "active",
   "title": "Composed integration",
   "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5",
-  "updated_at": "2026-11-22T16:53:56+00:00"
+  "updated_at": "2026-11-22T17:02:13+00:00"
 }

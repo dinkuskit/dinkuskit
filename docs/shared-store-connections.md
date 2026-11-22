@@ -239,6 +239,9 @@ link instead), `409 connect_commerce_first`, `409 grant_revoked`, `400 not_pendi
 Disconnect under Your stores is remembered in `dinkuskit_plugin_disconnect`
 (migration 0016): that plugin then shows Connect, and only the owner's Approve
 brings it back, which forgets the Disconnect. Disconnecting Ship turns Ship off.
+Disconnects made before migration 0016 were not recorded. The migration therefore
+records one for each plugin that now has no key but has an approved or denied Connect,
+or a grant, unless a newer Approve is still waiting to be picked up.
 
 Each plugin reads what its store is connected to with a `store:connection` pass,
 audience `dinkuskit`, which every plugin key may trade for:

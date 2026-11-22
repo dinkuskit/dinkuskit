@@ -6,7 +6,7 @@ import { spawnSync } from 'node:child_process';
 import test from 'node:test';
 import { createHash, randomBytes } from 'node:crypto';
 import { createLocalJWKSet, jwtVerify } from 'jose';
-import { request, startMerchantTestRuntime, stopRuntime, testSecret } from './helpers/merchant-harness.mjs';
+import { accountForm, request, signup, startMerchantTestRuntime, stopRuntime, testSecret } from './helpers/merchant-harness.mjs';
 
 const wrangler = 'node_modules/.bin/wrangler';
 const expectedLedger = [
@@ -424,8 +424,8 @@ test('merchant D1 migration 0015 keeps a schema-14 store\'s checkout choices and
   }
 });
 
-// connect-finish-setup-disconnect-137: 0016 only adds the Disconnect record; a schema-15 store keeps everything.
-test('merchant D1 migration 0016 keeps a schema-15 store\'s keys, grants and checkout settings, and starts with no Disconnect recorded', async () => {
+// connect-finish-setup-disconnect-137: 0016 adds the Disconnect record; a schema-15 store keeps everything else.
+test('merchant D1 migration 0016 keeps a schema-15 store\'s keys, grants and checkout settings, and records a Disconnect only for a granted plugin with no key', async () => {
   const persistTo = await mkdtemp(join(tmpdir(), 'dk-v15-disconnect-'));
   let runtime;
   try {
@@ -458,8 +458,9 @@ test('merchant D1 migration 0016 keeps a schema-15 store\'s keys, grants and che
     assert.deepEqual(mapLedger(appliedLedger), expectedLedger);
     assert.deepEqual(after, before, 'keys, grants and checkout settings are unchanged');
     assert.equal(before[0].length, 2); assert.equal(before[1].length, 2);
-    const [disconnects] = readOnlyResultSets(persistTo, ['SELECT count(*) AS n FROM dinkuskit_plugin_disconnect']);
-    assert.deepEqual(disconnects, [{ n: 0 }], 'no plugin starts out disconnected');
+    const [disconnects] = readOnlyResultSets(persistTo, ['SELECT site_id, plugin FROM dinkuskit_plugin_disconnect ORDER BY plugin']);
+    assert.deepEqual(disconnects, [{ site_id: 'v15-site', plugin: 'payments' }],
+      'Payments has a grant but no key, which schema 15 cannot tell apart from a Disconnect, so it needs the owner\'s Approve; Commerce and Ship keep their keys');
     const unknownStore = wranglerD1(persistTo, ['execute', '--yes', '--command', "INSERT INTO dinkuskit_plugin_disconnect VALUES ('no-such-site','ship',1)"]);
     assert.notEqual(unknownStore.status, 0, 'a Disconnect is only recorded for a known store');
     const unknownPlugin = wranglerD1(persistTo, ['execute', '--yes', '--command', "INSERT INTO dinkuskit_plugin_disconnect VALUES ('v15-site','coupons',1)"]);
@@ -469,6 +470,99 @@ test('merchant D1 migration 0016 keeps a schema-15 store\'s keys, grants and che
     runtime = await startMerchantTestRuntime({ persistTo, secret: prior.secret, jwt: prior.jwt });
     assert.equal((await request(runtime, new Map(), '/account/.well-known/jwks.json')).status, 200);
     assert.deepEqual(ledgerRows(persistTo), expectedLedger, 'restart leaves additive migration idempotent');
+  } finally {
+    if (runtime) await stopRuntime(runtime);
+    await rm(persistTo, { recursive: true, force: true });
+  }
+});
+
+// connect-finish-setup-disconnect-137: a plugin the owner disconnected on schema 15 kept its grant and
+// had no Disconnect record. 0016 records one from that history, so Finish setup after the upgrade
+// gets no key until the owner approves again, while a plugin that never connected still joins.
+test('merchant D1 migration 0016 keeps a schema-15 Disconnect: Finish setup gets no key until the owner approves again', async () => {
+  const persistTo = await mkdtemp(join(tmpdir(), 'dk-v15-legacy-disconnect-'));
+  const ORIGIN = 'https://legacy-disconnect.example';
+  const plugins = { commerce: 'dinkus-commerce-emdash', payments: 'dinkus-payments-emdash', ship: 'dinkus-ship-emdash' };
+  const pages = { commerce: 'r_gshdrqaldna3r7sn/settings', payments: 'r_3brsc2on3bu673rn/status', ship: 'r_ehdlg5cxkb3ffqvr/shipping' };
+  const json = (path, body) => ({ path, init: { method: 'POST', body: JSON.stringify(body) } });
+  let runtime;
+  const owner = new Map();
+  const post = async ({ path, init }, jar = new Map()) => {
+    const response = await request(runtime, jar, path, init);
+    const text = await response.text();
+    return { status: response.status, body: text.startsWith('{') ? JSON.parse(text) : null };
+  };
+  async function start(service) {
+    const verifier = randomBytes(32).toString('base64url');
+    const challenge = createHash('sha256').update(verifier).digest('base64url');
+    const callback = `${ORIGIN}/_emdash/admin/plugins/${pages[service]}`;
+    const started = await post(json('/api/store-connections', { protocol_version: 2, client_id: plugins[service], service, site_origin: ORIGIN,
+      callback_uri: callback, code_challenge: challenge, code_challenge_method: 'S256' }));
+    assert.equal(started.status, 200, JSON.stringify(started.body));
+    const b = started.body;
+    const receipt = await request(runtime, new Map(), '/__proof/receipt', { method: 'POST', body: JSON.stringify({ version: 2, connection_id: b.connection_id,
+      challenge: b.challenge, client_id: plugins[service], service, site_id: b.site_id, site_origin: ORIGIN, callback_uri: callback, code_challenge: challenge, expires_at: b.expires_at }) });
+    assert.ok(receipt.ok);
+    return { service, verifier, id: b.connection_id };
+  }
+  const exchange = (c, step) => post(json(`/api/store-connections/${step}`, { client_id: plugins[c.service], connection_id: c.id, code_verifier: c.verifier }));
+  const approve = async c => {
+    const body = await accountForm(runtime, owner, new URLSearchParams({ action: 'approve' }).toString());
+    const response = await request(runtime, owner, `/account/connect?connection_id=${c.id}`,
+      { method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' }, body });
+    assert.equal(response.status, 303);
+  };
+  const keyed = () => readOnlyResultSets(persistTo, ['SELECT plugin FROM dinkuskit_plugin_key ORDER BY plugin'])[0].map(r => r.plugin);
+  try {
+    runtime = await startMerchantTestRuntime({ persistTo });
+    await signup(runtime, 'legacy-owner@example.test', owner);
+    for (const service of ['commerce', 'payments']) {
+      const c = await start(service);
+      await approve(c);
+      assert.equal((await exchange(c, 'token')).status, 200, `${service} connects`);
+    }
+    assert.deepEqual(keyed(), ['commerce', 'payments']);
+
+    // Back to schema 15, and the owner presses Disconnect Payments as schema 15 did it: the key goes,
+    // an approved Connect is denied, the Payments grant stays, and nothing else is recorded.
+    const prior = runtime;
+    await stopRuntime({ ...prior, ownedPersist: false }); runtime = undefined;
+    const legacy = wranglerD1(persistTo, ['execute', '--yes', '--command', [
+      "DELETE FROM dinkuskit_plugin_key WHERE plugin = 'payments'",
+      "UPDATE dinkuskit_store_connection SET status = 'denied' WHERE service = 'payments' AND status = 'approved'",
+      'DROP TABLE dinkuskit_plugin_disconnect',
+      'DELETE FROM dinkuskit_schema_migrations WHERE version = 16',
+    ].join('; ')]);
+    assert.equal(legacy.status, 0, legacy.stderr || legacy.stdout);
+    assert.deepEqual(ledgerRows(persistTo), expectedLedger.filter(m => m.version <= 15));
+    const [grants] = readOnlyResultSets(persistTo, ["SELECT service, revoked FROM dinkuskit_service_grant WHERE service = 'payments'"]);
+    assert.deepEqual(grants, [{ service: 'payments', revoked: 0 }], 'the schema-15 Disconnect left the Payments grant on');
+
+    runtime = await startMerchantTestRuntime({ persistTo, secret: prior.secret, jwt: prior.jwt });
+    assert.equal((await request(runtime, new Map(), '/account/.well-known/jwks.json')).status, 200, 'compiled runtime applies 0016');
+    assert.deepEqual(ledgerRows(persistTo), expectedLedger);
+    const [recorded] = readOnlyResultSets(persistTo, ['SELECT plugin FROM dinkuskit_plugin_disconnect ORDER BY plugin']);
+    assert.deepEqual(recorded.map(r => r.plugin), ['payments'], 'only the disconnected plugin is recorded; Commerce keeps its key and Ship never connected');
+
+    const payments = await start('payments');
+    const refused = await exchange(payments, 'finish');
+    assert.equal(refused.status, 409);
+    assert.equal(refused.body.error, 'owner_approval_required');
+    assert.equal(refused.body.store_key, undefined);
+    assert.deepEqual(keyed(), ['commerce'], 'no Payments key was issued');
+
+    const ship = await start('ship');
+    const joined = await exchange(ship, 'finish');
+    assert.equal(joined.status, 200, 'a plugin with no Disconnect in its history still finishes setup');
+    assert.match(joined.body.store_key, /^dk_store_/);
+
+    await approve(payments);
+    const picked = await exchange(payments, 'token');
+    assert.equal(picked.status, 200, "after the owner's Approve, Payments connects");
+    assert.match(picked.body.store_key, /^dk_store_/);
+    assert.deepEqual(keyed(), ['commerce', 'payments', 'ship']);
+    const [cleared] = readOnlyResultSets(persistTo, ['SELECT count(*) AS n FROM dinkuskit_plugin_disconnect']);
+    assert.deepEqual(cleared, [{ n: 0 }], "the owner's Approve clears the record");
   } finally {
     if (runtime) await stopRuntime(runtime);
     await rm(persistTo, { recursive: true, force: true });

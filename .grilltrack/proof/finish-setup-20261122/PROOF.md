@@ -84,12 +84,34 @@ The plugin side runs the plugins' real entry points against this Worker. See
 
 ## Data compatibility (migration 0016)
 
-`tests/merchant-migrations.test.mjs` ("merchant D1 migration 0016 keeps a schema-15
-store's keys, grants and checkout settings, and starts with no Disconnect
-recorded"): a schema-15 database with an organization, a store, two plugin keys,
-Ship and Payments grants and checkout settings upgrades with every row unchanged;
-the new table starts empty, refuses rows that break its foreign key or check, and a
-second run is a no-op.
+Before 0016, Disconnect deleted the plugin's key and denied its approved Connect, but
+kept its grant and recorded nothing else. 0016 therefore records a Disconnect for each
+plugin that has no key but whose history shows the owner's word: a Connect the owner
+approved or denied, or a grant. A Connect approved and not picked up yet is the owner's
+newer Approve, so that plugin is left alone. Where schema 15 cannot tell a Disconnect
+from something else (a grant without a key), Finish setup asks for the owner's Approve.
+
+`tests/merchant-migrations.test.mjs`:
+- "merchant D1 migration 0016 keeps a schema-15 Disconnect: Finish setup gets no key
+  until the owner approves again". On the built Worker, it does the following:
+  1. Commerce and Payments connect through Approve.
+  2. The store goes back to schema 15: the 0016 table and ledger row are removed, and
+     Disconnect Payments runs the way schema 15 did it (key deleted, approved Connect
+     denied, grant left on).
+  3. The Worker restarts and applies 0016. Only Payments is recorded.
+  4. Payments' Finish setup answers 409 `owner_approval_required` with no key, and D1
+     holds only Commerce's key.
+  5. Ship, which never connected, still finishes setup with its own key.
+  6. After the owner's Approve, Payments' token answers 200 with a key, and the record
+     is cleared.
+
+  This test fails on `45a78da`, where 0016 recorded nothing.
+- "merchant D1 migration 0016 keeps a schema-15 store's keys, grants and checkout
+  settings, and records a Disconnect only for a granted plugin with no key". It
+  upgrades a schema-15 database with an organization, a store, Commerce and Ship keys,
+  Ship and Payments grants and checkout settings. Every row stays unchanged. Only
+  Payments (a grant, no key) is recorded. The table refuses rows that break its
+  foreign key or check, and a second run is a no-op.
 
 ## Checks
 

@@ -4,10 +4,10 @@
   "current_focus": {
     "cadence": "sequential",
     "confirmed": false,
-    "domain": "plugin communication",
-    "started_at": "2026-11-22T17:53:50+00:00",
+    "domain": "store email",
+    "started_at": "2026-11-22T22:57:01+00:00",
     "status": "grilling",
-    "summary": "Reopen plugin-communication-rule-20261122: Scheduled sales no longer use the courier: EmDash's own content hooks fire when its scheduler publishes a page, so Commerce sells the page itself (dinkuskit/commerce scheduled-sale-in-commerce-20261122)."
+    "summary": "Where every store email is sent from and whether that is the best option: the default sender, order confirmation, the shipped email's sender, review emails, unsubscribe and the postal address."
   },
   "decisions": [
     {
@@ -12549,6 +12549,47 @@
       "superseded_by": null,
       "updated_at": "2026-11-22T19:37:18+00:00",
       "verification_ref": null
+    },
+    {
+      "baseline_ref": null,
+      "candidate_refs": [],
+      "choice": "Cloudflare by default, with a one-screen switch to SMTP. 1. The store template turns on EmDash's Cloudflare sender (cloudflareEmail from @emdash-cms/cloudflare, send_email binding EMAIL) for stores hosted on Cloudflare. It sends from the store's own address on a domain onboarded for Cloudflare Email Sending, whose Onboard step adds the DNS records. Stores on other hosts start on SMTP. 2. The template also sets EMDASH_ENCRYPTION_KEY so EmDash's built-in SMTP sender can be saved. The owner switches between cloudflare-email and SMTP in EmDash's own Settings > Email, unchanged, and the saved SMTP login is kept when switching back. 3. Cloudflare's terms allow transactional email only, so the abandoned-cart email, which is marketing, never goes through it. Commerce's 'Abandoned cart email' setting starts Off (it was 'Shoppers who ticked the box' in commerce-abandoned-cart-email-20261122; the three choices stay) and shows this note under it: 'Cart emails are marketing, so they need an SMTP sender. Cloudflare's sender doesn't allow marketing email, so cart emails won't go out while it is picked in Settings > Email.' followed by a 'How to switch to SMTP' link to a Guide page. 4. Guard: while the Cloudflare sender is picked, the template drops the abandoned-cart email before delivery. Receipts, shipped emails, review emails and sign-in links keep going. 5. EmDash is asked upstream for a transactional or marketing label on each email; the guard moves to that label once it ships. Which SMTP company the Guide page uses is a separate decision.",
+      "context_ref": "https://www.ftc.gov/business-guidance/resources/CAN-SPAM-act-compliance-guide-business",
+      "created_at": "2026-11-22T22:57:02+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [],
+      "domain": "store email",
+      "history": [
+        {
+          "at": "2026-11-22T23:06:03+00:00",
+          "choice": "Cloudflare by default, with a one-screen switch to SMTP. 1. The store template turns on EmDash's Cloudflare sender (cloudflareEmail from @emdash-cms/cloudflare, send_email binding EMAIL) for stores hosted on Cloudflare. It sends from the store's own address on a domain onboarded for Cloudflare Email Sending, whose Onboard step adds the DNS records. Stores on other hosts start on SMTP. 2. The template also sets EMDASH_ENCRYPTION_KEY so EmDash's built-in SMTP sender can be saved. The owner switches between cloudflare-email and SMTP in EmDash's own Settings > Email, unchanged, and the saved SMTP login is kept when switching back. 3. Cloudflare's terms allow transactional email only, so the abandoned-cart email, which is marketing, never goes through it. Commerce's 'Abandoned cart email' setting starts Off (it was 'Shoppers who ticked the box' in commerce-abandoned-cart-email-20261122; the three choices stay) and shows this note under it: 'Cart emails are marketing, so they need an SMTP sender. Cloudflare's sender doesn't allow marketing email, so cart emails won't go out while it is picked in Settings > Email.' followed by a 'How to switch to SMTP' link to a Guide page. 4. Guard: while the Cloudflare sender is picked, the template drops the abandoned-cart email before delivery. Receipts, shipped emails, review emails and sign-in links keep going. 5. EmDash is asked upstream for a transactional or marketing label on each email; the guard moves to that label once it ships. Which SMTP company the Guide page uses is a separate decision.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        }
+      ],
+      "id": "store-email-sender-20261122",
+      "implementation_ref": null,
+      "question": "Which email sender does a new store use, and how does an owner switch?",
+      "rationale": "Read 2026-11-22 from primary sources. Cloudflare's developer platform terms (updated 2026-09-28) allow the Email Service only for 'Transactional Emails' sent 'in response to a specific customer interaction to facilitate an agreed-upon transaction or update such customer', and its FAQ answers 'Can I use Email Service for marketing emails?' with 'No.' Under the FTC's CAN-SPAM guide an unpaid cart is not an agreed transaction, and Commerce already sends that email only to shoppers who ticked 'Email me with news and offers'. Cloudflare sending needs Workers Paid: 3,000 emails a month included, then 0.35 USD per 1,000; it has been in public beta since 2026-04-16 and starts new accounts on an unpublished daily quota. Its setup is closest to Shopify's (add the sender's DNS records), while one SMTP company for everything matches WooCommerce's advice and costs a second account. EmDash 1.5 delivers every email through one selected provider and already lets the owner pick between providers in Settings > Email. The owner approved the screen mockups on 2026-11-22.",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [],
+      "review_ref": null,
+      "review_result": null,
+      "review_source_identity": null,
+      "status": "locked",
+      "superseded_by": null,
+      "updated_at": "2026-11-22T23:06:03+00:00",
+      "verification_ref": null
     }
   ],
   "last_activation": {
@@ -12579,5 +12620,5 @@
   "status": "active",
   "title": "Composed integration",
   "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5",
-  "updated_at": "2026-11-22T19:37:18+00:00"
+  "updated_at": "2026-11-22T23:06:03+00:00"
 }

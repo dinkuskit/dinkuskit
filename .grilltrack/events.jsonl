@@ -283,3 +283,6 @@
 {"action": "decision_locked", "at": "2026-11-22T18:43:15+00:00", "data": {"decision_id": "connect-finish-setup-disconnect-137"}, "event_id": "62bd9ea1-25f2-4f5d-83fe-ee265805bd72"}
 {"action": "decision_proposed", "at": "2026-11-22T19:37:18+00:00", "data": {"decision_id": "ship-pitney-connect-in-admin-138"}, "event_id": "cfc48e69-2601-47fb-9fa2-d482360fc60d"}
 {"action": "decision_locked", "at": "2026-11-22T19:37:18+00:00", "data": {"decision_id": "ship-pitney-connect-in-admin-138"}, "event_id": "f2a6c462-8e7f-4e9f-a1ed-5216aa07d63d"}
+{"action": "focus_started", "at": "2026-11-22T22:57:01+00:00", "data": {"cadence": "sequential", "domain": "store email"}, "event_id": "ce6e48d3-c64f-4c4f-b6c6-a2be360f789e"}
+{"action": "decision_proposed", "at": "2026-11-22T22:57:02+00:00", "data": {"decision_id": "store-email-sender-20261122"}, "event_id": "dc68abcb-3d4e-4d9d-890a-d602f1a5115e"}
+{"action": "decision_locked", "at": "2026-11-22T23:06:03+00:00", "data": {"decision_id": "store-email-sender-20261122"}, "event_id": "80fdf2f4-8bcf-463a-bbac-60d333a89a18"}

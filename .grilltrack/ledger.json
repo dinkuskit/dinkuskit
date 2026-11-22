@@ -4,9 +4,9 @@
   "current_focus": {
     "cadence": "sequential",
     "confirmed": true,
-    "confirmed_at": "2026-11-22T15:39:25+00:00",
+    "confirmed_at": "2026-11-22T16:53:50+00:00",
     "domain": "plugin communication",
-    "started_at": "2026-11-22T15:39:25+00:00",
+    "started_at": "2026-11-22T16:53:50+00:00",
     "status": "confirmed",
     "summary": "The owner reviewed the rule in five pieces and approved each, then the whole, on 22 Nov 2026."
   },
@@ -12322,6 +12322,77 @@
       "superseded_by": null,
       "updated_at": "2026-11-22T15:39:26+00:00",
       "verification_ref": null
+    },
+    {
+      "baseline_ref": "git:f58bfe886173cf2d2586437626aaaf9ab49abbd2",
+      "candidate_refs": [],
+      "choice": "Upgrade emdash, @emdash-cms/cloudflare and auth to exact 1.5.0, plugin-cli to 0.13.6 and plugin-test to 0.2.12, with public transitive dependencies; move the upgrade fixture and audit checks to 1.5.0. Core migrations 092-097 are new since 1.4.0 and the 1.0.1 upgrade fixture must show exactly 090-097 applied. Preserve CMS content, media, settings, plugin state and merchant organizations, memberships and site grants without reseeding. Keep the DinkusGuide plugin peer range. No new signer, authorization, grant, live endpoint or cross-repository feature; deployment stays a separate operator step.",
+      "context_ref": "https://github.com/emdash-cms/emdash/releases/tag/emdash%401.5.0",
+      "created_at": "2026-11-22T16:53:50+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [
+        "website-emdash14-20261030"
+      ],
+      "domain": "Website EmDash 1.5 source upgrade",
+      "history": [
+        {
+          "at": "2026-11-22T16:53:50+00:00",
+          "choice": "Upgrade emdash, @emdash-cms/cloudflare and auth to exact 1.5.0, plugin-cli to 0.13.6 and plugin-test to 0.2.12, with public transitive dependencies; move the upgrade fixture and audit checks to 1.5.0. Core migrations 092-097 are new since 1.4.0 and the 1.0.1 upgrade fixture must show exactly 090-097 applied. Preserve CMS content, media, settings, plugin state and merchant organizations, memberships and site grants without reseeding. Keep the DinkusGuide plugin peer range. No new signer, authorization, grant, live endpoint or cross-repository feature; deployment stays a separate operator step.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-11-22T16:53:50+00:00",
+          "choice": "Upgrade emdash, @emdash-cms/cloudflare and auth to exact 1.5.0, plugin-cli to 0.13.6 and plugin-test to 0.2.12, with public transitive dependencies; move the upgrade fixture and audit checks to 1.5.0. Core migrations 092-097 are new since 1.4.0 and the 1.0.1 upgrade fixture must show exactly 090-097 applied. Preserve CMS content, media, settings, plugin state and merchant organizations, memberships and site grants without reseeding. Keep the DinkusGuide plugin peer range. No new signer, authorization, grant, live endpoint or cross-repository feature; deployment stays a separate operator step.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-11-22T16:53:50+00:00",
+          "choice": "Upgrade emdash, @emdash-cms/cloudflare and auth to exact 1.5.0, plugin-cli to 0.13.6 and plugin-test to 0.2.12, with public transitive dependencies; move the upgrade fixture and audit checks to 1.5.0. Core migrations 092-097 are new since 1.4.0 and the 1.0.1 upgrade fixture must show exactly 090-097 applied. Preserve CMS content, media, settings, plugin state and merchant organizations, memberships and site grants without reseeding. Keep the DinkusGuide plugin peer range. No new signer, authorization, grant, live endpoint or cross-repository feature; deployment stays a separate operator step.",
+          "from": "implemented",
+          "implementation_ref": "branch claude/project-thread-lywvu9: exact 1.5.0 pins (plugin-cli 0.13.6, plugin-test 0.2.12), lockfile, audit/fixture baselines expecting migrations 090-097, and docs",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": null
+        }
+      ],
+      "id": "website-emdash15-20261122",
+      "implementation_ref": "branch claude/project-thread-lywvu9: exact 1.5.0 pins (plugin-cli 0.13.6, plugin-test 0.2.12), lockfile, audit/fixture baselines expecting migrations 090-097, and docs",
+      "question": "Should the DinkusKit website move from EmDash 1.4.0 to 1.5.0 in the same round as the plugins, before the v1 launch?",
+      "rationale": "The owner approved the EmDash 1.5 upgrade plan on 22 Nov 2026, in the same order as 1.4: plugins first, then this website, then the template store.",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [],
+      "review_ref": null,
+      "review_result": null,
+      "review_source_identity": null,
+      "status": "verified",
+      "superseded_by": null,
+      "updated_at": "2026-11-22T16:53:50+00:00",
+      "verification_ref": "Local npm run verify steps on Node 24.22.0 passed (audit, typecheck, build, merchant, shared-store, foundation, checkout-settings-browser, smoke, dev-cms, cms-operation, emdash-upgrade 'Actual 1.0.1 -> 1.5 upgrade applied only 090-097, preserving CMS state, media reference, original session and merchant authority rows without reseeding', cloudflare-candidate); test:history-archive and test:cms-operation-helpers fail in cloud containers on main too, left to CI"
     }
   ],
   "last_activation": {
@@ -12352,5 +12423,5 @@
   "status": "active",
   "title": "Composed integration",
   "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5",
-  "updated_at": "2026-11-22T15:39:26+00:00"
+  "updated_at": "2026-11-22T16:53:50+00:00"
 }

@@ -169,6 +169,12 @@ export async function approveConnectionAndBind(db: D1Database, input: {
   const selected = ownerPresent ? 'JOIN dinkuskit_user_selection s ON s.user_id = m.user_id AND s.organization_id = m.organization_id' : '';
   // Ship turns on when it connects (store-connect-ship-on-at-setup-126): the same grant row its switch used.
   const writesGrant = grant || Boolean(input.turnsOn);
+  // Finish setup approves without the owner, so the owner's latest word must win inside the same
+  // write: a Disconnect (tombstone) or any revoked grant for this plugin refuses it
+  // (connect-finish-setup-disconnect-137). Only the owner's own Approve can bring it back.
+  const ownerWordStands = ownerPresent ? '' : `
+          AND NOT EXISTS (SELECT 1 FROM dinkuskit_plugin_disconnect WHERE site_id = ? AND plugin = ?)
+          AND NOT EXISTS (SELECT 1 FROM dinkuskit_service_grant WHERE site_id = ? AND service = ? AND revoked = 1)`;
   const now = nowSeconds();
   const connection = await loadStoreConnection(db, input.connectionId);
   if (!connection || connection.protocolVersion !== 2 || connection.siteId !== input.siteId || connection.siteOrigin !== input.siteOrigin || connection.service !== input.service) {
@@ -209,9 +215,10 @@ export async function approveConnectionAndBind(db: D1Database, input: {
           AND EXISTS (SELECT 1 FROM dinkuskit_organization o JOIN dinkuskit_membership m ON m.organization_id = o.organization_id
             JOIN dinkuskit_account a ON a.user_id = m.user_id ${selected}
             WHERE o.organization_id = ? AND o.authority_subject = ? AND o.owner_user_id = ? AND m.user_id = o.owner_user_id
-              AND m.role = 'owner' AND m.status = 'active' AND o.status = 'active' AND o.admission_status <> 'pending_operator' AND a.disabled = 0)`)
+              AND m.role = 'owner' AND m.status = 'active' AND o.status = 'active' AND o.admission_status <> 'pending_operator' AND a.disabled = 0)${ownerWordStands}`)
         .bind(input.subject, input.organizationId, now, input.connectionId, expiresAt, input.subject, input.siteId, input.siteOrigin, input.service,
-          input.siteId, input.siteOrigin, input.subject, input.siteId, input.service, input.organizationId, input.subject, input.actorUserId),
+          input.siteId, input.siteOrigin, input.subject, input.siteId, input.service, input.organizationId, input.subject, input.actorUserId,
+          ...(ownerPresent ? [] : [input.siteId, input.service, input.siteId, input.service])),
       ...(writesGrant ? [db.prepare(`INSERT INTO dinkuskit_service_grant (site_id, service, revoked, granted_at, revoked_at)
         SELECT ?, ?, 0, ?, NULL WHERE EXISTS (
           SELECT 1 FROM dinkuskit_store_connection WHERE connection_id = ? AND status = 'approved' AND protocol_version = 2

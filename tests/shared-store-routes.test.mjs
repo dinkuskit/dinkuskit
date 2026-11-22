@@ -410,12 +410,12 @@ test('Finish setup through the routes: approve once, Ship on, connected-to read,
     const form = async fields=>({method:'POST',headers:{'content-type':'application/x-www-form-urlencoded'},body:await accountForm(runtime,owner,new URLSearchParams(fields).toString())});
     const lookup = async (service, siteOrigin = origin) => request(runtime,new Map(),'/api/store-connections/lookup',{method:'POST',body:JSON.stringify({protocol_version:2,client_id:paths[service][0],service,site_origin:siteOrigin,callback_uri:siteOrigin === origin ? callbackFor(service) : `${siteOrigin}/_emdash/admin/plugins/${paths[service][1]}`})});
     const finishShown = async (service, siteOrigin) => (await (await lookup(service, siteOrigin)).json()).finish_setup;
-    async function start(service, { receipt = true } = {}) {
+    async function start(service, { receipt = true, delay = 0 } = {}) {
       const verifier = randomBytes(32).toString('base64url'); const challenge = createHash('sha256').update(verifier).digest('base64url');
       const client = paths[service][0], callback = callbackFor(service);
       const response = await request(runtime,new Map(),'/api/store-connections',{method:'POST',body:JSON.stringify({protocol_version:2,client_id:client,service,site_origin:origin,callback_uri:callback,code_challenge:challenge,code_challenge_method:'S256'})});
       assert.equal(response.status,200,`${service} starts`); const body = await response.json();
-      if (receipt) await request(runtime,new Map(),'/__proof/receipt',{method:'POST',body:JSON.stringify({version:2,connection_id:body.connection_id,challenge:body.challenge,client_id:client,service,site_id:body.site_id,site_origin:origin,callback_uri:callback,code_challenge:challenge,expires_at:body.expires_at})});
+      if (receipt) await request(runtime,new Map(),'/__proof/receipt',{method:'POST',body:JSON.stringify({version:2,connection_id:body.connection_id,challenge:body.challenge,client_id:client,service,site_id:body.site_id,site_origin:origin,callback_uri:callback,code_challenge:challenge,expires_at:body.expires_at,...(delay ? {delay_ms:delay} : {})})});
       return { body, client, verifier, callback, path:`/account/connect?connection_id=${body.connection_id}` };
     }
     const finish = (c, verifier = c.verifier) => request(runtime,new Map(),'/api/store-connections/finish',{method:'POST',body:JSON.stringify({client_id:c.client,connection_id:c.body.connection_id,code_verifier:verifier})});
@@ -488,6 +488,25 @@ test('Finish setup through the routes: approve once, Ship on, connected-to read,
     assert.equal((await trade(approvedAgain.store_key,'ship:admin','dinkus-ship')).status,200,'the owner\'s Approve connects Ship and turns it on');
     assert.equal(await finishShown('ship'),true,'and forgets the Disconnect');
     assert.deepEqual(await notices(),[],'no email when the owner approved it themselves');
+    // Ship on with no Ship plugin key (uninstalled): Your stores still offers Disconnect Ship, and it turns Ship off.
+    assert.deepEqual(await (await cancel(approvedAgain.store_key)).json(),{cancelled:true});
+    const keyless = await (await request(runtime,owner,`/account/sites?store=${siteId}&tab=plugins`)).text();
+    assert.match(keyless,/Ship plugin: not connected/); assert.match(keyless,/Ship: On/);
+    assert.match(keyless,/name="plugin" value="ship"[\s\S]*?Disconnect Ship/,'a Disconnect Ship button while Ship is on');
+    assert.equal((await request(runtime,owner,'/account/sites',await form({action:'disconnect_plugin',site_id:siteId,plugin:'ship'}))).status,303);
+    assert.deepEqual(await (await trade(commerce.store_key,'ship:orders','dinkus-ship')).json(),{error:'service_not_enabled'},'Disconnect with no key still turns Ship off');
+    assert.doesNotMatch(await (await request(runtime,owner,`/account/sites?store=${siteId}&tab=plugins`)).text(),/Disconnect Ship/);
+    // The owner's Disconnect wins over a Finish setup already waiting on the store receipt: no key is issued.
+    const inFlight = await start('payments',{delay:1500});
+    const racing = finish(inFlight);
+    await new Promise(resolve => setTimeout(resolve,300));
+    assert.equal((await request(runtime,owner,'/account/sites',await form({action:'disconnect_plugin',site_id:siteId,plugin:'payments'}))).status,303);
+    const lost = await racing;
+    assert.equal(lost.status,409,'Finish setup is refused after the Disconnect');
+    assert.equal((await lost.json()).store_key,undefined);
+    assert.deepEqual(await (await trade(paid.store_key,'payments:checkout','dinkus-payments')).json(),{error:'invalid_store_key'},'the old key is gone');
+    assert.match(await (await request(runtime,owner,`/account/sites?store=${siteId}&tab=plugins`)).text(),/Payments plugin: not connected/,'and no new one was made');
+    assert.equal(await finishShown('payments'),false);
     // An owner's Revoke of Payments needs their Approve too.
     assert.equal((await request(runtime,owner,'/account/sites',await form({action:'revoke',site_id:siteId,service:'payments'}))).status,303);
     assert.equal(await finishShown('payments'),false);

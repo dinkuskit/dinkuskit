@@ -59,15 +59,17 @@ export async function disconnectPlugin(db: D1Database, input: OwnerInput & { plu
   const [deletedKey, deniedConnections] = await db.batch([
     db.prepare(`DELETE FROM dinkuskit_plugin_key WHERE site_id = ? AND plugin = ? AND ${OWNER_OF_STORE}`)
       .bind(input.siteId, input.plugin, ...ownerArgs(input)),
+    // A Connect or Finish setup still in progress dies too, so nothing started before the Disconnect can bring the plugin back.
     db.prepare(`UPDATE dinkuskit_store_connection SET status = 'denied'
-      WHERE site_id = ? AND service = ? AND status = 'approved' AND ${OWNER_OF_STORE}`)
+      WHERE site_id = ? AND service = ? AND status IN ('pending', 'approved') AND ${OWNER_OF_STORE}`)
       .bind(input.siteId, input.plugin, ...ownerArgs(input)),
     db.prepare(`INSERT INTO dinkuskit_plugin_disconnect (site_id, plugin, disconnected_at) SELECT ?, ?, ? WHERE ${OWNER_OF_STORE}
       ON CONFLICT(site_id, plugin) DO UPDATE SET disconnected_at = excluded.disconnected_at`)
       .bind(input.siteId, input.plugin, now(), ...ownerArgs(input)),
   ]) as { meta?: { changes?: number } }[];
-  if (input.plugin === 'ship') await revokeServiceGrant(db, input.subject, input.siteId, 'ship', input.actorUserId, input.organizationId);
-  return (deletedKey?.meta?.changes ?? 0) > 0 || (deniedConnections?.meta?.changes ?? 0) > 0;
+  // Disconnect is how Ship turns off (store-connect-ship-on-at-setup-126), with or without a key left to delete.
+  const shipOff = input.plugin === 'ship' && await revokeServiceGrant(db, input.subject, input.siteId, 'ship', input.actorUserId, input.organizationId);
+  return (deletedKey?.meta?.changes ?? 0) > 0 || (deniedConnections?.meta?.changes ?? 0) > 0 || shipOff;
 }
 
 /**

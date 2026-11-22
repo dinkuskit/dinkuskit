@@ -18,6 +18,12 @@ the harness's `/__proof/receipt` simulation, not a real store.
   the Ship plugin in EmDash to turn it on."
 - `ship-on-after-finish-setup.png`: the same card after Ship's Finish setup:
   "Ship plugin: connected", **Disconnect Ship**, and "Ship: On".
+- `ship-on-key-cancelled.png`: Ship's own key was cancelled (as an uninstall does)
+  while Ship stays on for the store: "Ship plugin: not connected", "Ship: On", and a
+  **Disconnect Ship** button in the services list, so the owner can still turn Ship
+  off without a key.
+- `ship-off-after-disconnect.png`: after pressing that button Ship is off for the
+  store and the button is gone.
 
 ## Email the owner got (test mail sink)
 
@@ -30,6 +36,31 @@ If you didn't expect this, open Your stores and press Disconnect for Dinkus Ship
 ```
 
 Payments got the same email naming Dinkus Payments.
+
+## Review fixes (Disconnect during Finish setup)
+
+- The approval write itself now refuses a Finish setup (no owner present) when the
+  owner has disconnected that plugin or revoked Ship for the store, so a Disconnect
+  pressed while Finish setup is still reading the store receipt cannot be overtaken.
+  Disconnect also denies a connection still `pending` as well as `approved`.
+- `tests/plugin-connect.test.mjs`: "a Disconnect pressed while Finish setup reads the
+  store receipt stops it before any key or grant" (Payments and Ship) and "the
+  approval write itself refuses Finish setup once the owner disconnected or revoked,
+  even for a connection still waiting". Both fail on the previous head (`704c2c7`)
+  and pass now.
+- `tests/shared-store-routes.test.mjs`, against the built Worker: Payments' receipt is
+  slowed by 1.5 s, the owner presses Disconnect Payments 300 ms into Finish setup, and
+  Finish setup answers 409 with no store key; the old key stays invalid and the page
+  says "Payments plugin: not connected" with no Finish setup offered.
+
+## Data compatibility (migration 0016)
+
+`tests/merchant-migrations.test.mjs` ("merchant D1 migration 0016 keeps a schema-15
+store's keys, grants and checkout settings, and starts with no Disconnect
+recorded"): a schema-15 database with an organization, a store, two plugin keys,
+Ship and Payments grants and checkout settings upgrades with every row unchanged;
+the new table starts empty, refuses rows that break its foreign key or check, and a
+second run is a no-op.
 
 ## Checks
 

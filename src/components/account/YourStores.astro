@@ -100,6 +100,16 @@ const serviceNote = (binding: { revoked: boolean; revokedBy: string | null }) =>
                     : store.services[service] === 'on' ? 'On' : service === 'payments' ? 'Off. Press Connect in the Payments plugin to turn it on.'
                     : service === 'ship' ? 'Off. Press Connect or Finish setup in the Ship plugin in EmDash to turn it on.'
                     : comingSoon(service) ? 'Coming soon. Commerce does not take coupon codes yet.' : 'Off'}
+                  {isOwner && service === 'ship' && store.services.ship === 'on' && !store.plugins.ship ? (
+                    // Ship on with no Ship plugin key (uninstalled, or turned on before 126): Disconnect still turns it off.
+                    <form method="post" action={tabHref(store.siteId, 'plugins')}>
+                      <input type="hidden" name="action" value="disconnect_plugin" />
+                      <input type="hidden" name="site_id" value={store.siteId} />
+                      <input type="hidden" name="plugin" value="ship" />
+                      <input type="hidden" name="organization_id" value={organizationId} />
+                      <button type="submit">Disconnect Ship</button>
+                    </form>
+                  ) : null}
                   {isOwner && service === 'payments' && store.services.payments === 'on' ? (
                     <form method="post" action={tabHref(store.siteId, 'plugins')}>
                       <input type="hidden" name="action" value="revoke" />

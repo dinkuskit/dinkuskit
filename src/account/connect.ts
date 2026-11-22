@@ -249,7 +249,12 @@ export async function finishStoreSetup(input: {
     siteId: connection.siteId, siteOrigin: connection.siteOrigin, service: connection.service,
     grant: registered.grants, registersStore: registered.registersStore, turnsOn: registered.turnsOn, ownerPresent: false,
   });
-  if (!approved.ok) return json(409, { error: approved.reason });
+  if (!approved.ok) {
+    // The owner's Disconnect or Revoke won inside the approval write: a connection still waiting
+    // can only be approved by the owner now; one the Disconnect denied is over.
+    const after = await loadStoreConnection(input.db, connection.connectionId);
+    return json(409, { error: after?.status === 'pending' ? 'owner_approval_required' : approved.reason });
+  }
   const answer = await exchangeStoreConnectionToken({ db: input.db, body, jwtPrivateJwk: input.jwtPrivateJwk, proofFetch: input.proofFetch });
   if (answer.ok && store.ownerEmail && input.noticeEmail) {
     const name = PLUGIN_NAMES[registered.plugin!] ?? registered.plugin!;

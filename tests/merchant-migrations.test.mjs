@@ -424,6 +424,57 @@ test('merchant D1 migration 0015 keeps a schema-14 store\'s checkout choices and
   }
 });
 
+// connect-finish-setup-disconnect-137: 0016 only adds the Disconnect record; a schema-15 store keeps everything.
+test('merchant D1 migration 0016 keeps a schema-15 store\'s keys, grants and checkout settings, and starts with no Disconnect recorded', async () => {
+  const persistTo = await mkdtemp(join(tmpdir(), 'dk-v15-disconnect-'));
+  let runtime;
+  try {
+    const schema = (await Promise.all(expectedLedger.filter(m => m.version <= 15).map(m => readFile(`migrations/merchant/${m.name}`, 'utf8')))).join('\n');
+    const seed = join(persistTo, 'schema15.sql');
+    await writeFile(seed, schema + `
+      INSERT INTO "user" (id,name,email,emailVerified,createdAt,updatedAt) VALUES ('v15-user','Synthetic','v15@example.test',1,1,1);
+      INSERT INTO dinkuskit_account (user_id,subject,created_at,updated_at) VALUES ('v15-user','v15-person',1,1);
+      INSERT INTO dinkuskit_organization (organization_id,name,status,owner_user_id,authority_subject,admission_status,created_by_user_id,created_at,updated_at)
+      VALUES ('v15-org','Synthetic','active','v15-user','v15-subject','admitted','v15-user',1,1);
+      INSERT INTO dinkuskit_store_identity VALUES ('v15-site','https://v15.example.test','v15-subject',1);
+      INSERT INTO dinkuskit_plugin_key (site_id,plugin,key_hash,created_by_user_id,created_at,last_used_at,window_start,window_count)
+      VALUES ('v15-site','commerce','${'c'.repeat(64)}','v15-user',1,5,0,0), ('v15-site','ship','${'s'.repeat(64)}','v15-user',2,NULL,0,0);
+      INSERT INTO dinkuskit_service_grant (site_id,service,revoked,granted_at,revoked_at) VALUES ('v15-site','ship',0,3,NULL), ('v15-site','payments',0,4,NULL);
+      INSERT INTO dinkuskit_commerce_settings (site_id,shipping_mode,shipping_minor,shipping_revision,live,updated_by_user_id,updated_at,shipping_free_over_minor)
+      VALUES ('v15-site','flat',450,3,0,'v15-user',1,5000);
+    `, { mode: 0o600 });
+    applySql(persistTo, seed);
+    assert.deepEqual(ledgerRows(persistTo), expectedLedger.filter(m => m.version <= 15));
+    const rows = [
+      'SELECT site_id, plugin, key_hash, created_at, last_used_at FROM dinkuskit_plugin_key ORDER BY plugin',
+      'SELECT site_id, service, revoked, granted_at FROM dinkuskit_service_grant ORDER BY service',
+      'SELECT shipping_mode, shipping_minor, shipping_revision, live, shipping_free_over_minor FROM dinkuskit_commerce_settings',
+    ];
+    const before = readOnlyResultSets(persistTo, rows);
+
+    runtime = await startMerchantTestRuntime({ persistTo });
+    assert.equal((await request(runtime, new Map(), '/account/.well-known/jwks.json')).status, 200, 'compiled runtime applies 0016');
+    const [appliedLedger, ...after] = readOnlyResultSets(persistTo, [ledgerSelect, ...rows]);
+    assert.deepEqual(mapLedger(appliedLedger), expectedLedger);
+    assert.deepEqual(after, before, 'keys, grants and checkout settings are unchanged');
+    assert.equal(before[0].length, 2); assert.equal(before[1].length, 2);
+    const [disconnects] = readOnlyResultSets(persistTo, ['SELECT count(*) AS n FROM dinkuskit_plugin_disconnect']);
+    assert.deepEqual(disconnects, [{ n: 0 }], 'no plugin starts out disconnected');
+    const unknownStore = wranglerD1(persistTo, ['execute', '--yes', '--command', "INSERT INTO dinkuskit_plugin_disconnect VALUES ('no-such-site','ship',1)"]);
+    assert.notEqual(unknownStore.status, 0, 'a Disconnect is only recorded for a known store');
+    const unknownPlugin = wranglerD1(persistTo, ['execute', '--yes', '--command', "INSERT INTO dinkuskit_plugin_disconnect VALUES ('v15-site','coupons',1)"]);
+    assert.notEqual(unknownPlugin.status, 0, 'and only for Commerce, Payments or Ship');
+    const prior = runtime;
+    await stopRuntime({ ...prior, ownedPersist: false }); runtime = undefined;
+    runtime = await startMerchantTestRuntime({ persistTo, secret: prior.secret, jwt: prior.jwt });
+    assert.equal((await request(runtime, new Map(), '/account/.well-known/jwks.json')).status, 200);
+    assert.deepEqual(ledgerRows(persistTo), expectedLedger, 'restart leaves additive migration idempotent');
+  } finally {
+    if (runtime) await stopRuntime(runtime);
+    await rm(persistTo, { recursive: true, force: true });
+  }
+});
+
 test('merchant D1 migrations: a runtime checks the schema once and the next start repairs the ledger', async () => {
   const persistTo = await mkdtemp(join(tmpdir(), 'dk-check-once-'));
   const jwks = runtime => request(runtime, new Map(), '/account/.well-known/jwks.json');

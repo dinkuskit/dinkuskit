@@ -4,7 +4,7 @@ import Database from 'better-sqlite3';
 import { readFile, readdir } from 'node:fs/promises';
 import { createHash, randomBytes } from 'node:crypto';
 import { stripTypeScriptTypes } from 'node:module';
-import { startStoreConnection, consentStoreConnection, exchangeStoreConnectionToken } from '../src/account/connect.ts';
+import { startStoreConnection, consentStoreConnection, exchangeStoreConnectionToken, finishStoreSetup } from '../src/account/connect.ts';
 import { createLocalTestKeys } from '../src/account/jwt.ts';
 import { disconnectPlugin, hashKey, issueStorePass, listStoreSetup, newStoreKey, setOwnerService } from '../src/account/store-passes.ts';
 import { saveCommerceSettings, serveCommerceSettings } from '../src/account/commerce-settings.ts';
@@ -290,5 +290,58 @@ test('Commerce reads its checkout settings with its own pass, and nothing else c
     assert.equal((await read(settingsPass)).status, 200);
     f.sqlite.prepare("UPDATE dinkuskit_service_grant SET revoked = 1, revoked_by = 'owner' WHERE service = 'payments'").run();
     assert.deepEqual((await read(settingsPass)).body, { error: 'payments_not_connected' });
+  } finally { f.close(); }
+});
+
+
+// connect-finish-setup-disconnect-137: the owner's Disconnect or Revoke wins over a Finish setup
+// already past its checks, because the approval write itself checks it.
+async function finishWhile(f, c, during) {
+  const response = await finishStoreSetup({ db: f.db, jwtPrivateJwk: JSON.stringify(f.keys.privateJwk), baseUrl: 'https://dinkuskit.com',
+    proofFetch: async () => { await during(); return { ok: true, transport: 'simulation', receipt: c.receipt }; },
+    body: { client_id: c.request.client_id, connection_id: c.body.connection_id, code_verifier: c.verifier } });
+  return { status: response.status, body: await response.json() };
+}
+
+test('a Disconnect pressed while Finish setup reads the store receipt stops it before any key or grant', async () => {
+  const f = await fixture(); try {
+    const commerce = await connect(f, 'commerce');
+    const siteId = commerce.body.site_id;
+    const owner = { ...f.merchant('alice'), actorUserId: 'alice', siteId };
+    const payments = await connect(f, 'payments');
+    for (const plugin of ['payments', 'ship']) {
+      if (plugin === 'ship') await connect(f, 'ship');
+      const c = await start(f, plugin);
+      const raced = await finishWhile(f, c, () => disconnectPlugin(f.db, { ...owner, plugin }));
+      assert.equal(raced.status, 409, `${plugin}: refused`);
+      assert.equal(raced.body.store_key, undefined);
+      assert.equal(count(f, 'dinkuskit_plugin_key WHERE site_id = ? AND plugin = ?', siteId, plugin), 0, `${plugin}: no key is issued`);
+      assert.equal(count(f, "dinkuskit_store_connection WHERE connection_id = ? AND status = 'denied'", c.body.connection_id), 1, `${plugin}: the in-flight connection died with the Disconnect`);
+    }
+    assert.equal(count(f, "dinkuskit_service_grant WHERE site_id = ? AND service = 'ship' AND revoked = 0", siteId), 0, 'Ship stays off');
+    assert.ok(payments.issued.body.store_key);
+  } finally { f.close(); }
+});
+
+test('the approval write itself refuses Finish setup once the owner disconnected or revoked, even for a connection still waiting', async () => {
+  const f = await fixture(); try {
+    const commerce = await connect(f, 'commerce');
+    const siteId = commerce.body.site_id;
+    // The owner's word lands between the checks and the approval, without touching the waiting connection.
+    const cases = [
+      ['payments', () => f.sqlite.prepare('INSERT INTO dinkuskit_plugin_disconnect (site_id, plugin, disconnected_at) VALUES (?, ?, 1)').run(siteId, 'payments')],
+      ['ship', () => f.sqlite.prepare("INSERT INTO dinkuskit_service_grant (site_id, service, revoked, granted_at, revoked_at, revoked_by) VALUES (?, 'ship', 1, 1, 2, 'owner')").run(siteId)],
+    ];
+    for (const [plugin, during] of cases) {
+      const c = await start(f, plugin);
+      const raced = await finishWhile(f, c, async () => during());
+      assert.deepEqual([raced.status, raced.body], [409, { error: 'owner_approval_required' }], `${plugin}: only the owner's Approve now`);
+      assert.equal(count(f, 'dinkuskit_plugin_key WHERE site_id = ? AND plugin = ?', siteId, plugin), 0);
+      assert.equal(count(f, "dinkuskit_store_connection WHERE connection_id = ? AND status = 'pending'", c.body.connection_id), 1, 'the owner can still approve it');
+      assert.equal(count(f, "dinkuskit_service_grant WHERE site_id = ? AND service = ? AND revoked = 0", siteId, plugin), 0);
+      // The owner's own Approve brings it back.
+      assert.equal((await consent(f, c)).ok, true);
+      assert.equal((await exchange(f, c)).status, 200);
+    }
   } finally { f.close(); }
 });

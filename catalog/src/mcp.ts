@@ -32,7 +32,7 @@ export const TOOLS = [
   {
     name: 'lookup_catalog',
     title: 'Look up products by id',
-    description: `Fetch current price and availability for up to ${MAX_LOOKUP_IDS} known products. catalog.ids takes product ids (dkp_...), variant ids (dkv_...) or a listed store's product page address.`,
+    description: `Fetch current price and availability for up to ${MAX_LOOKUP_IDS} known products. catalog.ids takes product ids (dkp_...), variant ids (dkv_...) or a listed store's product page address. Only variants a shopper can buy now come back unless catalog.filters.available is false; an id with nothing buyable is reported as not_found.`,
     inputSchema: { type: 'object', properties: { meta: META_ARGUMENT, catalog: CATALOG_ARGUMENT }, required: ['catalog'] },
     annotations: { readOnlyHint: true, openWorldHint: true },
   },
@@ -162,7 +162,8 @@ async function lookupTool(db: D1Database, catalog: Json) {
     return { ucp: envelope(LOOKUP_CAPABILITY, 'error'), products: [], messages: [message('error', 'invalid_request', `Send 1 to ${MAX_LOOKUP_IDS} ids in catalog.ids.`)] };
   }
   const filters = readFilters(catalog);
-  const found = await lookupCatalog(db, ids, isRecord(catalog.filters) && catalog.filters.available === true);
+  // Like Shopify, only what a shopper can buy now unless the agent asks for sold-out items too.
+  const found = await lookupCatalog(db, ids, filters.available);
   const messages = [...filters.messages, ...found.notFound.map(id => message('info', 'not_found', id))];
   return { ucp: envelope(LOOKUP_CAPABILITY), products: found.products, ...(messages.length ? { messages } : {}) };
 }

@@ -160,8 +160,11 @@ try {
   check('a family lookup does not silently satisfy an unavailable exact input',
     summarizeLookup(await tool('lookup_catalog', { ids: [unavailableTee, teeProduct.id], filters: { available: true } })),
     { products: [['Blue / S:true', 'Red / M:true']], unavailableInputReported: true });
-  check('default lookup still returns the known unavailable exact variant',
+  check('a lookup with no availability filter, like Shopify, reports the sold-out exact variant as not found',
     summarizeLookup(await tool('lookup_catalog', { ids: [unavailableTee] })),
+    { products: [], unavailableInputReported: true });
+  check('available:false still returns the known unavailable exact variant',
+    summarizeLookup(await tool('lookup_catalog', { ids: [unavailableTee], filters: { available: false } })),
     { products: [['Blue / M:false']], unavailableInputReported: false });
   feeds[ALPHA].products[1].variants.members[1].availability = { status: 'in_stock', sellable: true };
   await timer();

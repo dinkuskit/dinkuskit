@@ -1,33 +1,31 @@
 import assert from 'node:assert/strict';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { createServer } from 'node:net';
-import { once } from 'node:events';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { dev } from 'astro';
 
-const reservation = createServer();
-reservation.listen(0, '127.0.0.1');
-await once(reservation, 'listening');
-const port = reservation.address().port;
-await new Promise(resolve => reservation.close(resolve));
 const host = '127.0.0.1';
-const base = `http://${host}:${port}`;
-const request = (path, options = {}) => fetch(base + path, {
-  signal: AbortSignal.timeout(8000),
-  redirect: 'manual',
-  ...options,
-});
 const checks = [];
 let server;
 let address = null;
+let port = null;
 let serverStopped = false;
 let listenerClosed = false;
 let stopError = null;
 let startError = null;
 try {
-  server = await dev({ server: { host, port } });
+  // Let the actual listener pick its port. Reserving and releasing a port before
+  // Astro starts leaves time for another socket to claim it.
+  server = await dev({ server: { host, port: 0 } });
   address = server.address;
-  assert.equal(address?.port, port, 'Public Astro dev API bound the requested port');
+  assert.equal(address?.address, host, 'Public Astro dev API bound only the requested loopback host');
+  assert.ok(Number.isInteger(address.port) && address.port > 0, 'Public Astro dev API reports a bound port');
+  port = address.port;
+  const base = `http://${host}:${port}`;
+  const request = path => fetch(base + path, {
+    signal: AbortSignal.timeout(8000),
+    redirect: 'manual',
+  });
   let ready = false;
   for (let attempt = 0; attempt < 150; attempt++) {
     try {
@@ -71,13 +69,15 @@ try {
       stopError = String(error);
     }
   }
-  listenerClosed = await new Promise(resolve => {
-    const probe = createServer();
-    probe.once('error', () => resolve(false));
-    probe.listen(port, host, () => {
-      probe.close(() => resolve(true));
+  if (port !== null && serverStopped) {
+    listenerClosed = await new Promise(resolve => {
+      const probe = createServer();
+      probe.once('error', () => resolve(false));
+      probe.listen(port, host, () => {
+        probe.close(() => resolve(true));
+      });
     });
-  });
+  }
   const root = '.grilltrack/work/website-review-repair-20260930/after';
   const receipt = {
     at: new Date().toISOString(),
@@ -94,7 +94,7 @@ try {
   await writeFile(`${root}/dev-cms-server.log`, [
     `api=import { dev } from 'astro'`,
     `host=${host}`,
-    `port=${port}`,
+    `port=${port ?? ''}`,
     `address=${address?.address ?? ''}`,
     `boundPort=${address?.port ?? ''}`,
     `family=${address?.family ?? ''}`,

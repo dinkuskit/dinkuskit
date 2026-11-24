@@ -2,8 +2,8 @@
 /**
  * Runs the catalog Worker as it is built for Cloudflare, inside the Workers runtime on
  * this machine, and walks through what an agent sees: a listed store reaching search,
- * then each way a store leaves (owner's switch, operator cut-off, Payments disconnect,
- * a store that stops answering) and the same product ids asked for again.
+ * then each way a store leaves (owner's switch, operator cut-off, checkout back in test
+ * mode, Payments disconnect, a store that stops answering) and the same product ids asked for again.
  *
  * Real here: the bundled Worker, its HTTP address, its timer, both D1 databases with
  * the repository's own migrations, and the rate limits. Stand-ins: the two stores (their
@@ -102,6 +102,7 @@ try {
     await insert(merchantDb, 'dinkuskit_store_identity', { site_id: `site-${name}`, site_origin: origin, account_subject: `sub-${name}` });
     await insert(merchantDb, 'dinkuskit_plugin_key', { site_id: `site-${name}`, plugin: 'payments' });
     await insert(merchantDb, 'dinkuskit_service_grant', { site_id: `site-${name}`, service: 'ship', revoked: 0 });
+    await insert(merchantDb, 'dinkuskit_commerce_settings', { site_id: `site-${name}`, shipping_mode: 'free', live: 1 });
   };
   for (const [name, origin] of [['alpha', ALPHA], ['beta', BETA], ['playground', PLAYGROUND]]) await connect(name, origin);
 
@@ -193,6 +194,17 @@ try {
   await merchantDb.prepare("UPDATE dinkuskit_service_grant SET revoked = 0, revoked_by = NULL WHERE site_id = 'site-beta'").run();
   await timer();
   check('restored, the store returns', sellers((await search())[0]), ['Beta Goods 1999', 'Alpha Outfitters 2500']);
+
+  console.log('\n== 4b. The owner switches checkout back to test payments on dinkuskit.com ==');
+  await merchantDb.prepare("UPDATE dinkuskit_commerce_settings SET live = 0 WHERE site_id = 'site-beta'").run();
+  await catalogDb.prepare('UPDATE catalog_store SET validated_at = validated_at - 60').run();
+  check('get_product, before any timed read, already leaves the test-mode store out', await detail(productId), ['Alpha Outfitters 2500']);
+  await timer();
+  check('search', sellers((await search())[0]), ['Alpha Outfitters 2500']);
+  check('the Beta variant id an agent kept', await lookup(betaVariant), []);
+  await merchantDb.prepare("UPDATE dinkuskit_commerce_settings SET live = 1 WHERE site_id = 'site-beta'").run();
+  await timer();
+  check('back on live payments, the store returns', sellers((await search())[0]), ['Beta Goods 1999', 'Alpha Outfitters 2500']);
 
   console.log('\n== 5. Payments is disconnected ==');
   await merchantDb.prepare("DELETE FROM dinkuskit_plugin_key WHERE site_id = 'site-alpha' AND plugin = 'payments'").run();

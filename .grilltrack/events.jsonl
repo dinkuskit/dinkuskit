@@ -296,3 +296,6 @@
 {"action": "decision_locked", "at": "2026-11-22T23:34:35+00:00", "data": {"decision_id": "store-email-styling-20261122"}, "event_id": "8068dd25-8761-491b-8494-ec13d811f62d"}
 {"action": "decision_proposed", "at": "2026-11-22T23:56:32+00:00", "data": {"decision_id": "review-email-stop-link-20261122"}, "event_id": "5709959e-9255-42d5-87a7-5c14e01a553a"}
 {"action": "decision_locked", "at": "2026-11-22T23:56:32+00:00", "data": {"decision_id": "review-email-stop-link-20261122"}, "event_id": "9dccc460-c1b4-4102-a693-91d2a728c982"}
+{"action": "decision_proposed", "at": "2026-11-24T22:51:38+00:00", "data": {"decision_id": "dinkuskit-catalog-hides-test-stores-20261124"}, "event_id": "137dd197-4852-4818-9897-111d2f35efe8"}
+{"action": "decision_locked", "at": "2026-11-24T22:51:39+00:00", "data": {"decision_id": "dinkuskit-catalog-hides-test-stores-20261124"}, "event_id": "a19cf6fd-4e90-4a35-9bd8-fea8d9bc91dc"}
+{"action": "decision_proposed", "at": "2026-11-24T22:51:39+00:00", "data": {"decision_id": "dinkuskit-catalog-test-store-trial-20261124"}, "event_id": "3a9da673-15a2-4ff4-8399-ce8cefa34c81"}

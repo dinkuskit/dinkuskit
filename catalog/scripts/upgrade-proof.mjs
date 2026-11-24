@@ -162,6 +162,10 @@ try {
   check('every stored product is still there, with no store pick yet',
     (await catalogDb.prepare('SELECT count(*) AS offers, count(category_id) AS picked FROM catalog_offer').first()), { offers: 3, picked: 0 });
 
+  // While the migration runs, the Worker still deployed is the old one: it must keep reading stores and answering.
+  await before.scheduled({ cron: '*/5 * * * *' });
+  check('the old Worker still reads the stores and answers after the migration', await old.search({ query: 'wool hat', filters: { available: false } }), answersBefore.search);
+
   console.log('\n== 3. The new Worker answers from the same stored rows, before it reads any store ==');
   const now = agent(after);
   check('search_catalog gives exactly the answer the old Worker gave', await now.search({ query: 'wool hat', filters: { available: false } }), answersBefore.search);

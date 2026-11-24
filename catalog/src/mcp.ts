@@ -1,4 +1,5 @@
 import { nearestProducts, productVector, queryText, type Meaning, type Picture } from './meaning.ts';
+import { categoryId } from './feed.ts';
 import { DEFAULT_LIMIT, MAX_DEPTH, MAX_LIMIT, MAX_LOOKUP_IDS, lookupCatalog, resolveUpid, searchCatalog } from './search.ts';
 import { expireStale } from './sync.ts';
 import { LOOKUP_CAPABILITY, SEARCH_CAPABILITY, envelope, narrowProduct } from './ucp.ts';
@@ -69,9 +70,8 @@ function readFilters(catalog: Json) {
   const shops = Array.isArray(filters.shops) ? filters.shops.filter((shop): shop is string => typeof shop === 'string').slice(0, 1000) : undefined;
   // A category is a Shopify taxonomy id such as "aa-1-13", bare, as a gid, or as { id }.
   const categories = (Array.isArray(filters.categories) ? filters.categories : []).flatMap(category => {
-    const id = (typeof category === 'string' ? category : isRecord(category) && typeof category.id === 'string' ? category.id : '')
-      .replace(/^gid:\/\/shopify\/TaxonomyCategory\//, '');
-    return /^[a-z]{2}(-\d{1,4}){0,10}$/.test(id) ? [id] : [];
+    const id = categoryId(typeof category === 'string' ? category : isRecord(category) ? category.id : null);
+    return id ? [id] : [];
   }).slice(0, 50);
   const shipsTo = isRecord(filters.ships_to) && typeof filters.ships_to.country === 'string' ? filters.ships_to.country.toUpperCase() : undefined;
   return {

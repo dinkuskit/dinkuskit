@@ -10,7 +10,10 @@ export const DEFAULT_LIMIT = 10, MAX_LIMIT = 50, MAX_DEPTH = 1000, MAX_LOOKUP_ID
 
 const OFFER_COLUMNS = `o.offer_id, o.upid, o.upid_basis, o.site_id, o.store_product_id, o.title, o.description, o.url, o.brand, o.gtin, o.mpn,
   o.images, o.options, o.variants, o.highlights, o.price_min, o.price_max, o.currency, o.sellable, o.updated_at,
-  s.site_origin, s.store_name, s.policies, cv.category_id, cv.category_name`;
+  s.site_origin, s.store_name, s.policies, COALESCE(o.category_id, cv.category_id) AS category_id,
+  CASE WHEN o.category_id IS NULL THEN cv.category_name ELSE o.category_name END AS category_name, o.category_id IS NULL AS category_inferred`;
+/** The store's own category, or else the one the catalog worked out (agent-catalog-store-category-20261124). */
+const CATEGORY = 'COALESCE(o.category_id, cv.category_id)';
 const OFFER_SOURCE = `catalog_offer o JOIN catalog_store s ON s.site_id = o.site_id LEFT JOIN catalog_vector cv ON cv.offer_id = o.offer_id`;
 const CANDIDATE_LIMIT = 300;
 
@@ -59,7 +62,7 @@ export async function searchCatalog(db: D1Database, input: SearchInput, nearest?
   if (input.shops?.length) { where.push(`o.site_id IN (${input.shops.map(() => '?').join(',')})`); values.push(...input.shops); }
   if (input.exclude?.length) { where.push(`o.upid NOT IN (${input.exclude.map(() => '?').join(',')})`); values.push(...input.exclude); }
   if (input.categories?.length) {
-    where.push(`(${input.categories.map(() => "(cv.category_id = ? OR cv.category_id LIKE ? ESCAPE '\\')").join(' OR ')})`);
+    where.push(`(${input.categories.map(() => `(${CATEGORY} = ? OR ${CATEGORY} LIKE ? ESCAPE '\\')`).join(' OR ')})`);
     for (const category of input.categories) values.push(category, `${category.replace(/[\\%_]/g, '\\$&')}-%`);
   }
   const filter = where.length ? `AND ${where.join(' AND ')}` : '';

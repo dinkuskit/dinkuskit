@@ -12856,6 +12856,49 @@
       "superseded_by": null,
       "updated_at": "2026-11-24T22:19:05+00:00",
       "verification_ref": null
+    },
+    {
+      "baseline_ref": "git:9cffb17",
+      "candidate_refs": [],
+      "choice": "From the catalog: GET catalog.dinkuskit.com/api/categories?q=words answers the eight Shopify Standard Product Taxonomy categories (version 2026-11) nearest in meaning to the words, best first, as { taxonomy, version, categories: [{ id, name }] }. The box sends a typed search, or the product's name and description for a suggestion. The catalog keeps nothing it is sent, uses the same model and category index it already has, shares the unnamed agents' rate limit, and answers 503 when the model or index is down.",
+      "context_ref": null,
+      "created_at": "2026-11-24T22:29:59+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [
+        "agent-catalog-store-category-20261124"
+      ],
+      "domain": "store email",
+      "history": [
+        {
+          "at": "2026-11-24T22:29:59+00:00",
+          "choice": "From the catalog: GET catalog.dinkuskit.com/api/categories?q=words answers the eight Shopify Standard Product Taxonomy categories (version 2026-11) nearest in meaning to the words, best first, as { taxonomy, version, categories: [{ id, name }] }. The box sends a typed search, or the product's name and description for a suggestion. The catalog keeps nothing it is sent, uses the same model and category index it already has, shares the unnamed agents' rate limit, and answers 503 when the model or index is down.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        }
+      ],
+      "id": "agent-catalog-category-door-20261124",
+      "implementation_ref": null,
+      "question": "Where does a store's Product category box get its search results and its suggestion?",
+      "rationale": "Shopify's list is about 2 MB, far over the 131,072-byte Registry file cap, so a plugin cannot carry it; the catalog already holds the list and the model. The owner chose to put the box in Commerce knowing its search and suggestions come from catalog.dinkuskit.com, 24 Nov 2026 22:21 UTC.",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [],
+      "review_ref": null,
+      "review_result": null,
+      "review_source_identity": null,
+      "status": "locked",
+      "superseded_by": null,
+      "updated_at": "2026-11-24T22:29:59+00:00",
+      "verification_ref": null
     }
   ],
   "last_activation": {
@@ -12886,5 +12929,5 @@
   "status": "active",
   "title": "Composed integration",
   "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5",
-  "updated_at": "2026-11-24T22:19:05+00:00"
+  "updated_at": "2026-11-24T22:29:59+00:00"
 }

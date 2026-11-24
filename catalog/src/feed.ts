@@ -28,6 +28,8 @@ export type FeedOffer = {
   variants: FeedVariant[];
   highlights: string[];
   currency: 'USD';
+  /** The store's own pick from Shopify's Standard Product Taxonomy, or null when it sent none. */
+  category: { id: string; name: string | null } | null;
 };
 export type FeedPolicy = { type: string; url: string };
 export type ParsedFeed = { storeName: string; siteOrigin: string; offers: FeedOffer[]; policies: FeedPolicy[]; skipped: number };
@@ -71,6 +73,19 @@ const identifier = (value: unknown, pattern: RegExp): string | null => {
   const text = plainText(value, 80);
   return pattern.test(text) ? text : null;
 };
+
+/** A Shopify Standard Product Taxonomy id such as "aa-1-13", bare or as a gid. */
+export function categoryId(value: unknown): string | null {
+  const id = typeof value === 'string' ? value.replace(/^gid:\/\/shopify\/TaxonomyCategory\//, '') : '';
+  return /^[a-z]{2}(-\d{1,4}){0,10}$/.test(id) ? id : null;
+}
+
+/** The store's `category: { taxonomy: "shopify", id, name? }`; anything else is no pick. */
+function readCategory(value: unknown): FeedOffer['category'] {
+  if (!isRecord(value) || value.taxonomy !== 'shopify') return null;
+  const id = categoryId(value.id);
+  return id ? { id, name: plainText(value.name, 300) || null } : null;
+}
 
 function policyType(slug: string): string {
   if (slug.includes('return') || slug.includes('refund')) return 'refund_policy';
@@ -118,7 +133,7 @@ function readOffer(row: unknown, origin: string): FeedOffer | null {
     .map(item => plainText(item, 200)).filter(Boolean).slice(0, 10);
   const summary = plainText(projection.summary, 600);
   return {
-    storeProductId, title, url, options, variants, highlights, currency: 'USD',
+    storeProductId, title, url, options, variants, highlights, currency: 'USD', category: readCategory(row.category),
     description: plainText(row.description, 4000) || summary,
     brand: plainText(row.brand, 120) || null,
     gtin: identifier(row.gtin, /^\d{8,14}$/),

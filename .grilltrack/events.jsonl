@@ -299,3 +299,5 @@
 {"action": "decision_proposed", "at": "2026-11-24T22:19:05+00:00", "data": {"decision_id": "agent-catalog-store-category-20261124"}, "event_id": "3fbe0b95-4e01-4327-a201-360e2de56675"}
 {"action": "decision_locked", "at": "2026-11-24T22:19:05+00:00", "data": {"decision_id": "agent-catalog-store-category-20261124"}, "event_id": "ebc59a65-3a9e-468e-8dc8-e5d5e33407b4"}
 {"action": "decision_superseded", "at": "2026-11-24T22:19:05+00:00", "data": {"affected": ["agent-catalog-lookup-in-stock-default-20261115"], "decision_id": "agent-catalog-first-version-20261113", "replacement_id": "agent-catalog-store-category-20261124"}, "event_id": "33fc12ce-4867-4cc1-849b-cbcd67a53751"}
+{"action": "decision_proposed", "at": "2026-11-24T22:29:59+00:00", "data": {"decision_id": "agent-catalog-category-door-20261124"}, "event_id": "3137cc06-9298-47d8-bad3-f62f15b81da7"}
+{"action": "decision_locked", "at": "2026-11-24T22:29:59+00:00", "data": {"decision_id": "agent-catalog-category-door-20261124"}, "event_id": "29eac590-ac17-43f4-9c07-e6ad24aa5ff8"}

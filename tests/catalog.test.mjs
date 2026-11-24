@@ -33,7 +33,7 @@ function d1(sqlite) {
 
 async function catalogDb() {
   const sqlite = new Database(':memory:');
-  for (const file of ['0001_catalog.sql', '0002_meaning_and_categories.sql']) sqlite.exec(await readFile(new URL(`../catalog/migrations/${file}`, import.meta.url), 'utf8'));
+  for (const file of ['0001_catalog.sql', '0002_meaning_and_categories.sql', '0003_store_category.sql']) sqlite.exec(await readFile(new URL(`../catalog/migrations/${file}`, import.meta.url), 'utf8'));
   return d1(sqlite);
 }
 
@@ -484,6 +484,47 @@ test('search by meaning, by photo and by "similar to this", with categories work
   assert.equal(meaning.products.held.size, 3, 'a delisted store takes its vectors with it');
   const noModel = await call(db, 'search_catalog', { like: [{ id: tee.id }] });
   assert.equal(noModel.messages[0].code, 'similarity_search_unavailable');
+});
+
+test("a store's own category wins over the catalog's guess, which fills in only when the store sends none", async () => {
+  const db = await catalogDb(), meaning = fakeMeaning();
+  clock = 1000;
+  const alpha = alphaFeed();
+  alpha.products[1].category = { taxonomy: 'shopify', id: 'gid://shopify/TaxonomyCategory/aa-1-13-8', name: 'Apparel & Accessories > Clothing > Clothing Tops > T-Shirts' };
+  alpha.products[2].category = { taxonomy: 'google', id: '2169' };
+  const parsed = parseAgentCatalogFeed(alpha, ALPHA);
+  assert.deepEqual(parsed.offers.map(offer => offer.category), [null, { id: 'aa-1-13-8', name: 'Apparel & Accessories > Clothing > Clothing Tops > T-Shirts' }, null],
+    'only a Shopify id counts, bare or as a gid');
+  await refreshCatalog(db, stores, pictureFetcher({ [ALPHA]: alpha, [BETA]: betaFeed() }), 1000, meaning);
+  const tees = await call(db, 'search_catalog', { filters: { categories: ['aa-1-13-8'] } }, meaning);
+  assert.equal(tees.products.length, 1);
+  assert.deepEqual(tees.products[0].categories, [{ value: 'aa-1-13-8', taxonomy: 'shopify' }]);
+  assert.deepEqual(tees.products[0].metadata.category, { id: 'aa-1-13-8', name: 'Apparel & Accessories > Clothing > Clothing Tops > T-Shirts', inferred: false });
+  assert.equal((await call(db, 'search_catalog', { filters: { categories: ['aa-1'] } }, meaning)).products.length, 1, "the store's pick still sits under its parents");
+  const mug = await call(db, 'search_catalog', { query: 'mug', filters: { available: false } }, meaning);
+  assert.deepEqual(mug.products[0].metadata.category, { id: 'hg-11', name: 'Home & Garden > Kitchen & Dining', inferred: true }, 'no store pick: the guess, marked as one');
+});
+
+test('the category door finds Shopify categories by meaning for a search or a suggestion', async () => {
+  const meaning = fakeMeaning();
+  const ai = { async run(_model, { messages }) { return { data: (await meaning.embed(messages.map(([message]) => ({ text: String(message.content) })))).map(embedding => ({ embedding: [...embedding, ...Array(VECTOR_DIMENSIONS - embedding.length).fill(0)] })) }; } };
+  const pad = (row) => ({ ...row, values: [...row.values, ...Array(VECTOR_DIMENSIONS - row.values.length).fill(0)] });
+  const categories = memoryIndex([...meaning.categories.held.values()].map(pad));
+  const env = { CATALOG_DB: null, MERCHANT_DB: null, AI: ai, PRODUCT_INDEX: memoryIndex(), CATEGORY_INDEX: categories,
+    UNNAMED_AGENT_LIMIT: { limit: async ({ key }) => ({ success: key !== '203.0.113.9' }) } };
+  const ask = (query, init = {}) => handleRequest(new Request(`https://catalog.dinkuskit.com/api/categories${query}`, init), env);
+  const found = await (await ask('?q=' + encodeURIComponent('Wool beanie, a warm hat'))).json();
+  assert.equal(found.taxonomy, 'shopify');
+  assert.equal(found.version, '2026-11');
+  assert.deepEqual(found.categories[0], { id: 'aa-2-17', name: 'Apparel & Accessories > Clothing Accessories > Hats' });
+  assert.ok(found.categories.length <= 8);
+  assert.equal((await ask('?q=%20')).status, 400);
+  assert.equal((await ask('?q=' + 'a'.repeat(2001))).status, 413);
+  assert.equal((await ask('?q=hat', { method: 'POST' })).status, 405);
+  assert.equal((await ask('?q=hat', { headers: { 'cf-connecting-ip': '203.0.113.9' } })).status, 429);
+  assert.equal((await handleRequest(new Request('https://catalog.dinkuskit.com/api/categories?q=hat'), { ...env, CATEGORY_INDEX: undefined })).status, 503);
+  meaning.calls.down = true;
+  assert.equal((await ask('?q=hat')).status, 503, 'a model that is down answers 503, not an empty list');
 });
 
 test('ranks by words and by meaning are joined, and a short or missing answer from the model is refused', async () => {

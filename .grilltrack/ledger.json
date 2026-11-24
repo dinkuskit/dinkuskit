@@ -12843,20 +12843,35 @@
         "dinkuskit-catalog-hides-test-stores-20261124"
       ],
       "domain": "store email",
-      "history": [],
+      "history": [
+        {
+          "at": "2026-11-24T22:54:16+00:00",
+          "choice": "An operator-only setting, CATALOG_TEST_STORE_ORIGINS, names test-mode stores that are listed anyway so the catalog can be tried (first: the beta store). It is a Worker variable set at deploy, never a store setting; CATALOG_EXCLUDED_ORIGINS still wins over it.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        }
+      ],
       "id": "dinkuskit-catalog-test-store-trial-20261124",
       "implementation_ref": null,
       "question": "How can the operator try the catalog with a test-mode store before any store is live?",
-      "rationale": "Recommended 24 Nov 2026: the beta store's journeys check out with test cards, so switching it to live payments would take real money and break them.",
+      "rationale": "Owner approved on 24 Nov 2026 (issue #155): keep the beta store in by hand while it stays in test mode.",
       "repair_required": false,
       "review_classifications": [],
       "review_history": [],
       "review_ref": null,
       "review_result": null,
       "review_source_identity": null,
-      "status": "proposed",
+      "status": "locked",
       "superseded_by": null,
-      "updated_at": "2026-11-24T22:51:39+00:00",
+      "updated_at": "2026-11-24T22:54:16+00:00",
       "verification_ref": null
     }
   ],
@@ -12888,5 +12903,5 @@
   "status": "active",
   "title": "Composed integration",
   "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5",
-  "updated_at": "2026-11-24T22:51:39+00:00"
+  "updated_at": "2026-11-24T22:54:16+00:00"
 }

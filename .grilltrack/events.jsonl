@@ -299,3 +299,4 @@
 {"action": "decision_proposed", "at": "2026-11-24T22:51:38+00:00", "data": {"decision_id": "dinkuskit-catalog-hides-test-stores-20261124"}, "event_id": "137dd197-4852-4818-9897-111d2f35efe8"}
 {"action": "decision_locked", "at": "2026-11-24T22:51:39+00:00", "data": {"decision_id": "dinkuskit-catalog-hides-test-stores-20261124"}, "event_id": "a19cf6fd-4e90-4a35-9bd8-fea8d9bc91dc"}
 {"action": "decision_proposed", "at": "2026-11-24T22:51:39+00:00", "data": {"decision_id": "dinkuskit-catalog-test-store-trial-20261124"}, "event_id": "3a9da673-15a2-4ff4-8399-ce8cefa34c81"}
+{"action": "decision_locked", "at": "2026-11-24T22:54:16+00:00", "data": {"decision_id": "dinkuskit-catalog-test-store-trial-20261124"}, "event_id": "af001725-9051-490e-9d85-48a2e885859d"}

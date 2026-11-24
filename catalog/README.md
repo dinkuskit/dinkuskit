@@ -19,7 +19,7 @@ The owner's on/off switch lives in the store admin only (Commerce > Settings > C
 
 Not built yet: matching the same product with no GTIN or MPN, and a checkout link per offer (waits for the store's `/buy` links).
 
-Run the tests with `npm run test:catalog`. `npm run proof:catalog` runs the Worker as built for Cloudflare inside the Workers runtime on this machine, with both databases and the rate limits, and walks through stores entering and leaving the catalog; the stores themselves, Workers AI and Vectorize are not part of that run. 
+Run the tests with `npm run test:catalog`. `npm run proof:catalog` runs the Worker as built for Cloudflare inside the Workers runtime on this machine, with both databases and the rate limits, and walks through stores entering and leaving the catalog; the stores themselves, Workers AI and Vectorize are not part of that run.  `npm run proof:catalog-upgrade` builds the Worker from the commit before the newest migration and the Worker as it is now, lets the old one fill the catalog, applies the new migration, and checks the new one answers the same from those stored rows.
 ## Live
 
 The catalog has been live at `https://catalog.dinkuskit.com` since 22 Nov 2026 (owner's go that day). `wrangler.jsonc` here holds placeholder ids only, so a deploy uses a copy of it with the real database ids, the `catalog.dinkuskit.com` custom domain and `CATALOG_EXCLUDED_ORIGINS` filled in. The database schema is applied with `wrangler d1 migrations apply dinkuskit-catalog --remote`; the two Vectorize indexes are 768 dimensions, cosine; `scripts/seed-categories.mjs` fills the category index. Each deploy, and any change to which stores are excluded, needs the owner's go.

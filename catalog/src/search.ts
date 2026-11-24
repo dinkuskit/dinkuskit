@@ -54,8 +54,15 @@ export async function searchCatalog(db: D1Database, input: SearchInput, nearest?
   const empty = { products: [], hasNextPage: false, nextOffset: input.offset, totalCount: 0 };
   if (input.query && !match && !nearest) return empty;
   if (input.available) where.push('o.sellable = 1');
-  if (input.priceMin !== undefined) { where.push('o.price_max >= ?'); values.push(input.priceMin); }
-  if (input.priceMax !== undefined) { where.push('o.price_min <= ?'); values.push(input.priceMax); }
+  if (input.priceMin !== undefined || input.priceMax !== undefined) {
+    // An offer's min/max may straddle the budget without any member inside it.
+    // The member in budget must also be buyable when availability is requested.
+    const member: string[] = [];
+    if (input.available) member.push("json_extract(v.value, '$.sellable') = 1");
+    if (input.priceMin !== undefined) { member.push("json_extract(v.value, '$.priceMinor') >= ?"); values.push(input.priceMin); }
+    if (input.priceMax !== undefined) { member.push("json_extract(v.value, '$.priceMinor') <= ?"); values.push(input.priceMax); }
+    where.push(`EXISTS (SELECT 1 FROM json_each(o.variants) v WHERE ${member.join(' AND ')})`);
+  }
   if (input.shops?.length) { where.push(`o.site_id IN (${input.shops.map(() => '?').join(',')})`); values.push(...input.shops); }
   if (input.exclude?.length) { where.push(`o.upid NOT IN (${input.exclude.map(() => '?').join(',')})`); values.push(...input.exclude); }
   if (input.categories?.length) {

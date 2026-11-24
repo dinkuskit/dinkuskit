@@ -1,5 +1,5 @@
 import { shipRecipient } from './ship-recipient.ts';
-import { MerchantUnavailableError, seeOther, unavailableResponse, COMING_SOON_SERVICES, SWITCHED_SERVICES, type KeyedPlugin, type OwnerEnabledService } from './config.ts';
+import { MerchantUnavailableError, seeOther, unavailableResponse, IN_STORE_SERVICES, SWITCHED_SERVICES, type KeyedPlugin, type OwnerEnabledService } from './config.ts';
 import { getMerchantEnv } from './bindings.ts';
 import { listActiveBindings, listServiceGrants, revokeServiceGrant, type SiteBinding } from './store.ts';
 import { rejectCrossOriginMutation } from './origin.ts';
@@ -98,7 +98,7 @@ export async function loadSitesPage(input: {
     }
     const ownerService = form.get('service') as OwnerEnabledService;
     const turnOn = form.get('on') === '1';
-    if (form.get('action') === 'service' && siteId && SWITCHED_SERVICES.includes(ownerService) && !(turnOn && COMING_SOON_SERVICES.includes(ownerService))) {
+    if (form.get('action') === 'service' && siteId && SWITCHED_SERVICES.includes(ownerService) && !(turnOn && IN_STORE_SERVICES.includes(ownerService))) {
       await setOwnerService(env.MERCHANT_DB, { ...owner, service: ownerService, on: turnOn });
       // Commerce picks up the change itself within 5 minutes, or at once on Get checkout settings.
       if (await loadCommerceSettings(env.MERCHANT_DB, siteId)) return seeOther(await returnHome(siteId, true));

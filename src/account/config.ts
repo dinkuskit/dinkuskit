@@ -139,10 +139,11 @@ export const OWNER_ENABLED_SERVICES = ['coupons', 'ship'] as const;
 export const SWITCHED_SERVICES: readonly OwnerEnabledService[] = ['coupons'];
 export type OwnerEnabledService = (typeof OWNER_ENABLED_SERVICES)[number];
 /**
- * Services an owner cannot turn on yet. Commerce's v1 Registry build refuses every coupon
- * code to stay under the Registry size limit (Ronald, 2026-10-10), so Coupons waits.
+ * Services an owner never turns on here. Coupons is its own EmDash plugin inside the store,
+ * which answers Commerce through the store with no DinkusKit.com pass
+ * (website-coupons-in-store-20261124), so the page offers no switch and refuses one.
  */
-export const COMING_SOON_SERVICES: readonly OwnerEnabledService[] = ['coupons'];
+export const IN_STORE_SERVICES: readonly OwnerEnabledService[] = ['coupons'];
 /** A store key is this prefix and 32 random bytes in base64url; only its SHA-256 is kept. */
 export const STORE_KEY_PREFIX = 'dk_store_';
 /** Hosted service addresses Commerce is published with; the checkout settings name them. */

@@ -3,11 +3,12 @@
   "created_at": "2026-10-11T23:54:00+00:00",
   "current_focus": {
     "cadence": "sequential",
-    "confirmed": false,
-    "domain": "store email",
-    "started_at": "2026-11-22T23:31:12+00:00",
-    "status": "grilling",
-    "summary": "Reopen store-emails-plugin-20261122: Re-locked after store-email-sender-20261122 was revised to match it."
+    "confirmed": true,
+    "confirmed_at": "2026-11-24T22:27:03+00:00",
+    "domain": "Accounts and operator admin for v1",
+    "started_at": "2026-11-24T22:27:03+00:00",
+    "status": "confirmed",
+    "summary": "Coupons is the dinkus-coupons plugin inside the store and needs no DinkusKit.com pass, so Your stores stops calling it coming soon and offers no switch. The owner asked for this on 2026-11-24."
   },
   "decisions": [
     {
@@ -3862,6 +3863,20 @@
           "review_source_identity": null,
           "to": "deferred",
           "verification_ref": null
+        },
+        {
+          "at": "2026-11-24T22:27:03+00:00",
+          "choice": "No. Set up Commerce shows Coupons as coming soon with no Turn on button, and the page refuses a request to turn it on. Payments and Ship work as decided in 043. The store-passes route still answers coupons:checkout for a store that has Coupons on, so offering Coupons again later is only a page change.",
+          "from": "deferred",
+          "implementation_ref": "file:src/account/config.ts;file:src/pages/account/sites.astro;file:docs/shared-store-connections.md",
+          "note": "Coupons is now its own plugin inside the store; the row no longer says coming soon.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "superseded",
+          "verification_ref": null
         }
       ],
       "id": "website-coupons-coming-soon-046",
@@ -3891,9 +3906,9 @@
       "review_ref": null,
       "review_result": null,
       "review_source_identity": null,
-      "status": "deferred",
-      "superseded_by": null,
-      "updated_at": "2026-11-01T05:13:18+00:00",
+      "status": "superseded",
+      "superseded_by": "website-coupons-in-store-20261124",
+      "updated_at": "2026-11-24T22:27:03+00:00",
       "verification_ref": null
     },
     {
@@ -12787,6 +12802,75 @@
       "superseded_by": null,
       "updated_at": "2026-11-22T23:56:32+00:00",
       "verification_ref": null
+    },
+    {
+      "baseline_ref": null,
+      "candidate_refs": [],
+      "choice": "The Coupons row reads 'Set up in your store. Coupons is its own EmDash plugin, so there is nothing to turn on here.' It has no Turn on button, and the page still refuses a request to turn it on. A store that already has Coupons on keeps its Turn off button. The store-passes route is unchanged.",
+      "context_ref": "file:docs/shared-store-connections.md",
+      "created_at": "2026-11-24T22:27:03+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [],
+      "domain": "Accounts and operator admin for v1",
+      "history": [
+        {
+          "at": "2026-11-24T22:27:03+00:00",
+          "choice": "The Coupons row reads 'Set up in your store. Coupons is its own EmDash plugin, so there is nothing to turn on here.' It has no Turn on button, and the page still refuses a request to turn it on. A store that already has Coupons on keeps its Turn off button. The store-passes route is unchanged.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-11-24T22:27:03+00:00",
+          "choice": "The Coupons row reads 'Set up in your store. Coupons is its own EmDash plugin, so there is nothing to turn on here.' It has no Turn on button, and the page still refuses a request to turn it on. A store that already has Coupons on keeps its Turn off button. The store-passes route is unchanged.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-11-24T22:27:03+00:00",
+          "choice": "The Coupons row reads 'Set up in your store. Coupons is its own EmDash plugin, so there is nothing to turn on here.' It has no Turn on button, and the page still refuses a request to turn it on. A store that already has Coupons on keeps its Turn off button. The store-passes route is unchanged.",
+          "from": "implemented",
+          "implementation_ref": "file:src/account/config.ts;file:src/account/sites-page.ts;file:src/components/account/YourStores.astro;file:docs/shared-store-connections.md",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": null
+        }
+      ],
+      "id": "website-coupons-in-store-20261124",
+      "implementation_ref": "file:src/account/config.ts;file:src/account/sites-page.ts;file:src/components/account/YourStores.astro;file:docs/shared-store-connections.md",
+      "question": "What does Set up Commerce show for Coupons now that Coupons is its own EmDash plugin inside the store?",
+      "rationale": "Coupons was rebuilt as the dinkus-coupons Registry plugin, which answers Commerce through the store's own code with no DinkusKit.com pass (commerce-addons-door-20261124 in dinkuskit/commerce). 'Coming soon' no longer describes it. The owner approved this change on 2026-11-24.",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [],
+      "review_ref": null,
+      "review_result": null,
+      "review_source_identity": null,
+      "status": "verified",
+      "superseded_by": null,
+      "updated_at": "2026-11-24T22:27:03+00:00",
+      "verification_ref": "file:tests/shared-store-routes.test.mjs;file:proof/coupons-in-store-20261124/README.md"
     }
   ],
   "last_activation": {
@@ -12817,5 +12901,5 @@
   "status": "active",
   "title": "Composed integration",
   "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5",
-  "updated_at": "2026-11-22T23:56:32+00:00"
+  "updated_at": "2026-11-24T22:27:03+00:00"
 }

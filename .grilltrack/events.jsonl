@@ -296,3 +296,10 @@
 {"action": "decision_locked", "at": "2026-11-22T23:34:35+00:00", "data": {"decision_id": "store-email-styling-20261122"}, "event_id": "8068dd25-8761-491b-8494-ec13d811f62d"}
 {"action": "decision_proposed", "at": "2026-11-22T23:56:32+00:00", "data": {"decision_id": "review-email-stop-link-20261122"}, "event_id": "5709959e-9255-42d5-87a7-5c14e01a553a"}
 {"action": "decision_locked", "at": "2026-11-22T23:56:32+00:00", "data": {"decision_id": "review-email-stop-link-20261122"}, "event_id": "9dccc460-c1b4-4102-a693-91d2a728c982"}
+{"action": "focus_started", "at": "2026-11-24T22:27:03+00:00", "data": {"cadence": "sequential", "domain": "Accounts and operator admin for v1"}, "event_id": "e3902157-b492-440c-a429-6eeb3bd40ce1"}
+{"action": "shared_understanding_confirmed", "at": "2026-11-24T22:27:03+00:00", "data": {"summary": "Coupons is the dinkus-coupons plugin inside the store and needs no DinkusKit.com pass, so Your stores stops calling it coming soon and offers no switch. The owner asked for this on 2026-11-24."}, "event_id": "03230b5f-5851-45fc-9678-54c38f08aa38"}
+{"action": "decision_proposed", "at": "2026-11-24T22:27:03+00:00", "data": {"decision_id": "website-coupons-in-store-20261124"}, "event_id": "8a191695-aa43-410d-a8d9-75a70f5ba8b2"}
+{"action": "decision_locked", "at": "2026-11-24T22:27:03+00:00", "data": {"decision_id": "website-coupons-in-store-20261124"}, "event_id": "91071801-5f90-4d1b-82be-bc9c55f14f5d"}
+{"action": "decision_superseded", "at": "2026-11-24T22:27:03+00:00", "data": {"affected": [], "decision_id": "website-coupons-coming-soon-046", "replacement_id": "website-coupons-in-store-20261124"}, "event_id": "9153020f-75b1-4257-a7f8-48ef46d79495"}
+{"action": "decision_implemented", "at": "2026-11-24T22:27:03+00:00", "data": {"decision_id": "website-coupons-in-store-20261124"}, "event_id": "48ed78fe-10bf-42a4-bb20-b42a24feb81f"}
+{"action": "decision_verified", "at": "2026-11-24T22:27:03+00:00", "data": {"decision_id": "website-coupons-in-store-20261124"}, "event_id": "af73b617-ad46-4a7e-a5f3-1ed658fd5295"}

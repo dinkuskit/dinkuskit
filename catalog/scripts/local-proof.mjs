@@ -132,6 +132,9 @@ try {
   check('search: one product, both stores, lowest price first; the playground store is never listed', sellers(product), ['Beta Goods 2300', 'Alpha Outfitters 2500']);
   check('with no model bound the answer says it matched words only', first.messages.map(entry => entry.code), ['meaning_search_unavailable']);
   check('lookup_catalog by product id', await lookup(productId), ['Beta Goods 2300', 'Alpha Outfitters 2500']);
+  const withinBudget = await tool('lookup_catalog', { ids: [productId, alphaVariant], filters: { price: { max: 2300 } } });
+  check('lookup price keeps the product and seller in budget', sellers(withinBudget.products[0]), ['Beta Goods 2300']);
+  check('lookup price does not substitute a cheaper seller for an exact id', withinBudget.messages, [{ type: 'info', code: 'not_found', content: alphaVariant }]);
   check('get_product by product page address', await detail(`${ALPHA}/products/hat`), ['Beta Goods 2300', 'Alpha Outfitters 2500']);
 
   const teeProduct = (await tool('search_catalog', { query: 'tee' })).products[0];

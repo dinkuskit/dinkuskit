@@ -4,9 +4,9 @@
   "current_focus": {
     "cadence": "sequential",
     "confirmed": true,
-    "confirmed_at": "2026-11-25T01:48:13+00:00",
+    "confirmed_at": "2026-11-25T03:57:42+00:00",
     "domain": "Agent catalog: store categories",
-    "started_at": "2026-11-25T01:48:13+00:00",
+    "started_at": "2026-11-25T03:57:42+00:00",
     "status": "confirmed",
     "summary": "The owner agreed the five standard category decisions on 24 Nov 2026 and said to build them."
   },
@@ -3863,6 +3863,20 @@
           "review_source_identity": null,
           "to": "deferred",
           "verification_ref": null
+        },
+        {
+          "at": "2026-11-25T01:27:24+00:00",
+          "choice": "No. Set up Commerce shows Coupons as coming soon with no Turn on button, and the page refuses a request to turn it on. Payments and Ship work as decided in 043. The store-passes route still answers coupons:checkout for a store that has Coupons on, so offering Coupons again later is only a page change.",
+          "from": "deferred",
+          "implementation_ref": "file:src/account/config.ts;file:src/pages/account/sites.astro;file:docs/shared-store-connections.md",
+          "note": "Coupons is now its own plugin inside the store; the row no longer says coming soon.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "superseded",
+          "verification_ref": null
         }
       ],
       "id": "website-coupons-coming-soon-046",
@@ -3892,9 +3906,9 @@
       "review_ref": null,
       "review_result": null,
       "review_source_identity": null,
-      "status": "deferred",
-      "superseded_by": null,
-      "updated_at": "2026-11-01T05:13:18+00:00",
+      "status": "superseded",
+      "superseded_by": "website-coupons-in-store-20261124",
+      "updated_at": "2026-11-25T01:27:24+00:00",
       "verification_ref": null
     },
     {
@@ -11395,7 +11409,7 @@
           "verification_ref": null
         },
         {
-          "at": "2026-11-25T01:48:13+00:00",
+          "at": "2026-11-25T03:57:42+00:00",
           "choice": "The three standard tools with word search, meaning search, price range, in stock, ships to US and only-these-stores filters, plus two things Shopify has that are cheap to include: a category filter using Shopify's open Standard Product Taxonomy (MIT licence), with each product's category worked out by the catalog and marked as inferred; and photo and similar-product search (catalog.like). Local shops, price tiers and personal results wait.",
           "from": "locked",
           "implementation_ref": null,
@@ -11421,7 +11435,7 @@
       "review_source_identity": null,
       "status": "superseded",
       "superseded_by": "agent-catalog-store-category-20261124",
-      "updated_at": "2026-11-25T01:48:13+00:00",
+      "updated_at": "2026-11-25T03:57:42+00:00",
       "verification_ref": null
     },
     {
@@ -11692,7 +11706,7 @@
           "verification_ref": null
         },
         {
-          "at": "2026-11-25T01:48:13+00:00",
+          "at": "2026-11-25T03:57:42+00:00",
           "choice": "Copy Shopify: no. lookup_catalog defaults filters.available to true, the same as search_catalog, so only variants a shopper can buy now come back, and every id that resolves to nothing buyable is reported as not_found (info). An agent that wants sold-out variants sends filters.available false, or calls get_product, whose option values say available false / exists true.",
           "from": "verified",
           "implementation_ref": "git:3100510",
@@ -11718,7 +11732,7 @@
       "review_source_identity": null,
       "status": "needs_reverification",
       "superseded_by": null,
-      "updated_at": "2026-11-25T01:48:13+00:00",
+      "updated_at": "2026-11-25T03:57:42+00:00",
       "verification_ref": "cmd:npm run test:catalog (14/14) && npm run proof:catalog (all PASS) at git:3100510"
     },
     {
@@ -12906,16 +12920,85 @@
     {
       "baseline_ref": null,
       "candidate_refs": [],
+      "choice": "The Coupons row reads 'Set up in your store. Coupons is its own EmDash plugin, so there is nothing to turn on here.' It has no Turn on button, and the page still refuses a request to turn it on. A store that already has Coupons on keeps its Turn off button. The store-passes route is unchanged.",
+      "context_ref": "file:docs/shared-store-connections.md",
+      "created_at": "2026-11-25T01:27:23+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [],
+      "domain": "Accounts and operator admin for v1",
+      "history": [
+        {
+          "at": "2026-11-25T01:27:23+00:00",
+          "choice": "The Coupons row reads 'Set up in your store. Coupons is its own EmDash plugin, so there is nothing to turn on here.' It has no Turn on button, and the page still refuses a request to turn it on. A store that already has Coupons on keeps its Turn off button. The store-passes route is unchanged.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-11-25T01:27:24+00:00",
+          "choice": "The Coupons row reads 'Set up in your store. Coupons is its own EmDash plugin, so there is nothing to turn on here.' It has no Turn on button, and the page still refuses a request to turn it on. A store that already has Coupons on keeps its Turn off button. The store-passes route is unchanged.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-11-25T01:27:24+00:00",
+          "choice": "The Coupons row reads 'Set up in your store. Coupons is its own EmDash plugin, so there is nothing to turn on here.' It has no Turn on button, and the page still refuses a request to turn it on. A store that already has Coupons on keeps its Turn off button. The store-passes route is unchanged.",
+          "from": "implemented",
+          "implementation_ref": "file:src/account/config.ts;file:src/account/sites-page.ts;file:src/components/account/YourStores.astro;file:docs/shared-store-connections.md",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": null
+        }
+      ],
+      "id": "website-coupons-in-store-20261124",
+      "implementation_ref": "file:src/account/config.ts;file:src/account/sites-page.ts;file:src/components/account/YourStores.astro;file:docs/shared-store-connections.md",
+      "question": "What does Set up Commerce show for Coupons now that Coupons is its own EmDash plugin inside the store?",
+      "rationale": "Coupons was rebuilt as the dinkus-coupons Registry plugin, which answers Commerce through the store's own code with no DinkusKit.com pass (commerce-addons-door-20261124 in dinkuskit/commerce). 'Coming soon' no longer describes it. The owner approved this change on 2026-11-24.",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [],
+      "review_ref": null,
+      "review_result": null,
+      "review_source_identity": null,
+      "status": "verified",
+      "superseded_by": null,
+      "updated_at": "2026-11-25T01:27:24+00:00",
+      "verification_ref": "file:tests/shared-store-routes.test.mjs;file:proof/coupons-in-store-20261124/README.md"
+    },
+    {
+      "baseline_ref": null,
+      "candidate_refs": [],
       "choice": "The three standard tools with word search, meaning search, price range, in stock, ships to US and only-these-stores filters, plus a category filter using Shopify's open Standard Product Taxonomy (MIT licence) and photo and similar-product search (catalog.like). A product's category is the one its store picked, read from the store's agent catalog feed (Shopify id, taxonomy version and full name). Only when the store sends none does the catalog work one out itself, and that one is marked as inferred. Local shops, price tiers and personal results wait.",
       "context_ref": null,
-      "created_at": "2026-11-25T01:48:13+00:00",
+      "created_at": "2026-11-25T03:57:42+00:00",
       "deferred_reason": null,
       "delivery_ref": null,
       "dependencies": [],
       "domain": "Agent catalog: store categories",
       "history": [
         {
-          "at": "2026-11-25T01:48:13+00:00",
+          "at": "2026-11-25T03:57:42+00:00",
           "choice": "The three standard tools with word search, meaning search, price range, in stock, ships to US and only-these-stores filters, plus a category filter using Shopify's open Standard Product Taxonomy (MIT licence) and photo and similar-product search (catalog.like). A product's category is the one its store picked, read from the store's agent catalog feed (Shopify id, taxonomy version and full name). Only when the store sends none does the catalog work one out itself, and that one is marked as inferred. Local shops, price tiers and personal results wait.",
           "from": "proposed",
           "implementation_ref": null,
@@ -12941,7 +13024,7 @@
       "review_source_identity": null,
       "status": "locked",
       "superseded_by": null,
-      "updated_at": "2026-11-25T01:48:13+00:00",
+      "updated_at": "2026-11-25T03:57:42+00:00",
       "verification_ref": null
     },
     {
@@ -12949,7 +13032,7 @@
       "candidate_refs": [],
       "choice": "From the catalog: GET catalog.dinkuskit.com/api/categories?q=words answers the eight Shopify Standard Product Taxonomy categories (version 2026-11) nearest in meaning to the words, best first, as { taxonomy, version, categories: [{ id, name }] }. The box sends a typed search, or the product's name and description for a suggestion. The catalog keeps nothing it is sent, uses the same model and category index it already has, shares the unnamed agents' rate limit, and answers 503 when the model or index is down.",
       "context_ref": null,
-      "created_at": "2026-11-25T01:48:27+00:00",
+      "created_at": "2026-11-25T03:58:04+00:00",
       "deferred_reason": null,
       "delivery_ref": null,
       "dependencies": [
@@ -12958,7 +13041,7 @@
       "domain": "Agent catalog: store categories",
       "history": [
         {
-          "at": "2026-11-25T01:48:27+00:00",
+          "at": "2026-11-25T03:58:04+00:00",
           "choice": "From the catalog: GET catalog.dinkuskit.com/api/categories?q=words answers the eight Shopify Standard Product Taxonomy categories (version 2026-11) nearest in meaning to the words, best first, as { taxonomy, version, categories: [{ id, name }] }. The box sends a typed search, or the product's name and description for a suggestion. The catalog keeps nothing it is sent, uses the same model and category index it already has, shares the unnamed agents' rate limit, and answers 503 when the model or index is down.",
           "from": "proposed",
           "implementation_ref": null,
@@ -12984,7 +13067,7 @@
       "review_source_identity": null,
       "status": "locked",
       "superseded_by": null,
-      "updated_at": "2026-11-25T01:48:27+00:00",
+      "updated_at": "2026-11-25T03:58:04+00:00",
       "verification_ref": null
     }
   ],
@@ -13016,5 +13099,5 @@
   "status": "active",
   "title": "Composed integration",
   "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5",
-  "updated_at": "2026-11-25T01:48:27+00:00"
+  "updated_at": "2026-11-25T03:58:04+00:00"
 }

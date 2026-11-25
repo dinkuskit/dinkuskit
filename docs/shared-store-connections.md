@@ -304,11 +304,13 @@ There is no delete. The owner can:
   consent and creates or revives that service's grant. Turning it off is an
   owner revoke. Payments is on while its own Connect grant is active, and is
   turned off with Revoke on the same page. An operator cut-off refuses
-  turning a service on again until an operator presses Restore. Coupons shows
-  as coming soon and cannot be turned on yet (`COMING_SOON_SERVICES`), because
-  Commerce's v1 Registry build refuses every coupon code to stay under the
-  Registry size limit. The route still answers `coupons:checkout` for a store
-  that has Coupons on, once a plugin key is allowed to ask for it;
+  turning a service on again until an operator presses Restore. Coupons has no
+  switch (`IN_STORE_SERVICES`): it is its own EmDash plugin inside the store,
+  and the store's own code hands its answer to Commerce, so it needs no
+  DinkusKit.com pass. The row says "Set up in your store" and the page refuses
+  a request to turn it on. The route still answers `coupons:checkout` for a
+  store that had Coupons turned on before, once a plugin key is allowed to ask
+  for it;
 - see which plugins are connected, and press **Disconnect** for one.
 
 Each key is `dk_store_` followed by 32 random bytes in base64url. Each plugin

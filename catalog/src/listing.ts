@@ -5,9 +5,14 @@ import type { ListedStore } from './sync.ts';
  * DinkusKit, its business approved and active, Payments connected, and no service cut
  * off by an operator. The owner's own switch is not here: it lives in the store admin
  * only (agent-catalog-toggle-home-20261113), and while it is off the store's feed lists
- * no products. Test and playground stores are named in `excludedOrigins`.
+ * no products. A store whose checkout is in test mode (Commerce settings `live` = 0, or no
+ * settings saved yet) is not listed (dinkuskit-catalog-hides-test-stores-20261124), unless
+ * the operator names it in `testOrigins` so a test store can be tried in the catalog.
+ * `excludedOrigins` names any further store the operator keeps out by hand, and wins.
  */
-const LISTED_STORES = `SELECT i.site_id, i.site_origin FROM dinkuskit_store_identity i
+const LISTED_STORES = `SELECT i.site_id, i.site_origin,
+    EXISTS (SELECT 1 FROM dinkuskit_commerce_settings c WHERE c.site_id = i.site_id AND c.live = 1) AS live
+  FROM dinkuskit_store_identity i
   WHERE i.site_origin LIKE 'https://%'
     AND EXISTS (SELECT 1 FROM dinkuskit_organization o JOIN dinkuskit_account a ON a.user_id = o.owner_user_id
       JOIN dinkuskit_membership m ON m.organization_id = o.organization_id AND m.user_id = o.owner_user_id
@@ -17,8 +22,10 @@ const LISTED_STORES = `SELECT i.site_id, i.site_origin FROM dinkuskit_store_iden
     AND NOT EXISTS (SELECT 1 FROM dinkuskit_service_grant g WHERE g.site_id = i.site_id AND g.revoked = 1 AND g.revoked_by = 'operator')
   ORDER BY i.created_at, i.site_id`;
 
-export async function listListedStores(merchantDb: D1Database, excludedOrigins: readonly string[]): Promise<ListedStore[]> {
-  const rows = await merchantDb.prepare(LISTED_STORES).all<{ site_id: string; site_origin: string }>();
-  const excluded = new Set(excludedOrigins);
-  return (rows.results ?? []).filter(row => !excluded.has(row.site_origin)).map(row => ({ siteId: row.site_id, siteOrigin: row.site_origin }));
+export async function listListedStores(merchantDb: D1Database, excludedOrigins: readonly string[], testOrigins: readonly string[] = []): Promise<ListedStore[]> {
+  const rows = await merchantDb.prepare(LISTED_STORES).all<{ site_id: string; site_origin: string; live: number }>();
+  const excluded = new Set(excludedOrigins), tried = new Set(testOrigins);
+  return (rows.results ?? [])
+    .filter(row => !excluded.has(row.site_origin) && (Number(row.live) === 1 || tried.has(row.site_origin)))
+    .map(row => ({ siteId: row.site_id, siteOrigin: row.site_origin }));
 }

@@ -378,7 +378,7 @@ test('the agent address speaks MCP and publishes the UCP profile', async () => {
   assert.equal(profile.ucp.services['dev.ucp.shopping'][0].endpoint, 'https://catalog.dinkuskit.com/api/ucp/mcp');
 });
 
-test('only connected, approved, payment-ready stores the owner left on are listed', async () => {
+test('only connected, approved, payment-ready, live stores the owner left on are listed', async () => {
   const sqlite = new Database(':memory:');
   sqlite.exec(`
     CREATE TABLE dinkuskit_store_identity (site_id TEXT PRIMARY KEY, site_origin TEXT, account_subject TEXT, created_at INTEGER);
@@ -387,19 +387,26 @@ test('only connected, approved, payment-ready stores the owner left on are liste
     CREATE TABLE dinkuskit_membership (organization_id TEXT, user_id TEXT, role TEXT, status TEXT);
     CREATE TABLE dinkuskit_plugin_key (site_id TEXT, plugin TEXT);
     CREATE TABLE dinkuskit_service_grant (site_id TEXT, service TEXT, revoked INTEGER, revoked_by TEXT);
+    CREATE TABLE dinkuskit_commerce_settings (site_id TEXT PRIMARY KEY, live INTEGER NOT NULL DEFAULT 0);
   `);
   const business = (name, admission = 'admitted') => {
     sqlite.prepare('INSERT INTO dinkuskit_organization VALUES (?, ?, ?, ?, ?)').run(`org-${name}`, 'active', admission, `user-${name}`, `sub-${name}`);
     sqlite.prepare('INSERT INTO dinkuskit_account VALUES (?, 0)').run(`user-${name}`);
     sqlite.prepare("INSERT INTO dinkuskit_membership VALUES (?, ?, 'owner', 'active')").run(`org-${name}`, `user-${name}`);
   };
-  const store = (name, { origin = `https://${name}.example`, payments = true } = {}) => {
+  const store = (name, { origin = `https://${name}.example`, payments = true, live = 1 } = {}) => {
     sqlite.prepare('INSERT INTO dinkuskit_store_identity VALUES (?, ?, ?, 1)').run(`site-${name}`, origin, `sub-${name}`);
     if (payments) sqlite.prepare("INSERT INTO dinkuskit_plugin_key VALUES (?, 'payments')").run(`site-${name}`);
+    if (live !== null) sqlite.prepare('INSERT INTO dinkuskit_commerce_settings VALUES (?, ?)').run(`site-${name}`, live);
   };
-  for (const name of ['listed', 'off', 'cutoff', 'nopay', 'test', 'local']) business(name);
+  for (const name of ['listed', 'off', 'cutoff', 'nopay', 'test', 'local', 'testmode', 'unsaved', 'excluded']) business(name);
   business('pending', 'pending_operator');
-  store('listed'); store('off'); store('cutoff'); store('pending'); store('test');
+  store('listed'); store('off'); store('cutoff'); store('pending'); store('excluded', { origin: 'https://test.example' });
+  // A store taking test payments is never listed, whether it saved test mode or never saved Commerce settings.
+  store('testmode', { live: 0 }); store('unsaved', { live: null });
+  // ...unless the operator names it to try the catalog; an excluded address stays out even when also named.
+  for (const name of ['tried', 'triedexcluded']) business(name);
+  store('tried', { live: 0 }); store('triedexcluded', { origin: 'https://test.example', live: 0 });
   store('nopay', { payments: false });
   store('local', { origin: 'http://localhost:4321' });
   // An owner turning Ship off is not a catalog choice: that switch lives in the store admin and empties the store's feed.
@@ -407,6 +414,9 @@ test('only connected, approved, payment-ready stores the owner left on are liste
   sqlite.prepare("INSERT INTO dinkuskit_service_grant VALUES ('site-cutoff', 'ship', 1, 'operator')").run();
   assert.deepEqual(await listListedStores(d1(sqlite), ['https://test.example']), [
     { siteId: 'site-listed', siteOrigin: 'https://listed.example' }, { siteId: 'site-off', siteOrigin: 'https://off.example' }]);
+  assert.deepEqual(await listListedStores(d1(sqlite), ['https://test.example'], ['https://tried.example', 'https://test.example']), [
+    { siteId: 'site-listed', siteOrigin: 'https://listed.example' }, { siteId: 'site-off', siteOrigin: 'https://off.example' },
+    { siteId: 'site-tried', siteOrigin: 'https://tried.example' }]);
 });
 
 /** A stand-in for the model: each idea is one direction, so "beanie" lands beside "hat" and a hat photo beside hats. */

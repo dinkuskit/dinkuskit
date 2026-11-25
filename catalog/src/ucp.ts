@@ -12,7 +12,7 @@ export type OfferRow = {
   images: string; options: string; variants: string; highlights: string;
   price_min: number; price_max: number; currency: string; sellable: number; updated_at: number;
   site_origin: string; store_name: string; policies: string;
-  category_id: string | null; category_name: string | null;
+  category_id: string | null; category_name: string | null; category_inferred: number;
 };
 
 export type UcpVariant = {
@@ -83,8 +83,8 @@ export function toProduct(rows: OfferRow[], availableOnly: boolean): UcpProduct 
       ...(lead.gtin ? { gtin: lead.gtin } : {}),
       ...(lead.mpn ? { mpn: lead.mpn } : {}),
       ...(parse<string[]>(lead.highlights, []).length ? { highlights: parse<string[]>(lead.highlights, []) } : {}),
-      // The category is worked out by the catalog from the product's words and picture, not set by the store.
-      ...(lead.category_id && lead.category_name ? { category: { id: lead.category_id, name: lead.category_name, inferred: true } } : {}),
+      // The store's own pick, or else one the catalog worked out from the product's words and picture, marked inferred.
+      ...(lead.category_id ? { category: { id: lead.category_id, ...(lead.category_name ? { name: lead.category_name } : {}), inferred: lead.category_inferred === 1 } } : {}),
       seller_count: sellers.size,
       // Words and pictures come from each store and are not checked by DinkusKit.
       content_trust: 'untrusted_merchant_content',

@@ -8,6 +8,9 @@
 export const EMBEDDING_MODEL = '@cf/google/embeddinggemma-2';
 export const VECTOR_DIMENSIONS = 768;
 export const TAXONOMY = 'shopify';
+/** The Shopify Standard Product Taxonomy version stores pick from (template-product-category-list-20261124); the category index is filled from it. */
+export const TAXONOMY_VERSION = '2026-11';
+export const CATEGORY_MATCHES = 8;
 const IMAGE_MAX_BYTES = 4 * 1024 * 1024, IMAGE_TIMEOUT_MS = 8000, VECTOR_BATCH = 50;
 const IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/avif']);
 
@@ -120,6 +123,17 @@ export async function indexStore(db: D1Database, meaning: Meaning, siteId: strin
       .bind(row.offerId, row.id, row.hash, row.category?.id ?? null, row.category?.name ?? null)));
   }
   return stale.length;
+}
+
+/**
+ * The categories nearest in meaning to some words: a typed search such as "tee", or a
+ * product's name and description for a suggestion. Best first, at most CATEGORY_MATCHES.
+ */
+export async function nearestCategories(meaning: Meaning, words: string): Promise<{ id: string; name: string }[]> {
+  if (!meaning.categories) return [];
+  const [vector] = await meaning.embed([{ text: queryText(words) }]);
+  const found = await meaning.categories.query(vector!, { topK: CATEGORY_MATCHES, returnMetadata: 'all' });
+  return found.matches.flatMap(match => typeof match.metadata?.name === 'string' ? [{ id: match.id, name: match.metadata.name }] : []);
 }
 
 /** Every vector of a store that left the catalog. */

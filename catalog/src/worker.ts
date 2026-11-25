@@ -1,6 +1,6 @@
 import { listListedStores } from './listing.ts';
 import { agentProfile, handleRpc } from './mcp.ts';
-import { workersAiEmbedder, type Meaning, type VectorStore } from './meaning.ts';
+import { nearestCategories, TAXONOMY, TAXONOMY_VERSION, workersAiEmbedder, type Meaning, type VectorStore } from './meaning.ts';
 import { recheckStores, refreshCatalog } from './sync.ts';
 import { LOOKUP_CAPABILITY, SEARCH_CAPABILITY, UCP_VERSION } from './ucp.ts';
 
@@ -31,7 +31,7 @@ export function meaningFor(env: CatalogEnv): Meaning | undefined {
   return env.AI && env.PRODUCT_INDEX ? { embed: workersAiEmbedder(env.AI), products: env.PRODUCT_INDEX, categories: env.CATEGORY_INDEX } : undefined;
 }
 
-const MCP_PATH = '/api/ucp/mcp', MAX_BODY_BYTES = 12 * 1024 * 1024;
+const MCP_PATH = '/api/ucp/mcp', CATEGORIES_PATH = '/api/categories', MAX_BODY_BYTES = 12 * 1024 * 1024, MAX_CATEGORY_WORDS = 2000;
 const json = (status: number, body: unknown, headers: Record<string, string> = {}) => new Response(JSON.stringify(body), {
   status, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store', 'x-content-type-options': 'nosniff', ...headers },
 });
@@ -61,6 +61,7 @@ const listed = (env: CatalogEnv) => listListedStores(env.MERCHANT_DB, origins(en
 export async function handleRequest(request: Request, env: CatalogEnv, fetcher: typeof fetch = fetch): Promise<Response> {
   const url = new URL(request.url);
   if (url.pathname === '/.well-known/ucp' && request.method === 'GET') return json(200, profile(url.origin), { 'cache-control': 'public, max-age=300' });
+  if (url.pathname === CATEGORIES_PATH) return categories(request, url, env);
   if (url.pathname !== MCP_PATH) return json(404, { error: 'not_found' });
   if (request.method !== 'POST') return json(405, { error: 'method_not_allowed' }, { allow: 'POST' });
   if (Number(request.headers.get('content-length') ?? '0') > MAX_BODY_BYTES) return json(413, { error: 'request_too_large' });
@@ -78,6 +79,31 @@ export async function handleRequest(request: Request, env: CatalogEnv, fetcher: 
     now, live: async siteIds => recheckStores(env.CATALOG_DB, await listed(env), siteIds, fetcher, now),
   });
   return answer ? json(200, answer) : new Response(null, { status: 202 });
+}
+
+/**
+ * GET /api/categories?q=words: Shopify Standard Product Taxonomy categories nearest in
+ * meaning to the words, best first. A store's Product category box uses it to search the
+ * list and to suggest a category from a product's name and description
+ * (template-product-category-pick-20261124). It reads only the public list, keeps nothing
+ * it is sent, and shares the unnamed agents' limit.
+ */
+async function categories(request: Request, url: URL, env: CatalogEnv): Promise<Response> {
+  if (request.method !== 'GET') return json(405, { error: 'method_not_allowed' }, { allow: 'GET' });
+  const words = (url.searchParams.get('q') ?? '').replace(/[\u0000-\u001f\u007f]+/g, ' ').replace(/\s+/g, ' ').trim();
+  if (!words) return json(400, { error: 'missing_q' });
+  if (words.length > MAX_CATEGORY_WORDS) return json(413, { error: 'q_too_long' });
+  const meaning = meaningFor(env);
+  if (!meaning?.categories) return json(503, { error: 'categories_unavailable' });
+  const address = request.headers.get('cf-connecting-ip') ?? 'unknown';
+  if (env.UNNAMED_AGENT_LIMIT && !(await env.UNNAMED_AGENT_LIMIT.limit({ key: address })).success) {
+    return json(429, { error: 'too_many_requests' }, { 'retry-after': '10' });
+  }
+  try {
+    return json(200, { taxonomy: TAXONOMY, version: TAXONOMY_VERSION, categories: await nearestCategories(meaning, words) });
+  } catch {
+    return json(503, { error: 'categories_unavailable' });
+  }
 }
 
 export default {

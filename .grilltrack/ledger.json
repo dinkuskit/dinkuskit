@@ -3,12 +3,11 @@
   "created_at": "2026-10-11T23:54:00+00:00",
   "current_focus": {
     "cadence": "sequential",
-    "confirmed": true,
-    "confirmed_at": "2026-11-25T04:41:36+00:00",
+    "confirmed": false,
     "domain": "Agent catalog: store categories",
-    "started_at": "2026-11-25T04:41:36+00:00",
-    "status": "confirmed",
-    "summary": "The owner agreed the five standard category decisions on 24 Nov 2026 and said to build them."
+    "started_at": "2026-11-25T14:48:11+00:00",
+    "status": "grilling",
+    "summary": ""
   },
   "decisions": [
     {
@@ -13140,6 +13139,34 @@
       "superseded_by": null,
       "updated_at": "2026-11-25T04:41:49+00:00",
       "verification_ref": null
+    },
+    {
+      "baseline_ref": null,
+      "candidate_refs": [],
+      "choice": "The category door answers a category id given as q with just that category (id and name), or with none when the id is not on the list; words still answer the eight nearest by meaning.",
+      "context_ref": null,
+      "created_at": "2026-11-25T14:48:11+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [
+        "agent-catalog-category-door-20261124"
+      ],
+      "domain": "Agent catalog: store categories",
+      "history": [],
+      "id": "agent-catalog-category-id-answer-20261125",
+      "implementation_ref": null,
+      "question": "How does a store's Product category box show the name of a category it already saved?",
+      "rationale": "A product saves only the bare Shopify id, and Commerce cannot carry the 14,606-name list, so without this the box would show 'aa-2-17-1' instead of the category's name as Shopify does. An id is looked up in the category index directly, with no model call, and keeps nothing it is sent.",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [],
+      "review_ref": null,
+      "review_result": null,
+      "review_source_identity": null,
+      "status": "proposed",
+      "superseded_by": null,
+      "updated_at": "2026-11-25T14:48:11+00:00",
+      "verification_ref": null
     }
   ],
   "last_activation": {
@@ -13170,5 +13197,5 @@
   "status": "active",
   "title": "Composed integration",
   "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5",
-  "updated_at": "2026-11-25T04:41:49+00:00"
+  "updated_at": "2026-11-25T14:48:11+00:00"
 }

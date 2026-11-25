@@ -551,6 +551,10 @@ test('the category door finds Shopify categories by meaning for a search or a su
   assert.equal(found.version, '2026-11');
   assert.deepEqual(found.categories[0], { id: 'aa-2-17', name: 'Apparel & Accessories > Clothing Accessories > Hats' });
   assert.ok(found.categories.length <= 8);
+  const embeds = meaning.calls.embedded;
+  assert.deepEqual((await (await ask('?q=aa-2-17')).json()).categories, [{ id: 'aa-2-17', name: 'Apparel & Accessories > Clothing Accessories > Hats' }], 'a saved id names its category');
+  assert.deepEqual((await (await ask('?q=zz-9')).json()).categories, [], 'an id not on the list answers none');
+  assert.equal(meaning.calls.embedded, embeds, 'an id is looked up, not embedded');
   assert.equal((await ask('?q=%20')).status, 400);
   assert.equal((await ask('?q=' + 'a'.repeat(2001))).status, 413);
   assert.equal((await ask('?q=hat', { method: 'POST' })).status, 405);

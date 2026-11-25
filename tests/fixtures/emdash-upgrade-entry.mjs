@@ -58,7 +58,7 @@ export default {
   ...production,
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
-    if (request.method === 'POST' && url.pathname === '/__upgrade/prepare' && (env.UPGRADE_BASELINE === '1.0.1' || env.UPGRADE_BASELINE === '1.4.0')) {
+    if (request.method === 'POST' && url.pathname === '/__upgrade/prepare' && (env.UPGRADE_BASELINE === '1.0.1' || env.UPGRADE_BASELINE === '1.5.0')) {
       await prepare(env);
       return response(await state(env));
     }

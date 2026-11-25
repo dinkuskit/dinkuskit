@@ -3,10 +3,10 @@ import { copyFile, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promi
 import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
 
 // Public, same-repository baseline sources, each with its exact dependency lock. 1.0.1 is the
-// oldest released site; 1.4.0 is the last main before 1.5, which is what the live site runs.
+// oldest released site; 1.5.0 is the last main before 1.6, which is what the live site runs.
 export const BASELINES = Object.freeze({
   '1.0.1': Object.freeze({ source: '4629df637b2eb58393f60b74eef2b9c2b1badba5', last: '089_auto_seed_completion' }),
-  '1.4.0': Object.freeze({ source: '399c352224feb6577cc587e5bcb4a194f7cabc47', last: '091_redirect_artifacts' }),
+  '1.5.0': Object.freeze({ source: '46d1526f54e63b11595933ee09247736f0e828a6', last: '097_room_storage' }),
 });
 
 export async function prepareLegacyRuntime(root, work, run, version = '1.0.1') {
@@ -62,7 +62,7 @@ export async function prepareUpgradeConfig(root, generatedPath, origin, baseline
     d1_databases: [...config.d1_databases, {
       binding: 'MERCHANT_DB', database_name: 'dinkuskit-upgrade-merchant', database_id: 'local-dinkuskit-upgrade-merchant',
     }],
-    vars: { ...config.vars, EMDASH_SITE_URL: origin, UPGRADE_BASELINE: baseline ?? '1.5.0' },
+    vars: { ...config.vars, EMDASH_SITE_URL: origin, UPGRADE_BASELINE: baseline ?? '1.6.0' },
   };
   const target = join(output, 'wrangler.upgrade.json');
   await writeFile(target, `${JSON.stringify(upgraded, null, 2)}\n`);

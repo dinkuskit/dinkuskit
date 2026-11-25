@@ -17,8 +17,10 @@ export type CatalogEnv = {
   AI?: { run(model: string, input: unknown): Promise<unknown> };
   PRODUCT_INDEX?: VectorStore;
   CATEGORY_INDEX?: VectorStore;
-  /** Space-separated store addresses that are never listed: test and playground stores. */
+  /** Space-separated store addresses that are never listed, such as the playground. */
   CATALOG_EXCLUDED_ORIGINS?: string;
+  /** Space-separated addresses of test-mode stores listed anyway, so the operator can try the catalog before a store goes live. */
+  CATALOG_TEST_STORE_ORIGINS?: string;
   /** Agents that name themselves: 5 requests a second per address. */
   NAMED_AGENT_LIMIT?: RateLimit;
   /** Agents that do not: a low limit per address. */
@@ -53,7 +55,8 @@ function profile(origin: string) {
   };
 }
 
-const excludedOrigins = (env: CatalogEnv) => (env.CATALOG_EXCLUDED_ORIGINS ?? '').split(/\s+/).filter(Boolean);
+const origins = (value: string | undefined) => (value ?? '').split(/\s+/).filter(Boolean);
+const listed = (env: CatalogEnv) => listListedStores(env.MERCHANT_DB, origins(env.CATALOG_EXCLUDED_ORIGINS), origins(env.CATALOG_TEST_STORE_ORIGINS));
 
 export async function handleRequest(request: Request, env: CatalogEnv, fetcher: typeof fetch = fetch): Promise<Response> {
   const url = new URL(request.url);
@@ -73,7 +76,7 @@ export async function handleRequest(request: Request, env: CatalogEnv, fetcher: 
   }
   const now = Math.floor(Date.now() / 1000);
   const answer = await handleRpc(env.CATALOG_DB, body, meaningFor(env), {
-    now, live: async siteIds => recheckStores(env.CATALOG_DB, await listListedStores(env.MERCHANT_DB, excludedOrigins(env)), siteIds, fetcher, now),
+    now, live: async siteIds => recheckStores(env.CATALOG_DB, await listed(env), siteIds, fetcher, now),
   });
   return answer ? json(200, answer) : new Response(null, { status: 202 });
 }
@@ -106,7 +109,6 @@ async function categories(request: Request, url: URL, env: CatalogEnv): Promise<
 export default {
   fetch: (request: Request, env: CatalogEnv) => handleRequest(request, env),
   async scheduled(_controller: unknown, env: CatalogEnv) {
-    const listed = await listListedStores(env.MERCHANT_DB, excludedOrigins(env));
-    await refreshCatalog(env.CATALOG_DB, listed, fetch, Math.floor(Date.now() / 1000), meaningFor(env));
+    await refreshCatalog(env.CATALOG_DB, await listed(env), fetch, Math.floor(Date.now() / 1000), meaningFor(env));
   },
 };

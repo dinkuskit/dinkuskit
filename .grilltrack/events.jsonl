@@ -296,10 +296,14 @@
 {"action": "decision_locked", "at": "2026-11-22T23:34:35+00:00", "data": {"decision_id": "store-email-styling-20261122"}, "event_id": "8068dd25-8761-491b-8494-ec13d811f62d"}
 {"action": "decision_proposed", "at": "2026-11-22T23:56:32+00:00", "data": {"decision_id": "review-email-stop-link-20261122"}, "event_id": "5709959e-9255-42d5-87a7-5c14e01a553a"}
 {"action": "decision_locked", "at": "2026-11-22T23:56:32+00:00", "data": {"decision_id": "review-email-stop-link-20261122"}, "event_id": "9dccc460-c1b4-4102-a693-91d2a728c982"}
-{"action": "focus_started", "at": "2026-11-24T22:27:03+00:00", "data": {"cadence": "sequential", "domain": "Accounts and operator admin for v1"}, "event_id": "e3902157-b492-440c-a429-6eeb3bd40ce1"}
-{"action": "shared_understanding_confirmed", "at": "2026-11-24T22:27:03+00:00", "data": {"summary": "Coupons is the dinkus-coupons plugin inside the store and needs no DinkusKit.com pass, so Your stores stops calling it coming soon and offers no switch. The owner asked for this on 2026-11-24."}, "event_id": "03230b5f-5851-45fc-9678-54c38f08aa38"}
-{"action": "decision_proposed", "at": "2026-11-24T22:27:03+00:00", "data": {"decision_id": "website-coupons-in-store-20261124"}, "event_id": "8a191695-aa43-410d-a8d9-75a70f5ba8b2"}
-{"action": "decision_locked", "at": "2026-11-24T22:27:03+00:00", "data": {"decision_id": "website-coupons-in-store-20261124"}, "event_id": "91071801-5f90-4d1b-82be-bc9c55f14f5d"}
-{"action": "decision_superseded", "at": "2026-11-24T22:27:03+00:00", "data": {"affected": [], "decision_id": "website-coupons-coming-soon-046", "replacement_id": "website-coupons-in-store-20261124"}, "event_id": "9153020f-75b1-4257-a7f8-48ef46d79495"}
-{"action": "decision_implemented", "at": "2026-11-24T22:27:03+00:00", "data": {"decision_id": "website-coupons-in-store-20261124"}, "event_id": "48ed78fe-10bf-42a4-bb20-b42a24feb81f"}
-{"action": "decision_verified", "at": "2026-11-24T22:27:03+00:00", "data": {"decision_id": "website-coupons-in-store-20261124"}, "event_id": "af73b617-ad46-4a7e-a5f3-1ed658fd5295"}
+{"action": "decision_proposed", "at": "2026-11-24T22:51:38+00:00", "data": {"decision_id": "dinkuskit-catalog-hides-test-stores-20261124"}, "event_id": "137dd197-4852-4818-9897-111d2f35efe8"}
+{"action": "decision_locked", "at": "2026-11-24T22:51:39+00:00", "data": {"decision_id": "dinkuskit-catalog-hides-test-stores-20261124"}, "event_id": "a19cf6fd-4e90-4a35-9bd8-fea8d9bc91dc"}
+{"action": "decision_proposed", "at": "2026-11-24T22:51:39+00:00", "data": {"decision_id": "dinkuskit-catalog-test-store-trial-20261124"}, "event_id": "3a9da673-15a2-4ff4-8399-ce8cefa34c81"}
+{"action": "decision_locked", "at": "2026-11-24T22:54:16+00:00", "data": {"decision_id": "dinkuskit-catalog-test-store-trial-20261124"}, "event_id": "af001725-9051-490e-9d85-48a2e885859d"}
+{"action": "focus_started", "at": "2026-11-25T01:27:23+00:00", "data": {"cadence": "sequential", "domain": "Accounts and operator admin for v1"}, "event_id": "a61df0f0-56d2-4c75-9508-ed91c4ccd291"}
+{"action": "shared_understanding_confirmed", "at": "2026-11-25T01:27:23+00:00", "data": {"summary": "Coupons is the dinkus-coupons plugin inside the store and needs no DinkusKit.com pass, so Your stores stops calling it coming soon and offers no switch. The owner asked for this on 2026-11-24."}, "event_id": "9d67757b-5557-4863-9240-6a9c18133372"}
+{"action": "decision_proposed", "at": "2026-11-25T01:27:23+00:00", "data": {"decision_id": "website-coupons-in-store-20261124"}, "event_id": "463a5a13-6dae-44ae-ba47-ffccd54914b7"}
+{"action": "decision_locked", "at": "2026-11-25T01:27:23+00:00", "data": {"decision_id": "website-coupons-in-store-20261124"}, "event_id": "5ba20439-5a7d-44f6-9ac9-80de3b6b94f2"}
+{"action": "decision_superseded", "at": "2026-11-25T01:27:24+00:00", "data": {"affected": [], "decision_id": "website-coupons-coming-soon-046", "replacement_id": "website-coupons-in-store-20261124"}, "event_id": "a6bfcbe1-84a4-4482-b945-62bb65ecf617"}
+{"action": "decision_implemented", "at": "2026-11-25T01:27:24+00:00", "data": {"decision_id": "website-coupons-in-store-20261124"}, "event_id": "6ab8ced2-52b9-41f5-ba13-9f6fd832596c"}
+{"action": "decision_verified", "at": "2026-11-25T01:27:24+00:00", "data": {"decision_id": "website-coupons-in-store-20261124"}, "event_id": "78d0e0f9-69a1-4b92-812d-a5b46870a35c"}

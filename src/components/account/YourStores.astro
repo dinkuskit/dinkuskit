@@ -1,6 +1,6 @@
 ---
 import Site from '../../layouts/Site.astro';
-import { COMING_SOON_SERVICES } from '../../account/config.ts';
+import { IN_STORE_SERVICES } from '../../account/config.ts';
 import type { SitesPageView } from '../../account/sites-page.ts';
 
 type Props = SitesPageView;
@@ -17,7 +17,7 @@ const tabHref = (siteId: string, tab: string) => `${formAction}?${new URLSearchP
 const when = (seconds: number) => `${new Date(seconds * 1000).toISOString().slice(0, 16).replace('T', ' ')} UTC`;
 const SERVICE_LABEL = { payments: 'Payments', coupons: 'Coupons', ship: 'Ship' } as const;
 const PLUGIN_LABEL = { commerce: 'Commerce', payments: 'Payments', ship: 'Ship' } as const;
-const comingSoon = (service: string) => (COMING_SOON_SERVICES as readonly string[]).includes(service);
+const inStore = (service: string) => (IN_STORE_SERVICES as readonly string[]).includes(service);
 const serviceNote = (binding: { revoked: boolean; revokedBy: string | null }) => !binding.revoked ? ''
   : binding.revokedBy === 'operator' ? ' (cut off by DinkusKit; contact DinkusKit to restore it)'
   : ' (revoked; press Connect in the store to connect again)';
@@ -99,7 +99,7 @@ const serviceNote = (binding: { revoked: boolean; revokedBy: string | null }) =>
                   {SERVICE_LABEL[service]}: {store.services[service] === 'cut_off' ? 'Cut off by DinkusKit. Contact DinkusKit to have it restored.'
                     : store.services[service] === 'on' ? 'On' : service === 'payments' ? 'Off. Press Connect in the Payments plugin to turn it on.'
                     : service === 'ship' ? 'Off. Press Connect or Finish setup in the Ship plugin in EmDash to turn it on.'
-                    : comingSoon(service) ? 'Coming soon. Commerce does not take coupon codes yet.' : 'Off'}
+                    : inStore(service) ? 'Set up in your store. Coupons is its own EmDash plugin, so there is nothing to turn on here.' : 'Off'}
                   {isOwner && service === 'ship' && store.services.ship === 'on' && !store.plugins.ship ? (
                     // Ship on with no Ship plugin key (uninstalled, or turned on before 126): Disconnect still turns it off.
                     <form method="post" action={tabHref(store.siteId, 'plugins')}>
@@ -119,7 +119,7 @@ const serviceNote = (binding: { revoked: boolean; revokedBy: string | null }) =>
                       <button type="submit">Revoke payments</button>
                     </form>
                   ) : null}
-                  {isOwner && service === 'coupons' && store.services[service] !== 'cut_off' && (store.services[service] === 'on' || !comingSoon(service)) ? (
+                  {isOwner && service === 'coupons' && store.services[service] !== 'cut_off' && (store.services[service] === 'on' || !inStore(service)) ? (
                     <form method="post" action={tabHref(store.siteId, 'plugins')}>
                       <input type="hidden" name="action" value="service" />
                       <input type="hidden" name="site_id" value={store.siteId} />

@@ -52,7 +52,7 @@ test('shared service routes require separate consent and display processor setup
     assert.match(setup,/Ship: Off. Press Connect or Finish setup in the Ship plugin in EmDash to turn it on./);
     assert.doesNotMatch(setup,/Create store key|Replace key|Store key:|[Pp]aste/,'no store key to make or paste');
     assert.equal((await post(owner,{action:'store_key',site_id:siteId})).status,303,'the old Create store key button does nothing');
-    assert.match(setup,/Coupons: Coming soon/); assert.doesNotMatch(setup,/Turn on Coupons/,'Commerce takes no coupon codes in v1');
+    assert.match(setup,/Coupons: Set up in your store. Coupons is its own EmDash plugin, so there is nothing to turn on here./); assert.doesNotMatch(setup,/Coming soon/); assert.doesNotMatch(setup,/Turn on Coupons/,'Coupons runs in the store, with no switch here');
     const key=commerceKey;
     assert.doesNotMatch(setup,new RegExp(key),'the key is never shown');
     const pass=await trade(key,'payments:checkout','dinkus-payments'); assert.equal(pass.status,200);
@@ -63,7 +63,7 @@ test('shared service routes require separate consent and display processor setup
     assert.equal((await post(outsider,{action:'service',site_id:siteId,service:'ship',on:'1'})).status,303);
     assert.deepEqual(await (await trade(key,'ship:orders','dinkus-ship')).json(),{error:'service_not_enabled'},'another business cannot turn on Ship for this store');
     assert.equal((await post(owner,{action:'service',site_id:siteId,service:'coupons',on:'1'})).status,303);
-    assert.deepEqual(await (await trade(key,'coupons:checkout','dinkus-coupons')).json(),{error:'scope_not_allowed'},'Commerce\'s key gets no coupon passes while Coupons is coming soon');
+    assert.deepEqual(await (await trade(key,'coupons:checkout','dinkus-coupons')).json(),{error:'scope_not_allowed'},'Commerce\'s key gets no coupon passes: Coupons answers inside the store');
     assert.equal((await post(owner,{action:'service',site_id:siteId,service:'ship',on:'1'})).status,303);
     assert.deepEqual(await (await trade(key,'ship:orders','dinkus-ship')).json(),{error:'service_not_enabled'},'the old Turn on Ship form does nothing');
     const shipConnect=await start('ship'); await approve(shipConnect); assert.equal((await token(shipConnect)).status,200,'connecting Ship turns it on');
@@ -93,7 +93,7 @@ test('shared service routes require separate consent and display processor setup
     assert.equal(settings.schema,'dinkuskit.commerce.registry-checkout/v1'); assert.equal(settings.commerceOrigin,origin); assert.equal(settings.siteId,siteId);
     assert.deepEqual([settings.bindingRef,settings.providerId,settings.stripeAccountId,settings.mode],['bind_route_1','stripe','acct_1RouteTest','test']);
     assert.deepEqual(settings.shipping,{configurationId:`shipping-${siteId}`,revision:1,mode:'flat',amount:{currency:'USD',minor:'500'}});
-    assert.deepEqual(settings.ship,{origin:'https://ship.dinkuskit.com',audience:'dinkus-ship'}); assert.equal('coupons' in settings,false,'Coupons is coming soon');
+    assert.deepEqual(settings.ship,{origin:'https://ship.dinkuskit.com',audience:'dinkus-ship'}); assert.equal('coupons' in settings,false,'Coupons has no hosted service');
     const call=await (await request(runtime,new Map(),`/__proof/payments-status-call?site_id=${encodeURIComponent(siteId)}`)).json();
     const statusClaims=JSON.parse(Buffer.from(call.token.split('.')[1],'base64url').toString());
     assert.deepEqual([statusClaims.aud,statusClaims.scope,statusClaims.site_id],['dinkus-payments','payments:admin',siteId]);

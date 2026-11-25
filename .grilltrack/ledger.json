@@ -13152,7 +13152,22 @@
         "agent-catalog-category-door-20261124"
       ],
       "domain": "Agent catalog: store categories",
-      "history": [],
+      "history": [
+        {
+          "at": "2026-11-25T14:51:47+00:00",
+          "choice": "The category door answers a category id given as q with just that category (id and name), or with none when the id is not on the list; words still answer the eight nearest by meaning.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        }
+      ],
       "id": "agent-catalog-category-id-answer-20261125",
       "implementation_ref": null,
       "question": "How does a store's Product category box show the name of a category it already saved?",
@@ -13163,9 +13178,9 @@
       "review_ref": null,
       "review_result": null,
       "review_source_identity": null,
-      "status": "proposed",
+      "status": "locked",
       "superseded_by": null,
-      "updated_at": "2026-11-25T14:48:11+00:00",
+      "updated_at": "2026-11-25T14:51:47+00:00",
       "verification_ref": null
     }
   ],
@@ -13197,5 +13212,5 @@
   "status": "active",
   "title": "Composed integration",
   "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5",
-  "updated_at": "2026-11-25T14:48:11+00:00"
+  "updated_at": "2026-11-25T14:51:47+00:00"
 }

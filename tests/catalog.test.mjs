@@ -542,7 +542,7 @@ test('the category door finds Shopify categories by meaning for a search or a su
   const meaning = fakeMeaning();
   const ai = { async run(_model, { messages }) { return { data: (await meaning.embed(messages.map(([message]) => ({ text: String(message.content) })))).map(embedding => ({ embedding: [...embedding, ...Array(VECTOR_DIMENSIONS - embedding.length).fill(0)] })) }; } };
   const pad = (row) => ({ ...row, values: [...row.values, ...Array(VECTOR_DIMENSIONS - row.values.length).fill(0)] });
-  const categories = memoryIndex([...meaning.categories.held.values()].map(pad));
+  const categories = memoryIndex([...meaning.categories.held.values(), { id: 'aa', values: ideaVector(''), metadata: { name: 'Apparel & Accessories' } }].map(pad));
   const env = { CATALOG_DB: null, MERCHANT_DB: null, AI: ai, PRODUCT_INDEX: memoryIndex(), CATEGORY_INDEX: categories,
     UNNAMED_AGENT_LIMIT: { limit: async ({ key }) => ({ success: key !== '203.0.113.9' }) } };
   const ask = (query, init = {}) => handleRequest(new Request(`https://catalog.dinkuskit.com/api/categories${query}`, init), env);
@@ -557,6 +557,8 @@ test('the category door finds Shopify categories by meaning for a search or a su
   const short = await (await ask('?q=tv')).json();
   assert.equal(meaning.calls.embedded, embeds + 1, 'a two-letter word is searched by meaning, not taken for an id');
   assert.ok(Array.isArray(short.categories));
+  assert.deepEqual((await (await ask('?q=aa')).json()).categories, [{ id: 'aa', name: 'Apparel & Accessories' }], 'a top-level id names its category');
+  assert.equal(meaning.calls.embedded, embeds + 1, 'and is looked up, not embedded');
   assert.deepEqual((await (await ask('?q=zz-9')).json()).categories, [], 'an id not on the list answers none');
   assert.equal(meaning.calls.embedded, embeds + 1, 'and is not embedded either');
   assert.equal((await ask('?q=%20')).status, 400);

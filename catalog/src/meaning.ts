@@ -133,11 +133,13 @@ const CATEGORY_ID = /^[a-z]{2}(?:-\d{1,4}){1,10}$/;
  * product's name and description for a suggestion. Best first, at most CATEGORY_MATCHES.
  * A category id below the top level answers only that category, or none when it is not on
  * the list, so a store's box can name the one it saved (agent-catalog-category-id-answer-20261125).
- * A short word such as "tv" is not taken for a top-level id: it is searched by meaning.
+ * Two letters name a top-level category, such as "aa", when the list has one; otherwise they
+ * are a short word such as "tv" and are searched by meaning.
  */
 export async function nearestCategories(meaning: Meaning, words: string): Promise<{ id: string; name: string }[]> {
   if (!meaning.categories) return [];
-  const found = CATEGORY_ID.test(words) ? await meaning.categories.getByIds([words]) : (await meaning.categories.query(
+  const root = /^[a-z]{2}$/.test(words) ? await meaning.categories.getByIds([words]) : [];
+  const found = root.length ? root : CATEGORY_ID.test(words) ? await meaning.categories.getByIds([words]) : (await meaning.categories.query(
     (await meaning.embed([{ text: queryText(words) }]))[0]!, { topK: CATEGORY_MATCHES, returnMetadata: 'all' })).matches;
   return found.flatMap(match => typeof match.metadata?.name === 'string' ? [{ id: match.id, name: match.metadata.name }] : []);
 }

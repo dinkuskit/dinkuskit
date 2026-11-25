@@ -320,3 +320,6 @@
 {"action": "decision_superseded", "at": "2026-11-25T04:41:36+00:00", "data": {"affected": ["agent-catalog-lookup-in-stock-default-20261115"], "decision_id": "agent-catalog-first-version-20261113", "replacement_id": "agent-catalog-store-category-20261124"}, "event_id": "a93cfb3d-bf4d-492a-92a7-5ba37a3bd2e0"}
 {"action": "decision_proposed", "at": "2026-11-25T04:41:49+00:00", "data": {"decision_id": "agent-catalog-category-door-20261124"}, "event_id": "52ddfeb6-2a06-4eba-9435-0f553312902e"}
 {"action": "decision_locked", "at": "2026-11-25T04:41:49+00:00", "data": {"decision_id": "agent-catalog-category-door-20261124"}, "event_id": "f196ce0e-ec2a-478d-9a74-5fd97c9377c5"}
+{"action": "focus_started", "at": "2026-11-25T14:48:11+00:00", "data": {"cadence": "sequential", "domain": "Agent catalog: store categories"}, "event_id": "12f97f5d-b648-4517-9a38-4b0f6010acf4"}
+{"action": "decision_proposed", "at": "2026-11-25T14:48:11+00:00", "data": {"decision_id": "agent-catalog-category-id-answer-20261125"}, "event_id": "0a5ac9d7-6ace-4eaa-98e5-39aea4b061d5"}
+{"action": "decision_locked", "at": "2026-11-25T14:51:47+00:00", "data": {"decision_id": "agent-catalog-category-id-answer-20261125"}, "event_id": "b7585a35-8623-4d65-8dc0-7c41d962cd14"}

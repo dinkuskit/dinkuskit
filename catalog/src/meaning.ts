@@ -22,7 +22,7 @@ export type Embedder = (inputs: EmbedInput[]) => Promise<number[][]>;
 export type VectorStore = {
   upsert(vectors: { id: string; values: number[]; metadata?: Record<string, string> }[]): Promise<unknown>;
   query(vector: number[], options: { topK: number; returnMetadata?: 'none' | 'all' }): Promise<{ matches: { id: string; score: number; metadata?: Record<string, unknown> }[] }>;
-  getByIds(ids: string[]): Promise<{ id: string; values?: number[] | Float32Array | Float64Array }[]>;
+  getByIds(ids: string[]): Promise<{ id: string; values?: number[] | Float32Array | Float64Array; metadata?: Record<string, unknown> }[]>;
   deleteByIds(ids: string[]): Promise<unknown>;
 };
 export type Meaning = { embed: Embedder; products: VectorStore; categories?: VectorStore };
@@ -125,15 +125,23 @@ export async function indexStore(db: D1Database, meaning: Meaning, siteId: strin
   return stale.length;
 }
 
+/** A Shopify category id below the top level, as stores save it (template-product-category-field-20261124). */
+const CATEGORY_ID = /^[a-z]{2}(?:-\d{1,4}){1,10}$/;
+
 /**
  * The categories nearest in meaning to some words: a typed search such as "tee", or a
  * product's name and description for a suggestion. Best first, at most CATEGORY_MATCHES.
+ * A category id below the top level answers only that category, or none when it is not on
+ * the list, so a store's box can name the one it saved (agent-catalog-category-id-answer-20261125).
+ * Two letters name a top-level category, such as "aa", when the list has one; otherwise they
+ * are a short word such as "tv" and are searched by meaning.
  */
 export async function nearestCategories(meaning: Meaning, words: string): Promise<{ id: string; name: string }[]> {
   if (!meaning.categories) return [];
-  const [vector] = await meaning.embed([{ text: queryText(words) }]);
-  const found = await meaning.categories.query(vector!, { topK: CATEGORY_MATCHES, returnMetadata: 'all' });
-  return found.matches.flatMap(match => typeof match.metadata?.name === 'string' ? [{ id: match.id, name: match.metadata.name }] : []);
+  const root = /^[a-z]{2}$/.test(words) ? await meaning.categories.getByIds([words]) : [];
+  const found = root.length ? root : CATEGORY_ID.test(words) ? await meaning.categories.getByIds([words]) : (await meaning.categories.query(
+    (await meaning.embed([{ text: queryText(words) }]))[0]!, { topK: CATEGORY_MATCHES, returnMetadata: 'all' })).matches;
+  return found.flatMap(match => typeof match.metadata?.name === 'string' ? [{ id: match.id, name: match.metadata.name }] : []);
 }
 
 /** Every vector of a store that left the catalog. */

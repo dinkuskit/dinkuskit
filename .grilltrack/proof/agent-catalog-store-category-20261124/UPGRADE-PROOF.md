@@ -2,10 +2,10 @@
 
 Run with `npm run proof:catalog-upgrade` (catalog/scripts/upgrade-proof.mjs). The Worker built from the commit before migration 0003 fills the catalog through its own timer; 0003 is applied to that filled catalog; then the Worker built from this branch answers from the very same D1 rows, before and after its first read of the stores. Workers AI and Vectorize have no local form, so the catalog's own category guesses are written where the old indexing step writes them, and the category door answers 503 here.
 
-Output of the run on top of the ledger branch after main 8d7f10f (full JSON answers trimmed to the checks). Stores are marked as taking live payments, since only those are listed since dinkuskit#163:
+Output of the run on top of main 8d7f10f plus this PR's ledger (full JSON answers trimmed to the checks). Stores are marked as taking live payments, since only those are listed since dinkuskit#163:
 
 ```text
-== 1. The catalog as it was (built from b91a9dc, migrations 0001_catalog.sql, 0002_meaning_and_categories.sql) fills itself ==
+== 1. The catalog as it was (built from 74752ff, migrations 0001_catalog.sql, 0002_meaning_and_categories.sql) fills itself ==
 PASS  the old Worker stored the three store products (two hats, one tee family)
 PASS  old Worker: one hat, both stores, lowest price first
 PASS  old Worker: the catalog's guess is shown, marked inferred

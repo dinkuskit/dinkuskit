@@ -55,23 +55,32 @@ function offerVariants(row: OfferRow): UcpVariant[] {
   }));
 }
 
+export type VariantFilter = { available: boolean; priceMin?: number; priceMax?: number };
+
 /**
- * One product from the rows that share its universal id. The first row supplies the
- * words and pictures; every row supplies its store's offers, so one product can list
- * several sellers. `availableOnly` leaves out variants that cannot be bought now.
+ * One product from the rows that share its universal id. For price-filtered lookup,
+ * only rows with a qualifying variant supply the product's links and seller details.
  */
-export function toProduct(rows: OfferRow[], availableOnly: boolean): UcpProduct | null {
-  const lead = rows[0];
-  if (!lead) return null;
-  const variants = rows.flatMap(offerVariants).filter(variant => !availableOnly || variant.availability.available);
-  if (!variants.length) return null;
+export function toProduct(rows: OfferRow[], { available, priceMin, priceMax }: VariantFilter): UcpProduct | null {
+  const hasPriceFilter = priceMin !== undefined || priceMax !== undefined;
+  const included: OfferRow[] = [];
+  const variants = rows.flatMap(row => {
+    const matching = offerVariants(row).filter(variant =>
+      (!available || variant.availability.available) &&
+      (priceMin === undefined || variant.price.amount >= priceMin) &&
+      (priceMax === undefined || variant.price.amount <= priceMax));
+    if (!hasPriceFilter || matching.length) included.push(row);
+    return matching;
+  });
+  const lead = included[0];
+  if (!lead || !variants.length) return null;
   const prices = variants.map(variant => variant.price.amount);
   const options: UcpProduct['options'] = [];
-  for (const row of rows) for (const option of parse<{ name: string; values: string[] }[]>(row.options, [])) {
+  for (const row of included) for (const option of parse<{ name: string; values: string[] }[]>(row.options, [])) {
     const known = options.find(item => item.name === option.name) ?? options[options.push({ name: option.name, values: [] }) - 1]!;
     for (const label of option.values) if (!known.values.some(value => value.label === label)) known.values.push({ label });
   }
-  const sellers = new Set(rows.map(row => row.site_id));
+  const sellers = new Set(included.map(row => row.site_id));
   return {
     id: lead.upid, title: lead.title, description: { plain: lead.description }, url: lead.url,
     ...(lead.category_id ? { categories: [{ value: lead.category_id, taxonomy: 'shopify' }] } : {}),

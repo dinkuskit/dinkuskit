@@ -226,6 +226,29 @@ test('availability-filtered lookup accounts for each exact variant, not its buya
   assert.deepEqual(otherSeller.messages, [{ type: 'info', code: 'not_found', content: betaHat.id }]);
 });
 
+test('lookup applies inclusive price bounds to each returned variant', async () => {
+  const db = await catalogDb(); clock = 1000;
+  await refreshCatalog(db, stores, fetcher({ [ALPHA]: alphaFeed(), [BETA]: betaFeed() }), clock);
+  const lookup = (ids, price, available) => call(db, 'lookup_catalog', { ids, filters: { price, available } });
+  const tee = (await lookup([`${ALPHA}/products/tee`], undefined, false)).products[0];
+  const expensive = tee.variants.find(variant => variant.title === 'Red / M');
+
+  const atPrice = await lookup([tee.id, expensive.id], { min: 1800, max: 1800 });
+  assert.deepEqual(atPrice.products[0].variants.map(variant => [variant.title, variant.price.amount, variant.inputs]), [
+    ['Blue / S', 1800, [{ id: tee.id, match: 'featured' }]],
+  ]);
+  assert.deepEqual(atPrice.messages, [{ type: 'info', code: 'not_found', content: expensive.id }]);
+  assert.deepEqual(atPrice.products[0].price_range, { min: { amount: 1800, currency: 'USD' }, max: { amount: 1800, currency: 'USD' } });
+  assert.deepEqual((await lookup([expensive.id], { max: 1999 })).products, []);
+  assert.deepEqual((await lookup([tee.id], { min: 1801, max: 1999 })).products, []);
+  assert.deepEqual((await lookup([tee.id], { max: 1800 }, false)).products[0].variants.map(variant => variant.availability.available), [true, false]);
+
+  const hat = (await lookup([`${ALPHA}/products/hat`], { min: 2400 })).products[0];
+  assert.equal(hat.url, `${ALPHA}/products/hat`, 'an excluded seller must not supply the primary product link');
+  assert.equal(hat.metadata.seller_count, 1);
+  assert.deepEqual(hat.variants.map(variant => [variant.seller.id, variant.price.amount]), [['site-alpha', 2500]]);
+});
+
 test('a store that changes, fails or leaves the list is kept right', async () => {
   const db = await catalogDb();
   const feeds = { [ALPHA]: alphaFeed(), [BETA]: betaFeed() };

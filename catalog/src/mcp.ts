@@ -33,7 +33,7 @@ export const TOOLS = [
   {
     name: 'lookup_catalog',
     title: 'Look up products by id',
-    description: `Fetch current price and availability for up to ${MAX_LOOKUP_IDS} known products. catalog.ids takes product ids (dkp_...), variant ids (dkv_...) or a listed store's product page address. Only variants a shopper can buy now come back unless catalog.filters.available is false; an id with nothing buyable is reported as not_found.`,
+    description: `Fetch current price and availability for up to ${MAX_LOOKUP_IDS} known products. catalog.ids takes product ids (dkp_...), variant ids (dkv_...) or a listed store's product page address. Lookup supports catalog.filters.price {min,max} in minor units. Only variants a shopper can buy now come back unless catalog.filters.available is false; an id with no matching variant is reported as not_found.`,
     inputSchema: { type: 'object', properties: { meta: META_ARGUMENT, catalog: CATALOG_ARGUMENT }, required: ['catalog'] },
     annotations: { readOnlyHint: true, openWorldHint: true },
   },
@@ -163,7 +163,7 @@ async function lookupTool(db: D1Database, catalog: Json) {
   }
   const filters = readFilters(catalog);
   // Like Shopify, only what a shopper can buy now unless the agent asks for sold-out items too.
-  const found = await lookupCatalog(db, ids, filters.available);
+  const found = await lookupCatalog(db, ids, filters);
   const messages = [...filters.messages, ...found.notFound.map(id => message('info', 'not_found', id))];
   return { ucp: envelope(LOOKUP_CAPABILITY), products: found.products, ...(messages.length ? { messages } : {}) };
 }
@@ -174,7 +174,7 @@ async function productTool(db: D1Database, catalog: Json, live?: LiveCheck) {
   // sizes and colours can be told apart from ones that do not exist.
   const find = async () => {
     const upid = id ? await resolveUpid(db, id) : null;
-    return upid ? (await lookupCatalog(db, [upid], false)).products[0] : undefined;
+    return upid ? (await lookupCatalog(db, [upid], { available: false })).products[0] : undefined;
   };
   let product = await find();
   if (product && live) {

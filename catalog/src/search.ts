@@ -1,5 +1,5 @@
 import { fuseRanks } from './meaning.ts';
-import { toProduct, type OfferRow, type UcpProduct } from './ucp.ts';
+import { toProduct, type OfferRow, type UcpProduct, type VariantFilter } from './ucp.ts';
 
 /**
  * Finding products (GrillTrack agent-catalog-ranking-20261113): best match first,
@@ -102,7 +102,7 @@ export async function searchCatalog(db: D1Database, input: SearchInput, nearest?
     more = page.length > input.limit;
   }
   const grouped = await rowsForUpids(db, upids);
-  const products = upids.flatMap(upid => toProduct(grouped.get(upid) ?? [], input.available) ?? []);
+  const products = upids.flatMap(upid => toProduct(grouped.get(upid) ?? [], { available: input.available }) ?? []);
   const nextOffset = input.offset + input.limit;
   return { products, hasNextPage: more && nextOffset < MAX_DEPTH, nextOffset, totalCount };
 }
@@ -123,7 +123,7 @@ export async function resolveUpid(db: D1Database, id: string): Promise<string | 
 export type LookupOutput = { products: UcpProduct[]; notFound: string[] };
 
 /** Products for universal product ids, variant ids, or a listed store's product page address. */
-export async function lookupCatalog(db: D1Database, ids: string[], available: boolean): Promise<LookupOutput> {
+export async function lookupCatalog(db: D1Database, ids: string[], filters: VariantFilter): Promise<LookupOutput> {
   const wanted = new Map<string, { id: string; match: 'exact' | 'featured' }[]>(), notFound: string[] = [], order: string[] = [];
   const note = (upid: string, id: string, match: 'exact' | 'featured') => {
     if (!wanted.has(upid)) { wanted.set(upid, []); order.push(upid); }
@@ -136,11 +136,11 @@ export async function lookupCatalog(db: D1Database, ids: string[], available: bo
   const grouped = await rowsForUpids(db, order);
   const products: UcpProduct[] = [];
   for (const upid of order) {
-    const product = toProduct(grouped.get(upid) ?? [], available);
+    const product = toProduct(grouped.get(upid) ?? [], filters);
     const inputs = wanted.get(upid) ?? [];
     if (!product) { notFound.push(...inputs.map(input => input.id)); continue; }
     const exact = new Set(inputs.filter(input => input.match === 'exact').map(input => input.id));
-    // A buyable sibling does not satisfy an exact variant filtered out above.
+    // An eligible sibling does not satisfy an exact variant filtered out above.
     for (const id of exact) if (!product.variants.some(variant => variant.id === id)) notFound.push(id);
     const featured = inputs.filter(input => input.match === 'featured');
     const lead = product.variants.find(variant => variant.availability.available) ?? product.variants[0];

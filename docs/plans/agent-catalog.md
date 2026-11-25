@@ -110,7 +110,7 @@ Each of the 11 gaps, as settled by the decisions below.
 | Gap | First version | Why |
 | --- | --- | --- |
 | 1. Matching the same product with no barcode | Exact barcode, or brand plus part number, first. Inferred matching follows and is marked as inferred (decision 6). | With a handful of stores there is little to match. Guessing wrong puts the wrong seller under a product. |
-| 2. One shared category list | Yes. A category filter on Shopify's open Standard Product Taxonomy (decision 9). | The list is open source (MIT). The catalog works out each product's category itself, so Commerce needs no new field. |
+| 2. One shared category list | Yes. A category filter on Shopify's open Standard Product Taxonomy (decision 9). | The list is open source (MIT). Since 24 Nov 2026 each store picks one category per product on the product page and sends it in its agent catalog feed; the catalog works one out itself, marked as inferred, only when the store sends none (`agent-catalog-store-category-20261124`). |
 | 3. Star ratings | No. | We have no reviews anywhere. |
 | 4. Ships to and ships from | "Ships to US" only. | Ship is US only. |
 | 5. Price tiers | No. Plain price range only. | Tiers need categories and volume. |

@@ -112,6 +112,8 @@ try {
     await insert(merchantDb, 'dinkuskit_store_identity', { site_id: `site-${name}`, site_origin: origin, account_subject: `sub-${name}` });
     await insert(merchantDb, 'dinkuskit_plugin_key', { site_id: `site-${name}`, plugin: 'payments' });
     await insert(merchantDb, 'dinkuskit_service_grant', { site_id: `site-${name}`, service: 'ship', revoked: 0 });
+    // Only stores taking live payments are listed.
+    await insert(merchantDb, 'dinkuskit_commerce_settings', { site_id: `site-${name}`, shipping_mode: 'free', live: 1 });
   }
 
   const before = await mf.getWorker('catalog-before'), after = await mf.getWorker('catalog-after');

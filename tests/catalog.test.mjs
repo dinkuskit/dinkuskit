@@ -559,8 +559,10 @@ test('the category door finds Shopify categories by meaning for a search or a su
   assert.ok(Array.isArray(short.categories));
   assert.deepEqual((await (await ask('?q=aa')).json()).categories, [{ id: 'aa', name: 'Apparel & Accessories' }], 'a top-level id names its category');
   assert.equal(meaning.calls.embedded, embeds + 1, 'and is looked up, not embedded');
+  assert.ok(Array.isArray((await (await ask('?q=zz')).json()).categories));
+  assert.equal(meaning.calls.embedded, embeds + 2, 'two letters with no top-level category are searched by meaning');
   assert.deepEqual((await (await ask('?q=zz-9')).json()).categories, [], 'an id not on the list answers none');
-  assert.equal(meaning.calls.embedded, embeds + 1, 'and is not embedded either');
+  assert.equal(meaning.calls.embedded, embeds + 2, 'and is not embedded either');
   assert.equal((await ask('?q=%20')).status, 400);
   assert.equal((await ask('?q=' + 'a'.repeat(2001))).status, 413);
   assert.equal((await ask('?q=hat', { method: 'POST' })).status, 405);

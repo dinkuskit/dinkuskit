@@ -125,14 +125,15 @@ export async function indexStore(db: D1Database, meaning: Meaning, siteId: strin
   return stale.length;
 }
 
-/** A Shopify category id as stores save it (template-product-category-field-20261124). */
-const CATEGORY_ID = /^[a-z]{2}(?:-\d{1,4}){0,10}$/;
+/** A Shopify category id below the top level, as stores save it (template-product-category-field-20261124). */
+const CATEGORY_ID = /^[a-z]{2}(?:-\d{1,4}){1,10}$/;
 
 /**
  * The categories nearest in meaning to some words: a typed search such as "tee", or a
  * product's name and description for a suggestion. Best first, at most CATEGORY_MATCHES.
- * A category id answers only that category, so a store's box can name the one it saved
- * (agent-catalog-category-id-answer-20261125); an id not on the list answers none.
+ * A category id below the top level answers only that category, or none when it is not on
+ * the list, so a store's box can name the one it saved (agent-catalog-category-id-answer-20261125).
+ * A short word such as "tv" is not taken for a top-level id: it is searched by meaning.
  */
 export async function nearestCategories(meaning: Meaning, words: string): Promise<{ id: string; name: string }[]> {
   if (!meaning.categories) return [];

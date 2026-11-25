@@ -281,3 +281,29 @@
 {"action": "decision_locked", "at": "2026-11-22T18:15:19+00:00", "data": {"decision_id": "website-inventory-overview-removal-20261122"}, "event_id": "21bfae89-7752-4ecd-aefe-df9f17e11200"}
 {"action": "decision_proposed", "at": "2026-11-22T18:43:15+00:00", "data": {"decision_id": "connect-finish-setup-disconnect-137"}, "event_id": "3be28ac7-42a1-45ff-801a-609fd045beb6"}
 {"action": "decision_locked", "at": "2026-11-22T18:43:15+00:00", "data": {"decision_id": "connect-finish-setup-disconnect-137"}, "event_id": "62bd9ea1-25f2-4f5d-83fe-ee265805bd72"}
+{"action": "decision_proposed", "at": "2026-11-22T19:37:18+00:00", "data": {"decision_id": "ship-pitney-connect-in-admin-138"}, "event_id": "cfc48e69-2601-47fb-9fa2-d482360fc60d"}
+{"action": "decision_locked", "at": "2026-11-22T19:37:18+00:00", "data": {"decision_id": "ship-pitney-connect-in-admin-138"}, "event_id": "f2a6c462-8e7f-4e9f-a1ed-5216aa07d63d"}
+{"action": "focus_started", "at": "2026-11-22T22:57:01+00:00", "data": {"cadence": "sequential", "domain": "store email"}, "event_id": "ce6e48d3-c64f-4c4f-b6c6-a2be360f789e"}
+{"action": "decision_proposed", "at": "2026-11-22T22:57:02+00:00", "data": {"decision_id": "store-email-sender-20261122"}, "event_id": "dc68abcb-3d4e-4d9d-890a-d602f1a5115e"}
+{"action": "decision_locked", "at": "2026-11-22T23:06:03+00:00", "data": {"decision_id": "store-email-sender-20261122"}, "event_id": "80fdf2f4-8bcf-463a-bbac-60d333a89a18"}
+{"action": "decision_proposed", "at": "2026-11-22T23:30:54+00:00", "data": {"decision_id": "store-emails-plugin-20261122"}, "event_id": "91149881-694e-4f63-ae4d-e845c8f8aa1e"}
+{"action": "decision_locked", "at": "2026-11-22T23:31:02+00:00", "data": {"decision_id": "store-emails-plugin-20261122"}, "event_id": "1515f214-cba1-47c4-860a-a56f9279deb7"}
+{"action": "decision_reopened", "at": "2026-11-22T23:31:02+00:00", "data": {"affected": ["store-emails-plugin-20261122"], "decision_id": "store-email-sender-20261122", "reason": "The cart email setting and note move from Commerce to the new Store emails plugin (store-emails-plugin-20261122), so the guard can no longer tell the cart email by the plugin that sends it."}, "event_id": "70da8dba-8168-47af-b118-790508d66c8c"}
+{"action": "decision_locked", "at": "2026-11-22T23:31:05+00:00", "data": {"decision_id": "store-email-sender-20261122"}, "event_id": "79008fbc-ff42-4ee7-bcf9-b555dceb47eb"}
+{"action": "decision_reopened", "at": "2026-11-22T23:31:12+00:00", "data": {"affected": [], "decision_id": "store-emails-plugin-20261122", "reason": "Re-locked after store-email-sender-20261122 was revised to match it."}, "event_id": "908def99-c246-4db1-b986-24e395ed036d"}
+{"action": "decision_locked", "at": "2026-11-22T23:31:12+00:00", "data": {"decision_id": "store-emails-plugin-20261122"}, "event_id": "de8ecfd6-357f-427f-900c-22899fa4a054"}
+{"action": "decision_proposed", "at": "2026-11-22T23:34:35+00:00", "data": {"decision_id": "store-email-styling-20261122"}, "event_id": "721c22d0-caa4-4899-9d32-43233073e9b7"}
+{"action": "decision_locked", "at": "2026-11-22T23:34:35+00:00", "data": {"decision_id": "store-email-styling-20261122"}, "event_id": "8068dd25-8761-491b-8494-ec13d811f62d"}
+{"action": "decision_proposed", "at": "2026-11-22T23:56:32+00:00", "data": {"decision_id": "review-email-stop-link-20261122"}, "event_id": "5709959e-9255-42d5-87a7-5c14e01a553a"}
+{"action": "decision_locked", "at": "2026-11-22T23:56:32+00:00", "data": {"decision_id": "review-email-stop-link-20261122"}, "event_id": "9dccc460-c1b4-4102-a693-91d2a728c982"}
+{"action": "decision_proposed", "at": "2026-11-24T22:51:38+00:00", "data": {"decision_id": "dinkuskit-catalog-hides-test-stores-20261124"}, "event_id": "137dd197-4852-4818-9897-111d2f35efe8"}
+{"action": "decision_locked", "at": "2026-11-24T22:51:39+00:00", "data": {"decision_id": "dinkuskit-catalog-hides-test-stores-20261124"}, "event_id": "a19cf6fd-4e90-4a35-9bd8-fea8d9bc91dc"}
+{"action": "decision_proposed", "at": "2026-11-24T22:51:39+00:00", "data": {"decision_id": "dinkuskit-catalog-test-store-trial-20261124"}, "event_id": "3a9da673-15a2-4ff4-8399-ce8cefa34c81"}
+{"action": "decision_locked", "at": "2026-11-24T22:54:16+00:00", "data": {"decision_id": "dinkuskit-catalog-test-store-trial-20261124"}, "event_id": "af001725-9051-490e-9d85-48a2e885859d"}
+{"action": "focus_started", "at": "2026-11-25T01:27:23+00:00", "data": {"cadence": "sequential", "domain": "Accounts and operator admin for v1"}, "event_id": "a61df0f0-56d2-4c75-9508-ed91c4ccd291"}
+{"action": "shared_understanding_confirmed", "at": "2026-11-25T01:27:23+00:00", "data": {"summary": "Coupons is the dinkus-coupons plugin inside the store and needs no DinkusKit.com pass, so Your stores stops calling it coming soon and offers no switch. The owner asked for this on 2026-11-24."}, "event_id": "9d67757b-5557-4863-9240-6a9c18133372"}
+{"action": "decision_proposed", "at": "2026-11-25T01:27:23+00:00", "data": {"decision_id": "website-coupons-in-store-20261124"}, "event_id": "463a5a13-6dae-44ae-ba47-ffccd54914b7"}
+{"action": "decision_locked", "at": "2026-11-25T01:27:23+00:00", "data": {"decision_id": "website-coupons-in-store-20261124"}, "event_id": "5ba20439-5a7d-44f6-9ac9-80de3b6b94f2"}
+{"action": "decision_superseded", "at": "2026-11-25T01:27:24+00:00", "data": {"affected": [], "decision_id": "website-coupons-coming-soon-046", "replacement_id": "website-coupons-in-store-20261124"}, "event_id": "a6bfcbe1-84a4-4482-b945-62bb65ecf617"}
+{"action": "decision_implemented", "at": "2026-11-25T01:27:24+00:00", "data": {"decision_id": "website-coupons-in-store-20261124"}, "event_id": "6ab8ced2-52b9-41f5-ba13-9f6fd832596c"}
+{"action": "decision_verified", "at": "2026-11-25T01:27:24+00:00", "data": {"decision_id": "website-coupons-in-store-20261124"}, "event_id": "78d0e0f9-69a1-4b92-812d-a5b46870a35c"}

@@ -129,7 +129,7 @@ Locked in the dinkuskit ledger as `agent-catalog-*-20261113`.
 | --- | --- | --- | --- |
 | 1 | Build it, and when? | **Build it now.** | "build it now" |
 | 2 | Where? | Own Worker at `catalog.dinkuskit.com/api/ucp/mcp`. | "agreed" |
-| 3 | Who is listed? | Connected, approved, payment-ready stores. Never test stores. **The owner gets a toggle in the store admin**, starting on. | "agreed, store owners shoud get a toggle in admin to show it or not" |
+| 3 | Who is listed? | Connected, approved, payment-ready stores. Never test stores: since 24 Nov 2026 that means any store whose payments are not switched to live on dinkuskit.com (`dinkuskit-catalog-hides-test-stores-20261124`). **The owner gets a toggle in the store admin**, starting on. | "agreed, store owners shoud get a toggle in admin to show it or not" |
 | 4 | What leaves the store? | Only what a shopper can already see. | "agreed" |
 | 5 | How fresh? | **Copy Shopify:** live, not nightly. Price and stock never older than 10 minutes, other details 24 hours. Daily re-read as a safety net. | "copy shopify hre" |
 | 6 | Same product in several stores? | **Copy Shopify:** one universal product id, shown once with each seller's offer. Matched on barcode or brand plus part number first, inferred matches after, marked as inferred. | ditto marks under 5 |

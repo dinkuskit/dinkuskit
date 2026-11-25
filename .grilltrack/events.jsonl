@@ -300,3 +300,8 @@
 {"action": "decision_locked", "at": "2026-11-24T22:51:39+00:00", "data": {"decision_id": "dinkuskit-catalog-hides-test-stores-20261124"}, "event_id": "a19cf6fd-4e90-4a35-9bd8-fea8d9bc91dc"}
 {"action": "decision_proposed", "at": "2026-11-24T22:51:39+00:00", "data": {"decision_id": "dinkuskit-catalog-test-store-trial-20261124"}, "event_id": "3a9da673-15a2-4ff4-8399-ce8cefa34c81"}
 {"action": "decision_locked", "at": "2026-11-24T22:54:16+00:00", "data": {"decision_id": "dinkuskit-catalog-test-store-trial-20261124"}, "event_id": "af001725-9051-490e-9d85-48a2e885859d"}
+{"action": "focus_started", "at": "2026-11-25T01:48:13+00:00", "data": {"cadence": "sequential", "domain": "Agent catalog: store categories"}, "event_id": "7f41c1c1-39b9-4853-921c-177adff2e6fe"}
+{"action": "shared_understanding_confirmed", "at": "2026-11-25T01:48:13+00:00", "data": {"summary": "The owner agreed the five standard category decisions on 24 Nov 2026 and said to build them."}, "event_id": "516cf6ae-2999-4477-9751-30577d331376"}
+{"action": "decision_proposed", "at": "2026-11-25T01:48:13+00:00", "data": {"decision_id": "agent-catalog-store-category-20261124"}, "event_id": "1883f3a5-2aa2-49b3-986c-dd5a54a49dfb"}
+{"action": "decision_locked", "at": "2026-11-25T01:48:13+00:00", "data": {"decision_id": "agent-catalog-store-category-20261124"}, "event_id": "097a6255-4709-4473-9685-942db04fa422"}
+{"action": "decision_superseded", "at": "2026-11-25T01:48:13+00:00", "data": {"affected": ["agent-catalog-lookup-in-stock-default-20261115"], "decision_id": "agent-catalog-first-version-20261113", "replacement_id": "agent-catalog-store-category-20261124"}, "event_id": "84013b75-356a-424f-8afb-8d668b7e1a16"}

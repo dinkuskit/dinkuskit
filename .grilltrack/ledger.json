@@ -4,9 +4,9 @@
   "current_focus": {
     "cadence": "sequential",
     "confirmed": true,
-    "confirmed_at": "2026-11-25T03:57:42+00:00",
+    "confirmed_at": "2026-11-25T04:41:36+00:00",
     "domain": "Agent catalog: store categories",
-    "started_at": "2026-11-25T03:57:42+00:00",
+    "started_at": "2026-11-25T04:41:36+00:00",
     "status": "confirmed",
     "summary": "The owner agreed the five standard category decisions on 24 Nov 2026 and said to build them."
   },
@@ -11409,7 +11409,7 @@
           "verification_ref": null
         },
         {
-          "at": "2026-11-25T03:57:42+00:00",
+          "at": "2026-11-25T04:41:36+00:00",
           "choice": "The three standard tools with word search, meaning search, price range, in stock, ships to US and only-these-stores filters, plus two things Shopify has that are cheap to include: a category filter using Shopify's open Standard Product Taxonomy (MIT licence), with each product's category worked out by the catalog and marked as inferred; and photo and similar-product search (catalog.like). Local shops, price tiers and personal results wait.",
           "from": "locked",
           "implementation_ref": null,
@@ -11435,7 +11435,7 @@
       "review_source_identity": null,
       "status": "superseded",
       "superseded_by": "agent-catalog-store-category-20261124",
-      "updated_at": "2026-11-25T03:57:42+00:00",
+      "updated_at": "2026-11-25T04:41:36+00:00",
       "verification_ref": null
     },
     {
@@ -11706,7 +11706,7 @@
           "verification_ref": null
         },
         {
-          "at": "2026-11-25T03:57:42+00:00",
+          "at": "2026-11-25T04:41:36+00:00",
           "choice": "Copy Shopify: no. lookup_catalog defaults filters.available to true, the same as search_catalog, so only variants a shopper can buy now come back, and every id that resolves to nothing buyable is reported as not_found (info). An agent that wants sold-out variants sends filters.available false, or calls get_product, whose option values say available false / exists true.",
           "from": "verified",
           "implementation_ref": "git:3100510",
@@ -11732,7 +11732,7 @@
       "review_source_identity": null,
       "status": "needs_reverification",
       "superseded_by": null,
-      "updated_at": "2026-11-25T03:57:42+00:00",
+      "updated_at": "2026-11-25T04:41:36+00:00",
       "verification_ref": "cmd:npm run test:catalog (14/14) && npm run proof:catalog (all PASS) at git:3100510"
     },
     {
@@ -12987,18 +12987,89 @@
       "verification_ref": "file:tests/shared-store-routes.test.mjs;file:proof/coupons-in-store-20261124/README.md"
     },
     {
+      "baseline_ref": "git:46d1526f54e63b11595933ee09247736f0e828a6",
+      "candidate_refs": [],
+      "choice": "Upgrade emdash, @emdash-cms/cloudflare and auth to exact 1.6.0, plugin-cli to 0.13.7 and plugin-test to 0.2.13, with public transitive dependencies; move the upgrade fixture and audit checks to 1.6.0. Core migration 098 (users.last_login_at) is new since 1.5.0; the 1.0.1 upgrade fixture must show exactly 090-098 applied and the 1.5.0 fixture (the last main before this change) exactly 098. Preserve CMS content, media, settings, plugin state and merchant organizations, memberships and site grants without reseeding. No new signer, authorization, grant, live endpoint or cross-repository feature; deployment, and the one-time media usage repair after it, stay a separate operator step.",
+      "context_ref": "https://github.com/emdash-cms/emdash/releases/tag/emdash%401.6.0",
+      "created_at": "2026-11-25T04:01:34+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [
+        "website-emdash15-20261122"
+      ],
+      "domain": "Website EmDash 1.6 source upgrade",
+      "history": [
+        {
+          "at": "2026-11-25T04:01:34+00:00",
+          "choice": "Upgrade emdash, @emdash-cms/cloudflare and auth to exact 1.6.0, plugin-cli to 0.13.7 and plugin-test to 0.2.13, with public transitive dependencies; move the upgrade fixture and audit checks to 1.6.0. Core migration 098 (users.last_login_at) is new since 1.5.0; the 1.0.1 upgrade fixture must show exactly 090-098 applied and the 1.5.0 fixture (the last main before this change) exactly 098. Preserve CMS content, media, settings, plugin state and merchant organizations, memberships and site grants without reseeding. No new signer, authorization, grant, live endpoint or cross-repository feature; deployment, and the one-time media usage repair after it, stay a separate operator step.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-11-25T04:04:26+00:00",
+          "choice": "Upgrade emdash, @emdash-cms/cloudflare and auth to exact 1.6.0, plugin-cli to 0.13.7 and plugin-test to 0.2.13, with public transitive dependencies; move the upgrade fixture and audit checks to 1.6.0. Core migration 098 (users.last_login_at) is new since 1.5.0; the 1.0.1 upgrade fixture must show exactly 090-098 applied and the 1.5.0 fixture (the last main before this change) exactly 098. Preserve CMS content, media, settings, plugin state and merchant organizations, memberships and site grants without reseeding. No new signer, authorization, grant, live endpoint or cross-repository feature; deployment, and the one-time media usage repair after it, stay a separate operator step.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-11-25T04:04:26+00:00",
+          "choice": "Upgrade emdash, @emdash-cms/cloudflare and auth to exact 1.6.0, plugin-cli to 0.13.7 and plugin-test to 0.2.13, with public transitive dependencies; move the upgrade fixture and audit checks to 1.6.0. Core migration 098 (users.last_login_at) is new since 1.5.0; the 1.0.1 upgrade fixture must show exactly 090-098 applied and the 1.5.0 fixture (the last main before this change) exactly 098. Preserve CMS content, media, settings, plugin state and merchant organizations, memberships and site grants without reseeding. No new signer, authorization, grant, live endpoint or cross-repository feature; deployment, and the one-time media usage repair after it, stay a separate operator step.",
+          "from": "implemented",
+          "implementation_ref": "branch claude/project-thread-f0207j: exact 1.6.0 pins (plugin-cli 0.13.7, plugin-test 0.2.13), lockfile, audit/fixture baselines expecting 098 (from 1.5.0) and 090-098 (from 1.0.1), and docs",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": null
+        }
+      ],
+      "id": "website-emdash16-20261125",
+      "implementation_ref": "branch claude/project-thread-f0207j: exact 1.6.0 pins (plugin-cli 0.13.7, plugin-test 0.2.13), lockfile, audit/fixture baselines expecting 098 (from 1.5.0) and 090-098 (from 1.0.1), and docs",
+      "question": "Which EmDash does the website run after 1.6.0?",
+      "rationale": "EmDash 1.6.0 adds one additive migration and no new plugin capabilities; the owner chose to upgrade now (25 Nov 2026).",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [],
+      "review_ref": null,
+      "review_result": null,
+      "review_source_identity": null,
+      "status": "verified",
+      "superseded_by": null,
+      "updated_at": "2026-11-25T04:04:26+00:00",
+      "verification_ref": ".grilltrack/proof/emdash-1-6-20261125/PROOF.md"
+    },
+    {
       "baseline_ref": null,
       "candidate_refs": [],
       "choice": "The three standard tools with word search, meaning search, price range, in stock, ships to US and only-these-stores filters, plus a category filter using Shopify's open Standard Product Taxonomy (MIT licence) and photo and similar-product search (catalog.like). A product's category is the one its store picked, read from the store's agent catalog feed (Shopify id, taxonomy version and full name). Only when the store sends none does the catalog work one out itself, and that one is marked as inferred. Local shops, price tiers and personal results wait.",
       "context_ref": null,
-      "created_at": "2026-11-25T03:57:42+00:00",
+      "created_at": "2026-11-25T04:41:36+00:00",
       "deferred_reason": null,
       "delivery_ref": null,
       "dependencies": [],
       "domain": "Agent catalog: store categories",
       "history": [
         {
-          "at": "2026-11-25T03:57:42+00:00",
+          "at": "2026-11-25T04:41:36+00:00",
           "choice": "The three standard tools with word search, meaning search, price range, in stock, ships to US and only-these-stores filters, plus a category filter using Shopify's open Standard Product Taxonomy (MIT licence) and photo and similar-product search (catalog.like). A product's category is the one its store picked, read from the store's agent catalog feed (Shopify id, taxonomy version and full name). Only when the store sends none does the catalog work one out itself, and that one is marked as inferred. Local shops, price tiers and personal results wait.",
           "from": "proposed",
           "implementation_ref": null,
@@ -13024,7 +13095,7 @@
       "review_source_identity": null,
       "status": "locked",
       "superseded_by": null,
-      "updated_at": "2026-11-25T03:57:42+00:00",
+      "updated_at": "2026-11-25T04:41:36+00:00",
       "verification_ref": null
     }
   ],
@@ -13056,5 +13127,5 @@
   "status": "active",
   "title": "Composed integration",
   "track_id": "gt-join-fc5864820e336b89121904a1d935b7f5",
-  "updated_at": "2026-11-25T03:57:42+00:00"
+  "updated_at": "2026-11-25T04:41:36+00:00"
 }

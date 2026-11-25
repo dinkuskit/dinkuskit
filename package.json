@@ -24,6 +24,7 @@
     "test:smoke": "node scripts/smoke.mjs",
     "test:catalog": "node --experimental-strip-types --test tests/catalog.test.mjs",
     "proof:catalog": "node catalog/scripts/local-proof.mjs",
+    "proof:catalog-upgrade": "node catalog/scripts/upgrade-proof.mjs",
     "test:account": "node --experimental-strip-types --test tests/emdash-public-auth-feasibility.test.mjs tests/merchant-unavailable-page.test.mjs",
     "test:e2e-contract": "node --test tests/e2e/run-contract.test.mjs",
     "test:e2e-mailbox-contract": "node --test tests/e2e/mailbox-contract.test.mjs",

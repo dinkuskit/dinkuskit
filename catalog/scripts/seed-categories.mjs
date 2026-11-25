@@ -1,9 +1,11 @@
 #!/usr/bin/env node
 /**
  * Fills the catalog's category index from Shopify's open Standard Product Taxonomy
- * (MIT licence, github.com/Shopify/product-taxonomy, dist/en/categories.txt), so the
- * catalog can work out each product's category. Run once at set-up and again when the
- * taxonomy version changes. It changes a Cloudflare index: run it only on the owner's go.
+ * (MIT licence, github.com/Shopify/product-taxonomy), so the catalog can work out each
+ * product's category and answer GET /api/categories. Use the release file for the version
+ * stores pick from (TAXONOMY_VERSION in src/meaning.ts): releases/download/v2026-11/
+ * categories.en.txt.gz, unzipped (the repository's committed dist/ folder is being retired).
+ * Run once at set-up and again when the taxonomy version changes. It changes a Cloudflare index: run it only on the owner's go.
  *
  *   CLOUDFLARE_ACCOUNT_ID=... CLOUDFLARE_API_TOKEN=... \
  *     node catalog/scripts/seed-categories.mjs path/to/categories.txt [index-name]

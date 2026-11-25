@@ -46,11 +46,12 @@ export async function storeFeed(db: D1Database, store: ListedStore, feed: Parsed
     const prices = variants.map(variant => variant.priceMinor);
     statements.push(
       db.prepare(`INSERT INTO catalog_offer (offer_id, upid, upid_basis, site_id, store_product_id, title, description, url, brand, gtin, mpn,
-          images, options, variants, highlights, price_min, price_max, currency, sellable, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+          images, options, variants, highlights, price_min, price_max, currency, sellable, updated_at, category_id, category_name)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
         .bind(id, upid, basis, store.siteId, offer.storeProductId, offer.title, offer.description, offer.url, offer.brand, offer.gtin, offer.mpn,
           JSON.stringify(offer.images), JSON.stringify(offer.options), JSON.stringify(variants), JSON.stringify(offer.highlights),
-          Math.min(...prices), Math.max(...prices), offer.currency, variants.some(variant => variant.sellable) ? 1 : 0, now),
+          Math.min(...prices), Math.max(...prices), offer.currency, variants.some(variant => variant.sellable) ? 1 : 0, now,
+          offer.category?.id ?? null, offer.category?.name ?? null),
       db.prepare('INSERT INTO catalog_text (offer_id, title, brand, body) VALUES (?, ?, ?, ?)')
         .bind(id, offer.title, offer.brand ?? '', [offer.description, ...offer.highlights, ...offer.options.flatMap(option => option.values)].join(' ')),
       ...variants.map(variant => db.prepare('INSERT OR REPLACE INTO catalog_variant (variant_id, offer_id) VALUES (?, ?)').bind(variant.id, id)),

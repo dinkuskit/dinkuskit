@@ -134,6 +134,13 @@ try {
   check('lookup_catalog by product id', await lookup(productId), ['Beta Goods 2300', 'Alpha Outfitters 2500']);
   check('get_product by product page address', await detail(`${ALPHA}/products/hat`), ['Beta Goods 2300', 'Alpha Outfitters 2500']);
 
+  const absentShops = Array.from({ length: 999 }, (_, i) => `site-absent-${i}`);
+  const manyShops = await tool('search_catalog', { query: 'wool hat', filters: { shops: [...absentShops, 'site-beta'], price: { min: 2300, max: 2300 } }, pagination: { limit: 1 } });
+  check('D1: a shop filter at its 1,000-id limit still finds the matching product', { sellers: sellers(manyShops.products[0]), total: manyShops.pagination.total_count },
+    { sellers: ['Beta Goods 2300', 'Alpha Outfitters 2500'], total: 1 });
+  const noShops = await tool('search_catalog', { filters: { shops: absentShops } });
+  check('D1: a large filter with no matching shop still returns an empty result', noShops.products, []);
+
   const teeProduct = (await tool('search_catalog', { query: 'tee' })).products[0];
   const redTee = teeProduct.variants.find(variant => variant.title === 'Red / M').id;
   const opened = (await tool('get_product', { id: redTee })).product;

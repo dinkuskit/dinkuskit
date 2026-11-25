@@ -66,11 +66,13 @@ export async function searchCatalog(db: D1Database, input: SearchInput, nearest?
     if (input.priceMax !== undefined) { member.push("json_extract(v.value, '$.priceMinor') <= ?"); values.push(input.priceMax); }
     where.push(`EXISTS (SELECT 1 FROM json_each(o.variants) v WHERE ${member.join(' AND ')})`);
   }
-  if (input.shops?.length) { where.push(`o.site_id IN (${input.shops.map(() => '?').join(',')})`); values.push(...input.shops); }
-  if (input.exclude?.length) { where.push(`o.upid NOT IN (${input.exclude.map(() => '?').join(',')})`); values.push(...input.exclude); }
+  // D1 allows at most 100 bound parameters in a statement. Bind each search list once,
+  // so these filters can be combined with each other, ranking, and pagination.
+  if (input.shops?.length) { where.push('o.site_id IN (SELECT value FROM json_each(?))'); values.push(JSON.stringify(input.shops)); }
+  if (input.exclude?.length) { where.push('o.upid NOT IN (SELECT value FROM json_each(?))'); values.push(JSON.stringify(input.exclude)); }
   if (input.categories?.length) {
-    where.push(`(${input.categories.map(() => `(${CATEGORY} = ? OR ${CATEGORY} LIKE ? ESCAPE '\\')`).join(' OR ')})`);
-    for (const category of input.categories) values.push(category, `${category.replace(/[\\%_]/g, '\\$&')}-%`);
+    where.push(`EXISTS (SELECT 1 FROM json_each(?) c WHERE ${CATEGORY} = c.value OR instr(${CATEGORY}, c.value || '-') = 1)`);
+    values.push(JSON.stringify(input.categories));
   }
   const filter = where.length ? `AND ${where.join(' AND ')}` : '';
   const source = 'catalog_offer o LEFT JOIN catalog_vector cv ON cv.offer_id = o.offer_id';
@@ -87,8 +89,8 @@ export async function searchCatalog(db: D1Database, input: SearchInput, nearest?
       ? ((await db.prepare(`${byWords} LIMIT ?`).bind(match, ...values, CANDIDATE_LIMIT).all<{ upid: string }>()).results ?? []).map(row => row.upid)
       : [];
     const kept = nearest.length
-      ? new Set(((await db.prepare(`SELECT DISTINCT o.upid AS upid FROM ${source} WHERE o.upid IN (${nearest.map(() => '?').join(',')}) ${filter}`)
-          .bind(...nearest, ...values).all<{ upid: string }>()).results ?? []).map(row => row.upid))
+      ? new Set(((await db.prepare(`SELECT DISTINCT o.upid AS upid FROM ${source} WHERE o.upid IN (SELECT value FROM json_each(?)) ${filter}`)
+          .bind(JSON.stringify(nearest), ...values).all<{ upid: string }>()).results ?? []).map(row => row.upid))
       : new Set<string>();
     const ranked = fuseRanks([words, nearest.filter(upid => kept.has(upid))]);
     totalCount = ranked.length;

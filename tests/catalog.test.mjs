@@ -7,7 +7,7 @@ import { universalProductId } from '../catalog/src/ids.ts';
 import { listListedStores } from '../catalog/src/listing.ts';
 import { handleRpc } from '../catalog/src/mcp.ts';
 import { VECTOR_DIMENSIONS, fuseRanks, workersAiEmbedder } from '../catalog/src/meaning.ts';
-import { matchExpression } from '../catalog/src/search.ts';
+import { matchExpression, searchCatalog } from '../catalog/src/search.ts';
 import { recheckStores, refreshCatalog } from '../catalog/src/sync.ts';
 import { handleRequest } from '../catalog/src/worker.ts';
 import { categoryText, parseCategories } from '../catalog/scripts/seed-categories.mjs';
@@ -20,7 +20,11 @@ function d1(sqlite) {
       ? { success: true, results: stmt.all(...values), meta: { changes: 0 } }
       : { success: true, meta: { changes: stmt.run(...values).changes } };
     const wrapper = {
-      bind(...v) { values = v; return wrapper; },
+      bind(...v) {
+        assert.ok(v.length <= 100, 'D1 supports at most 100 bound parameters per statement');
+        values = v;
+        return wrapper;
+      },
       async first() { return stmt.reader ? stmt.get(...values) ?? null : null; },
       async all() { return { success: true, results: stmt.all(...values) }; },
       async run() { return execute(); },
@@ -536,6 +540,25 @@ test("a store's own category wins over the catalog's guess, which fills in only 
   assert.equal((await call(db, 'search_catalog', { filters: { categories: ['aa-1'] } }, meaning)).products.length, 1, "the store's pick still sits under its parents");
   const mug = await call(db, 'search_catalog', { query: 'mug', filters: { available: false } }, meaning);
   assert.deepEqual(mug.products[0].metadata.category, { id: 'hg-11', name: 'Home & Garden > Kitchen & Dining', inferred: true }, 'no store pick: the guess, marked as one');
+});
+
+test('maximum category, seller and similarity lists compose within the D1 bind limit', async () => {
+  const db = await catalogDb(); clock = 1000;
+  const alpha = alphaFeed();
+  alpha.products[0].category = { taxonomy: 'shopify', id: 'aa-1-130' };
+  alpha.products[1].category = { taxonomy: 'shopify', id: 'aa-1-13-8' };
+  await refreshCatalog(db, stores, fetcher({ [ALPHA]: alpha, [BETA]: betaFeed() }), clock);
+  const tee = (await call(db, 'lookup_catalog', { ids: [`${ALPHA}/products/tee`] })).products[0];
+  const shops = [...Array.from({ length: 999 }, (_, i) => `absent-${i}`), 'site-alpha'];
+  const categories = [...Array.from({ length: 49 }, (_, i) => `hg-${i + 1}`), 'aa-1-13'];
+  const nearest = [...Array.from({ length: 99 }, (_, i) => `absent-product-${i}`), tee.id];
+  const input = { available: true, shops, categories, priceMin: 1800, priceMax: 2500, limit: 1, offset: 0 };
+  for (const result of [await searchCatalog(db, input), await searchCatalog(db, { ...input, query: 'trail' }), await searchCatalog(db, input, nearest)]) {
+    assert.deepEqual(result.products.map(product => product.id), [tee.id], 'a descendant matches; a sibling sharing its numeric prefix does not');
+    assert.equal(result.totalCount, 1);
+    assert.equal(result.hasNextPage, false);
+  }
+  assert.deepEqual((await searchCatalog(db, { ...input, categories: ['aa-1-13-8'] })).products.map(product => product.id), [tee.id], 'an exact category still matches');
 });
 
 test('the category door finds Shopify categories by meaning for a search or a suggestion', async () => {

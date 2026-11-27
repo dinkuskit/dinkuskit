@@ -17,17 +17,31 @@ export type ResolvedMerchant = {
 /** sessionId is the Better Auth sign-in session; Ship's sign-in is bound to it. */
 export type AuthenticatedLogin = { userId: string; email: string; sessionId: string };
 
-export async function resolveLogin(auth: MerchantAuth, db: D1Database, request: Request): Promise<AuthenticatedLogin | null> {
-  const result = await auth.api.getSession({ headers: request.headers });
+export async function resolveLogin(
+  auth: MerchantAuth,
+  db: D1Database,
+  request: Request,
+  forwardCookies?: (cookies: string[]) => void,
+): Promise<AuthenticatedLogin | null> {
+  // Don't extend the database expiry unless this caller forwards the browser cookie.
+  const { headers, response: result } = await auth.api.getSession({
+    headers: request.headers,
+    query: { disableRefresh: !forwardCookies },
+    returnHeaders: true,
+  });
+  forwardCookies?.(headers.getSetCookie());
   if (!result?.user?.id) return null;
   const account = await loadMerchantAccountByUserId(db, result.user.id);
   if (!account || account.disabled) return null;
   return { userId: result.user.id, email: result.user.email, sessionId: result.session.id };
 }
 
-/** Login authenticates the person; selected current membership authorizes the business. */
 export async function resolveMerchant(auth: MerchantAuth, db: D1Database, request: Request): Promise<ResolvedMerchant | null> {
-  const login = await resolveLogin(auth, db, request);
+  return resolveMerchantForLogin(db, await resolveLogin(auth, db, request));
+}
+
+/** Login authenticates the person; selected current membership authorizes the business. */
+export async function resolveMerchantForLogin(db: D1Database, login: AuthenticatedLogin | null): Promise<ResolvedMerchant | null> {
   if (!login) return null;
   const account = await loadCurrentMerchant(db, login.userId);
   return account ? { ...login, subject: account.subject, accountId: account.accountId, organizationId: account.organizationId } : null;

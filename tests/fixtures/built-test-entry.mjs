@@ -179,6 +179,21 @@ async function proofRoutes(request, env, ctx) {
     return json(200, { syntheticOnly: true });
   }
 
+  if (url.pathname === '/__proof/session-expiry') {
+    const email = url.searchParams.get('email');
+    const db = env.MERCHANT_DB;
+    if (request.method === 'POST') {
+      const agedAt = Date.now() - 2 * 86_400_000;
+      await db.prepare('UPDATE session SET updatedAt = ?, expiresAt = ? WHERE userId = (SELECT id FROM "user" WHERE email = ?)')
+        .bind(new Date(agedAt).toISOString(), new Date(agedAt + 7 * 86_400_000).toISOString(), email).run();
+    } else if (request.method !== 'GET') {
+      return json(405, { error: 'method_not_allowed' });
+    }
+    const session = await db.prepare('SELECT expiresAt FROM session WHERE userId = (SELECT id FROM "user" WHERE email = ?)')
+      .bind(email).first();
+    return json(200, { expiresAt: session?.expiresAt ?? null });
+  }
+
   if (request.method === 'POST' && url.pathname === '/__proof/expire-verification') {
     if (!env.MERCHANT_DB) return json(503, { error: 'merchant_unavailable' });
     await env.MERCHANT_DB.prepare("UPDATE verification SET expiresAt = '1970-01-01T00:00:00.000Z'").run();

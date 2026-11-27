@@ -2,7 +2,7 @@ import { defineMiddleware } from 'astro:middleware';
 import { isProtectedAccountPath, MerchantUnavailableError, safeAccountPath, seeOther, unavailableResponse } from './account/config.ts';
 import { getMerchantEnv } from './account/bindings.ts';
 import { createMerchantRuntime } from './account/auth.ts';
-import { resolveLogin, resolveMerchant } from './account/session.ts';
+import { resolveLogin, resolveMerchantForLogin } from './account/session.ts';
 import { canonicalRedirect } from './seo.ts';
 
 function setHeaderSafe(response: Response, name: string, value: string): Response {
@@ -45,17 +45,30 @@ export const onRequest = defineMiddleware(async (context, next) => {
     const redirect = canonicalRedirect(context.url, context.request);
     if (redirect) return Response.redirect(redirect.toString(), 308);
   }
-  const finish = async (promise: Promise<Response> | Response) => applySeoHeaders(context.url, await promise);
+  let sessionCookies: string[] = [];
+  const finish = async (promise: Promise<Response> | Response) => {
+    const response = applySeoHeaders(context.url, await promise);
+    if (!sessionCookies.length) return response;
+    const headers = new Headers(response.headers);
+    headers.set('Cache-Control', 'private, no-store');
+    for (const cookie of sessionCookies) headers.append('Set-Cookie', cookie);
+    return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
+  };
+  const { pathname } = context.url;
+  // Better Auth owns /api/auth responses, and the public JWKS must not send merchant cookies.
+  if (pathname !== '/account' && !pathname.startsWith('/account/')) return finish(next());
+  if (pathname === '/account/.well-known/jwks.json') return finish(next());
   // This narrow surface authenticates the site's CMS user in its own handlers.
-  if (context.url.pathname === '/account/organization-approvals' || context.url.pathname.startsWith('/account/organization-approvals/')) return finish(next());
-  if (!context.url.pathname.startsWith('/account') && !context.url.pathname.startsWith('/api/auth')) {
-    return finish(next());
-  }
+  if (pathname === '/account/organization-approvals' || pathname.startsWith('/account/organization-approvals/')) return finish(next());
+  // Leave cookie writes on mutations to the route (e.g. logout must only clear the session).
+  const forwardCookies = context.request.method === 'GET' || context.request.method === 'HEAD'
+    ? (cookies: string[]) => { sessionCookies = cookies; }
+    : undefined;
   try {
     const env = await getMerchantEnv();
     const runtime = createMerchantRuntime(env);
-    context.locals.login = await resolveLogin(runtime.auth, env.MERCHANT_DB, context.request);
-    context.locals.merchant = await resolveMerchant(runtime.auth, env.MERCHANT_DB, context.request);
+    context.locals.login = await resolveLogin(runtime.auth, env.MERCHANT_DB, context.request, forwardCookies);
+    context.locals.merchant = await resolveMerchantForLogin(env.MERCHANT_DB, context.locals.login);
   } catch (error) {
     if (error instanceof MerchantUnavailableError) return finish(unavailableResponse('merchant_unavailable', context.request));
     throw error;

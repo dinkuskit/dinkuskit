@@ -89,6 +89,66 @@ test('account page: next step, business name, staff list and plain messages', as
   }
 });
 
+test('account pages send the rolling session cookie before the browser expiry', async t => {
+  const runtime = await startMerchantTestRuntime();
+  try {
+    const email = 'rolling-session@example.test';
+    const { jar } = await signup(runtime, email);
+    const expiryPath = `/__proof/session-expiry?email=${encodeURIComponent(email)}`;
+    const expiry = async (method = 'GET') => {
+      const response = await request(runtime, new Map(), expiryPath, { method });
+      assert.equal(response.status, 200);
+      return (await response.json()).expiresAt;
+    };
+    // Report cookie attributes, not signed cookie values, even on failure.
+    const sessionCookies = response => response.headers.getSetCookie()
+      .filter(cookie => /^[^=]*\.session_token=/.test(cookie))
+      .map(cookie => ({ maxAge: Number(/;\s*Max-Age=(\d+)/i.exec(cookie)?.[1]), httpOnly: /;\s*HttpOnly\b/i.test(cookie) }));
+    const expectRotation = (response, expiresBefore, expiresAfter, lane) => {
+      const cookies = sessionCookies(response);
+      t.diagnostic(`${lane}: HTTP ${response.status}; D1 expiry ${expiresBefore} → ${expiresAfter}; session Set-Cookie ${JSON.stringify(cookies)}`);
+      assert.equal(response.status, 200);
+      assert.ok(Date.parse(expiresAfter) - Date.parse(expiresBefore) > 86_400_000, 'D1 expiry rolls forward');
+      assert.deepEqual(cookies, [{ maxAge: 604800, httpOnly: true }], 'browser receives one renewed session cookie');
+    };
+
+    await page(runtime, jar, '/account/sites');
+    const before = await expiry('POST');
+    const sites = await request(runtime, jar, '/account/sites');
+    expectRotation(sites, before, await expiry(), 'Your stores SSR');
+    assert.match(sites.headers.get('cache-control') ?? '', /private.*no-store/);
+    assert.equal(sites.headers.get('x-robots-tag'), 'noindex, nofollow');
+    assert.match(await sites.text(), /Your stores/);
+    assert.deepEqual(sessionCookies(await request(runtime, jar, '/account/sites')), [], 'no cookie churn before update age');
+
+    const apiBefore = await expiry('POST');
+    // An account-aware public page must not silently extend the D1 session.
+    const start = await request(runtime, jar, '/start');
+    assert.deepEqual(sessionCookies(start), []);
+    assert.equal(await expiry(), apiBefore, '/start leaves D1 expiry intact');
+    const jwks = await request(runtime, jar, '/account/.well-known/jwks.json');
+    assert.equal(jwks.status, 200);
+    assert.equal(jwks.headers.get('cache-control'), 'public, max-age=60');
+    assert.equal(jwks.headers.has('set-cookie'), false);
+    assert.equal(await expiry(), apiBefore, 'public JWKS leaves D1 expiry intact');
+
+    const api = await request(runtime, jar, '/api/auth/get-session');
+    expectRotation(api, apiBefore, await expiry(), 'Better Auth HTTP');
+    await api.body?.cancel();
+
+    await expiry('POST');
+    const logout = await request(runtime, jar, '/account/logout', { method: 'POST' });
+    assert.equal(logout.status, 303);
+    assert.deepEqual(sessionCookies(logout), [{ maxAge: 0, httpOnly: true }], 'logout only clears the session cookie');
+    assert.equal(await expiry(), null, 'logout still revokes the D1 session');
+    const anonymous = await request(runtime, jar, '/account/sites');
+    assert.equal(anonymous.status, 303);
+    assert.deepEqual(sessionCookies(anonymous), []);
+  } finally {
+    await stopRuntime(runtime);
+  }
+});
+
 test('a store with nothing left on leaves Your stores for the archive', async () => {
   const runtime = await startMerchantTestRuntime();
   const owner = new Map();
